@@ -1,5 +1,110 @@
-body,
-html {
-  padding: 0;
+* {
+  box-sizing: border-box;
+}
+head,
+body {
   margin: 0;
+  padding: 0;
+  background-color: #000;
+  color: #fff;
+  font-family: monospace;
+  font-size: 13px;
+}
+h4 {
+  margin: 7px 0;
+}
+body {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  height: 100vh;
+  width: 100vw;
+}
+ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+a {
+  text-decoration: none;
+  color: #fff;
+}
+a:hover {
+  text-decoration: underline;
+}
+
+#main-window {
+  display: grid;
+  grid-template-columns: 200px repeat(auto-fit, minmax(20%, 1fr));
+  height: 100%;
+  width: 100%;
+}
+#left-pane {
+  width: 200px;
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+}
+#right-pane {
+  display: flex;
+  flex-direction: row;
+}
+.pane {
+  border: 1px solid #fff;
+  margin: 3px;
+  padding: 4px;
+}
+.pane.active {
+  border: 2px solid #fff;
+  padding: 3px;
+  margin: 3px;
+}
+#changes-pane {
+  height: 100px;
+  flex: 0;
+}
+#branch-pane {
+  overflow: auto;
+  white-space: nowrap;
+  flex-grow: 1;
+}
+#commits-pane {
+  overflow: auto;
+}
+#commits-pane ul li {
+  display: block;
+  white-space: nowrap;
+}
+
+.tree-list li > ul {
+  display: none;
+}
+.tree-list .open > ul {
+  display: block;
+}
+li .tree-list {
+  margin-left: 11px;
+}
+
+#commits-pane .short .date {
+  display: none;
+}
+
+.selected,
+.selected * {
+  color: #000;
+  background-color: #fff;
+}
+
+.diff-line-marking {
+  color: teal;
+}
+.diff-file {
+  color: yellow;
+}
+.diff-added {
+  color: green;
+}
+.diff-removed {
+  color: red;
 }

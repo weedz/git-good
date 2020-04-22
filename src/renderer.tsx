@@ -29,5 +29,15 @@
 import './index.css';
 
 import {h, render} from "preact";
+import App from "./App";
 
-render(<h1>Hello, World!</h1>, document.body);
+function renderApp() {
+    render(<App />, document.body);
+}
+
+if (module.hot) {
+    module.hot.accept();
+    module.hot.accept("./renderer.tsx", renderApp);
+}
+
+renderApp();
