@@ -12,6 +12,6 @@ export default class App extends Component {
                 <Main path="/commit/:sha" />
                 <WorkingArea path="/working-area" />
             </Router>
-        )
+        );
     }
 }
