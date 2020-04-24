@@ -9,6 +9,7 @@ export default class App extends Component {
         return (
             <Router>
                 <Main path="/" default />
+                <Main path="/commit/:sha" />
                 <WorkingArea path="/working-area" />
             </Router>
         )

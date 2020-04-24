@@ -85,6 +85,6 @@
   },
   "dependencies": {
     "preact": "^10.4.1",
-    "router-tsx": "git+https://github.com/weedz/router-tsx.git"
+    "router-tsx": "file:../../js/router-tsx"
   }
 }

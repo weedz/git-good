@@ -1,22 +1,23 @@
 import { h, Component } from "preact";
-import { Link, RoutableProps } from "router-tsx";
+import { RoutableProps, Link } from "router-tsx";
 
 export default class Main extends Component<RoutableProps> {
     render() {
+        console.log(this.props);
         return (
         <div id="main-window">
             <div id="left-pane">
                 <div id="changes-pane" class="pane">
                     <h4>Working area</h4>
                     <ul>
-                        <li><Link href="/working-area">Changes (1)</Link></li>
+                        <li><Link activeClassName="selected" href="/working-area">Changes (1)</Link></li>
                     </ul>
                 </div>
                 <div id="branch-pane" class="pane">
                     <h4>Refs</h4>
                     <ul class="tree-list">
                         <li>
-                            <Link href="/">HEAD (current branch)</Link>
+                            <Link activeClassName="selected" href="/">HEAD (current branch)</Link>
                         </li>
                         <hr />
                         <li class="open">
@@ -75,21 +76,21 @@ export default class Main extends Component<RoutableProps> {
             <div id="commits-pane" class="pane">
                 <h4>Commits</h4>
                 <ul>
-                    <li class="short selected">
-                        <a href="#">
+                    <li class="short">
+                        <Link activeClassName="selected" href="/commit/22a4df3">
                             <span class="msg">No need to spread Route since params comes from mapParams</span>
                             <span class="date">2020-10-01 18:00</span>
                             <span class="sha">22a4df3</span>
                             <span class="author">Linus Björklund</span>
-                        </a>
+                        </Link>
                     </li>
                     <li class="short">
-                        <a href="#">
+                        <Link activeClassName="selected" href="/commit/1931e14">
                             <span class="msg">find returns a `match` value to indicate if we matched the whole URI</span>
                             <span class="date">2020-10-01 17:59</span>
                             <span class="sha">1931e14</span>
                             <span class="author">Linus Björklund</span>
-                        </a>
+                        </Link>
                     </li>
                 </ul>
             </div>

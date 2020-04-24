@@ -9,14 +9,14 @@ export default class WorkingArea extends Component<RoutableProps> {
                 <div id="changes-pane" class="pane">
                     <h4>Working area</h4>
                     <ul>
-                        <li><Link href="/working-area" class="selected">Changes (1)</Link></li>
+                        <li><Link activeClassName="selected" href="/working-area">Changes (1)</Link></li>
                     </ul>
                 </div>
                 <div id="branch-pane" class="pane">
                     <h4>Refs</h4>
                     <ul class="tree-list">
                         <li>
-                            <Link href="/">HEAD (current branch)</Link>
+                            <Link activeClassName="selected" href="/">HEAD (current branch)</Link>
                         </li>
                         <hr />
                         <li class="open">
