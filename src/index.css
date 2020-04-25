@@ -76,10 +76,10 @@ a:hover {
   white-space: nowrap;
 }
 
-.tree-list li > ul {
+.tree-list > li > ul.tree-list {
   display: none;
 }
-.tree-list .open > ul {
+.tree-list .open > ul.tree-list {
   display: block;
 }
 li .tree-list {

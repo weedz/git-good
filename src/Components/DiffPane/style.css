@@ -1,0 +1,31 @@
+.tree-list h4 {
+    display: inline;
+}
+#diff-pane {
+    max-height: 100vh;
+    overflow: auto;
+}
+.diff-header {
+    color: teal;
+}
+
+.diff-line {
+    width: 1em;
+    display: inline-block;
+}
+.diff-line:empty {
+    content: "&nbsp;";
+}
+.diff-line.added {
+    color: green;
+}
+.diff-line.deleted {
+    color: red;
+}
+.diff-line-number {
+    width: 3em;
+    display: inline-block;
+}
+.diff-view li {
+    white-space: nowrap;
+}

@@ -6,12 +6,14 @@ import { getBranchTree } from "../../Data/Branch";
 import { registerHandler, IPCAction, sendAsyncMessage, unregisterHandler } from "../../Data/Renderer";
 
 function toggleTreeItem(e: any) {
+    e.preventDefault();
     const parent = e.target.parentNode;
     if (parent.classList.contains("open")) {
         parent.classList.remove("open");
     } else {
         parent.classList.add("open");
     }
+    return false;
 }
 
 function BranchTree(branches: any) {

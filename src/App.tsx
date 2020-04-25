@@ -6,6 +6,7 @@ import WorkingArea from "./Views/WorkingArea";
 import Changes from "./Components/Changes";
 import BranchList from "./Components/BranchList";
 import { attach, sendAsyncMessage, IPCAction, registerHandler } from "./Data/Renderer";
+import DiffPane from "./Components/DiffPane";
 
 export default class App extends Component<{}, {repo?: any}> {
     constructor() {
@@ -36,6 +37,7 @@ export default class App extends Component<{}, {repo?: any}> {
                     <Main path="/commit/:sha" />
                     <Main path="/branch/:branch" />
                     <Main path="/branch/:branch/:sha" />
+                    <DiffPane path="/fulldiff/:commit" />
                     <WorkingArea path="/working-area" />
                 </Router>
             </div>
