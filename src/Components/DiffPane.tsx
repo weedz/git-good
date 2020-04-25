@@ -14,7 +14,7 @@ export default class DiffPane extends Component<Props, {commit: any}> {
         sendAsyncMessage(IPCAction.LOAD_COMMIT, newProps.commit);
     }
     componentWillUnmount() {
-        unregisterHandler(IPCAction.LOAD_COMMIT);
+        unregisterHandler(IPCAction.LOAD_COMMIT, this.loadCommit);
     }
     loadCommit = (commit: any) => {
         this.setState({

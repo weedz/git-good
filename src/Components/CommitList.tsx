@@ -3,20 +3,32 @@ import { Link } from "router-tsx";
 import { IPCAction, sendAsyncMessage, unregisterHandler } from "../Data/Renderer";
 import { registerHandler } from "../Data/Renderer";
 
-export default class CommitList extends Component<{branch: string}, {commits: any[]}> {
+type Props = {
+    branch?: string
+    sha?: string
+};
+
+export default class CommitList extends Component<Props, {commits: any[]}> {
     componentWillMount() {
         registerHandler(IPCAction.LOAD_COMMITS, this.loadCommits);
-        sendAsyncMessage(IPCAction.LOAD_COMMITS, {
-            branch: decodeURIComponent(this.props.branch)
-        });
+        this.handleProps(this.props);
     }
     componentWillUnmount() {
-        unregisterHandler(IPCAction.LOAD_COMMITS);
+        unregisterHandler(IPCAction.LOAD_COMMITS, this.loadCommits);
     }
-    componentWillReceiveProps(nextProps: any) {
-        sendAsyncMessage(IPCAction.LOAD_COMMITS, {
-            branch: decodeURIComponent(nextProps.branch)
-        });
+    componentWillReceiveProps(nextProps: Props) {
+        this.handleProps(nextProps);
+    }
+    handleProps(props: Props) {
+        if (!props.sha) {
+            sendAsyncMessage(IPCAction.LOAD_COMMITS, {
+                branch: decodeURIComponent(props.branch || "HEAD")
+            });
+        } else {
+            // sendAsyncMessage(IPCAction.LOAD_COMMITS, {
+            //     sha: decodeURIComponent(props.sha)
+            // });
+        }
     }
     loadCommits = (commits: any) => {
         this.setState({
@@ -29,8 +41,8 @@ export default class CommitList extends Component<{branch: string}, {commits: an
                 <h4>Commits</h4>
                 <ul>
                     {this.state.commits && this.state.commits.map((commit) => (
-                        <li class="short">
-                            <Link activeClassName="selected" href={`/branch/${this.props.branch}/${commit.sha}`}>
+                        <li class="short" key={commit.sha}>
+                            <Link activeClassName="selected" href={ (this.props.branch ? `/branch/${this.props.branch}/` : "/commit/") + commit.sha}>
                                 <span class="msg">{commit.message}</span>
                                 <span class="date">{commit.date}</span>
                                 <span class="sha">{commit.sha}</span>

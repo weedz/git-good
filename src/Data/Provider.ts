@@ -6,7 +6,7 @@ export async function getCommits(repo: Repository, start?: Commit, num: number =
         start = await repo.getHeadCommit();
     }
     revwalk.push(start.id());
-    revwalk.sorting(Revwalk.SORT.TIME);
+    revwalk.sorting(Revwalk.SORT.TOPOLOGICAL);
 
     const commits = await revwalk.getCommits(num);
 

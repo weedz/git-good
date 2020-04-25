@@ -7,19 +7,26 @@ export enum IPCAction {
     LOAD_COMMIT,
 };
 
-const handlers: {[key in IPCAction]?: Function} = {};
+const handlers: {[key in IPCAction]: Function[]} = {
+    [IPCAction.LOAD_COMMITS]: [],
+    [IPCAction.LOAD_BRANCHES]: [],
+    [IPCAction.OPEN_REPO]: [],
+    [IPCAction.LOAD_COMMIT]: [],
+};
 export function registerHandler(action: IPCAction, cb: Function) {
-    handlers[action] = cb;
+    handlers[action]?.push(cb);
 }
-export function unregisterHandler(action: IPCAction) {
-    delete handlers[action];
+export function unregisterHandler(action: IPCAction, cb: Function) {
+    handlers[action].splice(handlers[action].indexOf(cb)>>>0, 1);
 }
 
 export function attach() {
     ipcRenderer.on("asynchronous-reply", handleEvent);
 }
 function handleEvent(event: any, payload: {action: IPCAction, data: any}) {
-    handlers[payload.action] && handlers[payload.action]!(payload.data);
+    for (const handler of handlers[payload.action]) {
+        handler(payload.data);
+    }
 }
 export function sendAsyncMessage(action: IPCAction, data?: any) {
     ipcRenderer.send("asynchronous-message", {

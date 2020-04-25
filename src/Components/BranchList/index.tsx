@@ -45,7 +45,7 @@ export default class BranchList extends Component<any, {branches: any}> {
         sendAsyncMessage(IPCAction.LOAD_BRANCHES);
     }
     componentWillUnmount() {
-        unregisterHandler(IPCAction.LOAD_BRANCHES);
+        unregisterHandler(IPCAction.LOAD_BRANCHES, this.loadBranches);
     }
     loadBranches = (branches: any) => {
         this.setState({
