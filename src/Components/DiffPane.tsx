@@ -1,33 +1,41 @@
 import { h, Component } from "preact";
 import { StaticLink } from "router-tsx";
+import { IPCAction, registerHandler, unregisterHandler } from "../Data/Renderer";
+import { sendAsyncMessage } from "../Data/Renderer";
+import { getBranchTree } from "../Data/Branch";
 
-export default class DiffPane extends Component {
+type Props = {commit: string};
+export default class DiffPane extends Component<Props, {commit: any}> {
+    componentWillMount() {
+        registerHandler(IPCAction.LOAD_COMMIT, this.loadCommit);
+        sendAsyncMessage(IPCAction.LOAD_COMMIT, this.props.commit);
+    }
+    componentWillReceiveProps(newProps: Props) {
+        sendAsyncMessage(IPCAction.LOAD_COMMIT, newProps.commit);
+    }
+    componentWillUnmount() {
+        unregisterHandler(IPCAction.LOAD_COMMIT);
+    }
+    loadCommit = (commit: any) => {
+        this.setState({
+            commit
+        });
+    }
     render() {
+        if (!this.state.commit) {
+            return (
+                <p>Loading commit...</p>
+            );
+        }
         return (
             <div id="diff-pane" class="pane">
-                <p>Hotkey: Collapse diff panel</p>
-                <p>Hotkey: Toggle between inline diff and full diff view</p>
-                <h4>Commit d842471</h4>
-
-                <p>Parent: <StaticLink href="/commit/2ef7d5ef02ce614408fa6bf55c00d0d88f0fa74b">2ef7d5e</StaticLink></p>
-                <p class="date">authored: 1587587995000</p>
-                <p class="author">author: Linus Björklund</p>
-                <p class="msg">
-                    <code>test module</code>
-                </p>
+                <h4>Commit {this.state.commit.sha}</h4>
+                <p>Parent: <StaticLink href={`/commit/${this.state.commit.parent.sha}`}>{this.state.commit.parent.sha.substring(0,7)}</StaticLink></p>
+                <p class="date">authored: {this.state.commit.date}</p>
+                <p class="author">author: {this.state.commit.author.name} &lt;{this.state.commit.author.email}&gt;</p>
+                <p class="msg">{this.state.commit.message}</p>
                 <hr />
                 <p>Diff:</p>
-                <pre>{`diff --git a/index.ts b/index.ts
-index 2cdbafb..f88adcf 100644
---- a/index.ts
-+++ b/index.ts
-@@ -1,3 +1,4 @@
-+// tests
-    type RouteCallback = Function | any;
-    
-    type Route = {
-                `}
-                </pre>
             </div>
         );
     }

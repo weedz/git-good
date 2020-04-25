@@ -1,6 +1,6 @@
 import { Repository, Revwalk, Commit, Branch, Reference } from "nodegit";
 
-export async function getCommits(repo: Repository, start?: Commit, num: number = 10) {
+export async function getCommits(repo: Repository, start?: Commit, num: number = 100) {
     const revwalk = repo.createRevWalk();
     if (!start) {
         start = await repo.getHeadCommit();
@@ -47,5 +47,27 @@ export async function getBranches(repo: Repository) {
         local,
         remote,
         tags
+    };
+}
+
+export async function getCommit(commit: Commit) {
+    const parent = commit.parentcount() && await commit.parent(0) || commit;
+    return {
+        // parent: (await commit.parent(0)).sha(),
+        parent: {
+            sha: parent.sha(),
+        },
+        sha: commit.sha(),
+        // diff: await commit.getDiff(),
+        date: commit.date().getTime(),
+        message: commit.message(),
+        author: {
+            name: commit.author().name(),
+            email: commit.author().email()
+        },
+        commiter: {
+            name: commit.committer().name(),
+            email: commit.committer().email()
+        },
     };
 }

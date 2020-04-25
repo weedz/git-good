@@ -3,7 +3,7 @@ import { Link } from "router-tsx";
 
 import "./style";
 import { getBranchTree } from "../../Data/Branch";
-import { registerHandler, IPCAction, sendAsyncMessage } from "../../Data/Renderer";
+import { registerHandler, IPCAction, sendAsyncMessage, unregisterHandler } from "../../Data/Renderer";
 
 function toggleTreeItem(e: any) {
     const parent = e.target.parentNode;
@@ -40,10 +40,12 @@ function BranchTree(branches: any) {
 }
 
 export default class BranchList extends Component<any, {branches: any}> {
-    constructor() {
-        super();
+    componentWillMount() {
         registerHandler(IPCAction.LOAD_BRANCHES, this.loadBranches);
         sendAsyncMessage(IPCAction.LOAD_BRANCHES);
+    }
+    componentWillUnmount() {
+        unregisterHandler(IPCAction.LOAD_BRANCHES);
     }
     loadBranches = (branches: any) => {
         this.setState({

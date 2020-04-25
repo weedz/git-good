@@ -1,17 +1,17 @@
 import { h, Component } from "preact";
 import { Link } from "router-tsx";
-import { IPCAction, sendAsyncMessage } from "../Data/Renderer";
+import { IPCAction, sendAsyncMessage, unregisterHandler } from "../Data/Renderer";
 import { registerHandler } from "../Data/Renderer";
 
 export default class CommitList extends Component<{branch: string}, {commits: any[]}> {
-    constructor() {
-        super();
-        registerHandler(IPCAction.LOAD_COMMITS, this.loadCommits);
-    }
     componentWillMount() {
+        registerHandler(IPCAction.LOAD_COMMITS, this.loadCommits);
         sendAsyncMessage(IPCAction.LOAD_COMMITS, {
             branch: decodeURIComponent(this.props.branch)
         });
+    }
+    componentWillUnmount() {
+        unregisterHandler(IPCAction.LOAD_COMMITS);
     }
     componentWillReceiveProps(nextProps: any) {
         sendAsyncMessage(IPCAction.LOAD_COMMITS, {
@@ -30,7 +30,7 @@ export default class CommitList extends Component<{branch: string}, {commits: an
                 <ul>
                     {this.state.commits && this.state.commits.map((commit) => (
                         <li class="short">
-                            <Link activeClassName="selected" href={`/branch/${this.props.branch}/commit/${commit.sha}`}>
+                            <Link activeClassName="selected" href={`/branch/${this.props.branch}/${commit.sha}`}>
                                 <span class="msg">{commit.message}</span>
                                 <span class="date">{commit.date}</span>
                                 <span class="sha">{commit.sha}</span>

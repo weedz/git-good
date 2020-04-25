@@ -3,7 +3,8 @@ import { ipcRenderer } from "electron";
 export enum IPCAction {
     LOAD_COMMITS,
     LOAD_BRANCHES,
-    OPEN_REPO
+    OPEN_REPO,
+    LOAD_COMMIT,
 };
 
 const handlers: {[key in IPCAction]?: Function} = {};

@@ -33,6 +33,7 @@ export default class App extends Component<{}, {repo?: any}> {
                 </div>
                 <Router>
                     <Main path="/" />
+                    <Main path="/commit/:sha" />
                     <Main path="/branch/:branch" />
                     <Main path="/branch/:branch/:sha" />
                     <WorkingArea path="/working-area" />
