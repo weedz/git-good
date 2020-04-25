@@ -1,28 +1,43 @@
 import { h, Component } from "preact";
 import { Link } from "router-tsx";
+import { IPCAction, sendAsyncMessage } from "../Data/Renderer";
+import { registerHandler } from "../Data/Renderer";
 
-export default class CommitList extends Component {
+export default class CommitList extends Component<{branch: string}, {commits: any[]}> {
+    constructor() {
+        super();
+        registerHandler(IPCAction.LOAD_COMMITS, this.loadCommits);
+    }
+    componentWillMount() {
+        sendAsyncMessage(IPCAction.LOAD_COMMITS, {
+            branch: decodeURIComponent(this.props.branch)
+        });
+    }
+    componentWillReceiveProps(nextProps: any) {
+        sendAsyncMessage(IPCAction.LOAD_COMMITS, {
+            branch: decodeURIComponent(nextProps.branch)
+        });
+    }
+    loadCommits = (commits: any) => {
+        this.setState({
+            commits
+        });
+    }
     render() {
         return (
             <div id="commits-pane" class="pane">
                 <h4>Commits</h4>
                 <ul>
-                    <li class="short">
-                        <Link activeClassName="selected" href="/commit/22a4df3">
-                            <span class="msg">No need to spread Route since params comes from mapParams</span>
-                            <span class="date">2020-10-01 18:00</span>
-                            <span class="sha">22a4df3</span>
-                            <span class="author">Linus Björklund</span>
-                        </Link>
-                    </li>
-                    <li class="short">
-                        <Link activeClassName="selected" href="/commit/1931e14">
-                            <span class="msg">find returns a `match` value to indicate if we matched the whole URI</span>
-                            <span class="date">2020-10-01 17:59</span>
-                            <span class="sha">1931e14</span>
-                            <span class="author">Linus Björklund</span>
-                        </Link>
-                    </li>
+                    {this.state.commits && this.state.commits.map((commit) => (
+                        <li class="short">
+                            <Link activeClassName="selected" href={`/branch/${this.props.branch}/commit/${commit.sha}`}>
+                                <span class="msg">{commit.message}</span>
+                                <span class="date">{commit.date}</span>
+                                <span class="sha">{commit.sha}</span>
+                                <span class="author">{commit.author.name}</span>
+                            </Link>
+                        </li>
+                    ))}
                 </ul>
             </div>
         );

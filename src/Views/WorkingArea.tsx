@@ -1,17 +1,11 @@
-import { h, Component } from "preact";
+import { h, Component, Fragment } from "preact";
 import { RoutableProps } from "router-tsx";
-import BranchList from "../../src/Components/BranchList";
-import Changes from "../../src/Components/Changes";
-import FullDiff from "../../src/Components/FullDiff";
+import FullDiff from "../Components/FullDiff";
 
 export default class WorkingArea extends Component<RoutableProps> {
     render() {
         return (
-            <div id="main-window">
-                <div id="left-pane">
-                    <Changes />
-                    <BranchList />
-                </div>
+            <Fragment>
                 <div id="working-area">
                     <div id="unstaged-changes" class="pane">
                         <h4>Unstaged</h4>
@@ -36,7 +30,7 @@ export default class WorkingArea extends Component<RoutableProps> {
                     </div>
                 </div>
                 <FullDiff />
-            </div>
+            </Fragment>
         );
     }
 }

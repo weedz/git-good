@@ -1,22 +1,15 @@
-import { h, Component } from "preact";
+import { h, Component, Fragment } from "preact";
 import { RoutableProps } from "router-tsx";
-import BranchList from "../../src/Components/BranchList";
-import Changes from "../../src/Components/Changes";
-import CommitList from "../../src/Components/CommitList";
-import DiffPane from "../../src/Components/DiffPane";
+import CommitList from "../Components/CommitList";
+import DiffPane from "../Components/DiffPane";
 
-export default class Main extends Component<RoutableProps & { sha?: string }> {
+export default class Main extends Component<RoutableProps & { sha?: string, branch?: string }> {
     render() {
-        console.log(this.props);
         return (
-            <div id="main-window">
-                <div id="left-pane">
-                    <Changes />
-                    <BranchList />
-                </div>
-                <CommitList />
+            <Fragment>
+                <CommitList branch={this.props.branch || "HEAD"} />
                 {this.props.sha && <DiffPane />}
-            </div>
+            </Fragment>
         );
     }
 }

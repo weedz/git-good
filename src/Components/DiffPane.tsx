@@ -1,5 +1,5 @@
 import { h, Component } from "preact";
-import { Link } from "router-tsx";
+import { StaticLink } from "router-tsx";
 
 export default class DiffPane extends Component {
     render() {
@@ -7,13 +7,13 @@ export default class DiffPane extends Component {
             <div id="diff-pane" class="pane">
                 <p>Hotkey: Collapse diff panel</p>
                 <p>Hotkey: Toggle between inline diff and full diff view</p>
-                <h4>Commit 22a4df3</h4>
+                <h4>Commit d842471</h4>
 
-                <p>Parent: <Link href="/commit/1931e14">1931e14</Link></p>
-                <p class="date">authored: 2020-10-01 18:00</p>
+                <p>Parent: <StaticLink href="/commit/2ef7d5ef02ce614408fa6bf55c00d0d88f0fa74b">2ef7d5e</StaticLink></p>
+                <p class="date">authored: 1587587995000</p>
                 <p class="author">author: Linus Björklund</p>
                 <p class="msg">
-                    <code>No need to spread Route since params comes from mapParams</code>
+                    <code>test module</code>
                 </p>
                 <hr />
                 <p>Diff:</p>

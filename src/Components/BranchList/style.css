@@ -1,0 +1,6 @@
+.tree-list .sub-tree > a::before {
+    content: "[+] ";
+}
+.tree-list .sub-tree.open > a::before {
+    content: "[-] ";
+}
