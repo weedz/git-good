@@ -1,4 +1,4 @@
-import { Repository, Revwalk, Commit, Branch, Reference, Diff, ConvenientPatch, ConvenientHunk, DiffLine } from "nodegit";
+import { Repository, Revwalk, Commit, Reference, Diff, ConvenientPatch, ConvenientHunk, DiffLine } from "nodegit";
 
 export async function getCommits(repo: Repository, start?: Commit, num: number = 100) {
     const revwalk = repo.createRevWalk();
@@ -21,14 +21,22 @@ export async function getCommits(repo: Repository, start?: Commit, num: number =
     }));
 }
 
-function buildRef(ref: Reference) {
+export type BranchObj = {
+    name: string
+}
+export type BranchesObj = {
+    remote: BranchObj[]
+    local: BranchObj[]
+    tags: BranchObj[]
+}
+function buildRef(ref: Reference): BranchObj {
     return {
         name: ref.name()
     };
 }
 
 // {local: Branch[], remote: Branch[], tags: Branch[]}
-export async function getBranches(repo: Repository) {
+export async function getBranches(repo: Repository): Promise<BranchesObj> {
     const refs = await repo.getReferences();
     const local = [];
     const remote = [];
@@ -55,24 +63,28 @@ type LineStats = {
     total_additions: number
     total_deletions: number
 }
-type FileObj = {
+export type FileObj = {
     path: string
     size: number
     mode: number
     flags: number
 }
 
-type LineObj = {
+export type LineObj = {
     type: string
     oldLineno: number
     newLineno: number
     content: string
+    // offset: number
+    // length: number
 }
-type HunkObj = {
+export type HunkObj = {
     header: string
     lines: LineObj[]
+    // old: number
+    // new: number
 }
-type PatchObj = {
+export type PatchObj = {
     type: string
     status: number
     hunks: HunkObj[]
@@ -80,10 +92,10 @@ type PatchObj = {
     newFile: FileObj
     oldFile: FileObj
 }
-type DiffObj = {
+export type DiffObj = {
     patches: PatchObj[]
 }
-type AuthorObj = {
+export type AuthorObj = {
     name: string
     email: string
 }
@@ -108,9 +120,11 @@ async function handleLine(line: DiffLine): Promise<LineObj> {
     }
     return {
         type,
+        // offset: line.contentOffset(),
+        // length: line.contentLen(),
         oldLineno: line.oldLineno(),
         newLineno: line.newLineno(),
-        content: line.content().trim()
+        content: line.content().trimRight()
     };
 }
 async function handleHunk(hunk: ConvenientHunk): Promise<HunkObj> {
@@ -119,7 +133,9 @@ async function handleHunk(hunk: ConvenientHunk): Promise<HunkObj> {
 
     return {
         header: header.substring(0, header.indexOf("@@", 2) + 2),
-        lines: await Promise.all(lines.map(handleLine))
+        lines: await Promise.all(lines.map(handleLine)),
+        // old: hunk.oldStart(),
+        // new: hunk.newStart()
     };
 }
 async function handlePatch(patch: ConvenientPatch): Promise<PatchObj> {

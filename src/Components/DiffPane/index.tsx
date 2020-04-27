@@ -2,7 +2,7 @@ import { h, Component } from "preact";
 import { StaticLink, RoutableProps } from "router-tsx";
 import { IPCAction, registerHandler, unregisterHandler } from "../../Data/Renderer";
 import { sendAsyncMessage } from "../../Data/Renderer";
-import { CommitObj } from "../../Data/Provider";
+import { CommitObj, DiffObj, PatchObj, HunkObj, LineObj } from "../../Data/Provider";
 
 import "./style";
 
@@ -49,36 +49,56 @@ export default class DiffPane extends Component<RoutableProps<Props>, {commit: C
                 <p class="msg">{this.state.commit.message}</p>
                 <hr />
                 <ul class="diff-view tree-list" key={this.state.commit.sha}>
-                    {this.state.commit.diff.map(diff => (
-                        diff.patches.map(patch => (
-                            <li class="sub-tree">
-                                <a href="#" onClick={toggleTreeItem}><h4>{patch.newFile.path} {patch.type}</h4></a>
-                                <ul class="tree-list">
-                                    <li>
-                                        <p>Additions: {patch.lineStats.total_additions}, Deletions: {patch.lineStats.total_deletions}</p>
-                                        <ul>
-                                            {patch.hunks.map(hunk => (
-                                                <li>
-                                                    <p class="diff-header">{hunk.header}</p>
-                                                    <ul>
-                                                        {hunk.lines.map(line => (
-                                                            <li>
-                                                                <span class={line.type && `diff-line ${line.type === "+" ? "added" : "deleted"}` || "diff-line"}>{line.type}</span>
-                                                                <span class="diff-line-number">{line.type === "-" ? line.oldLineno : line.newLineno}</span>
-                                                                {line.content}
-                                                            </li>
-                                                        ))}
-                                                    </ul>
-                                                </li>
-                                            ))}
-                                        </ul>
-                                    </li>
-                                </ul>
-                            </li>
-                        ))
-                    ))}
+                    {this.state.commit.diff.map(renderDiff)}
                 </ul>
             </div>
         );
     }
+}
+
+function renderDiff(diff: DiffObj) {
+    return (
+        diff.patches.map(renderPatch)
+    );
+}
+
+function renderPatch(patch: PatchObj) {
+    return (
+        <li class="sub-tree">
+            <a href="#" onClick={toggleTreeItem}><h4>{patch.newFile.path} {patch.type}</h4></a>
+            <ul class="tree-list">
+                <li>
+                    <p>Additions: {patch.lineStats.total_additions}, Deletions: {patch.lineStats.total_deletions}</p>
+                    <ul>
+                        {
+                        patch.hunks.map(renderHunk)
+                        }
+                    </ul>
+                </li>
+            </ul>
+        </li>
+    );
+}
+
+function renderHunk(hunk: HunkObj) {
+    return (
+        <li>
+            <p class="diff-header">{hunk.header}</p>
+            <ul>
+                {
+                hunk.lines.map(renderLine)
+                }
+            </ul>
+        </li>
+    );
+}
+
+function renderLine(line: LineObj) {
+    return (
+        <li class={line.type && `diff-line ${line.type === "+" ? "added" : "deleted"}` || "diff-line"}>
+            <span class="diff-type">{line.type}</span>
+            <span class="diff-line-number">{line.type === "-" ? line.oldLineno : line.newLineno}</span>
+            <pre class="diff-line-content">{line.content}</pre>
+        </li>
+    );
 }

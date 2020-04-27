@@ -1,23 +1,23 @@
+import { BranchObj, BranchesObj } from "./Provider";
+
 export type BranchTree = {
     subtree?: {
-        [path: string]: BranchTree | any
+        [path: string]: BranchTree
     }
     items?: Array<{
         name: string
-        ref: any
+        ref: BranchObj
     }>
 };
 
-export function getBranchTree(branches: any) {
-    const local: BranchTree = {};
-    const remote: BranchTree = {};
-
-    for (const branch of branches.local) {
-        // remove "refs/heads/" from branch name
-        const normalizedName = branch.name.substring(11);
+function transformToBranchTree(branches: BranchObj[], prefixLength: number) {
+    let root: BranchTree = {};
+    for (const branch of branches) {
+        // remove "prefix" (refs/remotes/, refs/heads/) from branch name
+        const normalizedName = branch.name.substring(prefixLength);
         const paths = normalizedName.split("/");
 
-        let tree = local;
+        let tree = root;
         while (paths.length > 1) {
             const path = paths.shift() || "";
             if (!tree.subtree) {
@@ -36,12 +36,16 @@ export function getBranchTree(branches: any) {
             ref: branch
         });
     }
+    return root;
+}
 
+export function getBranchTree(branches: BranchesObj) {
     return {
-        local,
-        remote,
+        local: transformToBranchTree(branches.local, 11),
+        remote: transformToBranchTree(branches.remote, 13),
         tags: {
-            items: branches.tags.map((tag: any) => ({
+            items: branches.tags.map((tag: BranchObj) => ({
+                // remove prefix (refs/tags/) from name
                 name: tag.name.substring(10),
                 ref: {
                     name: tag.name

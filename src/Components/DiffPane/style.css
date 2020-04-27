@@ -9,9 +9,9 @@
     color: teal;
 }
 
-.diff-line {
-    width: 1em;
+.diff-line > .diff-type {
     display: inline-block;
+    width: 1em;
 }
 .diff-line:empty {
     content: "&nbsp;";
@@ -25,6 +25,15 @@
 .diff-line-number {
     width: 3em;
     display: inline-block;
+}
+/* .diff-line.added .diff-line-content {
+    background-color: darkgreen;
+} */
+/* .diff-line.deleted .diff-line-content {
+    background-color: darkred;
+} */
+pre.diff-line-content {
+    display: inline;
 }
 .diff-view li {
     white-space: nowrap;
