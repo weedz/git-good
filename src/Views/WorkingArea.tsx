@@ -1,5 +1,5 @@
 import { h, Component, Fragment } from "preact";
-import { RoutableProps } from "router-tsx";
+import { RoutableProps } from "@weedz/router-tsx";
 import FullDiff from "../Components/FullDiff";
 
 export default class WorkingArea extends Component<RoutableProps> {

@@ -1,5 +1,5 @@
 import { h, Component } from "preact";
-import { Link } from "router-tsx";
+import { Link } from "@weedz/router-tsx";
 
 export default class Changes extends Component {
     render() {

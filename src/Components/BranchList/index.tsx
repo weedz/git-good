@@ -1,5 +1,5 @@
 import { h, Component } from "preact";
-import { Link } from "router-tsx";
+import { Link } from "@weedz/router-tsx";
 
 import "./style";
 import { getBranchTree } from "../../Data/Branch";
