@@ -23,7 +23,7 @@
     color: red;
 }
 .diff-line-number {
-    width: 3em;
+    margin-right: 5px;
     display: inline-block;
 }
 /* .diff-line.added .diff-line-content {
@@ -37,4 +37,9 @@ pre.diff-line-content {
 }
 .diff-view li {
     white-space: nowrap;
+}
+#diff-pane .msg p,
+#diff-pane .msg pre {
+    margin-top: 3px;
+    margin-bottom: 3px;
 }

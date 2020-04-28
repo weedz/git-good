@@ -4,6 +4,7 @@ import { Link } from "@weedzcokie/router-tsx";
 import "./style";
 import { getBranchTree } from "../../Data/Branch";
 import { registerHandler, IPCAction, sendAsyncMessage, unregisterHandler } from "../../Data/Renderer";
+import { BranchesObj, BranchObj } from "../../Data/Provider";
 
 function toggleTreeItem(e: any) {
     e.preventDefault();
@@ -41,7 +42,7 @@ function BranchTree(branches: any) {
     )
 }
 
-export default class BranchList extends Component<any, {branches: any}> {
+export default class BranchList extends Component<any, {branches: ReturnType<typeof getBranchTree>, head?: BranchObj}> {
     componentWillMount() {
         registerHandler(IPCAction.LOAD_BRANCHES, this.loadBranches);
         sendAsyncMessage(IPCAction.LOAD_BRANCHES);
@@ -49,16 +50,17 @@ export default class BranchList extends Component<any, {branches: any}> {
     componentWillUnmount() {
         unregisterHandler(IPCAction.LOAD_BRANCHES, this.loadBranches);
     }
-    loadBranches = (branches: any) => {
+    loadBranches = (branches: BranchesObj) => {
         this.setState({
-            branches: getBranchTree(branches)
+            branches: getBranchTree(branches),
+            head: branches.head
         });
     }
     render() {
         return (
             <div id="branch-pane" class="pane">
                 <h4>Refs</h4>
-                <Link activeClassName="selected" href="/">HEAD (current branch)</Link>
+                <Link activeClassName="selected" href="/">HEAD ({this.state.head?.name.substring(11)})</Link>
                 <hr />
                 {this.state.branches && <ul class="tree-list">
                     <li class="sub-tree">

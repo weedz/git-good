@@ -1,4 +1,4 @@
-import { Repository, Revwalk, Commit, Reference, Diff, ConvenientPatch, ConvenientHunk, DiffLine } from "nodegit";
+import { Repository, Revwalk, Commit, Reference, Diff, ConvenientPatch, ConvenientHunk, DiffLine, Tree } from "nodegit";
 
 export async function getCommits(repo: Repository, start?: Commit, num: number = 100) {
     const revwalk = repo.createRevWalk();
@@ -7,9 +7,9 @@ export async function getCommits(repo: Repository, start?: Commit, num: number =
     }
     revwalk.push(start.id());
     revwalk.sorting(Revwalk.SORT.TOPOLOGICAL);
-
+    
     const commits = await revwalk.getCommits(num);
-
+    
     return commits.map(commit => ({
         sha: commit.sha(),
         message: commit.message(),
@@ -28,6 +28,7 @@ export type BranchesObj = {
     remote: BranchObj[]
     local: BranchObj[]
     tags: BranchObj[]
+    head?: BranchObj
 }
 function buildRef(ref: Reference): BranchObj {
     return {
@@ -50,11 +51,16 @@ export async function getBranches(repo: Repository): Promise<BranchesObj> {
             tags.push(buildRef(ref));
         }
     }
-
+    
+    const head = await repo.head();
+    
     return {
         local,
         remote,
-        tags
+        tags,
+        head: {
+            name: head.name()
+        }
     };
 }
 
@@ -80,20 +86,20 @@ export type LineObj = {
 }
 export type HunkObj = {
     header: string
-    lines: LineObj[]
+    lines?: LineObj[]
     // old: number
     // new: number
 }
 export type PatchObj = {
     type: string
     status: number
-    hunks: HunkObj[]
+    hunks?: HunkObj[]
     lineStats: LineStats
     newFile: FileObj
     oldFile: FileObj
 }
 export type DiffObj = {
-    patches: PatchObj[]
+    patches?: PatchObj[]
 }
 export type AuthorObj = {
     name: string
@@ -130,7 +136,7 @@ async function handleLine(line: DiffLine): Promise<LineObj> {
 async function handleHunk(hunk: ConvenientHunk): Promise<HunkObj> {
     const header = hunk.header().trim()
     const lines = await hunk.lines();
-
+    
     return {
         header: header.substring(0, header.indexOf("@@", 2) + 2),
         lines: await Promise.all(lines.map(handleLine)),
@@ -140,7 +146,7 @@ async function handleHunk(hunk: ConvenientHunk): Promise<HunkObj> {
 }
 async function handlePatch(patch: ConvenientPatch): Promise<PatchObj> {
     const hunks = await patch.hunks();
-
+    
     let type = "";
     if (patch.isAdded()) {
         type = "A";
@@ -177,15 +183,62 @@ async function handleDiff(diff: Diff) {
     };
 }
 
-export async function getCommit(commit: Commit): Promise<CommitObj> {
-    const parent = commit.parentcount() && await commit.parent(0) || commit;
-
-    const diffs = await commit.getDiff();
+export async function getDiff(repo: Repository, sha: string) {
+    const commit = await repo.getCommit(sha);
+    const parent = await commit.parent(0);
+    
+    // TODO: fix this. Merge commits are a bit messy without this.
+    const diffs = await commit.getTree().then(function (thisTree) {
+        // TODO: which parent to chose?
+        return commit.getParents(1).then(function (parents) {
+            var diffs;
+            if (parents.length) {
+                // TODO: how many parents?
+                diffs = parents.map(function (parent) {
+                    return parent.getTree().then(function (parentTree) {
+                        return thisTree.diffWithOptions(parentTree);
+                    });
+                });
+            } else {
+                diffs = [thisTree.diffWithOptions(null)];
+            }
+            
+            return Promise.all(diffs);
+        });
+    });
 
     const diff = await Promise.all(
         diffs.map(handleDiff)
     );
+    
+    return {
+        parent: {
+            sha: parent.sha(),
+        },
+        sha: commit.sha(),
+        diff,
+        date: commit.date().getTime(),
+        message: commit.message(),
+        author: {
+            name: commit.author().name(),
+            email: commit.author().email()
+        },
+        commiter: {
+            name: commit.committer().name(),
+            email: commit.committer().email()
+        },
+    };
+}
 
+export async function getCommit(commit: Commit): Promise<CommitObj> {
+    const parent = commit.parentcount() && await commit.parent(0) || commit;
+    
+    const diffs = await commit.getDiff();
+    
+    const diff = await Promise.all(
+        diffs.map(handleDiff)
+    );
+    
     return {
         parent: {
             sha: parent.sha(),

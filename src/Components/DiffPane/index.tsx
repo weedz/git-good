@@ -40,13 +40,19 @@ export default class DiffPane extends Component<RoutableProps<Props>, {commit: C
                 <p>Loading commit...</p>
             );
         }
+        const message = this.state.commit.message.split("\n");
+        const title = message.shift();
         return (
             <div id="diff-pane" class="pane">
                 <h4><StaticLink href={`/fulldiff/${this.state.commit.sha}`}>Commit {this.state.commit.sha}</StaticLink></h4>
                 <p>Parent: <StaticLink href={`/commit/${this.state.commit.parent.sha}`}>{this.state.commit.parent.sha.substring(0,7)}</StaticLink></p>
-                <p class="date">authored: {this.state.commit.date}</p>
+                <p class="date">authored: {new Date(this.state.commit.date).toLocaleString()}</p>
                 <p class="author">author: {this.state.commit.author.name} &lt;{this.state.commit.author.email}&gt;</p>
-                <p class="msg">{this.state.commit.message}</p>
+                <hr />
+                <div class="msg">
+                    <h4>{title}</h4>
+                    {message.filter(line => !!line).map(line => <p><pre>{line}</pre></p>)}
+                </div>
                 <hr />
                 <ul class="diff-view tree-list" key={this.state.commit.sha}>
                     {this.state.commit.diff.map(renderDiff)}
@@ -58,7 +64,7 @@ export default class DiffPane extends Component<RoutableProps<Props>, {commit: C
 
 function renderDiff(diff: DiffObj) {
     return (
-        diff.patches.map(renderPatch)
+        diff.patches && diff.patches.map(renderPatch)
     );
 }
 
@@ -70,9 +76,7 @@ function renderPatch(patch: PatchObj) {
                 <li>
                     <p>Additions: {patch.lineStats.total_additions}, Deletions: {patch.lineStats.total_deletions}</p>
                     <ul>
-                        {
-                        patch.hunks.map(renderHunk)
-                        }
+                        { patch.hunks && patch.hunks.map(renderHunk) }
                     </ul>
                 </li>
             </ul>
@@ -85,9 +89,7 @@ function renderHunk(hunk: HunkObj) {
         <li>
             <p class="diff-header">{hunk.header}</p>
             <ul>
-                {
-                hunk.lines.map(renderLine)
-                }
+                { hunk.lines && hunk.lines.map(renderLine) }
             </ul>
         </li>
     );
