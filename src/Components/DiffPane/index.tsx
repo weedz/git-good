@@ -1,5 +1,5 @@
 import { h, Component } from "preact";
-import { StaticLink, RoutableProps } from "@weedz/router-tsx";
+import { StaticLink, RoutableProps } from "@weedzcokie/router-tsx";
 import { IPCAction, registerHandler, unregisterHandler } from "../../Data/Renderer";
 import { sendAsyncMessage } from "../../Data/Renderer";
 import { CommitObj, DiffObj, PatchObj, HunkObj, LineObj } from "../../Data/Provider";

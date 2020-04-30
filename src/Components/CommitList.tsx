@@ -1,5 +1,5 @@
 import { h, Component } from "preact";
-import { Link } from "@weedz/router-tsx";
+import { Link } from "@weedzcokie/router-tsx";
 import { IPCAction, sendAsyncMessage, unregisterHandler } from "../Data/Renderer";
 import { registerHandler } from "../Data/Renderer";
 

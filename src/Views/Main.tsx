@@ -1,5 +1,5 @@
 import { h, Component, Fragment } from "preact";
-import { RoutableProps } from "@weedz/router-tsx";
+import { RoutableProps } from "@weedzcokie/router-tsx";
 import CommitList from "../Components/CommitList";
 import DiffPane from "../Components/DiffPane";
 
