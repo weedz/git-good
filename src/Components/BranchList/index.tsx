@@ -3,8 +3,9 @@ import { Link } from "@weedzcokie/router-tsx";
 
 import "./style";
 import { getBranchTree } from "../../Data/Branch";
-import { registerHandler, IPCAction, sendAsyncMessage, unregisterHandler } from "../../Data/Renderer";
 import { BranchesObj, BranchObj } from "../../Data/Provider";
+import { registerHandler, sendAsyncMessage, unregisterHandler } from "../../Data/Renderer";
+import { IPCAction } from "../../Data/Actions";
 
 function toggleTreeItem(e: any) {
     e.preventDefault();

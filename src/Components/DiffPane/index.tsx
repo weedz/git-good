@@ -1,8 +1,9 @@
 import { h, Component } from "preact";
 import { StaticLink, RoutableProps } from "@weedzcokie/router-tsx";
-import { IPCAction, registerHandler, unregisterHandler } from "../../Data/Renderer";
+import { registerHandler, unregisterHandler } from "../../Data/Renderer";
 import { sendAsyncMessage } from "../../Data/Renderer";
 import { CommitObj, DiffObj, PatchObj, HunkObj, LineObj } from "../../Data/Provider";
+import { IPCAction } from "../../Data/Actions";
 
 import "./style";
 
@@ -18,20 +19,39 @@ function toggleTreeItem(e: any) {
 }
 
 type Props = {commit?: string};
-export default class DiffPane extends Component<RoutableProps<Props>, {commit: CommitObj}> {
+type State = {
+    commit: null | CommitObj
+    patch: PatchObj[]
+}
+export default class DiffPane extends Component<RoutableProps<Props>, State> {
     componentWillMount() {
         registerHandler(IPCAction.LOAD_COMMIT, this.loadCommit);
+        registerHandler(IPCAction.PATCH_WITH_HUNKS, this.handlePatch);
         sendAsyncMessage(IPCAction.LOAD_COMMIT, this.props.commit);
+        this.setState({
+            commit: null,
+            patch: []
+        });
     }
     componentWillReceiveProps(newProps: Props) {
         sendAsyncMessage(IPCAction.LOAD_COMMIT, newProps.commit);
+        this.setState({
+            commit: null,
+            patch: []
+        });
     }
     componentWillUnmount() {
         unregisterHandler(IPCAction.LOAD_COMMIT, this.loadCommit);
+        unregisterHandler(IPCAction.PATCH_WITH_HUNKS, this.handlePatch);
     }
     loadCommit = (commit: any) => {
         this.setState({
             commit
+        });
+    }
+    handlePatch = (patch: any) => {
+        this.setState({
+            patch: [...this.state.patch, patch]
         });
     }
     render() {
@@ -55,7 +75,7 @@ export default class DiffPane extends Component<RoutableProps<Props>, {commit: C
                 </div>
                 <hr />
                 <ul class="diff-view tree-list" key={this.state.commit.sha}>
-                    {this.state.commit.diff.map(renderDiff)}
+                    {this.state.patch && this.state.patch.map(renderPatch)}
                 </ul>
             </div>
         );
@@ -70,7 +90,7 @@ function renderDiff(diff: DiffObj) {
 
 function renderPatch(patch: PatchObj) {
     return (
-        <li class="sub-tree">
+        <li class="sub-tree" key={patch.newFile.path.concat(patch.oldFile.path)}>
             <a href="#" onClick={toggleTreeItem}><h4>{patch.newFile.path} {patch.type}</h4></a>
             <ul class="tree-list">
                 <li>

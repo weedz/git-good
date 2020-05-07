@@ -1,7 +1,7 @@
 import { app, BrowserWindow, ipcMain } from 'electron';
-import { getBranches, getCommits, getCommit, getDiff } from "./Data/Provider";
+import { getBranches, getCommits, getCommitWithDiff } from "./Data/Provider";
 import { Repository } from "nodegit";
-import { IPCAction } from './Data/Renderer';
+import { IPCAction } from './Data/Actions';
 
 declare const MAIN_WINDOW_WEBPACK_ENTRY: any;
 
@@ -77,7 +77,7 @@ ipcMain.on("asynchronous-message", async (event, arg) => {
         case IPCAction.LOAD_COMMIT:
             event.reply("asynchronous-reply", {
                 action: arg.action,
-                data: await loadCommit(arg.data)
+                data: await loadCommit(arg.data, event)
             });
             break;
     }
@@ -106,12 +106,11 @@ async function loadCommits(params: any): Promise<LoadCommitsReturn | undefined> 
     }
 }
 
-async function loadCommit(sha: string) {
+async function loadCommit(sha: string, event: Electron.IpcMainEvent) {
     if (repo) {
         // const commit = await repo.getCommit(sha);
-        // const commitObject = await getCommit(commit);
-        // return commitObject;
-        return await getDiff(repo, sha);
+        const commitObject = await getCommitWithDiff(repo, sha, event);
+        return commitObject;
     }
 }
 

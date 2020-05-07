@@ -1,4 +1,5 @@
 import { Repository, Revwalk, Commit, Reference, Diff, ConvenientPatch, ConvenientHunk, DiffLine, Tree } from "nodegit";
+import { IPCAction } from "./Actions";
 
 export async function getCommits(repo: Repository, start?: Commit, num: number = 100) {
     const revwalk = repo.createRevWalk();
@@ -110,7 +111,7 @@ export type CommitObj = {
         sha: string
     },
     sha: string
-    diff: DiffObj[]
+    diff?: DiffObj[]
     date: number
     message: string
     author: AuthorObj
@@ -176,75 +177,55 @@ async function handlePatch(patch: ConvenientPatch): Promise<PatchObj> {
         }
     };
 }
-async function handleDiff(diff: Diff) {
+async function handleDiff(diff: Diff, event: Electron.IpcMainEvent) {
+    // TODO: possible to optimize this for large patches?
     const patches = await diff.patches();
-    return {
-        patches: await Promise.all(patches.map(handlePatch))
-    };
+    for (const patch of patches) {
+        handlePatch(patch).then(patchWithHunks => {
+            event.reply("asynchronous-reply", {
+                action: IPCAction.PATCH_WITH_HUNKS,
+                data: patchWithHunks
+            });
+        });
+    }
 }
 
-export async function getDiff(repo: Repository, sha: string) {
+export async function getCommitWithDiff(repo: Repository, sha: string, event: Electron.IpcMainEvent): Promise<CommitObj> {
+    // const parent = commit.parentcount() && await commit.parent(0) || commit;
+    // const diffs = await commit.getDiff();
+
     const commit = await repo.getCommit(sha);
     const parent = await commit.parent(0);
     
     // TODO: fix this. Merge commits are a bit messy without this.
-    const diffs = await commit.getTree().then(function (thisTree) {
+    const diffs = await commit.getTree().then(async (thisTree) => {
         // TODO: which parent to chose?
-        return commit.getParents(1).then(function (parents) {
-            var diffs;
-            if (parents.length) {
-                // TODO: how many parents?
-                diffs = parents.map(function (parent) {
-                    return parent.getTree().then(function (parentTree) {
-                        return thisTree.diffWithOptions(parentTree);
-                    });
-                });
-            } else {
-                diffs = [thisTree.diffWithOptions(null)];
-            }
-            
-            return Promise.all(diffs);
-        });
+        const parents = await commit.getParents(1);
+        let diffs;
+        if (parents.length) {
+            // TODO: how many parents?
+            diffs = parents.map(async (parent) => {
+                const parentTree = await parent.getTree();
+                return thisTree.diffWithOptions(parentTree);
+            });
+        }
+        else {
+            // @ts-ignore, from nodegit source.
+            diffs = [thisTree.diffWithOptions(null)];
+        }
+        return Promise.all(diffs);
     });
 
-    const diff = await Promise.all(
-        diffs.map(handleDiff)
-    );
-    
-    return {
-        parent: {
-            sha: parent.sha(),
-        },
-        sha: commit.sha(),
-        diff,
-        date: commit.date().getTime(),
-        message: commit.message(),
-        author: {
-            name: commit.author().name(),
-            email: commit.author().email()
-        },
-        commiter: {
-            name: commit.committer().name(),
-            email: commit.committer().email()
-        },
-    };
-}
+    for (const diff of diffs) {
+        handleDiff(diff, event);
+    }
 
-export async function getCommit(commit: Commit): Promise<CommitObj> {
-    const parent = commit.parentcount() && await commit.parent(0) || commit;
-    
-    const diffs = await commit.getDiff();
-    
-    const diff = await Promise.all(
-        diffs.map(handleDiff)
-    );
-    
     return {
         parent: {
             sha: parent.sha(),
         },
         sha: commit.sha(),
-        diff,
+        // diff,
         date: commit.date().getTime(),
         message: commit.message(),
         author: {

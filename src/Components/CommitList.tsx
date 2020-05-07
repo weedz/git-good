@@ -1,8 +1,9 @@
 import { h, Component } from "preact";
 import { Link } from "@weedzcokie/router-tsx";
-import { IPCAction, sendAsyncMessage, unregisterHandler } from "../Data/Renderer";
+import { sendAsyncMessage, unregisterHandler } from "../Data/Renderer";
 import { registerHandler } from "../Data/Renderer";
 import { LoadCommitsReturn } from "../index";
+import { IPCAction } from "../Data/Actions";
 
 type Props = {
     branch?: string
