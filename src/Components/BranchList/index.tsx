@@ -3,9 +3,8 @@ import { Link } from "@weedzcokie/router-tsx";
 
 import "./style";
 import { getBranchTree } from "../../Data/Branch";
-import { BranchesObj, BranchObj } from "../../Data/Provider";
 import { registerHandler, sendAsyncMessage, unregisterHandler } from "../../Data/Renderer";
-import { IPCAction } from "../../Data/Actions";
+import { IPCAction, BranchesObj, BranchObj } from "../../Data/Actions";
 
 function toggleTreeItem(e: any) {
     e.preventDefault();

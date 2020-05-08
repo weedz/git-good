@@ -1,5 +1,5 @@
-import { Repository, Revwalk, Commit, Reference, Diff, ConvenientPatch, ConvenientHunk, DiffLine, Tree } from "nodegit";
-import { IPCAction } from "./Actions";
+import { Repository, Revwalk, Commit, Reference, Diff, ConvenientPatch, ConvenientHunk, DiffLine } from "nodegit";
+import { IPCAction, BranchObj, BranchesObj, LineObj, HunkObj, PatchObj, CommitObj } from "./Actions";
 
 export async function getCommits(repo: Repository, start?: Commit, num: number = 100) {
     const revwalk = repo.createRevWalk();
@@ -22,15 +22,7 @@ export async function getCommits(repo: Repository, start?: Commit, num: number =
     }));
 }
 
-export type BranchObj = {
-    name: string
-}
-export type BranchesObj = {
-    remote: BranchObj[]
-    local: BranchObj[]
-    tags: BranchObj[]
-    head?: BranchObj
-}
+
 function buildRef(ref: Reference): BranchObj {
     return {
         name: ref.name()
@@ -65,59 +57,7 @@ export async function getBranches(repo: Repository): Promise<BranchesObj> {
     };
 }
 
-type LineStats = {
-    total_context: number
-    total_additions: number
-    total_deletions: number
-}
-export type FileObj = {
-    path: string
-    size: number
-    mode: number
-    flags: number
-}
 
-export type LineObj = {
-    type: string
-    oldLineno: number
-    newLineno: number
-    content: string
-    // offset: number
-    // length: number
-}
-export type HunkObj = {
-    header: string
-    lines?: LineObj[]
-    // old: number
-    // new: number
-}
-export type PatchObj = {
-    type: string
-    status: number
-    hunks?: HunkObj[]
-    lineStats: LineStats
-    newFile: FileObj
-    oldFile: FileObj
-    actualFile: FileObj
-}
-export type DiffObj = {
-    patches?: PatchObj[]
-}
-export type AuthorObj = {
-    name: string
-    email: string
-}
-export type CommitObj = {
-    parent: {
-        sha: string
-    },
-    sha: string
-    diff?: DiffObj[]
-    date: number
-    message: string
-    author: AuthorObj
-    commiter: AuthorObj
-}
 
 async function handleLine(line: DiffLine): Promise<LineObj> {
     let type = "";
@@ -197,18 +137,11 @@ async function handlePatch(patch: ConvenientPatch): Promise<PatchObj> {
     return patchResult;
 }
 async function handleDiff(diff: Diff, event: Electron.IpcMainEvent) {
-    // TODO: possible to optimize this for large patches?
     const patches = await diff.patches();
     const promises = [];
     for (const patch of patches) {
         const patchPromise = handlePatch(patch);
         promises.push(patchPromise);
-        // patchPromise.then(patchWithHunks => {
-        //     event.reply("asynchronous-reply", {
-        //         action: IPCAction.PATCH_WITH_HUNKS,
-        //         data: patchWithHunks
-        //     });
-        // });
     }
     const patchesWithData = await Promise.all(promises);
 
@@ -221,18 +154,12 @@ async function handleDiff(diff: Diff, event: Electron.IpcMainEvent) {
         });
     }
 
-
     event.reply("asynchronous-reply", {
         action: IPCAction.PATCH_WITHOUT_HUNKS,
         data: {
             done: true
         }
     });
-
-    // event.reply("asynchronous-reply", {
-    //     action: IPCAction.PATCH_WITH_HUNKS,
-    //     data: await Promise.all(promises)
-    // });
 }
 
 export async function getCommitWithDiff(repo: Repository, sha: string, event: Electron.IpcMainEvent): Promise<CommitObj> {
@@ -290,4 +217,8 @@ export async function getCommitWithDiff(repo: Repository, sha: string, event: El
 }
 
 let currentCommit: string;
-let commitObjectCache: any = {};
+let commitObjectCache: {
+    [sha: string]: {
+        [path: string]: ConvenientPatch
+    }
+} = {};

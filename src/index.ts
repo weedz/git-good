@@ -1,7 +1,7 @@
 import { app, BrowserWindow, ipcMain } from 'electron';
 import { getBranches, getCommits, getCommitWithDiff, getHunks } from "./Data/Provider";
 import { Repository } from "nodegit";
-import { IPCAction } from './Data/Actions';
+import { IPCAction, LoadCommitsReturn, LoadHunksReturn, LoadCommitsParam, IPCActionParams } from './Data/Actions';
 
 declare const MAIN_WINDOW_WEBPACK_ENTRY: any;
 
@@ -54,83 +54,71 @@ app.on('activate', () => {
 let repo: Repository;
 
 ipcMain.on("asynchronous-message", async (event, arg) => {
-    switch (arg.action) {
-        case IPCAction.OPEN_REPO:
-            await openRepo(arg.data);
-            event.reply("asynchronous-reply", {
-                action: arg.action,
-                data: true
-            });
-            break;
-        case IPCAction.LOAD_BRANCHES:
-            event.reply("asynchronous-reply", {
-                action: arg.action,
-                data: await loadBranches()
-            });
-            break;
-        case IPCAction.LOAD_COMMITS:
-            event.reply("asynchronous-reply", {
-                action: arg.action,
-                data: await loadCommits(arg.data)
-            });
-            break;
-        case IPCAction.LOAD_COMMIT:
-            event.reply("asynchronous-reply", {
-                action: arg.action,
-                data: await loadCommit(arg.data, event)
-            });
-            break;
-        case IPCAction.LOAD_HUNKS:
-            event.reply("asynchronous-reply", {
-                action: arg.action,
-                data: {
+    if (arg.action === IPCAction.OPEN_REPO) {
+        await openRepo(arg.data);
+        event.reply("asynchronous-reply", {
+            action: arg.action,
+            data: true
+        });
+        return;
+    }
+    if (repo) {
+        switch (arg.action) {
+            case IPCAction.LOAD_BRANCHES:
+                event.reply("asynchronous-reply", {
+                    action: arg.action,
+                    data: await loadBranches()
+                });
+                break;
+            case IPCAction.LOAD_COMMITS:
+                event.reply("asynchronous-reply", {
+                    action: arg.action,
+                    data: await loadCommits(arg.data)
+                });
+                break;
+            case IPCAction.LOAD_COMMIT:
+                event.reply("asynchronous-reply", {
+                    action: arg.action,
+                    data: await loadCommit(arg.data, event)
+                });
+                break;
+            case IPCAction.LOAD_HUNKS:
+                const data: LoadHunksReturn = {
                     path: arg.data.path,
                     hunks: await loadHunks(arg.data)
-                }
-            });
-            break;
+                };
+                event.reply("asynchronous-reply", {
+                    action: arg.action,
+                    data
+                });
+                break;
+        }
     }
 });
 async function openRepo(repoPath: string) {
     repo = await Repository.open(repoPath);
 }
-export type LoadCommitsReturn = {
-    sha: string;
-    message: string;
-    date: number;
-    author: {
-        name: string;
-        email: string;
-    };
-}[];
-async function loadCommits(params: any): Promise<LoadCommitsReturn | undefined> {
-    if (repo) {
-        let start;
-        if (params.branch) {
-            start = await repo.getReferenceCommit(params.branch);
-        } else if (params.commit) {
-            start = await repo.getCommit(params.commit);
-        }
-        return await getCommits(repo, start, params.num);
+
+async function loadCommits(params: LoadCommitsParam): Promise<LoadCommitsReturn | undefined> {
+    let start;
+    if ("branch" in params) {
+        start = await repo.getReferenceCommit(params.branch);
+    } else if ("sha" in params) {
+        start = await repo.getCommit(params.sha);
     }
+    return await getCommits(repo, start, params.num);
 }
 
 async function loadCommit(sha: string, event: Electron.IpcMainEvent) {
-    if (repo) {
-        // const commit = await repo.getCommit(sha);
-        const commitObject = await getCommitWithDiff(repo, sha, event);
-        return commitObject;
-    }
+    // const commit = await repo.getCommit(sha);
+    const commitObject = await getCommitWithDiff(repo, sha, event);
+    return commitObject;
 }
 
-async function loadHunks(params: any) {
-    if (repo) {
-        return await getHunks(params.sha, params.path);
-    }
+async function loadHunks(params: IPCActionParams[IPCAction.LOAD_HUNKS]) {
+    return await getHunks(params.sha, params.path);
 }
 
 async function loadBranches() {
-    if (repo) {
-        return await getBranches(repo);
-    }
+    return await getBranches(repo);
 }

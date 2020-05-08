@@ -2,8 +2,7 @@ import { h, Component } from "preact";
 import { StaticLink, RoutableProps } from "@weedzcokie/router-tsx";
 import { registerHandler, unregisterHandler } from "../../Data/Renderer";
 import { sendAsyncMessage } from "../../Data/Renderer";
-import { CommitObj, DiffObj, PatchObj, HunkObj, LineObj } from "../../Data/Provider";
-import { IPCAction } from "../../Data/Actions";
+import { IPCAction, CommitObj, DiffObj, PatchObj, HunkObj, LineObj, LoadHunksReturn } from "../../Data/Actions";
 
 import "./style";
 
@@ -53,12 +52,12 @@ export default class DiffPane extends Component<RoutableProps<Props>, State> {
         unregisterHandler(IPCAction.PATCH_WITHOUT_HUNKS, this.handlePatch);
         unregisterHandler(IPCAction.LOAD_HUNKS, this.loadHunks);
     }
-    loadCommit = (commit: any) => {
+    loadCommit = (commit: CommitObj) => {
         this.setState({
             commit
         });
     }
-    loadHunks = (data: any) => {
+    loadHunks = (data: LoadHunksReturn) => {
         const patch = this.patchesToLoad[data.path];
         if (patch) {
             patch.hunks = data.hunks;
@@ -67,17 +66,17 @@ export default class DiffPane extends Component<RoutableProps<Props>, State> {
             this.setState({});
         }
     }
-    handlePatch = (patch: any) => {
-        if (patch.done) {
+    handlePatch = (patch: PatchObj[] | {done: boolean}) => {
+        if (Array.isArray(patch)) {
+            this.setState({
+                patch: [...this.state.patch, ...patch]
+            });
+        } else {
             for (const patch of this.state.patch) {
                 this.patchMap[patch.actualFile.path] = patch;
             }
             this.setState({
                 loadingComplete: patch.done
-            });
-        } else {
-            this.setState({
-                patch: [...this.state.patch, ...patch]
             });
         }
     }
@@ -90,7 +89,8 @@ export default class DiffPane extends Component<RoutableProps<Props>, State> {
             const patch = this.patchMap[path];
             this.patchesToLoad[path] = patch;
             sendAsyncMessage(IPCAction.LOAD_HUNKS, {
-                sha: this.state.commit.sha, path
+                sha: this.state.commit.sha,
+                path
             });
         }
     }

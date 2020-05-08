@@ -1,5 +1,5 @@
 import { ipcRenderer } from "electron";
-import { IPCAction } from "./Actions";
+import { IPCAction, IPCActionParams } from "./Actions";
 
 const handlers: {[key in IPCAction]: Function[]} = {
     [IPCAction.LOAD_COMMITS]: [],
@@ -28,7 +28,7 @@ function handleEvent(event: any, payload: {action: IPCAction, data: any}) {
         handler(payload.data);
     }
 }
-export function sendAsyncMessage(action: IPCAction, data?: any) {
+export function sendAsyncMessage<T extends IPCAction>(action: T, data?: IPCActionParams[T]) {
     ipcRenderer.send("asynchronous-message", {
         "action": action,
         data
