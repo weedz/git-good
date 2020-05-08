@@ -5,8 +5,9 @@ import Main from "./Views/Main";
 import WorkingArea from "./Views/WorkingArea";
 import Changes from "./Components/Changes";
 import BranchList from "./Components/BranchList";
-import { attach, sendAsyncMessage, IPCAction, registerHandler } from "./Data/Renderer";
+import { attach, sendAsyncMessage, registerHandler } from "./Data/Renderer";
 import DiffPane from "./Components/DiffPane";
+import { IPCAction } from "./Data/Actions";
 
 export default class App extends Component<{}, {repo?: any}> {
     constructor() {

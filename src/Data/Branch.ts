@@ -1,4 +1,4 @@
-import { BranchObj, BranchesObj } from "./Provider";
+import { BranchObj, BranchesObj } from "./Actions";
 
 export type BranchTree = {
     subtree?: {

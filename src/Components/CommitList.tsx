@@ -1,14 +1,15 @@
 import { h, Component } from "preact";
 import { Link } from "@weedzcokie/router-tsx";
-import { IPCAction, sendAsyncMessage, unregisterHandler } from "../Data/Renderer";
+import { sendAsyncMessage, unregisterHandler } from "../Data/Renderer";
 import { registerHandler } from "../Data/Renderer";
+import { IPCAction, IPCActionReturn } from "../Data/Actions";
 
 type Props = {
     branch?: string
     sha?: string
 };
 
-export default class CommitList extends Component<Props, {commits: any[]}> {
+export default class CommitList extends Component<Props, {commits: IPCActionReturn[IPCAction.LOAD_COMMITS]}> {
     componentWillMount() {
         registerHandler(IPCAction.LOAD_COMMITS, this.loadCommits);
         this.handleProps(this.props);
@@ -30,7 +31,7 @@ export default class CommitList extends Component<Props, {commits: any[]}> {
             // });
         }
     }
-    loadCommits = (commits: any) => {
+    loadCommits = (commits: IPCActionReturn[IPCAction.LOAD_COMMITS]) => {
         this.setState({
             commits
         });
@@ -40,13 +41,13 @@ export default class CommitList extends Component<Props, {commits: any[]}> {
             <div id="commits-pane" class="pane">
                 <h4>Commits</h4>
                 <ul>
-                    {this.state.commits && this.state.commits.map((commit) => (
+                    {this.state.commits && this.state.commits.map(commit => (
                         <li class="short" key={commit.sha}>
                             <Link activeClassName="selected" href={ (this.props.branch ? `/branch/${this.props.branch}/` : "/commit/") + commit.sha}>
-                                <span class="msg">{commit.message}</span>
-                                <span class="date">{commit.date}</span>
-                                <span class="sha">{commit.sha}</span>
-                                <span class="author">{commit.author.name}</span>
+                                <span class="msg">{commit.message.substring(0, commit.message.indexOf("\n")>>>0 || 60)}</span>
+                                {/* <span class="date">{commit.date}</span> */}
+                                {/* <span class="sha">{commit.sha}</span> */}
+                                {/* <span class="author">{commit.author.name}</span> */}
                             </Link>
                         </li>
                     ))}
