@@ -45,7 +45,7 @@ export default class CommitList extends Component<Props, {commits: LoadCommitsRe
                     {this.state.commits && this.state.commits.map(commit => (
                         <li class="short" key={commit.sha}>
                             <Link activeClassName="selected" href={ (this.props.branch ? `/branch/${this.props.branch}/` : "/commit/") + commit.sha}>
-                                <span class="msg">{commit.message.substring(0, commit.message.indexOf("\n")>>>0)}</span>
+                                <span class="msg">{commit.message.substring(0, commit.message.indexOf("\n")>>>0 || 60)}</span>
                                 {/* <span class="date">{commit.date}</span> */}
                                 {/* <span class="sha">{commit.sha}</span> */}
                                 {/* <span class="author">{commit.author.name}</span> */}
