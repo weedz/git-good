@@ -3,5 +3,6 @@ export enum IPCAction {
     LOAD_BRANCHES,
     OPEN_REPO,
     LOAD_COMMIT,
-    PATCH_WITH_HUNKS,
+    PATCH_WITHOUT_HUNKS,
+    LOAD_HUNKS,
 };

@@ -6,7 +6,8 @@ const handlers: {[key in IPCAction]: Function[]} = {
     [IPCAction.LOAD_BRANCHES]: [],
     [IPCAction.OPEN_REPO]: [],
     [IPCAction.LOAD_COMMIT]: [],
-    [IPCAction.PATCH_WITH_HUNKS]: [],
+    [IPCAction.PATCH_WITHOUT_HUNKS]: [],
+    [IPCAction.LOAD_HUNKS]: [],
 };
 export function registerHandler(action: IPCAction, cb: Function) {
     handlers[action]?.push(cb);

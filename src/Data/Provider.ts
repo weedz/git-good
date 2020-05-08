@@ -98,6 +98,7 @@ export type PatchObj = {
     lineStats: LineStats
     newFile: FileObj
     oldFile: FileObj
+    actualFile: FileObj
 }
 export type DiffObj = {
     patches?: PatchObj[]
@@ -145,8 +146,17 @@ async function handleHunk(hunk: ConvenientHunk): Promise<HunkObj> {
         // new: hunk.newStart()
     };
 }
-async function handlePatch(patch: ConvenientPatch): Promise<PatchObj> {
+export async function getHunks(sha: string, path: string) {
+    const patch = commitObjectCache[sha][path];
+    if (!patch) {
+        return false;
+    }
+
     const hunks = await patch.hunks();
+    return await Promise.all(hunks.map(handleHunk));
+}
+async function handlePatch(patch: ConvenientPatch): Promise<PatchObj> {
+    // const hunks = await patch.hunks();
     
     let type = "";
     if (patch.isAdded()) {
@@ -158,41 +168,81 @@ async function handlePatch(patch: ConvenientPatch): Promise<PatchObj> {
     } else if (patch.isRenamed()) {
         type = "R";
     }
-    return {
+
+    const newFile = {
+        path: patch.newFile().path(),
+        size: patch.newFile().size(),
+        mode: patch.newFile().mode(),
+        flags: patch.newFile().flags(),
+    };
+    const oldFile = {
+        path: patch.oldFile().path(),
+        size: patch.oldFile().size(),
+        mode: patch.oldFile().mode(),
+        flags: patch.oldFile().flags(),
+    };
+
+    const patchResult: PatchObj = {
         type,
         status: patch.status(),
-        hunks: await Promise.all(hunks.map(handleHunk)),
+        // hunks: await Promise.all(hunks.map(handleHunk)),
         lineStats: patch.lineStats(),
-        newFile: {
-            path: patch.newFile().path(),
-            size: patch.newFile().size(),
-            mode: patch.newFile().mode(),
-            flags: patch.newFile().flags(),
-        },
-        oldFile: {
-            path: patch.oldFile().path(),
-            size: patch.oldFile().size(),
-            mode: patch.oldFile().mode(),
-            flags: patch.oldFile().flags(),
-        }
+        newFile,
+        oldFile,
+        actualFile: newFile.path ? newFile : oldFile,
     };
+    
+    commitObjectCache[currentCommit][patchResult.actualFile.path] = patch;
+
+    return patchResult;
 }
 async function handleDiff(diff: Diff, event: Electron.IpcMainEvent) {
     // TODO: possible to optimize this for large patches?
     const patches = await diff.patches();
+    const promises = [];
     for (const patch of patches) {
-        handlePatch(patch).then(patchWithHunks => {
-            event.reply("asynchronous-reply", {
-                action: IPCAction.PATCH_WITH_HUNKS,
-                data: patchWithHunks
-            });
+        const patchPromise = handlePatch(patch);
+        promises.push(patchPromise);
+        // patchPromise.then(patchWithHunks => {
+        //     event.reply("asynchronous-reply", {
+        //         action: IPCAction.PATCH_WITH_HUNKS,
+        //         data: patchWithHunks
+        //     });
+        // });
+    }
+    const patchesWithData = await Promise.all(promises);
+
+
+    while (patchesWithData.length) {
+        const patchSet = patchesWithData.splice(0, 100);
+        event.reply("asynchronous-reply", {
+            action: IPCAction.PATCH_WITHOUT_HUNKS,
+            data: patchSet
         });
     }
+
+
+    event.reply("asynchronous-reply", {
+        action: IPCAction.PATCH_WITHOUT_HUNKS,
+        data: {
+            done: true
+        }
+    });
+
+    // event.reply("asynchronous-reply", {
+    //     action: IPCAction.PATCH_WITH_HUNKS,
+    //     data: await Promise.all(promises)
+    // });
 }
 
 export async function getCommitWithDiff(repo: Repository, sha: string, event: Electron.IpcMainEvent): Promise<CommitObj> {
     // const parent = commit.parentcount() && await commit.parent(0) || commit;
     // const diffs = await commit.getDiff();
+
+    currentCommit = sha;
+    commitObjectCache = {
+        [sha]: {}
+    };
 
     const commit = await repo.getCommit(sha);
     const parent = await commit.parent(0);
@@ -238,3 +288,6 @@ export async function getCommitWithDiff(repo: Repository, sha: string, event: El
         },
     };
 }
+
+let currentCommit: string;
+let commitObjectCache: any = {};

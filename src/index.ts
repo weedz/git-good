@@ -1,5 +1,5 @@
 import { app, BrowserWindow, ipcMain } from 'electron';
-import { getBranches, getCommits, getCommitWithDiff } from "./Data/Provider";
+import { getBranches, getCommits, getCommitWithDiff, getHunks } from "./Data/Provider";
 import { Repository } from "nodegit";
 import { IPCAction } from './Data/Actions';
 
@@ -80,6 +80,15 @@ ipcMain.on("asynchronous-message", async (event, arg) => {
                 data: await loadCommit(arg.data, event)
             });
             break;
+        case IPCAction.LOAD_HUNKS:
+            event.reply("asynchronous-reply", {
+                action: arg.action,
+                data: {
+                    path: arg.data.path,
+                    hunks: await loadHunks(arg.data)
+                }
+            });
+            break;
     }
 });
 async function openRepo(repoPath: string) {
@@ -111,6 +120,12 @@ async function loadCommit(sha: string, event: Electron.IpcMainEvent) {
         // const commit = await repo.getCommit(sha);
         const commitObject = await getCommitWithDiff(repo, sha, event);
         return commitObject;
+    }
+}
+
+async function loadHunks(params: any) {
+    if (repo) {
+        return await getHunks(params.sha, params.path);
     }
 }
 

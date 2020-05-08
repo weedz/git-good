@@ -8,7 +8,9 @@
 .diff-header {
     color: teal;
 }
-
+.diff-line {
+    display: contents;
+}
 .diff-line > .diff-type {
     display: inline-block;
     width: 1em;
@@ -24,7 +26,7 @@
 }
 .diff-line-number {
     margin-right: 5px;
-    display: inline-block;
+    display: contents;
 }
 /* .diff-line.added .diff-line-content {
     background-color: darkgreen;
@@ -34,6 +36,7 @@
 } */
 pre.diff-line-content {
     display: inline;
+    margin: 0;
 }
 .diff-view li {
     white-space: nowrap;
@@ -42,4 +45,17 @@ pre.diff-line-content {
 #diff-pane .msg pre {
     margin-top: 3px;
     margin-bottom: 3px;
+}
+
+.diff-view .file-modified {
+    color: yellowgreen;
+}
+.diff-view .file-deleted {
+    color: red;
+}
+.diff-view .file-added {
+    color: green;
+}
+.diff-view .file-renamed {
+    color: blue;
 }
