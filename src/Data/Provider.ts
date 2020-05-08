@@ -1,7 +1,15 @@
 import { Repository, Revwalk, Commit, Reference, Diff, ConvenientPatch, ConvenientHunk, DiffLine } from "nodegit";
-import { IPCAction, BranchObj, BranchesObj, LineObj, HunkObj, PatchObj, CommitObj } from "./Actions";
+import { IPCAction, BranchObj, BranchesObj, LineObj, HunkObj, PatchObj, CommitObj, IPCActionReturn } from "./Actions";
+import { IpcMainEvent } from "electron";
 
-export async function getCommits(repo: Repository, start?: Commit, num: number = 100) {
+export function eventReply<T extends IPCAction>(event: IpcMainEvent, action: T, data: IPCActionReturn[T]) {
+    event.reply("asynchronous-reply", {
+        action,
+        data
+    });
+}
+
+export async function getCommits(repo: Repository, start?: Commit, num: number = 100): Promise<IPCActionReturn[IPCAction.LOAD_COMMITS]> {
     const revwalk = repo.createRevWalk();
     if (!start) {
         start = await repo.getHeadCommit();
@@ -148,18 +156,10 @@ async function handleDiff(diff: Diff, event: Electron.IpcMainEvent) {
 
     while (patchesWithData.length) {
         const patchSet = patchesWithData.splice(0, 100);
-        event.reply("asynchronous-reply", {
-            action: IPCAction.PATCH_WITHOUT_HUNKS,
-            data: patchSet
-        });
+        eventReply(event, IPCAction.PATCH_WITHOUT_HUNKS, patchSet);
     }
 
-    event.reply("asynchronous-reply", {
-        action: IPCAction.PATCH_WITHOUT_HUNKS,
-        data: {
-            done: true
-        }
-    });
+    eventReply(event, IPCAction.PATCH_WITHOUT_HUNKS, { done: true });
 }
 
 export async function getCommitWithDiff(repo: Repository, sha: string, event: Electron.IpcMainEvent): Promise<CommitObj> {
@@ -175,7 +175,8 @@ export async function getCommitWithDiff(repo: Repository, sha: string, event: El
     const parent = await commit.parent(0);
     
     // TODO: fix this. Merge commits are a bit messy without this.
-    const diffs = await commit.getTree().then(async (thisTree) => {
+    // @ts-ignore. from nodegit source, this is exectly as Commit.getDiff
+    const diffs: Diff[] = await commit.getTree().then(async (thisTree) => {
         // TODO: which parent to chose?
         const parents = await commit.getParents(1);
         let diffs;

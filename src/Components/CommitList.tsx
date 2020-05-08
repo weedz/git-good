@@ -2,14 +2,14 @@ import { h, Component } from "preact";
 import { Link } from "@weedzcokie/router-tsx";
 import { sendAsyncMessage, unregisterHandler } from "../Data/Renderer";
 import { registerHandler } from "../Data/Renderer";
-import { IPCAction, LoadCommitsReturn } from "../Data/Actions";
+import { IPCAction, IPCActionReturn } from "../Data/Actions";
 
 type Props = {
     branch?: string
     sha?: string
 };
 
-export default class CommitList extends Component<Props, {commits: LoadCommitsReturn}> {
+export default class CommitList extends Component<Props, {commits: IPCActionReturn[IPCAction.LOAD_COMMITS]}> {
     componentWillMount() {
         registerHandler(IPCAction.LOAD_COMMITS, this.loadCommits);
         this.handleProps(this.props);
@@ -31,7 +31,7 @@ export default class CommitList extends Component<Props, {commits: LoadCommitsRe
             // });
         }
     }
-    loadCommits = (commits: LoadCommitsReturn) => {
+    loadCommits = (commits: IPCActionReturn[IPCAction.LOAD_COMMITS]) => {
         this.setState({
             commits
         });

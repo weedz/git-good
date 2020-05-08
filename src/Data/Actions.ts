@@ -9,17 +9,25 @@ export enum IPCAction {
 
 export type IPCActionParams = {
     [IPCAction.LOAD_BRANCHES]: never
-    [IPCAction.LOAD_COMMITS]: {
-        branch: string
-    } | {
-        sha: string
-    }
+    [IPCAction.LOAD_COMMITS]: LoadCommitsParam
     [IPCAction.OPEN_REPO]: string
     [IPCAction.LOAD_COMMIT]: string
     [IPCAction.PATCH_WITHOUT_HUNKS]: never
     [IPCAction.LOAD_HUNKS]: {
         sha: string
         path: string
+    }
+}
+
+export type IPCActionReturn = {
+    [IPCAction.LOAD_BRANCHES]: BranchesObj
+    [IPCAction.LOAD_COMMITS]: LoadCommitsReturn
+    [IPCAction.OPEN_REPO]: boolean
+    [IPCAction.LOAD_COMMIT]: CommitObj
+    [IPCAction.PATCH_WITHOUT_HUNKS]: PatchObj[] | { done: boolean }
+    [IPCAction.LOAD_HUNKS]: {
+        path: string
+        hunks: HunkObj[] | false
     }
 }
 
@@ -93,8 +101,8 @@ interface LoadCommitsParamSha {
 interface LoadCommitsParamBranch {
     branch: string
 }
-export type LoadCommitsParam = {num?: number} & (LoadCommitsParamBranch | LoadCommitsParamSha)
-export type LoadCommitsReturn = {
+type LoadCommitsParam = {num?: number} & (LoadCommitsParamBranch | LoadCommitsParamSha)
+type LoadCommitsReturn = {
     sha: string
     message: string
     date: number
@@ -104,7 +112,9 @@ export type LoadCommitsReturn = {
     }
 }[]
 
-export type LoadHunksReturn = {
+type LoadHunksReturn = {
     path: string
     hunks: HunkObj[] | false
 }
+
+type LoadPatchReturn = PatchObj[] | {done: boolean}

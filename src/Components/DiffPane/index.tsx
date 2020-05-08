@@ -2,7 +2,7 @@ import { h, Component } from "preact";
 import { StaticLink, RoutableProps } from "@weedzcokie/router-tsx";
 import { registerHandler, unregisterHandler } from "../../Data/Renderer";
 import { sendAsyncMessage } from "../../Data/Renderer";
-import { IPCAction, CommitObj, DiffObj, PatchObj, HunkObj, LineObj, LoadHunksReturn } from "../../Data/Actions";
+import { IPCAction, CommitObj, DiffObj, PatchObj, HunkObj, LineObj, IPCActionReturn } from "../../Data/Actions";
 
 import "./style";
 
@@ -57,7 +57,7 @@ export default class DiffPane extends Component<RoutableProps<Props>, State> {
             commit
         });
     }
-    loadHunks = (data: LoadHunksReturn) => {
+    loadHunks = (data: IPCActionReturn[IPCAction.LOAD_HUNKS]) => {
         const patch = this.patchesToLoad[data.path];
         if (patch) {
             patch.hunks = data.hunks;
@@ -66,7 +66,7 @@ export default class DiffPane extends Component<RoutableProps<Props>, State> {
             this.setState({});
         }
     }
-    handlePatch = (patch: PatchObj[] | {done: boolean}) => {
+    handlePatch = (patch: IPCActionReturn[IPCAction.PATCH_WITHOUT_HUNKS]) => {
         if (Array.isArray(patch)) {
             this.setState({
                 patch: [...this.state.patch, ...patch]
