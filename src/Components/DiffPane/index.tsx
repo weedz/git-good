@@ -157,20 +157,21 @@ export default class DiffPane extends Component<RoutableProps<Props>, State> {
         return (
             <li>
                 <p class="diff-header">{hunk.header}</p>
-                <div style="display:grid; grid-template-columns: 15px 3em 3em 1fr;">
+                <table>
                     { hunk.lines && hunk.lines.map(this.renderLine) }
-                </div>
+                </table>
             </li>
         );
     }
     
     renderLine = (line: LineObj) => {
         return (
-            <div class={line.type && `diff-line ${line.type === "+" ? "added" : "deleted"}` || "diff-line"}>
-                <span class="diff-type">{line.type}</span>
-                <span class="diff-line-number"><span class="old">{line.oldLineno !== -1 && line.oldLineno}</span><span class="new">{line.newLineno !== -1 && line.newLineno}</span></span>
-                <pre class="diff-line-content">{line.content}</pre>
-            </div>
+            <tr class={line.type && `diff-line ${line.type === "+" ? "added" : "deleted"}` || "diff-line"}>
+                <td class="diff-type">{line.type}</td>
+                <td class="diff-line-number old">{line.oldLineno !== -1 && line.oldLineno}</td>
+                <td class="diff-line-number new">{line.newLineno !== -1 && line.newLineno}</td>
+                <td class="diff-line-content">{line.content}</td>
+            </tr>
         );
     }
 }

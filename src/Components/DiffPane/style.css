@@ -8,13 +8,6 @@
 .diff-header {
     color: teal;
 }
-.diff-line {
-    display: contents;
-}
-.diff-line > .diff-type {
-    display: inline-block;
-    width: 1em;
-}
 .diff-line:empty {
     content: "&nbsp;";
 }
@@ -24,19 +17,16 @@
 .diff-line.deleted {
     color: red;
 }
-.diff-line-number {
-    margin-right: 5px;
-    display: contents;
-}
 /* .diff-line.added .diff-line-content {
     background-color: darkgreen;
-} */
-/* .diff-line.deleted .diff-line-content {
+}
+.diff-line.deleted .diff-line-content {
     background-color: darkred;
 } */
-pre.diff-line-content {
-    display: inline;
+.diff-line-content {
+    font-family: monospace;
     margin: 0;
+    white-space: pre;
 }
 .diff-view li {
     white-space: nowrap;
