@@ -1,4 +1,5 @@
 import { h, Component } from "preact";
+import { basename } from "path";
 import { RouterComponent as Router } from "@weedzcokie/router-tsx";
 
 import Main from "./Views/Main";
@@ -8,19 +9,25 @@ import BranchList from "./Components/BranchList";
 import DiffPane from "./Components/DiffPane";
 import { openRepo, subscribe, Store, unsubscribe } from "./Data/Renderer/store";
 
-
-type Props = {
-    repo?: boolean
+type State = {
+    repoPath: string
 }
-export default class App extends Component<Props, {}> {
+export default class App extends Component<{}, State> {
+    constructor() {
+        super();
+        this.state = {
+            repoPath: "/home/weedz/Documents/workspace/Router"
+        };
+    }
     componentDidMount() {
         subscribe(this.update, "repo");
-        openRepo("/home/weedz/Documents/workspace/Router");
+        openRepo(this.state.repoPath);
     }
     componentWillUnmount() {
         unsubscribe(this.update, "repo");
     }
     update = () => {
+        document.title = basename(this.state.repoPath);
         this.setState({});
     }
     render() {

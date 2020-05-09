@@ -31,14 +31,6 @@ export async function getCommits(repo: Repository, start?: Commit, num: number =
 }
 
 
-async function buildRef(ref: Reference): Promise<BranchObj> {
-    const headCommit = await ref.peel(Object.TYPE.COMMIT);
-    return {
-        name: ref.name(),
-        headSHA: headCommit.id().tostrS()
-    };
-}
-
 // {local: Branch[], remote: Branch[], tags: Branch[]}
 export async function getBranches(repo: Repository): Promise<BranchesObj> {
     const refs = await repo.getReferences();
@@ -49,12 +41,21 @@ export async function getBranches(repo: Repository): Promise<BranchesObj> {
 
     await Promise.all(
         refs.map(async (ref) => {
-            const refObj = await buildRef(ref);
+            const headCommit = await ref.peel(Object.TYPE.COMMIT);
+            const refObj: BranchObj = {
+                name: ref.name(),
+                headSHA: headCommit.id().tostrS(),
+                normalizedName: ""
+            };
+
             if (ref.isBranch()) {
+                refObj.normalizedName = refObj.name.substring(11);
                 local.push(refObj);
             } else if (ref.isRemote()) {
+                refObj.normalizedName = refObj.name.substring(13);
                 remote.push(refObj);
             } else if (ref.isTag()) {
+                refObj.normalizedName = refObj.name.substring(10);
                 tags.push(refObj);
             }
         })
@@ -70,6 +71,7 @@ export async function getBranches(repo: Repository): Promise<BranchesObj> {
         head: {
             name: head.name(),
             headSHA: headCommit.id().tostrS(),
+            normalizedName: head.name(),
         }
     };
 }

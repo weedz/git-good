@@ -1,10 +1,12 @@
-import { IPCAction, BranchesObj } from "../Actions";
+import { IPCAction, BranchesObj, BranchObj } from "../Actions";
 import { registerHandler, sendAsyncMessage, attach } from ".";
 
 export type StoreType = {
     repo: boolean
     branches: null | BranchesObj
-    heads: any
+    heads: {
+        [key: string]: BranchObj
+    }
 }
 
 export const Store: StoreType = {
@@ -68,8 +70,19 @@ function repoOpened() {
 }
 function branchesLoaded(branches: BranchesObj) {
     // Update heads
+    const heads:any = {};
+    for (const ref of branches.local) {
+        heads[ref.headSHA] = ref;
+    }
+    for (const ref of branches.remote) {
+        heads[ref.headSHA] = ref;
+    }
+    for (const ref of branches.tags) {
+        heads[ref.headSHA] = ref;
+    }
     setState({
-        branches
+        branches,
+        heads
     });
 }
 
