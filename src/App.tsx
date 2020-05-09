@@ -1,28 +1,37 @@
 import { h, Component } from "preact";
+import { basename } from "path";
 import { RouterComponent as Router } from "@weedzcokie/router-tsx";
 
 import Main from "./Views/Main";
 import WorkingArea from "./Views/WorkingArea";
 import Changes from "./Components/Changes";
 import BranchList from "./Components/BranchList";
-import { attach, sendAsyncMessage, registerHandler } from "./Data/Renderer";
 import DiffPane from "./Components/DiffPane";
-import { IPCAction } from "./Data/Actions";
+import { openRepo, subscribe, Store, unsubscribe } from "./Data/Renderer/store";
 
-export default class App extends Component<{}, {repo?: any}> {
+type State = {
+    repoPath: string
+}
+export default class App extends Component<{}, State> {
     constructor() {
         super();
-        attach();
-        registerHandler(IPCAction.OPEN_REPO, this.repoOpened);
-        sendAsyncMessage(IPCAction.OPEN_REPO, "/home/weedz/Documents/workspace/Router");
+        this.state = {
+            repoPath: "/home/weedz/Documents/workspace/Router"
+        };
     }
-    repoOpened = (status: any) => {
-        this.setState({
-            repo: true
-        });
+    componentDidMount() {
+        subscribe(this.update, "repo");
+        openRepo(this.state.repoPath);
+    }
+    componentWillUnmount() {
+        unsubscribe(this.update, "repo");
+    }
+    update = () => {
+        document.title = basename(this.state.repoPath);
+        this.setState({});
     }
     render() {
-        if (!this.state.repo) {
+        if (!Store.repo) {
             return (
                 <h1>Opening repo</h1>
             );

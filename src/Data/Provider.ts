@@ -1,4 +1,4 @@
-import { Repository, Revwalk, Commit, Reference, Diff, ConvenientPatch, ConvenientHunk, DiffLine } from "nodegit";
+import { Repository, Revwalk, Commit, Reference, Diff, ConvenientPatch, ConvenientHunk, DiffLine, Object } from "nodegit";
 import { IPCAction, BranchObj, BranchesObj, LineObj, HunkObj, PatchObj, CommitObj, IPCActionReturn } from "./Actions";
 import { IpcMainEvent } from "electron";
 
@@ -31,36 +31,47 @@ export async function getCommits(repo: Repository, start?: Commit, num: number =
 }
 
 
-function buildRef(ref: Reference): BranchObj {
-    return {
-        name: ref.name()
-    };
-}
-
 // {local: Branch[], remote: Branch[], tags: Branch[]}
 export async function getBranches(repo: Repository): Promise<BranchesObj> {
     const refs = await repo.getReferences();
-    const local = [];
-    const remote = [];
-    const tags = [];
-    for (const ref of refs) {
-        if (ref.isBranch()) {
-            local.push(buildRef(ref));
-        } else if (ref.isRemote()) {
-            remote.push(buildRef(ref));
-        } else if (ref.isTag()) {
-            tags.push(buildRef(ref));
-        }
-    }
+
+    const local: BranchObj[] = [];
+    const remote: BranchObj[] = [];
+    const tags: BranchObj[] = [];
+
+    await Promise.all(
+        refs.map(async (ref) => {
+            const headCommit = await ref.peel(Object.TYPE.COMMIT);
+            const refObj: BranchObj = {
+                name: ref.name(),
+                headSHA: headCommit.id().tostrS(),
+                normalizedName: ""
+            };
+
+            if (ref.isBranch()) {
+                refObj.normalizedName = refObj.name.substring(11);
+                local.push(refObj);
+            } else if (ref.isRemote()) {
+                refObj.normalizedName = refObj.name.substring(13);
+                remote.push(refObj);
+            } else if (ref.isTag()) {
+                refObj.normalizedName = refObj.name.substring(10);
+                tags.push(refObj);
+            }
+        })
+    );
     
     const head = await repo.head();
+    const headCommit = await head.peel(Object.TYPE.COMMIT);
     
     return {
         local,
         remote,
         tags,
         head: {
-            name: head.name()
+            name: head.name(),
+            headSHA: headCommit.id().tostrS(),
+            normalizedName: head.name(),
         }
     };
 }

@@ -87,6 +87,8 @@ export type CommitObj = {
 
 export type BranchObj = {
     name: string
+    headSHA: string
+    normalizedName: string
 }
 
 export type BranchesObj = {
