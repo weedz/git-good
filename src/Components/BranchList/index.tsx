@@ -3,8 +3,8 @@ import { Link } from "@weedzcokie/router-tsx";
 
 import "./style";
 import { getBranchTree } from "../../Data/Branch";
-import { registerHandler, sendAsyncMessage, unregisterHandler } from "../../Data/Renderer";
-import { IPCAction, BranchesObj, BranchObj } from "../../Data/Actions";
+import { BranchesObj } from "../../Data/Actions";
+import { loadBranches, subscribe, Store, unsubscribe } from "../../Data/Renderer/store";
 
 function toggleTreeItem(e: any) {
     e.preventDefault();
@@ -42,40 +42,48 @@ function BranchTree(branches: any) {
     )
 }
 
-export default class BranchList extends Component<any, {branches: ReturnType<typeof getBranchTree>, head?: BranchObj}> {
+type Props = {
+    branches?: BranchesObj
+}
+
+export default class BranchList extends Component<Props> {
     componentWillMount() {
-        registerHandler(IPCAction.LOAD_BRANCHES, this.loadBranches);
-        sendAsyncMessage(IPCAction.LOAD_BRANCHES);
+        subscribe(this.update, "branches");
+        loadBranches();
     }
     componentWillUnmount() {
-        unregisterHandler(IPCAction.LOAD_BRANCHES, this.loadBranches);
+        unsubscribe(this.update, "branches");
     }
-    loadBranches = (branches: BranchesObj) => {
-        this.setState({
-            branches: getBranchTree(branches),
-            head: branches.head
-        });
+    update = () => {
+        this.setState({});
     }
+
     render() {
+        if (!Store.branches) {
+            return <p>Loading...</p>
+        }
+
+        const branches = getBranchTree(Store.branches);
+        const head = Store.branches.head;
         return (
             <div id="branch-pane" class="pane">
                 <h4>Refs</h4>
-                <Link activeClassName="selected" href="/">HEAD ({this.state.head?.name.substring(11)})</Link>
+                <Link activeClassName="selected" href="/">HEAD ({head?.name.substring(11)})</Link>
                 <hr />
-                {this.state.branches && <ul class="tree-list">
+                {branches && <ul class="tree-list">
                     <li class="sub-tree">
                         <a href="#" onClick={toggleTreeItem}>Local</a>
-                        {BranchTree(this.state.branches.local)}
+                        {BranchTree(branches.local)}
                     </li>
                     <hr />
                     <li class="sub-tree">
                         <a href="#" onClick={toggleTreeItem}>Remote</a>
-                        {BranchTree(this.state.branches.remote)}
+                        {BranchTree(branches.remote)}
                     </li>
                     <hr />
                     <li class="sub-tree">
                         <a href="#" onClick={toggleTreeItem}>Tags</a>
-                        {BranchTree(this.state.branches.tags)}
+                        {BranchTree(branches.tags)}
                     </li>
                     <hr />
                     <li class="sub-tree">

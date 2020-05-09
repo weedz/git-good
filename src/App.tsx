@@ -5,24 +5,26 @@ import Main from "./Views/Main";
 import WorkingArea from "./Views/WorkingArea";
 import Changes from "./Components/Changes";
 import BranchList from "./Components/BranchList";
-import { attach, sendAsyncMessage, registerHandler } from "./Data/Renderer";
 import DiffPane from "./Components/DiffPane";
-import { IPCAction } from "./Data/Actions";
+import { openRepo, subscribe, Store, unsubscribe } from "./Data/Renderer/store";
 
-export default class App extends Component<{}, {repo?: any}> {
-    constructor() {
-        super();
-        attach();
-        registerHandler(IPCAction.OPEN_REPO, this.repoOpened);
-        sendAsyncMessage(IPCAction.OPEN_REPO, "/home/weedz/Documents/workspace/Router");
+
+type Props = {
+    repo?: boolean
+}
+export default class App extends Component<Props, {}> {
+    componentDidMount() {
+        subscribe(this.update, "repo");
+        openRepo("/home/weedz/Documents/workspace/Router");
     }
-    repoOpened = (status: any) => {
-        this.setState({
-            repo: true
-        });
+    componentWillUnmount() {
+        unsubscribe(this.update, "repo");
+    }
+    update = () => {
+        this.setState({});
     }
     render() {
-        if (!this.state.repo) {
+        if (!Store.repo) {
             return (
                 <h1>Opening repo</h1>
             );

@@ -1,4 +1,4 @@
-import { Repository, Revwalk, Commit, Reference, Diff, ConvenientPatch, ConvenientHunk, DiffLine } from "nodegit";
+import { Repository, Revwalk, Commit, Reference, Diff, ConvenientPatch, ConvenientHunk, DiffLine, Object } from "nodegit";
 import { IPCAction, BranchObj, BranchesObj, LineObj, HunkObj, PatchObj, CommitObj, IPCActionReturn } from "./Actions";
 import { IpcMainEvent } from "electron";
 
@@ -31,36 +31,45 @@ export async function getCommits(repo: Repository, start?: Commit, num: number =
 }
 
 
-function buildRef(ref: Reference): BranchObj {
+async function buildRef(ref: Reference): Promise<BranchObj> {
+    const headCommit = await ref.peel(Object.TYPE.COMMIT);
     return {
-        name: ref.name()
+        name: ref.name(),
+        headSHA: headCommit.id().tostrS()
     };
 }
 
 // {local: Branch[], remote: Branch[], tags: Branch[]}
 export async function getBranches(repo: Repository): Promise<BranchesObj> {
     const refs = await repo.getReferences();
-    const local = [];
-    const remote = [];
-    const tags = [];
-    for (const ref of refs) {
-        if (ref.isBranch()) {
-            local.push(buildRef(ref));
-        } else if (ref.isRemote()) {
-            remote.push(buildRef(ref));
-        } else if (ref.isTag()) {
-            tags.push(buildRef(ref));
-        }
-    }
+
+    const local: BranchObj[] = [];
+    const remote: BranchObj[] = [];
+    const tags: BranchObj[] = [];
+
+    await Promise.all(
+        refs.map(async (ref) => {
+            const refObj = await buildRef(ref);
+            if (ref.isBranch()) {
+                local.push(refObj);
+            } else if (ref.isRemote()) {
+                remote.push(refObj);
+            } else if (ref.isTag()) {
+                tags.push(refObj);
+            }
+        })
+    );
     
     const head = await repo.head();
+    const headCommit = await head.peel(Object.TYPE.COMMIT);
     
     return {
         local,
         remote,
         tags,
         head: {
-            name: head.name()
+            name: head.name(),
+            headSHA: headCommit.id().tostrS(),
         }
     };
 }
