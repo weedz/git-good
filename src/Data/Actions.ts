@@ -5,6 +5,7 @@ export enum IPCAction {
     LOAD_COMMIT,
     PATCH_WITHOUT_HUNKS,
     LOAD_HUNKS,
+    CHECKOUT_BRANCH,
 };
 
 export type IPCActionParams = {
@@ -17,7 +18,8 @@ export type IPCActionParams = {
         sha: string
         path: string
     }
-}
+    [IPCAction.CHECKOUT_BRANCH]: string
+};
 
 export type IPCActionReturn = {
     [IPCAction.LOAD_BRANCHES]: BranchesObj
@@ -29,19 +31,20 @@ export type IPCActionReturn = {
         path: string
         hunks: HunkObj[] | false
     }
-}
+    [IPCAction.CHECKOUT_BRANCH]: false | BranchObj
+};
 
 export type LineStats = {
     total_context: number
     total_additions: number
     total_deletions: number
-}
+};
 export type FileObj = {
     path: string
     size: number
     mode: number
     flags: number
-}
+};
 
 export type LineObj = {
     type: string
@@ -50,13 +53,13 @@ export type LineObj = {
     content: string
     // offset: number
     // length: number
-}
+};
 export type HunkObj = {
     header: string
     lines?: LineObj[]
     // old: number
     // new: number
-}
+};
 export type PatchObj = {
     type: string
     status: number
@@ -65,14 +68,14 @@ export type PatchObj = {
     newFile: FileObj
     oldFile: FileObj
     actualFile: FileObj
-}
+};
 export type DiffObj = {
     patches?: PatchObj[]
-}
+};
 export type AuthorObj = {
     name: string
     email: string
-}
+};
 export type CommitObj = {
     parent: {
         sha: string
@@ -83,26 +86,26 @@ export type CommitObj = {
     message: string
     author: AuthorObj
     commiter: AuthorObj
-}
+};
 
 export type BranchObj = {
     name: string
     headSHA: string
     normalizedName: string
-}
+};
 
 export type BranchesObj = {
     remote: BranchObj[]
     local: BranchObj[]
     tags: BranchObj[]
     head?: BranchObj
-}
+};
 interface LoadCommitsParamSha {
     sha: string
-}
+};
 interface LoadCommitsParamBranch {
     branch: string
-}
+};
 type LoadCommitsParam = {num?: number} & (LoadCommitsParamBranch | LoadCommitsParamSha)
 type LoadCommitsReturn = {
     sha: string
@@ -112,11 +115,4 @@ type LoadCommitsReturn = {
         name: string
         email: string
     }
-}[]
-
-type LoadHunksReturn = {
-    path: string
-    hunks: HunkObj[] | false
-}
-
-type LoadPatchReturn = PatchObj[] | {done: boolean}
+}[];

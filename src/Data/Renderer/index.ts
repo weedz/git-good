@@ -13,6 +13,7 @@ const handlers: {[key in IPCAction]: Function[]} = {
     [IPCAction.LOAD_COMMIT]: [],
     [IPCAction.PATCH_WITHOUT_HUNKS]: [],
     [IPCAction.LOAD_HUNKS]: [],
+    [IPCAction.CHECKOUT_BRANCH]: [],
 };
 export function registerHandler<T extends IPCAction>(action: T, cb: (arg0: IPCActionReturn[T]) => void) {
     handlers[action]?.push(cb);
