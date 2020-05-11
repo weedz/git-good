@@ -1,4 +1,4 @@
-import { IPCAction, BranchesObj, BranchObj } from "../Actions";
+import { IPCAction, BranchesObj, BranchObj, IPCActionReturn } from "../Actions";
 import { registerHandler, sendAsyncMessage, attach } from ".";
 
 export type StoreType = {
@@ -7,12 +7,16 @@ export type StoreType = {
     heads: {
         [key: string]: BranchObj
     }
-}
+};
 
 export const Store: StoreType = {
     repo: false,
     branches: null,
     heads: {}
+};
+
+export const contextMenuState: {data: any} = {
+    data: null
 };
 
 const listeners: Function[] = [];
@@ -22,7 +26,7 @@ const keyListeners: {
     repo: [],
     branches: [],
     heads: []
-}
+};
 
 export function subscribe(cb: Function, key?: keyof StoreType) {
     if (key) {
@@ -63,6 +67,10 @@ export function loadBranches() {
     sendAsyncMessage(IPCAction.LOAD_BRANCHES);
 }
 
+export function checkoutBranch(branch: string) {
+    sendAsyncMessage(IPCAction.CHECKOUT_BRANCH, branch);
+}
+
 function repoOpened() {
     setState({
         repo: true
@@ -85,7 +93,16 @@ function branchesLoaded(branches: BranchesObj) {
         heads
     });
 }
+function updateCurrentBranch(result: IPCActionReturn[IPCAction.CHECKOUT_BRANCH]) {
+    if (result && Store.branches) {
+        Store.branches.head = result;
+        setState({
+            branches: Store.branches
+        });
+    }
+}
 
 attach();
 registerHandler(IPCAction.OPEN_REPO, repoOpened);
 registerHandler(IPCAction.LOAD_BRANCHES, branchesLoaded);
+registerHandler(IPCAction.CHECKOUT_BRANCH, updateCurrentBranch);

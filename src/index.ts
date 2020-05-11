@@ -1,7 +1,7 @@
 import { app, BrowserWindow, ipcMain } from 'electron';
 import { join } from "path";
 import { getBranches, getCommits, getCommitWithDiff, getHunks, eventReply } from "./Data/Provider";
-import { Repository, Commit } from "nodegit";
+import { Repository, Commit, Object } from "nodegit";
 import { IPCAction, IPCActionParams, IPCActionReturn } from './Data/Actions';
 
 const createWindow = () => {
@@ -51,7 +51,7 @@ let repo: Repository;
 type EventArgs = {
     action: IPCAction
     data: any
-}
+};
 
 ipcMain.on("asynchronous-message", async (event, arg: EventArgs) => {
     if (arg.action === IPCAction.OPEN_REPO) {
@@ -76,6 +76,9 @@ ipcMain.on("asynchronous-message", async (event, arg: EventArgs) => {
                     hunks: await loadHunks(arg.data)
                 };
                 eventReply(event, arg.action, data);
+                break;
+            case IPCAction.CHECKOUT_BRANCH:
+                eventReply(event, arg.action, await changeBranch(arg.data));
                 break;
         }
     }
@@ -106,4 +109,20 @@ async function loadHunks(params: IPCActionParams[IPCAction.LOAD_HUNKS]) {
 
 async function loadBranches() {
     return await getBranches(repo);
+}
+
+async function changeBranch(branch: string) {
+    try {
+        await repo.checkoutBranch(branch);
+        const head = await repo.head();
+        const headCommit = await head.peel(Object.TYPE.COMMIT);
+        return {
+            name: head.name(),
+            headSHA: headCommit.id().tostrS(),
+            normalizedName: head.name(),
+        };
+    } catch(err) {
+        console.log(err);
+        return false;
+    }
 }
