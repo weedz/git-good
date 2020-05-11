@@ -22,6 +22,7 @@ type State = {
     commit: null | CommitObj
     patch: PatchObj[]
     loadingComplete: boolean
+    fileFilter: string
 }
 export default class DiffPane extends Component<RoutableProps<Props>, State> {
     patchesToLoad: any = {};    // FIXME
@@ -94,6 +95,11 @@ export default class DiffPane extends Component<RoutableProps<Props>, State> {
             });
         }
     }
+    filterFiles = (e: any) => {
+        this.setState({
+            fileFilter: e.target.value
+        });
+    }
     render() {
         if (!this.state.commit) {
             return (
@@ -115,16 +121,18 @@ export default class DiffPane extends Component<RoutableProps<Props>, State> {
                 </div>
                 <hr />
                 <p>{!this.state.loadingComplete && <span>Loading...</span>}Files: {this.state.patch.length}</p>
+                <input type="text" onKeyUp={this.filterFiles} placeholder="Search file..." />
                 <ul class="diff-view tree-list" key={this.state.commit.sha}>
-                    {this.state.loadingComplete && this.state.patch.map(this.renderPatch)}
+                    {this.state.loadingComplete && this.renderPatches(this.state.patch)}
                 </ul>
             </div>
         );
     }
-    renderDiff = (diff: DiffObj) => {
-        return (
-            diff.patches && diff.patches.map(this.renderPatch)
-        );
+    renderPatches = (patches: PatchObj[]) => {
+        if (this.state.fileFilter) {
+            return patches.filter(patch => patch.actualFile.path.includes(this.state.fileFilter)).map(this.renderPatch);
+        }
+        return patches.map(this.renderPatch);
     }
     
     renderPatch = (patch: PatchObj) => {
