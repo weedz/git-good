@@ -12,7 +12,7 @@ export type BranchTree = {
 
 function transformToBranchTree(branches: BranchObj[]) {
     let root: BranchTree = {};
-    for (const branch of branches) {
+    for (const branch of branches.sort((a,b) => a.normalizedName.localeCompare(b.normalizedName))) {
         const paths = branch.normalizedName.split("/");
 
         let tree = root;
