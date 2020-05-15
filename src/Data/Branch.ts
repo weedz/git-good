@@ -51,3 +51,12 @@ export function getBranchTree(branches: BranchesObj) {
         }
     };
 }
+
+export function filterBranches(branches: BranchesObj, filter: (value: BranchObj) => boolean)
+{
+    return {
+        remote: branches.remote.filter(filter),
+        local: branches.local.filter(filter),
+        tags: branches.tags.filter(filter),
+    };
+}
