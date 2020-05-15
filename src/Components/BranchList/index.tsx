@@ -1,7 +1,7 @@
 import { h, Component } from "preact";
 import { Link } from "@weedzcokie/router-tsx";
 
-import "./style";
+import "./style.css";
 import { getBranchTree } from "../../Data/Branch";
 import { BranchesObj } from "../../Data/Actions";
 import { loadBranches, subscribe, Store, unsubscribe } from "../../Data/Renderer/store";

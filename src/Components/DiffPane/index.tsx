@@ -4,7 +4,7 @@ import { registerHandler, unregisterHandler } from "../../Data/Renderer";
 import { sendAsyncMessage } from "../../Data/Renderer";
 import { IPCAction, CommitObj, DiffObj, PatchObj, HunkObj, LineObj, IPCActionReturn } from "../../Data/Actions";
 
-import "./style";
+import "./style.css";
 
 function toggleTreeItem(e: any) {
     e.preventDefault();
