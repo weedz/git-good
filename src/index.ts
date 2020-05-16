@@ -1,11 +1,8 @@
 import { app, BrowserWindow, ipcMain } from 'electron';
+import { join } from "path";
 import { getBranches, getCommits, getCommitWithDiff, getHunks, eventReply } from "./Data/Provider";
 import { Repository, Commit } from "nodegit";
 import { IPCAction, IPCActionParams, IPCActionReturn } from './Data/Actions';
-
-declare const MAIN_WINDOW_WEBPACK_ENTRY: any;
-
-// Handle creating/removing shortcuts on Windows when installing/uninstalling.
 
 const createWindow = () => {
     // Create the browser window.
@@ -16,12 +13,10 @@ const createWindow = () => {
             nodeIntegration: true
         }
     });
-    
-    // and load the index.html of the app.
-    mainWindow.loadURL(MAIN_WINDOW_WEBPACK_ENTRY);
-    
-    // Open the DevTools.
-    mainWindow.webContents.openDevTools();
+
+    mainWindow.loadFile(join(__dirname, "../dist/index.html"));
+
+    // mainWindow.webContents.openDevTools();
 };
 
 app.commandLine.appendSwitch('disable-smooth-scrolling');
