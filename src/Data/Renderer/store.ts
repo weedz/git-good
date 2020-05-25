@@ -12,12 +12,14 @@ export type StoreType = {
     }
 };
 
-export const Store: StoreType = {
+const store: StoreType = {
     repo: false,
     branches: null,
     heads: {},
     currentFile: null,
 };
+
+export const Store = store as Readonly<StoreType>
 
 export const contextMenuState: {data: any} = {
     data: null
@@ -51,7 +53,7 @@ export function unsubscribe(cb: Function, key?: keyof StoreType) {
 }
 
 export function setState(newState: Partial<StoreType>) {
-    Object.assign(Store, newState);
+    Object.assign(store, newState);
     for (const listener of listeners) {
         listener(newState);
     }
@@ -94,10 +96,10 @@ export function closeFile() {
 }
 
 function loadHunks(data: IPCActionReturn[IPCAction.LOAD_HUNKS]) {
-    if (Store.currentFile && data.hunks) {
-        Store.currentFile.patch.hunks = data.hunks;
+    if (store.currentFile && data.hunks) {
+        store.currentFile.patch.hunks = data.hunks;
         setState({
-            currentFile: Store.currentFile
+            currentFile: store.currentFile
         });
     }
 }
@@ -126,10 +128,10 @@ function branchesLoaded(branches: BranchesObj) {
     });
 }
 function updateCurrentBranch(result: IPCActionReturn[IPCAction.CHECKOUT_BRANCH]) {
-    if (result && Store.branches) {
-        Store.branches.head = result;
+    if (result && store.branches) {
+        store.branches.head = result;
         setState({
-            branches: Store.branches
+            branches: store.branches
         });
     }
 }
