@@ -1,18 +1,22 @@
-import { IPCAction, BranchesObj, BranchObj, IPCActionReturn } from "../Actions";
+import { IPCAction, BranchesObj, BranchObj, IPCActionReturn, PatchObj } from "../Actions";
 import { registerHandler, sendAsyncMessage, attach } from ".";
 
 export type StoreType = {
     repo: boolean
     branches: null | BranchesObj
     heads: {
-        [key: string]: BranchObj
+        [key: string]: BranchObj[]
+    }
+    currentFile: null | {
+        patch: PatchObj
     }
 };
 
 export const Store: StoreType = {
     repo: false,
     branches: null,
-    heads: {}
+    heads: {},
+    currentFile: null,
 };
 
 export const contextMenuState: {data: any} = {
@@ -25,7 +29,8 @@ const keyListeners: {
 } = {
     repo: [],
     branches: [],
-    heads: []
+    heads: [],
+    currentFile: [],
 };
 
 export function subscribe(cb: Function, key?: keyof StoreType) {
@@ -71,23 +76,50 @@ export function checkoutBranch(branch: string) {
     sendAsyncMessage(IPCAction.CHECKOUT_BRANCH, branch);
 }
 
-function repoOpened() {
+export function openFile(sha: string, patch: PatchObj) {
     setState({
-        repo: true
+        currentFile: {
+            patch
+        }
+    });
+    sendAsyncMessage(IPCAction.LOAD_HUNKS, {
+        sha: sha,
+        path: patch.actualFile.path
     });
 }
+export function closeFile() {
+    setState({
+        currentFile: null
+    });
+}
+
+function loadHunks(data: IPCActionReturn[IPCAction.LOAD_HUNKS]) {
+    if (Store.currentFile && data.hunks) {
+        Store.currentFile.patch.hunks = data.hunks;
+        setState({
+            currentFile: Store.currentFile
+        });
+    }
+}
+
+function repoOpened(opened: IPCActionReturn[IPCAction.OPEN_REPO]) {
+    setState({
+        repo: opened
+    });
+}
+function mapHeads(heads: any, refs: BranchObj[]) {
+    for (const ref of refs) {
+        if (!heads[ref.headSHA]) {
+            heads[ref.headSHA] = [];
+        }
+        heads[ref.headSHA].push(ref);
+    }
+}
 function branchesLoaded(branches: BranchesObj) {
-    // Update heads
     const heads:any = {};
-    for (const ref of branches.local) {
-        heads[ref.headSHA] = ref;
-    }
-    for (const ref of branches.remote) {
-        heads[ref.headSHA] = ref;
-    }
-    for (const ref of branches.tags) {
-        heads[ref.headSHA] = ref;
-    }
+    mapHeads(heads, branches.local);
+    mapHeads(heads, branches.remote);
+    mapHeads(heads, branches.tags);
     setState({
         branches,
         heads
@@ -106,3 +138,4 @@ attach();
 registerHandler(IPCAction.OPEN_REPO, repoOpened);
 registerHandler(IPCAction.LOAD_BRANCHES, branchesLoaded);
 registerHandler(IPCAction.CHECKOUT_BRANCH, updateCurrentBranch);
+registerHandler(IPCAction.LOAD_HUNKS, loadHunks);

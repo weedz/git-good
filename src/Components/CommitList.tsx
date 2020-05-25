@@ -53,7 +53,9 @@ export default class CommitList extends Component<Props, {commits: IPCActionRetu
                     {this.state.commits && this.state.commits.map((commit, index) => (
                         <li class="short" key={commit.sha}>
                             <Link activeClassName="selected" href={ (this.props.branch ? `/branch/${this.props.branch}/` : "/commit/") + commit.sha}>
-                                {Store.heads[commit.sha] && <span style={{color: headColors[index % headColors.length]}}>({Store.heads[commit.sha].normalizedName})</span>}
+                                {Store.heads[commit.sha] && 
+                                    Store.heads[commit.sha].map(ref => <span style={{color: headColors[index % headColors.length]}}>({ref.normalizedName})</span>)
+                                }
                                 <span class="msg">{commit.message.substring(0, commit.message.indexOf("\n")>>>0 || 60)}</span>
                                 {/* <span class="date">{commit.date}</span> */}
                                 {/* <span class="sha">{commit.sha}</span> */}

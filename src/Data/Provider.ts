@@ -1,8 +1,7 @@
-import { Repository, Revwalk, Commit, Reference, Diff, ConvenientPatch, ConvenientHunk, DiffLine, Object } from "nodegit";
+import { Repository, Revwalk, Commit, Diff, ConvenientPatch, ConvenientHunk, DiffLine, Object, DiffFile } from "nodegit";
 import { IPCAction, BranchObj, BranchesObj, LineObj, HunkObj, PatchObj, CommitObj, IPCActionReturn } from "./Actions";
-import { IpcMainEvent } from "electron";
 
-export function eventReply<T extends IPCAction>(event: IpcMainEvent, action: T, data: IPCActionReturn[T]) {
+export function eventReply<T extends IPCAction>(event: Electron.IpcMainEvent, action: T, data: IPCActionReturn[T]) {
     event.reply("asynchronous-reply", {
         action,
         data
@@ -76,9 +75,7 @@ export async function getBranches(repo: Repository): Promise<BranchesObj> {
     };
 }
 
-
-
-async function handleLine(line: DiffLine): Promise<LineObj> {
+function handleLine(line: DiffLine): LineObj {
     let type = "";
     if (line.oldLineno() === -1) {
         type = "+";
@@ -95,12 +92,11 @@ async function handleLine(line: DiffLine): Promise<LineObj> {
     };
 }
 async function handleHunk(hunk: ConvenientHunk): Promise<HunkObj> {
-    const header = hunk.header().trim()
     const lines = await hunk.lines();
     
     return {
-        header: header.substring(0, header.indexOf("@@", 2) + 2),
-        lines: await Promise.all(lines.map(handleLine)),
+        header: hunk.header().trim(),
+        lines: lines.map(handleLine),
         // old: hunk.oldStart(),
         // new: hunk.newStart()
     };
@@ -112,11 +108,9 @@ export async function getHunks(sha: string, path: string) {
     }
 
     const hunks = await patch.hunks();
-    return await Promise.all(hunks.map(handleHunk));
+    return Promise.all(hunks.map(handleHunk));
 }
-async function handlePatch(patch: ConvenientPatch): Promise<PatchObj> {
-    // const hunks = await patch.hunks();
-    
+function handlePatch(patch: ConvenientPatch): PatchObj {
     let type = "";
     if (patch.isAdded()) {
         type = "A";
@@ -144,7 +138,6 @@ async function handlePatch(patch: ConvenientPatch): Promise<PatchObj> {
     const patchResult: PatchObj = {
         type,
         status: patch.status(),
-        // hunks: await Promise.all(hunks.map(handleHunk)),
         lineStats: patch.lineStats(),
         newFile,
         oldFile,
@@ -155,18 +148,12 @@ async function handlePatch(patch: ConvenientPatch): Promise<PatchObj> {
 
     return patchResult;
 }
+
 async function handleDiff(diff: Diff, event: Electron.IpcMainEvent) {
-    const patches = await diff.patches();
-    const promises = [];
-    for (const patch of patches) {
-        const patchPromise = handlePatch(patch);
-        promises.push(patchPromise);
-    }
-    const patchesWithData = await Promise.all(promises);
+    const convenientPatches = await diff.patches();
 
-
-    while (patchesWithData.length) {
-        const patchSet = patchesWithData.splice(0, 100);
+    while (convenientPatches.length) {
+        const patchSet = convenientPatches.splice(0, 100).map(handlePatch);
         eventReply(event, IPCAction.PATCH_WITHOUT_HUNKS, patchSet);
     }
 
@@ -174,48 +161,48 @@ async function handleDiff(diff: Diff, event: Electron.IpcMainEvent) {
 }
 
 export async function getCommitWithDiff(repo: Repository, sha: string, event: Electron.IpcMainEvent): Promise<CommitObj> {
-    // const parent = commit.parentcount() && await commit.parent(0) || commit;
-    // const diffs = await commit.getDiff();
-
     currentCommit = sha;
     commitObjectCache = {
         [sha]: {}
     };
 
     const commit = await repo.getCommit(sha);
-    const parent = await commit.parent(0);
     
     // TODO: fix this. Merge commits are a bit messy without this.
-    // @ts-ignore. from nodegit source, this is exectly as Commit.getDiff
-    const diffs: Diff[] = await commit.getTree().then(async (thisTree) => {
+    commit.getTree().then(async (thisTree) => {
+        const diffOpts = {
+            flags: Diff.FIND.RENAMES,
+        };
         // TODO: which parent to chose?
         const parents = await commit.getParents(1);
-        let diffs;
+        let diffs: Promise<DiffFile[]>[];
         if (parents.length) {
             // TODO: how many parents?
-            diffs = parents.map(async (parent) => {
-                const parentTree = await parent.getTree();
-                return thisTree.diffWithOptions(parentTree);
-            });
+            diffs = [];
+            for (const parent of parents) {
+                diffs.push(
+                    parent.getTree().then(parentTree => thisTree.diffWithOptions(parentTree))
+                );
+            }
         }
         else {
             // @ts-ignore, from nodegit source.
             diffs = [thisTree.diffWithOptions(null)];
         }
-        return Promise.all(diffs);
+        for (const promise of diffs) {
+            promise.then(diff => {
+                // @ts-ignore
+                diff.findSimilar(diffOpts);
+                handleDiff(diff as unknown as Diff, event);
+            });
+        }
     });
 
-    for (const diff of diffs) {
-        handleDiff(diff, event);
-    }
-
     return {
-        parent: {
-            sha: parent.sha(),
-        },
+        parents: commit.parents().map(parent => ({sha: parent.tostrS()})),
         sha: commit.sha(),
-        // diff,
-        date: commit.date().getTime(),
+        authorDate: commit.author().when().time(),
+        date: commit.committer().when().time(),
         message: commit.message(),
         author: {
             name: commit.author().name(),

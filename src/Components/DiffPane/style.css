@@ -2,7 +2,7 @@
     display: inline;
 }
 #diff-pane {
-    max-height: 100vh;
+    width: 325px;
     overflow: auto;
 }
 .diff-header {
@@ -11,25 +11,34 @@
 .diff-line:empty {
     content: "&nbsp;";
 }
-.diff-line.added {
+/* .diff-line.added {
     color: green;
 }
 .diff-line.deleted {
     color: red;
-}
-/* .diff-line.added .diff-line-content {
+} */
+.diff-line.added .diff-line-content {
     background-color: darkgreen;
 }
 .diff-line.deleted .diff-line-content {
     background-color: darkred;
-} */
+}
 .diff-line-content {
-    font-family: monospace;
     margin: 0;
     white-space: pre;
 }
+.diff-line-number,
+.diff-type {
+    width: 1px;
+}
+.diff-view {
+    overflow: auto;
+}
 .diff-view li {
     white-space: nowrap;
+}
+#diff-pane .msg {
+    overflow: auto;
 }
 #diff-pane .msg p,
 #diff-pane .msg pre {
@@ -48,4 +57,14 @@
 }
 .diff-view .file-renamed {
     color: blue;
+}
+
+.parent-list {
+    display: inline;
+}
+.parent-list li {
+    display: inline;
+}
+.parent-list li + li:before {
+    content: ", ";
 }

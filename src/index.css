@@ -8,7 +8,7 @@ body {
   padding: 0;
   background-color: #000;
   color: #fff;
-  font-family: monospace;
+  font-family: "JetBrains Mono NL", monospace;
   font-size: 13px;
 }
 h4 {
@@ -35,8 +35,8 @@ a:hover {
 }
 
 #main-window {
-  display: grid;
-  grid-template-columns: 200px repeat(auto-fit, minmax(20%, 1fr));
+  display: flex;
+  flex-direction: row;
   height: 100%;
   width: 100%;
 }
@@ -44,7 +44,6 @@ a:hover {
   width: 200px;
   display: flex;
   flex-direction: column;
-  height: 100vh;
 }
 #right-pane {
   display: flex;
@@ -71,6 +70,7 @@ a:hover {
 }
 #commits-pane {
   overflow: auto;
+  flex: 1;
 }
 #commits-pane ul li {
   display: block;

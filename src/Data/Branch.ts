@@ -48,7 +48,7 @@ export function getBranchTree(branches: BranchesObj) {
                     name: tag.name
                 }
             }))
-        }
+        } as BranchTree
     };
 }
 

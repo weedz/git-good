@@ -3,7 +3,7 @@ import resolve from '@rollup/plugin-node-resolve';
 import typescript from "@rollup/plugin-typescript";
 import babel from "@rollup/plugin-babel";
 import postcss from "rollup-plugin-postcss";
-// import { terser } from 'rollup-plugin-terser';
+import { terser } from 'rollup-plugin-terser';
 
 const production = !process.env.ROLLUP_WATCH;
 
@@ -48,7 +48,7 @@ export default {
             ]
         }),
         postcss(),
-        // production && terser()
+        production && terser()
     ],
     watch: {
         clearScreen: false

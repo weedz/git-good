@@ -3,7 +3,7 @@ import { Link } from "@weedzcokie/router-tsx";
 import { remote } from "electron";
 
 import "./style.css";
-import { getBranchTree, filterBranches } from "../../Data/Branch";
+import { getBranchTree, filterBranches, BranchTree } from "../../Data/Branch";
 import { BranchesObj } from "../../Data/Actions";
 import { loadBranches, subscribe, Store, unsubscribe, checkoutBranch, contextMenuState } from "../../Data/Renderer/store";
 
@@ -101,13 +101,13 @@ function toggleTreeItem(e: any) {
     return false;
 }
 
-function BranchTree(branches: any, contextMenuCb?: (event: any) => void, dblClickHandle?: (event: any) => void) {
+function branchTree(branches: BranchTree, contextMenuCb?: (event: any) => void, dblClickHandle?: (event: any) => void) {
     const items = [];
     if (branches.subtree) {
         for (const item of Object.keys(branches.subtree)) {
-            const children = BranchTree(branches.subtree[item], contextMenuCb, dblClickHandle);
+            const children = branchTree(branches.subtree[item], contextMenuCb, dblClickHandle);
             items.push(
-                <li class="sub-tree">
+                <li class="sub-tree" key={item}>
                     <a href="#" onClick={toggleTreeItem}>{item}</a>
                     {children}
                 </li>
@@ -116,7 +116,7 @@ function BranchTree(branches: any, contextMenuCb?: (event: any) => void, dblClic
     }
     if (branches.items) {
         for (const branch of branches.items) {
-            items.push(<li>
+            items.push(<li key={branch.ref.headSHA}>
                 <Link data-ref={branch.ref.name} onDblClick={dblClickHandle} onContextMenu={contextMenuCb} activeClassName="selected" href={`/branch/${encodeURIComponent(branch.ref.name)}`}>{branch.name}</Link>
                 </li>);
         }
@@ -127,10 +127,13 @@ function BranchTree(branches: any, contextMenuCb?: (event: any) => void, dblClic
         </ul>
     );
 }
-function ListRemotes(branches: any, originContextMenuCb: (event: any) => void, contextMenuCb: (event: any) => void) {
+function listRemotes(branches: BranchTree, originContextMenuCb: (event: any) => void, contextMenuCb: (event: any) => void) {
+    if (!branches.subtree) {
+        return;
+    }
     const items = [];
     for (const item of Object.keys(branches.subtree)) {
-        const children = BranchTree(branches.subtree[item], contextMenuCb);
+        const children = branchTree(branches.subtree[item], contextMenuCb);
         items.push(
             <li class="sub-tree">
                 <a onContextMenu={originContextMenuCb} href="#" onClick={toggleTreeItem}>{item}</a>
@@ -223,17 +226,17 @@ export default class BranchList extends Component<Props, State> {
                 {branches && <ul class="tree-list">
                     <li class="sub-tree">
                         <a href="#" onClick={toggleTreeItem}>Local</a>
-                        {BranchTree(branches.local, this.showLocalMenu, this.checkoutBranch)}
+                        {branchTree(branches.local, this.showLocalMenu, this.checkoutBranch)}
                     </li>
                     <hr />
                     <li class="sub-tree">
                         <a href="#" onClick={toggleTreeItem}>Remote</a>
-                        {branches.remote.subtree && ListRemotes(branches.remote, this.showOriginMenu, this.showRemoteMenu)}
+                        {listRemotes(branches.remote, this.showOriginMenu, this.showRemoteMenu)}
                     </li>
                     <hr />
                     <li class="sub-tree">
                         <a href="#" onClick={toggleTreeItem}>Tags</a>
-                        {BranchTree(branches.tags)}
+                        {branchTree(branches.tags)}
                     </li>
                     </ul>}
                 </div>

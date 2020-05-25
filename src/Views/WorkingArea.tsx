@@ -1,6 +1,5 @@
 import { h, Component, Fragment } from "preact";
 import { RoutableProps } from "@weedzcokie/router-tsx";
-import FullDiff from "../Components/FullDiff";
 
 export default class WorkingArea extends Component<RoutableProps> {
     render() {
@@ -29,7 +28,6 @@ export default class WorkingArea extends Component<RoutableProps> {
                         </form>
                     </div>
                 </div>
-                <FullDiff />
             </Fragment>
         );
     }

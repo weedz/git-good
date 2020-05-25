@@ -77,11 +77,12 @@ export type AuthorObj = {
     email: string
 };
 export type CommitObj = {
-    parent: {
+    parents: {
         sha: string
-    },
+    }[],
     sha: string
     diff?: DiffObj[]
+    authorDate: number
     date: number
     message: string
     author: AuthorObj

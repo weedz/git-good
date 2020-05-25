@@ -10,7 +10,8 @@ const createWindow = () => {
         height: 600,
         width: 800,
         webPreferences: {
-            nodeIntegration: true
+            nodeIntegration: true,
+            enableRemoteModule: true,
         }
     });
 
@@ -55,8 +56,14 @@ type EventArgs = {
 
 ipcMain.on("asynchronous-message", async (event, arg: EventArgs) => {
     if (arg.action === IPCAction.OPEN_REPO) {
-        await openRepo(arg.data);
-        eventReply(event, arg.action, true);
+        let opened = true;
+        try {
+            repo = await Repository.open(arg.data);
+        } catch (e) {
+            opened = false;
+            console.warn(e);
+        }
+        eventReply(event, arg.action, opened);
         return;
     }
     if (repo) {
@@ -83,9 +90,6 @@ ipcMain.on("asynchronous-message", async (event, arg: EventArgs) => {
         }
     }
 });
-async function openRepo(repoPath: IPCActionParams[IPCAction.OPEN_REPO]) {
-    repo = await Repository.open(repoPath);
-}
 
 async function loadCommits(params: IPCActionParams[IPCAction.LOAD_COMMITS]) {
     let start: Commit;
@@ -97,18 +101,16 @@ async function loadCommits(params: IPCActionParams[IPCAction.LOAD_COMMITS]) {
     return await getCommits(repo, start, params.num);
 }
 
-async function loadCommit(sha: IPCActionParams[IPCAction.LOAD_COMMIT], event: Electron.IpcMainEvent) {
-    // const commit = await repo.getCommit(sha);
-    const commitObject = await getCommitWithDiff(repo, sha, event);
-    return commitObject;
+function loadCommit(sha: IPCActionParams[IPCAction.LOAD_COMMIT], event: Electron.IpcMainEvent) {
+    return getCommitWithDiff(repo, sha, event);
 }
 
-async function loadHunks(params: IPCActionParams[IPCAction.LOAD_HUNKS]) {
-    return await getHunks(params.sha, params.path);
+function loadHunks(params: IPCActionParams[IPCAction.LOAD_HUNKS]) {
+    return getHunks(params.sha, params.path);
 }
 
-async function loadBranches() {
-    return await getBranches(repo);
+function loadBranches() {
+    return getBranches(repo);
 }
 
 async function changeBranch(branch: string) {

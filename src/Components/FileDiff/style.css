@@ -1,0 +1,21 @@
+#file-diff {
+    position: fixed;
+    left: 200px;
+    height: calc(100vh - 6px);
+    width: calc(100vw - 325px - 200px - 10px);
+    background-color: #000;
+    display: flex;
+    flex-direction: column;
+}
+#file-diff h1 {
+    overflow-wrap: anywhere;
+}
+#file-diff > ul {
+    overflow-y: auto;
+}
+#file-diff > ul li {
+    overflow-x: auto;
+}
+#file-diff > ul li > table {
+    width: 100%;
+}
