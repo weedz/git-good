@@ -2,7 +2,7 @@ import { h, Component } from "preact";
 import { StaticLink, RoutableProps } from "@weedzcokie/router-tsx";
 import { registerHandler, unregisterHandler } from "../../Data/Renderer";
 import { sendAsyncMessage } from "../../Data/Renderer";
-import { IPCAction, CommitObj, PatchObj, IPCActionReturn } from "../../Data/Actions";
+import { IpcAction, CommitObj, PatchObj, IpcActionReturn } from "../../Data/Actions";
 
 import "./style.css";
 import { openFile } from "src/Data/Renderer/store";
@@ -23,27 +23,27 @@ export default class DiffPane extends Component<RoutableProps<Props>, State> {
         });
     }
     componentWillMount() {
-        registerHandler(IPCAction.LOAD_COMMIT, this.loadCommit);
-        registerHandler(IPCAction.PATCH_WITHOUT_HUNKS, this.handlePatch);
-        sendAsyncMessage(IPCAction.LOAD_COMMIT, this.props.sha);
+        registerHandler(IpcAction.LOAD_COMMIT, this.loadCommit);
+        registerHandler(IpcAction.PATCH_WITHOUT_HUNKS, this.handlePatch);
+        sendAsyncMessage(IpcAction.LOAD_COMMIT, this.props.sha);
         this.resetView();
     }
     componentWillReceiveProps(newProps: Props) {
         if (this.props.sha !== newProps.sha) {
-            sendAsyncMessage(IPCAction.LOAD_COMMIT, newProps.sha);
+            sendAsyncMessage(IpcAction.LOAD_COMMIT, newProps.sha);
             this.resetView();
         }
     }
     componentWillUnmount() {
-        unregisterHandler(IPCAction.LOAD_COMMIT, this.loadCommit);
-        unregisterHandler(IPCAction.PATCH_WITHOUT_HUNKS, this.handlePatch);
+        unregisterHandler(IpcAction.LOAD_COMMIT, this.loadCommit);
+        unregisterHandler(IpcAction.PATCH_WITHOUT_HUNKS, this.handlePatch);
     }
     loadCommit = (commit: CommitObj) => {
         this.setState({
             commit
         });
     }
-    handlePatch = (patch: IPCActionReturn[IPCAction.PATCH_WITHOUT_HUNKS]) => {
+    handlePatch = (patch: IpcActionReturn[IpcAction.PATCH_WITHOUT_HUNKS]) => {
         if (Array.isArray(patch)) {
             this.setState({
                 patch: [...this.state.patch, ...patch]

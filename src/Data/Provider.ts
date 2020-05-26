@@ -1,14 +1,14 @@
 import { Repository, Revwalk, Commit, Diff, ConvenientPatch, ConvenientHunk, DiffLine, Object, DiffFile } from "nodegit";
-import { IPCAction, BranchObj, BranchesObj, LineObj, HunkObj, PatchObj, CommitObj, IPCActionReturn } from "./Actions";
+import { IpcAction, BranchObj, BranchesObj, LineObj, HunkObj, PatchObj, CommitObj, IpcActionReturn } from "./Actions";
 
-export function eventReply<T extends IPCAction>(event: Electron.IpcMainEvent, action: T, data: IPCActionReturn[T]) {
+export function eventReply<T extends IpcAction>(event: Electron.IpcMainEvent, action: T, data: IpcActionReturn[T]) {
     event.reply("asynchronous-reply", {
         action,
         data
     });
 }
 
-export async function getCommits(repo: Repository, start?: Commit, num: number = 100): Promise<IPCActionReturn[IPCAction.LOAD_COMMITS]> {
+export async function getCommits(repo: Repository, start?: Commit, num: number = 100): Promise<IpcActionReturn[IpcAction.LOAD_COMMITS]> {
     const revwalk = repo.createRevWalk();
     if (!start) {
         start = await repo.getHeadCommit();
@@ -88,7 +88,7 @@ function handleLine(line: DiffLine): LineObj {
         // length: line.contentLen(),
         oldLineno: line.oldLineno(),
         newLineno: line.newLineno(),
-        content: line.content().trimRight()
+        content: line.rawContent().trimRight()
     };
 }
 async function handleHunk(hunk: ConvenientHunk): Promise<HunkObj> {
@@ -154,10 +154,10 @@ async function handleDiff(diff: Diff, event: Electron.IpcMainEvent) {
 
     while (convenientPatches.length) {
         const patchSet = convenientPatches.splice(0, 100).map(handlePatch);
-        eventReply(event, IPCAction.PATCH_WITHOUT_HUNKS, patchSet);
+        eventReply(event, IpcAction.PATCH_WITHOUT_HUNKS, patchSet);
     }
 
-    eventReply(event, IPCAction.PATCH_WITHOUT_HUNKS, { done: true });
+    eventReply(event, IpcAction.PATCH_WITHOUT_HUNKS, { done: true });
 }
 
 export async function getCommitWithDiff(repo: Repository, sha: string, event: Electron.IpcMainEvent): Promise<CommitObj> {

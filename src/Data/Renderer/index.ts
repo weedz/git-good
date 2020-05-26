@@ -1,31 +1,31 @@
 import { ipcRenderer, IpcRendererEvent } from "electron";
-import { IPCAction, IPCActionParams, IPCActionReturn } from "../Actions";
+import { IpcAction, IpcActionParams, IpcActionReturn } from "../Actions";
 
 export const state = {
     repo: {},
     branches: {}
 };
 
-const handlers: {[key in IPCAction]: Function[]} = {
-    [IPCAction.LOAD_COMMITS]: [],
-    [IPCAction.LOAD_BRANCHES]: [],
-    [IPCAction.OPEN_REPO]: [],
-    [IPCAction.LOAD_COMMIT]: [],
-    [IPCAction.PATCH_WITHOUT_HUNKS]: [],
-    [IPCAction.LOAD_HUNKS]: [],
-    [IPCAction.CHECKOUT_BRANCH]: [],
+const handlers: {[key in IpcAction]: Function[]} = {
+    [IpcAction.LOAD_COMMITS]: [],
+    [IpcAction.LOAD_BRANCHES]: [],
+    [IpcAction.OPEN_REPO]: [],
+    [IpcAction.LOAD_COMMIT]: [],
+    [IpcAction.PATCH_WITHOUT_HUNKS]: [],
+    [IpcAction.LOAD_HUNKS]: [],
+    [IpcAction.CHECKOUT_BRANCH]: [],
 };
-export function registerHandler<T extends IPCAction>(action: T, cb: (arg0: IPCActionReturn[T]) => void) {
+export function registerHandler<T extends IpcAction>(action: T, cb: (arg0: IpcActionReturn[T]) => void) {
     handlers[action]?.push(cb);
 }
-export function unregisterHandler(action: IPCAction, cb: Function) {
+export function unregisterHandler(action: IpcAction, cb: Function) {
     handlers[action].splice(handlers[action].indexOf(cb)>>>0, 1);
 }
 
 export function attach() {
     ipcRenderer.on("asynchronous-reply", handleEvent);
 }
-function handleEvent(event: IpcRendererEvent, payload: {action: IPCAction, data: any}) {
+function handleEvent(event: IpcRendererEvent, payload: {action: IpcAction, data: any}) {
     if (!handlers[payload.action]) {
         console.warn(`Missing handler for action "${payload.action}"`);
         return;
@@ -34,7 +34,7 @@ function handleEvent(event: IpcRendererEvent, payload: {action: IPCAction, data:
         handler(payload.data);
     }
 }
-export function sendAsyncMessage<T extends IPCAction>(action: T, data?: IPCActionParams[T]) {
+export function sendAsyncMessage<T extends IpcAction>(action: T, data?: IpcActionParams[T]) {
     ipcRenderer.send("asynchronous-message", {
         "action": action,
         data

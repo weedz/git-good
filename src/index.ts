@@ -1,12 +1,13 @@
-import { app, BrowserWindow, ipcMain } from 'electron';
+import { app, BrowserWindow, ipcMain, Menu, dialog } from 'electron';
 import { join } from "path";
 import { getBranches, getCommits, getCommitWithDiff, getHunks, eventReply } from "./Data/Provider";
 import { Repository, Commit, Object } from "nodegit";
-import { IPCAction, IPCActionParams, IPCActionReturn } from './Data/Actions';
+import { IpcAction, IpcActionParams, IpcActionReturn } from './Data/Actions';
 
+let win: BrowserWindow;
 const createWindow = () => {
     // Create the browser window.
-    const mainWindow = new BrowserWindow({
+    win = new BrowserWindow({
         height: 600,
         width: 800,
         webPreferences: {
@@ -15,7 +16,7 @@ const createWindow = () => {
         }
     });
 
-    mainWindow.loadFile(join(__dirname, "../dist/index.html"));
+    win.loadFile(join(__dirname, "../dist/index.html"));
 
     // mainWindow.webContents.openDevTools();
 };
@@ -47,51 +48,179 @@ app.on('activate', () => {
 // In this file you can include the rest of your app's specific main process
 // code. You can also put them in separate files and import them here.
 
+const isMac = process.platform === 'darwin'
+const menuTemplate = [
+    // { role: 'appMenu' }
+    ...(isMac ? [{
+        label: app.name,
+        submenu: [
+            { role: 'about' },
+            { type: 'separator' },
+            { role: 'services' },
+            { type: 'separator' },
+            { role: 'hide' },
+            { role: 'hideothers' },
+            { role: 'unhide' },
+            { type: 'separator' },
+            { role: 'quit' }
+        ]
+    }] : []),
+    // { role: 'fileMenu' }
+    {
+        label: 'File',
+        submenu: [
+            {
+                label: 'Open repository...',
+                accelerator: 'CmdOrCtrl+O',
+                click: async () => {
+                    dialog.showOpenDialog({
+                        properties: ["openDirectory"]
+                    }).then(async res => {
+                        if (!res.canceled) {
+                            win.webContents.send("repo-opened", {
+                                path: res.filePaths[0],
+                                opened: await openRepo(res.filePaths[0])
+                            });
+                        }
+                    });
+                }
+            },
+            {
+                type: 'separator'
+            },
+            isMac ? { role: 'close' } : { role: 'quit' },
+        ]
+    },
+    // { role: 'editMenu' }
+    {
+        label: 'Edit',
+        submenu: [
+            { role: 'undo' },
+            { role: 'redo' },
+            { type: 'separator' },
+            { role: 'cut' },
+            { role: 'copy' },
+            { role: 'paste' },
+            ...(isMac ? [
+                { role: 'pasteAndMatchStyle' },
+                { role: 'delete' },
+                { role: 'selectAll' },
+                { type: 'separator' },
+                {
+                    label: 'Speech',
+                    submenu: [
+                        { role: 'startspeaking' },
+                        { role: 'stopspeaking' }
+                    ]
+                }
+            ] : [
+                { role: 'delete' },
+                { type: 'separator' },
+                { role: 'selectAll' }
+            ])
+        ]
+    },
+    // { role: 'viewMenu' }
+    {
+        label: 'View',
+        submenu: [
+            { role: 'reload' },
+            { role: 'forcereload' },
+            { role: 'toggledevtools' },
+            { type: 'separator' },
+            { role: 'resetzoom' },
+            { role: 'zoomin' },
+            { role: 'zoomout' },
+            { type: 'separator' },
+            { role: 'togglefullscreen' }
+        ]
+    },
+    // { role: 'windowMenu' }
+    {
+        label: 'Window',
+        submenu: [
+            { role: 'minimize' },
+            { role: 'zoom' },
+            ...(isMac ? [
+                { type: 'separator' },
+                { role: 'front' },
+                { type: 'separator' },
+                { role: 'window' }
+            ] : [
+                { role: 'close' }
+            ])
+        ]
+    },
+    {
+        role: 'help',
+        submenu: [
+            {
+                label: 'Learn More',
+                click: async () => {
+                    const { shell } = require('electron')
+                    await shell.openExternal('https://electronjs.org')
+                }
+            }
+        ]
+    }
+];
+// @ts-ignore
+const menu = Menu.buildFromTemplate(menuTemplate);
+Menu.setApplicationMenu(menu);
+
+
 let repo: Repository;
 
 type EventArgs = {
-    action: IPCAction
+    action: IpcAction
     data: any
 };
 
 ipcMain.on("asynchronous-message", async (event, arg: EventArgs) => {
-    if (arg.action === IPCAction.OPEN_REPO) {
-        let opened = true;
-        try {
-            repo = await Repository.open(arg.data);
-        } catch (e) {
-            opened = false;
-            console.warn(e);
-        }
-        eventReply(event, arg.action, opened);
+    if (arg.action === IpcAction.OPEN_REPO) {
+        eventReply(event, arg.action, {
+            path: arg.data,
+            opened: await openRepo(arg.data)
+        });
         return;
     }
     if (repo) {
         switch (arg.action) {
-            case IPCAction.LOAD_BRANCHES:
+            case IpcAction.LOAD_BRANCHES:
                 eventReply(event, arg.action, await loadBranches());
                 break;
-            case IPCAction.LOAD_COMMITS:
+            case IpcAction.LOAD_COMMITS:
                 eventReply(event, arg.action, await loadCommits(arg.data));
                 break;
-            case IPCAction.LOAD_COMMIT:
+            case IpcAction.LOAD_COMMIT:
                 eventReply(event, arg.action, await loadCommit(arg.data, event));
                 break;
-            case IPCAction.LOAD_HUNKS:
-                const data: IPCActionReturn[IPCAction.LOAD_HUNKS] = {
+            case IpcAction.LOAD_HUNKS:
+                const data: IpcActionReturn[IpcAction.LOAD_HUNKS] = {
                     path: arg.data.path,
                     hunks: await loadHunks(arg.data)
                 };
                 eventReply(event, arg.action, data);
                 break;
-            case IPCAction.CHECKOUT_BRANCH:
+            case IpcAction.CHECKOUT_BRANCH:
                 eventReply(event, arg.action, await changeBranch(arg.data));
                 break;
         }
     }
 });
 
-async function loadCommits(params: IPCActionParams[IPCAction.LOAD_COMMITS]) {
+async function openRepo(repoPath: string) {
+    let opened = true;
+    try {
+        repo = await Repository.open(repoPath);
+    } catch (e) {
+        opened = false;
+        console.warn(e);
+    }
+    return opened;
+}
+
+async function loadCommits(params: IpcActionParams[IpcAction.LOAD_COMMITS]) {
     let start: Commit;
     if ("branch" in params) {
         start = await repo.getReferenceCommit(params.branch);
@@ -101,11 +230,11 @@ async function loadCommits(params: IPCActionParams[IPCAction.LOAD_COMMITS]) {
     return await getCommits(repo, start, params.num);
 }
 
-function loadCommit(sha: IPCActionParams[IPCAction.LOAD_COMMIT], event: Electron.IpcMainEvent) {
+function loadCommit(sha: IpcActionParams[IpcAction.LOAD_COMMIT], event: Electron.IpcMainEvent) {
     return getCommitWithDiff(repo, sha, event);
 }
 
-function loadHunks(params: IPCActionParams[IPCAction.LOAD_HUNKS]) {
+function loadHunks(params: IpcActionParams[IpcAction.LOAD_HUNKS]) {
     return getHunks(params.sha, params.path);
 }
 

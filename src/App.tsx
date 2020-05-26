@@ -1,30 +1,28 @@
 import { h, Component } from "preact";
 import { basename } from "path";
 import { RouterComponent as Router } from "@weedzcokie/router-tsx";
-import { remote } from "electron";
 
 import Main from "./Views/Main";
 import WorkingArea from "./Views/WorkingArea";
 import Changes from "./Components/Changes";
 import BranchList from "./Components/BranchList";
-import { openRepo, subscribe, Store, unsubscribe } from "./Data/Renderer/store";
+import { subscribe, Store, unsubscribe, openRepo, StoreType } from "./Data/Renderer/store";
 
 export default class App extends Component {
     componentDidMount() {
         subscribe(this.update, "repo");
-        remote.dialog.showOpenDialog({
-            properties: ["openDirectory"]
-        }).then(res => {
-            if (!res.canceled) {
-                document.title = basename(res.filePaths[0])
-                openRepo(res.filePaths[0]);
-            }
-        });
+        const recentRepo = localStorage.getItem("recent-repo");
+        if (recentRepo) {
+            openRepo(recentRepo);
+        }
     }
     componentWillUnmount() {
         unsubscribe(this.update, "repo");
     }
-    update = () => {
+    update = (repo: StoreType["repo"]) => {
+        if (repo) {
+            document.title = basename(repo);
+        }
         this.setState({});
     }
     render() {

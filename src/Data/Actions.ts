@@ -1,4 +1,4 @@
-export enum IPCAction {
+export enum IpcAction {
     LOAD_COMMITS,
     LOAD_BRANCHES,
     OPEN_REPO,
@@ -8,31 +8,37 @@ export enum IPCAction {
     CHECKOUT_BRANCH,
 };
 
-export type IPCActionParams = {
-    [IPCAction.LOAD_BRANCHES]: never
-    [IPCAction.LOAD_COMMITS]: LoadCommitsParam
-    [IPCAction.OPEN_REPO]: string
-    [IPCAction.LOAD_COMMIT]: string
-    [IPCAction.PATCH_WITHOUT_HUNKS]: never
-    [IPCAction.LOAD_HUNKS]: {
+export type IpcActionParams = {
+    [IpcAction.LOAD_BRANCHES]: never
+    [IpcAction.LOAD_COMMITS]: LoadCommitsParam
+    [IpcAction.OPEN_REPO]: string
+    [IpcAction.LOAD_COMMIT]: string
+    [IpcAction.PATCH_WITHOUT_HUNKS]: never
+    [IpcAction.LOAD_HUNKS]: {
         sha: string
         path: string
     }
-    [IPCAction.CHECKOUT_BRANCH]: string
+    [IpcAction.CHECKOUT_BRANCH]: string
 };
 
-export type IPCActionReturn = {
-    [IPCAction.LOAD_BRANCHES]: BranchesObj
-    [IPCAction.LOAD_COMMITS]: LoadCommitsReturn
-    [IPCAction.OPEN_REPO]: boolean
-    [IPCAction.LOAD_COMMIT]: CommitObj
-    [IPCAction.PATCH_WITHOUT_HUNKS]: PatchObj[] | { done: boolean }
-    [IPCAction.LOAD_HUNKS]: {
+export type IpcActionReturn = {
+    [IpcAction.LOAD_BRANCHES]: BranchesObj
+    [IpcAction.LOAD_COMMITS]: LoadCommitsReturn
+    [IpcAction.OPEN_REPO]: {
+        opened: boolean
+        path: string
+    }
+    [IpcAction.LOAD_COMMIT]: CommitObj
+    [IpcAction.PATCH_WITHOUT_HUNKS]: PatchObj[] | { done: boolean }
+    [IpcAction.LOAD_HUNKS]: {
         path: string
         hunks: HunkObj[] | false
     }
-    [IPCAction.CHECKOUT_BRANCH]: false | BranchObj
+    [IpcAction.CHECKOUT_BRANCH]: false | BranchObj
 };
+
+export enum IpcEvent {};
+export type IpcEventParams = {};
 
 export type LineStats = {
     total_context: number

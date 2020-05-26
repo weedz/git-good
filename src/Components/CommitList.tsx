@@ -2,7 +2,7 @@ import { h, Component } from "preact";
 import { Link } from "@weedzcokie/router-tsx";
 import { sendAsyncMessage, unregisterHandler } from "../Data/Renderer";
 import { registerHandler } from "../Data/Renderer";
-import { IPCAction, IPCActionReturn } from "../Data/Actions";
+import { IpcAction, IpcActionReturn } from "../Data/Actions";
 import { Store } from "../Data/Renderer/store";
 
 type Props = {
@@ -18,20 +18,20 @@ const headColors = [
     "yellow"
 ];
 
-export default class CommitList extends Component<Props, {commits: IPCActionReturn[IPCAction.LOAD_COMMITS]}> {
+export default class CommitList extends Component<Props, {commits: IpcActionReturn[IpcAction.LOAD_COMMITS]}> {
     componentWillMount() {
-        registerHandler(IPCAction.LOAD_COMMITS, this.loadCommits);
+        registerHandler(IpcAction.LOAD_COMMITS, this.loadCommits);
         this.handleProps(this.props);
     }
     componentWillUnmount() {
-        unregisterHandler(IPCAction.LOAD_COMMITS, this.loadCommits);
+        unregisterHandler(IpcAction.LOAD_COMMITS, this.loadCommits);
     }
     componentWillReceiveProps(nextProps: Props) {
         this.handleProps(nextProps);
     }
     handleProps(props: Props) {
         if (!props.sha) {
-            sendAsyncMessage(IPCAction.LOAD_COMMITS, {
+            sendAsyncMessage(IpcAction.LOAD_COMMITS, {
                 branch: decodeURIComponent(props.branch || "HEAD")
             });
         } else {
@@ -40,7 +40,7 @@ export default class CommitList extends Component<Props, {commits: IPCActionRetu
             // });
         }
     }
-    loadCommits = (commits: IPCActionReturn[IPCAction.LOAD_COMMITS]) => {
+    loadCommits = (commits: IpcActionReturn[IpcAction.LOAD_COMMITS]) => {
         this.setState({
             commits
         });

@@ -1,8 +1,9 @@
-import { IPCAction, BranchesObj, BranchObj, IPCActionReturn, PatchObj } from "../Actions";
+import { IpcAction, BranchesObj, BranchObj, IpcActionReturn, PatchObj } from "../Actions";
 import { registerHandler, sendAsyncMessage, attach } from ".";
+import { ipcRenderer } from "electron";
 
 export type StoreType = {
-    repo: boolean
+    repo: false | string
     branches: null | BranchesObj
     heads: {
         [key: string]: BranchObj[]
@@ -35,7 +36,9 @@ const keyListeners: {
     currentFile: [],
 };
 
-export function subscribe(cb: Function, key?: keyof StoreType) {
+export function subscribe<T extends keyof StoreType>(cb: (arg: StoreType[T]) => void, key: T): void;
+export function subscribe(cb: (arg: StoreType) => void): void;
+export function subscribe(cb: (arg?: any) => void, key?: keyof StoreType) {
     if (key) {
         keyListeners[key].push(cb);
     } else {
@@ -64,18 +67,18 @@ export function setState(newState: Partial<StoreType>) {
     }
 }
 
-export function openRepo(path: string) {
+export function openRepo(repoPath: string) {
     setState({
         repo: false
-    })
-    sendAsyncMessage(IPCAction.OPEN_REPO, path);
+    });
+    sendAsyncMessage(IpcAction.OPEN_REPO, repoPath);
 }
 export function loadBranches() {
-    sendAsyncMessage(IPCAction.LOAD_BRANCHES);
+    sendAsyncMessage(IpcAction.LOAD_BRANCHES);
 }
 
 export function checkoutBranch(branch: string) {
-    sendAsyncMessage(IPCAction.CHECKOUT_BRANCH, branch);
+    sendAsyncMessage(IpcAction.CHECKOUT_BRANCH, branch);
 }
 
 export function openFile(sha: string, patch: PatchObj) {
@@ -84,7 +87,7 @@ export function openFile(sha: string, patch: PatchObj) {
             patch
         }
     });
-    sendAsyncMessage(IPCAction.LOAD_HUNKS, {
+    sendAsyncMessage(IpcAction.LOAD_HUNKS, {
         sha: sha,
         path: patch.actualFile.path
     });
@@ -95,7 +98,7 @@ export function closeFile() {
     });
 }
 
-function loadHunks(data: IPCActionReturn[IPCAction.LOAD_HUNKS]) {
+function loadHunks(data: IpcActionReturn[IpcAction.LOAD_HUNKS]) {
     if (store.currentFile && data.hunks) {
         store.currentFile.patch.hunks = data.hunks;
         setState({
@@ -104,9 +107,10 @@ function loadHunks(data: IPCActionReturn[IPCAction.LOAD_HUNKS]) {
     }
 }
 
-function repoOpened(opened: IPCActionReturn[IPCAction.OPEN_REPO]) {
+function repoOpened(result: IpcActionReturn[IpcAction.OPEN_REPO]) {
+    localStorage.setItem("recent-repo", result.path);
     setState({
-        repo: opened
+        repo: result.path
     });
 }
 function mapHeads(heads: any, refs: BranchObj[]) {
@@ -127,7 +131,7 @@ function branchesLoaded(branches: BranchesObj) {
         heads
     });
 }
-function updateCurrentBranch(result: IPCActionReturn[IPCAction.CHECKOUT_BRANCH]) {
+function updateCurrentBranch(result: IpcActionReturn[IpcAction.CHECKOUT_BRANCH]) {
     if (result && store.branches) {
         store.branches.head = result;
         setState({
@@ -137,7 +141,8 @@ function updateCurrentBranch(result: IPCActionReturn[IPCAction.CHECKOUT_BRANCH])
 }
 
 attach();
-registerHandler(IPCAction.OPEN_REPO, repoOpened);
-registerHandler(IPCAction.LOAD_BRANCHES, branchesLoaded);
-registerHandler(IPCAction.CHECKOUT_BRANCH, updateCurrentBranch);
-registerHandler(IPCAction.LOAD_HUNKS, loadHunks);
+ipcRenderer.on('repo-opened', (_, opened) => repoOpened(opened));
+registerHandler(IpcAction.OPEN_REPO, repoOpened);
+registerHandler(IpcAction.LOAD_BRANCHES, branchesLoaded);
+registerHandler(IpcAction.CHECKOUT_BRANCH, updateCurrentBranch);
+registerHandler(IpcAction.LOAD_HUNKS, loadHunks);

@@ -17,7 +17,7 @@ export default {
     ],
     input: ["src/renderer.tsx", "src/index.ts"],
     output: {
-        sourcemap: true,
+        sourcemap: !production,
         format: "cjs",
         dir: "dist",
     },
