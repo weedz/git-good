@@ -79,7 +79,7 @@ export default class DiffPane extends Component<RoutableProps<Props>, State> {
                 <p class="date">Date: {new Date(this.state.commit.date * 1000).toLocaleString()}</p>
                 {this.state.commit.date !== this.state.commit.authorDate && <p class="date">Authored: {new Date(this.state.commit.authorDate * 1000).toLocaleString()}</p>}
                 <p class="author">author: {this.state.commit.author.name} &lt;{this.state.commit.author.email}&gt;</p>
-                {this.state.commit.commiter.email !== this.state.commit.author.email && <p class="author">commiter: {this.state.commit.commiter.name} &lt;{this.state.commit.commiter.email}&gt;</p>}
+                {this.state.commit.committer.email !== this.state.commit.author.email && <p class="author">commiter: {this.state.commit.committer.name} &lt;{this.state.commit.committer.email}&gt;</p>}
                 <hr />
                 <div class="msg">
                     <h4>{title}</h4>

@@ -116,9 +116,23 @@ function branchTree(branches: BranchTree, contextMenuCb?: (event: any) => void, 
     }
     if (branches.items) {
         for (const branch of branches.items) {
-            items.push(<li key={branch.ref.headSHA}>
-                <Link data-ref={branch.ref.name} onDblClick={dblClickHandle} onContextMenu={contextMenuCb} activeClassName="selected" href={`/branch/${encodeURIComponent(branch.ref.name)}`}>{branch.name}</Link>
-                </li>);
+            let aheadBehind;
+            if (branch.status) {
+                if (branch.status.ahead && branch.status.behind) {
+                    aheadBehind = <span>{branch.status.ahead}&uarr;{branch.status.behind}&darr;</span>;
+                } else if (branch.status.ahead) {
+                    aheadBehind = <span>{branch.status.ahead}&uarr;</span>;
+                } else if (branch.status.behind) {
+                    aheadBehind = <span>{branch.status.behind}&darr;</span>;
+                }
+            }
+            items.push(
+                <li key={branch.ref.headSHA}>
+                    <Link data-ref={branch.ref.name} onDblClick={dblClickHandle} onContextMenu={contextMenuCb} activeClassName="selected" href={`/branch/${encodeURIComponent(branch.ref.name)}`}>
+                        {branch.name}&nbsp;{aheadBehind}
+                    </Link>
+                </li>
+            );
         }
     }
     return (
@@ -221,7 +235,10 @@ export default class BranchList extends Component<Props, State> {
             <Fragment>
             <div id="branch-pane" class="pane">
                 <h4>Refs</h4>
-                <Link onContextMenu={this.showHeadMenu} activeClassName="selected" href="/">HEAD ({head?.name.substring(11)})</Link>
+                <ul>
+                    <li><Link activeClassName="selected" href="/history">History</Link></li>
+                    <li><Link onContextMenu={this.showHeadMenu} activeClassName="selected" href="/">HEAD ({head?.name.substring(11)})</Link></li>
+                </ul>
                 <hr />
                 {branches && <ul class="tree-list">
                     <li class="sub-tree">

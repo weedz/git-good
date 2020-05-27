@@ -4,3 +4,6 @@
 .tree-list .sub-tree.open > a::before {
     content: "[-] ";
 }
+#branch-pane > ul.tree-list > li.sub-tree.open > ul a {
+    display: block;
+}

@@ -1,8 +1,9 @@
 import { app, BrowserWindow, ipcMain, Menu, dialog } from 'electron';
 import { join } from "path";
 import { getBranches, getCommits, getCommitWithDiff, getHunks, eventReply } from "./Data/Provider";
-import { Repository, Commit, Object } from "nodegit";
+import { Repository, Commit, Object, Revwalk, Cred } from "nodegit";
 import { IpcAction, IpcActionParams, IpcActionReturn } from './Data/Actions';
+import { readFileSync } from 'fs';
 
 let win: BrowserWindow;
 const createWindow = () => {
@@ -135,6 +136,34 @@ const menuTemplate = [
             { role: 'togglefullscreen' }
         ]
     },
+    {
+        label: 'Repository',
+        submenu: [
+            {
+                label: 'Fetch all',
+                click: async () => {
+                    // FIXME: make this configurable
+                    const username = "git";
+                    const publickey = readFileSync("/Users/linusbjorklund/.ssh/id_rsa.pub").toString();
+                    const privatekey = readFileSync("/Users/linusbjorklund/.ssh/id_rsa").toString();
+                    // const passphrase = "PASSPHRASE";
+                    const cred = await Cred.sshKeyMemoryNew(username, publickey, privatekey, "");
+
+                    await repo.fetchAll({
+                        callbacks: {
+                            credentials: (url: any, user: any) => {
+                                // console.log(`Fetch required credentials. url: ${url}, user: ${user}`);
+                                return cred;
+                            }
+                        }
+                    });
+                    win.webContents.send("repo-fetch-all");
+                }
+            },
+            { label: 'Pull...' },
+            { label: 'Push...' },
+        ]
+    },
     // { role: 'windowMenu' }
     {
         label: 'Window',
@@ -192,6 +221,9 @@ ipcMain.on("asynchronous-message", async (event, arg: EventArgs) => {
             case IpcAction.LOAD_COMMITS:
                 eventReply(event, arg.action, await loadCommits(arg.data));
                 break;
+            case IpcAction.LOAD_COMMIT_HISTORY:
+                eventReply(event, arg.action, await loadCommitHistory(arg.data));
+                break;
             case IpcAction.LOAD_COMMIT:
                 eventReply(event, arg.action, await loadCommit(arg.data, event));
                 break;
@@ -218,6 +250,24 @@ async function openRepo(repoPath: string) {
         console.warn(e);
     }
     return opened;
+}
+
+async function loadCommitHistory(params: IpcActionParams[IpcAction.LOAD_COMMIT_HISTORY]) {
+    const revwalk = repo.createRevWalk();
+    revwalk.sorting(Revwalk.SORT.TIME);
+    revwalk.pushGlob("refs/*");
+    
+    const commits = await revwalk.getCommits(params.num || 100);
+    
+    return commits.map(commit => ({
+        sha: commit.sha(),
+        message: commit.message(),
+        date: commit.date().getTime(),
+        author: {
+            name: commit.author().name(),
+            email: commit.author().email(),
+        }
+    }));
 }
 
 async function loadCommits(params: IpcActionParams[IpcAction.LOAD_COMMITS]) {

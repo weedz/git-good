@@ -39,6 +39,8 @@ export default class App extends Component {
                 </div>
                 <Router>
                     <Main path="/" />
+                    <Main path="/history" history />
+                    <Main path="/history/commit/:sha" history />
                     <Main path="/commit/:sha" />
                     <Main path="/branch/:branch" />
                     <Main path="/branch/:branch/:sha" />

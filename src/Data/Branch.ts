@@ -7,6 +7,7 @@ export type BranchTree = {
     items?: Array<{
         name: string
         ref: BranchObj
+        status?: {ahead: number, behind: number}
     }>
 };
 
@@ -31,7 +32,8 @@ function transformToBranchTree(branches: BranchObj[]) {
         }
         tree.items.push({
             name: paths[0],
-            ref: branch
+            ref: branch,
+            status: branch.status,
         });
     }
     return root;

@@ -9,6 +9,9 @@ type Props = {
     branch?: string
     sha?: string
 };
+type State = {
+    commits: IpcActionReturn[IpcAction.LOAD_COMMITS]
+};
 
 const headColors = [
     "lightblue",
@@ -18,7 +21,7 @@ const headColors = [
     "yellow"
 ];
 
-export default class CommitList extends Component<Props, {commits: IpcActionReturn[IpcAction.LOAD_COMMITS]}> {
+export default class CommitList extends Component<Props, State> {
     componentWillMount() {
         registerHandler(IpcAction.LOAD_COMMITS, this.loadCommits);
         this.handleProps(this.props);

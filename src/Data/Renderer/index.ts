@@ -8,6 +8,7 @@ export const state = {
 
 const handlers: {[key in IpcAction]: Function[]} = {
     [IpcAction.LOAD_COMMITS]: [],
+    [IpcAction.LOAD_COMMIT_HISTORY]: [],
     [IpcAction.LOAD_BRANCHES]: [],
     [IpcAction.OPEN_REPO]: [],
     [IpcAction.LOAD_COMMIT]: [],

@@ -1,4 +1,4 @@
-import { Repository, Revwalk, Commit, Diff, ConvenientPatch, ConvenientHunk, DiffLine, Object, DiffFile } from "nodegit";
+import { Repository, Revwalk, Commit, Diff, ConvenientPatch, ConvenientHunk, DiffLine, Object, DiffFile, Branch, Graph } from "nodegit";
 import { IpcAction, BranchObj, BranchesObj, LineObj, HunkObj, PatchObj, CommitObj, IpcActionReturn } from "./Actions";
 
 export function eventReply<T extends IpcAction>(event: Electron.IpcMainEvent, action: T, data: IpcActionReturn[T]) {
@@ -13,8 +13,8 @@ export async function getCommits(repo: Repository, start?: Commit, num: number =
     if (!start) {
         start = await repo.getHeadCommit();
     }
-    revwalk.push(start.id());
     revwalk.sorting(Revwalk.SORT.TOPOLOGICAL);
+    revwalk.push(start.id());
     
     const commits = await revwalk.getCommits(num);
     
@@ -34,7 +34,7 @@ export async function getCommits(repo: Repository, start?: Commit, num: number =
 export async function getBranches(repo: Repository): Promise<BranchesObj> {
     const refs = await repo.getReferences();
 
-    const local: BranchObj[] = [];
+    const local: BranchesObj["local"] = [];
     const remote: BranchObj[] = [];
     const tags: BranchObj[] = [];
 
@@ -48,6 +48,14 @@ export async function getBranches(repo: Repository): Promise<BranchesObj> {
             };
 
             if (ref.isBranch()) {
+                try {
+                    const upstream = await Branch.upstream(ref);
+                    const upstreamHead = await upstream.peel(Object.TYPE.COMMIT);
+                    refObj.status = await Graph.aheadBehind(repo, headCommit.id(), upstreamHead.id()) as unknown as {ahead: number, behind: number};
+                } catch(_) {
+                    // missing upstream
+                }
+
                 refObj.normalizedName = refObj.name.substring(11);
                 local.push(refObj);
             } else if (ref.isRemote()) {
@@ -76,18 +84,20 @@ export async function getBranches(repo: Repository): Promise<BranchesObj> {
 }
 
 function handleLine(line: DiffLine): LineObj {
+    const oldLineno = line.oldLineno();
+    const newLineno = line.newLineno();
     let type = "";
-    if (line.oldLineno() === -1) {
+    if (oldLineno === -1) {
         type = "+";
-    } else if (line.newLineno() === -1) {
+    } else if (newLineno === -1) {
         type = "-"
     }
     return {
         type,
         // offset: line.contentOffset(),
         // length: line.contentLen(),
-        oldLineno: line.oldLineno(),
-        newLineno: line.newLineno(),
+        oldLineno: oldLineno,
+        newLineno: newLineno,
         content: line.rawContent().trimRight()
     };
 }
@@ -122,17 +132,20 @@ function handlePatch(patch: ConvenientPatch): PatchObj {
         type = "R";
     }
 
+    const patchNewFile = patch.newFile();
+    const patchOldFile = patch.oldFile();
+
     const newFile = {
-        path: patch.newFile().path(),
-        size: patch.newFile().size(),
-        mode: patch.newFile().mode(),
-        flags: patch.newFile().flags(),
+        path: patchNewFile.path(),
+        size: patchNewFile.size(),
+        mode: patchNewFile.mode(),
+        flags: patchNewFile.flags(),
     };
     const oldFile = {
-        path: patch.oldFile().path(),
-        size: patch.oldFile().size(),
-        mode: patch.oldFile().mode(),
-        flags: patch.oldFile().flags(),
+        path: patchOldFile.path(),
+        size: patchOldFile.size(),
+        mode: patchOldFile.mode(),
+        flags: patchOldFile.flags(),
     };
 
     const patchResult: PatchObj = {
@@ -198,19 +211,22 @@ export async function getCommitWithDiff(repo: Repository, sha: string, event: El
         }
     });
 
+    const author = commit.author();
+    const committer = commit.committer();
+
     return {
         parents: commit.parents().map(parent => ({sha: parent.tostrS()})),
         sha: commit.sha(),
-        authorDate: commit.author().when().time(),
-        date: commit.committer().when().time(),
+        authorDate: author.when().time(),
+        date: committer.when().time(),
         message: commit.message(),
         author: {
-            name: commit.author().name(),
-            email: commit.author().email()
+            name: author.name(),
+            email: author.email()
         },
-        commiter: {
-            name: commit.committer().name(),
-            email: commit.committer().email()
+        committer: {
+            name: committer.name(),
+            email: committer.email()
         },
     };
 }

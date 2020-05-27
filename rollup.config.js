@@ -13,6 +13,7 @@ export default {
     external: [
         "nodegit",
         "path",
+        "fs",
         "electron",
     ],
     input: ["src/renderer.tsx", "src/index.ts"],

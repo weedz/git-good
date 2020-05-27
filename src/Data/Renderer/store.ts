@@ -142,6 +142,7 @@ function updateCurrentBranch(result: IpcActionReturn[IpcAction.CHECKOUT_BRANCH])
 
 attach();
 ipcRenderer.on('repo-opened', (_, opened) => repoOpened(opened));
+ipcRenderer.on('repo-fetch-all', (_) => loadBranches());
 registerHandler(IpcAction.OPEN_REPO, repoOpened);
 registerHandler(IpcAction.LOAD_BRANCHES, branchesLoaded);
 registerHandler(IpcAction.CHECKOUT_BRANCH, updateCurrentBranch);

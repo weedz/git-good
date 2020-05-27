@@ -1,5 +1,6 @@
 export enum IpcAction {
     LOAD_COMMITS,
+    LOAD_COMMIT_HISTORY,
     LOAD_BRANCHES,
     OPEN_REPO,
     LOAD_COMMIT,
@@ -11,6 +12,7 @@ export enum IpcAction {
 export type IpcActionParams = {
     [IpcAction.LOAD_BRANCHES]: never
     [IpcAction.LOAD_COMMITS]: LoadCommitsParam
+    [IpcAction.LOAD_COMMIT_HISTORY]: {num?: number}
     [IpcAction.OPEN_REPO]: string
     [IpcAction.LOAD_COMMIT]: string
     [IpcAction.PATCH_WITHOUT_HUNKS]: never
@@ -24,6 +26,7 @@ export type IpcActionParams = {
 export type IpcActionReturn = {
     [IpcAction.LOAD_BRANCHES]: BranchesObj
     [IpcAction.LOAD_COMMITS]: LoadCommitsReturn
+    [IpcAction.LOAD_COMMIT_HISTORY]: LoadCommitsReturn
     [IpcAction.OPEN_REPO]: {
         opened: boolean
         path: string
@@ -92,13 +95,17 @@ export type CommitObj = {
     date: number
     message: string
     author: AuthorObj
-    commiter: AuthorObj
+    committer: AuthorObj
 };
 
 export type BranchObj = {
     name: string
     headSHA: string
     normalizedName: string
+    status?: {
+        ahead: number
+        behind: number
+    }
 };
 
 export type BranchesObj = {
