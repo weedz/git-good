@@ -4,7 +4,8 @@
   "description": "Git good",
   "main": "dist/index.js",
   "scripts": {
-    "start": "concurrently \"npm:build:watch\" \"npm:start:forge\"",
+    "start": "electron .",
+    "start:dev": "concurrently \"npm:build:watch\" \"npm:start:forge\"",
     "start:forge": "electron-forge start",
     "package": "electron-forge package",
     "make": "electron-forge make",
