@@ -5,7 +5,7 @@ import { sendAsyncMessage } from "../../Data/Renderer";
 import { IpcAction, CommitObj, PatchObj, IpcActionReturn } from "../../Data/Actions";
 
 import "./style.css";
-import { openFile } from "src/Data/Renderer/store";
+import { openFile, Store } from "src/Data/Renderer/store";
 
 type Props = {sha: string};
 type State = {
@@ -70,6 +70,11 @@ export default class DiffPane extends Component<RoutableProps<Props>, State> {
         return (
             <div id="diff-pane" class="pane">
                 <h4>{this.state.commit.sha}</h4>
+                {
+                    Store.heads[this.state.commit.sha] && (
+                        <ul>{Store.heads[this.state.commit.sha].map(ref => <li><StaticLink href={`/branch/${encodeURIComponent(ref.name)}`}>{ref.normalizedName}</StaticLink></li>)}</ul>
+                    )
+                }
                 <p>
                     <span>Parents:</span>
                     <ul class="parent-list">
