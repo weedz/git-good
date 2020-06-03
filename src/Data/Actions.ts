@@ -1,10 +1,9 @@
 export enum IpcAction {
     LOAD_COMMITS,
-    LOAD_COMMIT_HISTORY,
     LOAD_BRANCHES,
     OPEN_REPO,
     LOAD_COMMIT,
-    PATCH_WITHOUT_HUNKS,
+    LOAD_PATCHES_WITHOUT_HUNKS,
     LOAD_HUNKS,
     CHECKOUT_BRANCH,
 };
@@ -12,10 +11,9 @@ export enum IpcAction {
 export type IpcActionParams = {
     [IpcAction.LOAD_BRANCHES]: never
     [IpcAction.LOAD_COMMITS]: LoadCommitsParam
-    [IpcAction.LOAD_COMMIT_HISTORY]: {num?: number}
     [IpcAction.OPEN_REPO]: string
     [IpcAction.LOAD_COMMIT]: string
-    [IpcAction.PATCH_WITHOUT_HUNKS]: never
+    [IpcAction.LOAD_PATCHES_WITHOUT_HUNKS]: string
     [IpcAction.LOAD_HUNKS]: {
         sha: string
         path: string
@@ -26,18 +24,21 @@ export type IpcActionParams = {
 export type IpcActionReturn = {
     [IpcAction.LOAD_BRANCHES]: BranchesObj
     [IpcAction.LOAD_COMMITS]: LoadCommitsReturn
-    [IpcAction.LOAD_COMMIT_HISTORY]: LoadCommitsReturn
     [IpcAction.OPEN_REPO]: {
         opened: boolean
         path: string
     }
     [IpcAction.LOAD_COMMIT]: CommitObj
-    [IpcAction.PATCH_WITHOUT_HUNKS]: PatchObj[] | { done: boolean }
+    [IpcAction.LOAD_PATCHES_WITHOUT_HUNKS]: PatchObj[]
     [IpcAction.LOAD_HUNKS]: {
         path: string
         hunks: HunkObj[] | false
     }
     [IpcAction.CHECKOUT_BRANCH]: false | BranchObj
+};
+
+export type IpcActionReturnError = {
+    error: string
 };
 
 export enum IpcEvent {};
@@ -106,6 +107,7 @@ export type BranchObj = {
         ahead: number
         behind: number
     }
+    remote?: string
 };
 
 export type BranchesObj = {
@@ -120,7 +122,7 @@ interface LoadCommitsParamSha {
 interface LoadCommitsParamBranch {
     branch: string
 };
-type LoadCommitsParam = {num?: number} & (LoadCommitsParamBranch | LoadCommitsParamSha)
+type LoadCommitsParam = {num?: number} & (LoadCommitsParamBranch | LoadCommitsParamSha | {history: true})
 type LoadCommitsReturn = {
     sha: string
     message: string

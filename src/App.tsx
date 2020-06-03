@@ -9,12 +9,11 @@ import BranchList from "./Components/BranchList";
 import { subscribe, Store, unsubscribe, openRepo, StoreType } from "./Data/Renderer/store";
 
 export default class App extends Component {
+    openRecent: boolean = true;
     componentDidMount() {
         subscribe(this.update, "repo");
-        const recentRepo = localStorage.getItem("recent-repo");
-        if (recentRepo) {
-            openRepo(recentRepo);
-        }
+        const path = process.argv[0];
+        openRepo(path);
     }
     componentWillUnmount() {
         unsubscribe(this.update, "repo");
@@ -22,8 +21,14 @@ export default class App extends Component {
     update = (repo: StoreType["repo"]) => {
         if (repo) {
             document.title = basename(repo);
+            this.setState({});
+        } else if (this.openRecent) {
+            this.openRecent = false;
+            const recentRepo = localStorage.getItem("recent-repo");
+            if (recentRepo) {
+                openRepo(recentRepo);
+            }
         }
-        this.setState({});
     }
     render() {
         if (!Store.repo) {

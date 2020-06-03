@@ -1,9 +1,9 @@
-import { app, BrowserWindow, ipcMain, Menu, dialog } from 'electron';
 import { join } from "path";
-import { getBranches, getCommits, getCommitWithDiff, getHunks, eventReply } from "./Data/Provider";
-import { Repository, Commit, Object, Revwalk, Cred } from "nodegit";
-import { IpcAction, IpcActionParams, IpcActionReturn } from './Data/Actions';
 import { readFileSync } from 'fs';
+import { app, BrowserWindow, ipcMain, Menu, dialog } from 'electron';
+import { Repository, Commit, Object, Revwalk, Cred } from "nodegit";
+import { getBranches, getCommits, getCommitWithDiff, getHunks, eventReply, actionLock, getCommitPatches, eventReplyError } from "./Data/Provider";
+import { IpcAction, IpcActionParams, IpcActionReturn } from './Data/Actions';
 
 let win: BrowserWindow;
 const createWindow = () => {
@@ -206,6 +206,16 @@ type EventArgs = {
 };
 
 ipcMain.on("asynchronous-message", async (event, arg: EventArgs) => {
+    const lock = actionLock[arg.action];
+    if (lock) {
+        if (!lock.interuptable) {
+            eventReplyError(event, arg.action, "action pending");
+            return;
+        }
+    }
+
+    actionLock[arg.action] = {interuptable: false};
+
     if (arg.action === IpcAction.OPEN_REPO) {
         eventReply(event, arg.action, {
             path: arg.data,
@@ -213,6 +223,7 @@ ipcMain.on("asynchronous-message", async (event, arg: EventArgs) => {
         });
         return;
     }
+
     if (repo) {
         switch (arg.action) {
             case IpcAction.LOAD_BRANCHES:
@@ -221,11 +232,11 @@ ipcMain.on("asynchronous-message", async (event, arg: EventArgs) => {
             case IpcAction.LOAD_COMMITS:
                 eventReply(event, arg.action, await loadCommits(arg.data));
                 break;
-            case IpcAction.LOAD_COMMIT_HISTORY:
-                eventReply(event, arg.action, await loadCommitHistory(arg.data));
-                break;
             case IpcAction.LOAD_COMMIT:
-                eventReply(event, arg.action, await loadCommit(arg.data, event));
+                eventReply(event, arg.action, await loadCommit(arg.data));
+                break;
+            case IpcAction.LOAD_PATCHES_WITHOUT_HUNKS:
+                eventReply(event, arg.action, await loadPatches(arg.data));
                 break;
             case IpcAction.LOAD_HUNKS:
                 const data: IpcActionReturn[IpcAction.LOAD_HUNKS] = {
@@ -247,41 +258,36 @@ async function openRepo(repoPath: string) {
         repo = await Repository.open(repoPath);
     } catch (e) {
         opened = false;
-        console.warn(e);
     }
     return opened;
 }
 
-async function loadCommitHistory(params: IpcActionParams[IpcAction.LOAD_COMMIT_HISTORY]) {
-    const revwalk = repo.createRevWalk();
-    revwalk.sorting(Revwalk.SORT.TIME);
-    revwalk.pushGlob("refs/*");
-    
-    const commits = await revwalk.getCommits(params.num || 100);
-    
-    return commits.map(commit => ({
-        sha: commit.sha(),
-        message: commit.message(),
-        date: commit.date().getTime(),
-        author: {
-            name: commit.author().name(),
-            email: commit.author().email(),
-        }
-    }));
-}
-
 async function loadCommits(params: IpcActionParams[IpcAction.LOAD_COMMITS]) {
     let start: Commit;
-    if ("branch" in params) {
-        start = await repo.getReferenceCommit(params.branch);
+    let revwalk = repo.createRevWalk();
+    revwalk.sorting(Revwalk.SORT.TOPOLOGICAL | Revwalk.SORT.TIME);
+    if ("history" in params) {
+        revwalk.pushGlob("refs/*");
     } else {
-        start = await repo.getCommit(params.sha);
+        if ("branch" in params) {
+            start = await repo.getReferenceCommit(params.branch);
+        } else {
+            start = await repo.getCommit(params.sha);
+        }
+        if (!start) {
+            start = await repo.getHeadCommit();
+        }
+        revwalk.push(start.id());
     }
-    return await getCommits(repo, start, params.num);
+
+    return await getCommits(revwalk, params.num);
 }
 
-function loadCommit(sha: IpcActionParams[IpcAction.LOAD_COMMIT], event: Electron.IpcMainEvent) {
-    return getCommitWithDiff(repo, sha, event);
+function loadCommit(sha: IpcActionParams[IpcAction.LOAD_COMMIT]) {
+    return getCommitWithDiff(repo, sha);
+}
+function loadPatches(sha: IpcActionParams[IpcAction.LOAD_PATCHES_WITHOUT_HUNKS]) {
+    return getCommitPatches(sha);
 }
 
 function loadHunks(params: IpcActionParams[IpcAction.LOAD_HUNKS]) {

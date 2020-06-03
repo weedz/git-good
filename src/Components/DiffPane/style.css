@@ -37,13 +37,11 @@
 .diff-view li {
     white-space: nowrap;
 }
-#diff-pane .msg {
-    overflow: auto;
-}
-#diff-pane .msg p,
+
 #diff-pane .msg pre {
     margin-top: 3px;
     margin-bottom: 3px;
+    white-space: pre-line;
 }
 
 .diff-view .file-modified {

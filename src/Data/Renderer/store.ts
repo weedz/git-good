@@ -1,4 +1,4 @@
-import { IpcAction, BranchesObj, BranchObj, IpcActionReturn, PatchObj } from "../Actions";
+import { IpcAction, BranchesObj, BranchObj, IpcActionReturn, PatchObj, IpcActionReturnError } from "../Actions";
 import { registerHandler, sendAsyncMessage, attach } from ".";
 import { ipcRenderer } from "electron";
 
@@ -68,9 +68,6 @@ export function setState(newState: Partial<StoreType>) {
 }
 
 export function openRepo(repoPath: string) {
-    setState({
-        repo: false
-    });
     sendAsyncMessage(IpcAction.OPEN_REPO, repoPath);
 }
 export function loadBranches() {
@@ -107,11 +104,19 @@ function loadHunks(data: IpcActionReturn[IpcAction.LOAD_HUNKS]) {
     }
 }
 
-function repoOpened(result: IpcActionReturn[IpcAction.OPEN_REPO]) {
-    localStorage.setItem("recent-repo", result.path);
-    setState({
-        repo: result.path
-    });
+function repoOpened(result: IpcActionReturn[IpcAction.OPEN_REPO] | IpcActionReturnError) {
+    if ("error" in result) {
+        console.warn(result);
+    } else if (result.opened) {
+        localStorage.setItem("recent-repo", result.path);
+        setState({
+            repo: result.path
+        });
+    } else {
+        setState({
+            repo: false
+        });
+    }
 }
 function mapHeads(heads: any, refs: BranchObj[]) {
     for (const ref of refs) {

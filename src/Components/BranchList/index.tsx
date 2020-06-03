@@ -3,7 +3,7 @@ import { Link } from "@weedzcokie/router-tsx";
 import { remote } from "electron";
 
 import "./style.css";
-import { getBranchTree, filterBranches, BranchTree } from "../../Data/Branch";
+import { getBranchTree, filterBranches, BranchTree, normalizeLocalName } from "../../Data/Branch";
 import { BranchesObj } from "../../Data/Actions";
 import { loadBranches, subscribe, Store, unsubscribe, checkoutBranch, contextMenuState } from "../../Data/Renderer/store";
 
@@ -184,7 +184,7 @@ export default class BranchList extends Component<Props, State> {
 
     filter = (e: any) => {
         e.target.value !== this.state.filter && this.setState({
-            filter: e.target.value
+            filter: e.target.value.toLocaleLowerCase()
         });
     }
     showOriginMenu = (e: any) => {
@@ -226,7 +226,7 @@ export default class BranchList extends Component<Props, State> {
             this.state.filter
                 ? filterBranches(
                     Store.branches,
-                    (value) => value.normalizedName.toLocaleLowerCase().includes(this.state.filter.toLocaleLowerCase())
+                    (value) => value.normalizedName.toLocaleLowerCase().includes(this.state.filter)
                 )
                 : Store.branches
         );
@@ -237,7 +237,7 @@ export default class BranchList extends Component<Props, State> {
                 <h4>Refs</h4>
                 <ul>
                     <li><Link activeClassName="selected" href="/history">History</Link></li>
-                    <li><Link onContextMenu={this.showHeadMenu} activeClassName="selected" href="/">HEAD ({head?.name.substring(11)})</Link></li>
+                    <li><Link onContextMenu={this.showHeadMenu} activeClassName="selected" href="/">HEAD ({head && normalizeLocalName(head.name)})</Link></li>
                 </ul>
                 <hr />
                 {branches && <ul class="tree-list">

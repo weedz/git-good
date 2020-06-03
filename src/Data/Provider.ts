@@ -1,21 +1,34 @@
 import { Repository, Revwalk, Commit, Diff, ConvenientPatch, ConvenientHunk, DiffLine, Object, DiffFile, Branch, Graph } from "nodegit";
-import { IpcAction, BranchObj, BranchesObj, LineObj, HunkObj, PatchObj, CommitObj, IpcActionReturn } from "./Actions";
+import { IpcAction, BranchObj, BranchesObj, LineObj, HunkObj, PatchObj, CommitObj, IpcActionReturn, IpcActionReturnError } from "./Actions";
+import { normalizeLocalName, normalizeRemoteName, normalizeTagName } from "./Branch";
 
-export function eventReply<T extends IpcAction>(event: Electron.IpcMainEvent, action: T, data: IpcActionReturn[T]) {
+export let actionLock: {
+    [key in IpcAction]?: {
+        interuptable: false
+    };
+} = {};
+
+export function eventReply<T extends IpcAction>(event: Electron.IpcMainEvent, action: T, data: IpcActionReturn[T] | IpcActionReturnError) {
+    if (action in actionLock) {
+        delete actionLock[action];
+    }
     event.reply("asynchronous-reply", {
         action,
         data
     });
 }
 
-export async function getCommits(repo: Repository, start?: Commit, num: number = 100): Promise<IpcActionReturn[IpcAction.LOAD_COMMITS]> {
-    const revwalk = repo.createRevWalk();
-    if (!start) {
-        start = await repo.getHeadCommit();
-    }
-    revwalk.sorting(Revwalk.SORT.TOPOLOGICAL);
-    revwalk.push(start.id());
-    
+export function eventReplyError<T extends IpcAction>(event: Electron.IpcMainEvent, action: T, error: string) {
+    const data: IpcActionReturnError = {
+        error
+    };
+    event.reply("asynchronous-reply", {
+        action,
+        data
+    });
+}
+
+export async function getCommits(revwalk: Revwalk, num: number = 100): Promise<IpcActionReturn[IpcAction.LOAD_COMMITS]> {
     const commits = await revwalk.getCommits(num);
     
     return commits.map(commit => ({
@@ -51,18 +64,19 @@ export async function getBranches(repo: Repository): Promise<BranchesObj> {
                 try {
                     const upstream = await Branch.upstream(ref);
                     const upstreamHead = await upstream.peel(Object.TYPE.COMMIT);
+                    refObj.remote = upstream.name();
                     refObj.status = await Graph.aheadBehind(repo, headCommit.id(), upstreamHead.id()) as unknown as {ahead: number, behind: number};
                 } catch(_) {
                     // missing upstream
                 }
 
-                refObj.normalizedName = refObj.name.substring(11);
+                refObj.normalizedName = normalizeLocalName(refObj.name);
                 local.push(refObj);
             } else if (ref.isRemote()) {
-                refObj.normalizedName = refObj.name.substring(13);
+                refObj.normalizedName = normalizeRemoteName(refObj.name);
                 remote.push(refObj);
             } else if (ref.isTag()) {
-                refObj.normalizedName = refObj.name.substring(10);
+                refObj.normalizedName = normalizeTagName(refObj.name);
                 tags.push(refObj);
             }
         })
@@ -112,7 +126,7 @@ async function handleHunk(hunk: ConvenientHunk): Promise<HunkObj> {
     };
 }
 export async function getHunks(sha: string, path: string) {
-    const patch = commitObjectCache[sha][path];
+    const patch = commitObjectCache[sha]?.patches[path];
     if (!patch) {
         return false;
     }
@@ -157,59 +171,58 @@ function handlePatch(patch: ConvenientPatch): PatchObj {
         actualFile: newFile.path ? newFile : oldFile,
     };
     
-    commitObjectCache[currentCommit][patchResult.actualFile.path] = patch;
+    commitObjectCache[currentCommit].patches[patchResult.actualFile.path] = patch;
 
     return patchResult;
 }
 
-async function handleDiff(diff: Diff, event: Electron.IpcMainEvent) {
+async function handleDiff(diff: Diff) {
     const convenientPatches = await diff.patches();
-
-    while (convenientPatches.length) {
-        const patchSet = convenientPatches.splice(0, 100).map(handlePatch);
-        eventReply(event, IpcAction.PATCH_WITHOUT_HUNKS, patchSet);
-    }
-
-    eventReply(event, IpcAction.PATCH_WITHOUT_HUNKS, { done: true });
+    return convenientPatches.map(handlePatch);
 }
 
-export async function getCommitWithDiff(repo: Repository, sha: string, event: Electron.IpcMainEvent): Promise<CommitObj> {
-    currentCommit = sha;
-    commitObjectCache = {
-        [sha]: {}
-    };
-
-    const commit = await repo.getCommit(sha);
+export async function getCommitPatches(sha: string) {
+    const commit = commitObjectCache[sha].commit;
     
     // TODO: fix this. Merge commits are a bit messy without this.
-    commit.getTree().then(async (thisTree) => {
-        const diffOpts = {
-            flags: Diff.FIND.RENAMES,
-        };
-        // TODO: which parent to chose?
-        const parents = await commit.getParents(1);
-        let diffs: Promise<DiffFile[]>[];
-        if (parents.length) {
-            // TODO: how many parents?
-            diffs = [];
-            for (const parent of parents) {
-                diffs.push(
-                    parent.getTree().then(parentTree => thisTree.diffWithOptions(parentTree))
-                );
-            }
-        }
-        else {
-            // @ts-ignore, from nodegit source.
-            diffs = [thisTree.diffWithOptions(null)];
-        }
-        for (const promise of diffs) {
-            promise.then(diff => {
-                // @ts-ignore
-                diff.findSimilar(diffOpts);
-                handleDiff(diff as unknown as Diff, event);
-            });
-        }
+    const tree = await commit.getTree();
+    const diffOpts = {
+        flags: Diff.FIND.RENAMES | Diff.FIND.RENAMES_FROM_REWRITES | Diff.FIND.FOR_UNTRACKED,
+    };
+
+    // TODO: which parent to chose?
+    const parents = await commit.getParents(1);
+    let diffs: DiffFile[][];
+    if (parents.length) {
+        // TODO: how many parents?
+        diffs = await Promise.all(
+            parents.map(parent => parent.getTree().then(parentTree => tree.diffWithOptions(parentTree)))
+        );
+    }
+    else {
+        // @ts-ignore, from nodegit source.
+        diffs = [await tree.diffWithOptions(null)];
+    }
+
+    const patches = diffs.map(diff => {
+        // @ts-ignore
+        diff.findSimilar(diffOpts);
+        return handleDiff(diff as unknown as Diff);
     });
+
+    return (await Promise.all(patches)).flat();
+}
+
+export async function getCommitWithDiff(repo: Repository, sha: string) {
+    currentCommit = sha;
+
+    const commit = await repo.getCommit(sha);
+    commitObjectCache = {
+        [sha]: {
+            commit,
+            patches: {}
+        }
+    };
 
     const author = commit.author();
     const committer = commit.committer();
@@ -228,12 +241,15 @@ export async function getCommitWithDiff(repo: Repository, sha: string, event: El
             name: committer.name(),
             email: committer.email()
         },
-    };
+    } as CommitObj;
 }
 
 let currentCommit: string;
 let commitObjectCache: {
     [sha: string]: {
-        [path: string]: ConvenientPatch
+        commit: Commit
+        patches: {
+            [path: string]: ConvenientPatch
+        }
     }
 } = {};

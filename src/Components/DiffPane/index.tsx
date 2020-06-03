@@ -2,31 +2,35 @@ import { h, Component } from "preact";
 import { StaticLink, RoutableProps } from "@weedzcokie/router-tsx";
 import { registerHandler, unregisterHandler } from "../../Data/Renderer";
 import { sendAsyncMessage } from "../../Data/Renderer";
-import { IpcAction, CommitObj, PatchObj, IpcActionReturn } from "../../Data/Actions";
+import { IpcAction, CommitObj, PatchObj, IpcActionReturn, IpcActionReturnError } from "../../Data/Actions";
 
 import "./style.css";
 import { openFile, Store } from "src/Data/Renderer/store";
+import { normalizeRemoteName } from "src/Data/Branch";
 
 type Props = {sha: string};
 type State = {
     commit: null | CommitObj
-    patch: PatchObj[]
+    patches: PatchObj[]
     loadingComplete: boolean
     fileFilter: string
 }
 export default class DiffPane extends Component<RoutableProps<Props>, State> {
+    constructor() {
+        super();
+        this.resetView();
+    }
     resetView() {
         this.setState({
             commit: null,
-            patch: [],
+            patches: [],
             loadingComplete: false,
         });
     }
     componentWillMount() {
         registerHandler(IpcAction.LOAD_COMMIT, this.loadCommit);
-        registerHandler(IpcAction.PATCH_WITHOUT_HUNKS, this.handlePatch);
+        registerHandler(IpcAction.LOAD_PATCHES_WITHOUT_HUNKS, this.handlePatch);
         sendAsyncMessage(IpcAction.LOAD_COMMIT, this.props.sha);
-        this.resetView();
     }
     componentWillReceiveProps(newProps: Props) {
         if (this.props.sha !== newProps.sha) {
@@ -36,27 +40,27 @@ export default class DiffPane extends Component<RoutableProps<Props>, State> {
     }
     componentWillUnmount() {
         unregisterHandler(IpcAction.LOAD_COMMIT, this.loadCommit);
-        unregisterHandler(IpcAction.PATCH_WITHOUT_HUNKS, this.handlePatch);
+        unregisterHandler(IpcAction.LOAD_PATCHES_WITHOUT_HUNKS, this.handlePatch);
     }
-    loadCommit = (commit: CommitObj) => {
+    loadCommit = (commit: IpcActionReturn[IpcAction.LOAD_COMMIT]) => {
+        sendAsyncMessage(IpcAction.LOAD_PATCHES_WITHOUT_HUNKS, this.props.sha);
         this.setState({
             commit
         });
     }
-    handlePatch = (patch: IpcActionReturn[IpcAction.PATCH_WITHOUT_HUNKS]) => {
-        if (Array.isArray(patch)) {
-            this.setState({
-                patch: [...this.state.patch, ...patch]
-            });
-        } else {
-            this.setState({
-                loadingComplete: patch.done
-            });
+    handlePatch = (patches: IpcActionReturn[IpcAction.LOAD_PATCHES_WITHOUT_HUNKS] | IpcActionReturnError) => {
+        if ("error" in patches) {
+            console.warn(patches.error);
+            return;
         }
+        this.setState({
+            patches,
+            loadingComplete: true,
+        });
     }
     filterFiles = (e: any) => {
         this.setState({
-            fileFilter: e.target.value
+            fileFilter: e.target.value.toLocaleLowerCase()
         });
     }
     render() {
@@ -67,12 +71,20 @@ export default class DiffPane extends Component<RoutableProps<Props>, State> {
         }
         const message = this.state.commit.message.split("\n");
         const title = message.shift();
+
+        const patches = this.state.loadingComplete ? this.renderPatches(this.state.patches) : [];
+
         return (
             <div id="diff-pane" class="pane">
                 <h4>{this.state.commit.sha}</h4>
                 {
                     Store.heads[this.state.commit.sha] && (
-                        <ul>{Store.heads[this.state.commit.sha].map(ref => <li><StaticLink href={`/branch/${encodeURIComponent(ref.name)}`}>{ref.normalizedName}</StaticLink></li>)}</ul>
+                        <ul>
+                            {Store.heads[this.state.commit.sha].map(ref => <li>
+                                <StaticLink href={`/branch/${encodeURIComponent(ref.name)}`}>{ref.normalizedName}</StaticLink>
+                                {ref.remote && <span>:<StaticLink href={`/branch/${encodeURIComponent(ref.remote)}`}>{normalizeRemoteName(ref.remote)}</StaticLink></span>}
+                            </li>)}
+                        </ul>
                     )
                 }
                 <p>
@@ -88,20 +100,26 @@ export default class DiffPane extends Component<RoutableProps<Props>, State> {
                 <hr />
                 <div class="msg">
                     <h4>{title}</h4>
-                    {message.filter(line => !!line).map(line => <p><pre>{line}</pre></p>)}
+                    {message.filter(line => !!line).map(line => <pre>{line}</pre>)}
                 </div>
                 <hr />
-                <p>{!this.state.loadingComplete && <span>Loading...</span>}Files: {this.state.patch.length}</p>
+                <p>
+                    {!this.state.loadingComplete && <span>Loading...</span>}
+                    <span>Files: {this.state.patches.length}</span>
+                    {
+                        this.state.fileFilter && <span> - Filtered: {patches.length}</span>
+                    }
+                </p>
                 <input type="text" onKeyUp={this.filterFiles} placeholder="Search file..." value={this.state.fileFilter} />
                 <ul class="diff-view" key={this.state.commit.sha}>
-                    {this.state.loadingComplete && this.renderPatches(this.state.patch)}
+                    {patches}
                 </ul>
             </div>
         );
     }
     renderPatches = (patches: PatchObj[]) => {
         if (this.state.fileFilter) {
-            patches = patches.filter(patch => patch.actualFile.path.includes(this.state.fileFilter));
+            patches = patches.filter(patch => patch.actualFile.path.toLocaleLowerCase().includes(this.state.fileFilter));
         }
         return patches.map(this.renderPatch);
     }

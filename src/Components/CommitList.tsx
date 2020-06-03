@@ -1,13 +1,13 @@
 import { h, Component } from "preact";
 import { Link } from "@weedzcokie/router-tsx";
-import { sendAsyncMessage, unregisterHandler } from "../Data/Renderer";
-import { registerHandler } from "../Data/Renderer";
-import { IpcAction, IpcActionReturn } from "../Data/Actions";
+import { sendAsyncMessage, unregisterHandler, registerHandler } from "../Data/Renderer";
+import { IpcAction, IpcActionReturn, IpcActionReturnError } from "../Data/Actions";
 import { Store } from "../Data/Renderer/store";
 
 type Props = {
     branch?: string
     sha?: string
+    history?: boolean
 };
 type State = {
     commits: IpcActionReturn[IpcAction.LOAD_COMMITS]
@@ -33,7 +33,12 @@ export default class CommitList extends Component<Props, State> {
         this.handleProps(nextProps);
     }
     handleProps(props: Props) {
-        if (!props.sha) {
+        if (props.history) {
+            sendAsyncMessage(IpcAction.LOAD_COMMITS, {
+                num: 1000,
+                history: true
+            });
+        } else if (!props.sha) {
             sendAsyncMessage(IpcAction.LOAD_COMMITS, {
                 branch: decodeURIComponent(props.branch || "HEAD")
             });
@@ -43,7 +48,11 @@ export default class CommitList extends Component<Props, State> {
             // });
         }
     }
-    loadCommits = (commits: IpcActionReturn[IpcAction.LOAD_COMMITS]) => {
+    loadCommits = (commits: IpcActionReturn[IpcAction.LOAD_COMMITS] | IpcActionReturnError) => {
+        if ("error" in commits) {
+            console.warn(commits);
+            return;
+        }
         this.setState({
             commits
         });
@@ -60,9 +69,6 @@ export default class CommitList extends Component<Props, State> {
                                     Store.heads[commit.sha].map(ref => <span style={{color: headColors[index % headColors.length]}}>({ref.normalizedName})</span>)
                                 }
                                 <span class="msg">{commit.message.substring(0, commit.message.indexOf("\n")>>>0 || 60)}</span>
-                                {/* <span class="date">{commit.date}</span> */}
-                                {/* <span class="sha">{commit.sha}</span> */}
-                                {/* <span class="author">{commit.author.name}</span> */}
                             </Link>
                         </li>
                     ))}

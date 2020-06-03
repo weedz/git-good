@@ -3,7 +3,6 @@ import { RoutableProps } from "@weedzcokie/router-tsx";
 import CommitList from "../Components/CommitList";
 import DiffPane from "../Components/DiffPane";
 import FileDiff from "../Components/FileDiff";
-import History from "src/Components/History";
 
 type Props = {
     sha?: string
@@ -15,11 +14,7 @@ export default class Main extends Component<RoutableProps<Props>> {
         return (
             <Fragment>
                 <FileDiff />
-                {
-                    this.props.history
-                        ? <History />
-                        : <CommitList sha={this.props.sha} branch={this.props.branch} />
-                }
+                <CommitList sha={this.props.sha} branch={this.props.branch} history={this.props.history} />
                 {this.props.sha && <DiffPane sha={this.props.sha} />}
             </Fragment>
         );
