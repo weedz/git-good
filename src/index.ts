@@ -143,16 +143,16 @@ const menuTemplate = [
                 label: 'Fetch all',
                 click: async () => {
                     // FIXME: make this configurable
-                    const username = "git";
-                    const publickey = readFileSync("/Users/linusbjorklund/.ssh/id_rsa.pub").toString();
-                    const privatekey = readFileSync("/Users/linusbjorklund/.ssh/id_rsa").toString();
-                    // const passphrase = "PASSPHRASE";
-                    const cred = await Cred.sshKeyMemoryNew(username, publickey, privatekey, "");
-
+                    // const username = "git";
+                    // const publickey = readFileSync("/Users/linusbjorklund/.ssh/id_rsa.pub").toString();
+                    // const privatekey = readFileSync("/Users/linusbjorklund/.ssh/id_rsa").toString();
+                    // const passphrase = "";
+                    // const cred = await Cred.sshKeyMemoryNew(username, publickey, privatekey, passphrase);
+                    
                     await repo.fetchAll({
                         callbacks: {
                             credentials: (url: any, user: any) => {
-                                // console.log(`Fetch required credentials. url: ${url}, user: ${user}`);
+                                const cred = Cred.sshKeyFromAgent(user);
                                 return cred;
                             }
                         }

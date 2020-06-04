@@ -71,6 +71,7 @@ export function openRepo(repoPath: string) {
     sendAsyncMessage(IpcAction.OPEN_REPO, repoPath);
 }
 export function loadBranches() {
+    console.log("fetched");
     sendAsyncMessage(IpcAction.LOAD_BRANCHES);
 }
 
@@ -127,6 +128,7 @@ function mapHeads(heads: any, refs: BranchObj[]) {
     }
 }
 function branchesLoaded(branches: BranchesObj) {
+    console.log("loaded branches");
     const heads:any = {};
     mapHeads(heads, branches.local);
     mapHeads(heads, branches.remote);
