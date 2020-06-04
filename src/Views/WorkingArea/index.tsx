@@ -1,11 +1,21 @@
 import { h, Component, Fragment } from "preact";
 import { RoutableProps } from "@weedzcokie/router-tsx";
+import FileDiff from "../../Components/FileDiff";
+
+import "./style.css";
+
+/*
+
+Stage/unstage: Repository#stageFilemode
+
+*/
 
 export default class WorkingArea extends Component<RoutableProps> {
     render() {
         return (
-            <Fragment>
-                <div id="working-area">
+            <div id="working-area">
+                <FileDiff />
+                <div id="commit-stage">
                     <div id="unstaged-changes" class="pane">
                         <h4>Unstaged</h4>
                         <ul>
@@ -21,14 +31,19 @@ export default class WorkingArea extends Component<RoutableProps> {
                     <div class="pane">
                         <h4>Commit</h4>
                         <form>
-                            <input type="text" name="msg" placeholder="Message..." />
+                            <input type="text" name="summary" placeholder="Summary" />
+                            <br />
+                            <textarea name="msg"></textarea>
+                            <br />
                             <input type="submit" name="commit" value="Commit" />
-                            <input type="submit" name="amend" value="Amend" />
-                            <input type="button" value="Open editor" />
+                            <label>
+                                <input type="checkbox" name="amend" />
+                                <span>Amend</span>
+                            </label>
                         </form>
                     </div>
                 </div>
-            </Fragment>
+            </div>
         );
     }
 }

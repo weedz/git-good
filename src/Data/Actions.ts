@@ -6,6 +6,7 @@ export enum IpcAction {
     LOAD_PATCHES_WITHOUT_HUNKS,
     LOAD_HUNKS,
     CHECKOUT_BRANCH,
+    REFRESH_WORKDIR,
 };
 
 export type IpcActionParams = {
@@ -19,6 +20,7 @@ export type IpcActionParams = {
         path: string
     }
     [IpcAction.CHECKOUT_BRANCH]: string
+    [IpcAction.REFRESH_WORKDIR]: never
 };
 
 export type IpcActionReturn = {
@@ -35,6 +37,7 @@ export type IpcActionReturn = {
         hunks: HunkObj[] | false
     }
     [IpcAction.CHECKOUT_BRANCH]: false | BranchObj
+    [IpcAction.REFRESH_WORKDIR]: any
 };
 
 export type IpcActionReturnError = {

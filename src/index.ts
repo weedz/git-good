@@ -1,7 +1,7 @@
 import { join } from "path";
 import { readFileSync } from 'fs';
 import { app, BrowserWindow, ipcMain, Menu, dialog } from 'electron';
-import { Repository, Commit, Object, Revwalk, Cred } from "nodegit";
+import { Repository, Commit, Object, Revwalk, Cred, Diff } from "nodegit";
 import { getBranches, getCommits, getCommitWithDiff, getHunks, eventReply, actionLock, getCommitPatches, eventReplyError } from "./Data/Provider";
 import { IpcAction, IpcActionParams, IpcActionReturn } from './Data/Actions';
 
@@ -19,7 +19,7 @@ const createWindow = () => {
 
     win.loadFile(join(__dirname, "../dist/index.html"));
 
-    // mainWindow.webContents.openDevTools();
+    win.webContents.openDevTools();
 };
 
 app.commandLine.appendSwitch('disable-smooth-scrolling');
@@ -160,6 +160,12 @@ const menuTemplate = [
                     win.webContents.send("repo-fetch-all");
                 }
             },
+            {
+                label: "Refresh",
+                click: () => {
+                    win.webContents.send("refresh-workdir");
+                }
+            },
             { label: 'Pull...' },
             { label: 'Push...' },
         ]
@@ -199,6 +205,7 @@ Menu.setApplicationMenu(menu);
 
 
 let repo: Repository;
+let indexWorkDir: any;
 
 type EventArgs = {
     action: IpcAction
@@ -248,6 +255,9 @@ ipcMain.on("asynchronous-message", async (event, arg: EventArgs) => {
             case IpcAction.CHECKOUT_BRANCH:
                 eventReply(event, arg.action, await changeBranch(arg.data));
                 break;
+            case IpcAction.REFRESH_WORKDIR:
+                eventReply(event, arg.action, await refreshWorkDir());
+                break;
         }
     }
 });
@@ -260,6 +270,28 @@ async function openRepo(repoPath: string) {
         opened = false;
     }
     return opened;
+}
+
+async function refreshWorkDir() {
+    const unstagedDiff = await Diff.indexToWorkdir(repo, undefined, {
+        flags: Diff.OPTION.SHOW_UNTRACKED_CONTENT | Diff.OPTION.RECURSE_UNTRACKED_DIRS
+    });
+    const unstagedPatches = await unstagedDiff.patches();
+    
+    const head = await repo.getHeadCommit();
+    const stagedDiff = await Diff.treeToIndex(repo, await head.getTree());
+    const stagedPatches = await stagedDiff.patches();
+
+
+    indexWorkDir = {
+        unstagedPatches,
+        stagedPatches
+    };
+
+    return {
+        unstaged: unstagedPatches.length,
+        staged: stagedPatches.length
+    };
 }
 
 async function loadCommits(params: IpcActionParams[IpcAction.LOAD_COMMITS]) {

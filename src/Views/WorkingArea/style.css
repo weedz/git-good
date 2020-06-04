@@ -1,0 +1,19 @@
+#working-area {
+    display: flex;
+    flex-direction: column;
+    flex: auto;
+}
+
+#commit-stage {
+    width: 325px;
+    align-self: flex-end;
+    display: flex;
+    flex-direction: column;
+    flex-grow: 1;
+}
+
+#unstaged-changes,
+#staged-changes {
+    overflow: auto;
+    flex-grow: 1;
+}

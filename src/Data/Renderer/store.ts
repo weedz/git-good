@@ -146,10 +146,14 @@ function updateCurrentBranch(result: IpcActionReturn[IpcAction.CHECKOUT_BRANCH])
         });
     }
 }
+export function refreshWorkdir() {
+    sendAsyncMessage(IpcAction.REFRESH_WORKDIR);
+}
 
 attach();
-ipcRenderer.on('repo-opened', (_, opened) => repoOpened(opened));
-ipcRenderer.on('repo-fetch-all', (_) => loadBranches());
+ipcRenderer.on("repo-opened", (_, opened) => repoOpened(opened));
+ipcRenderer.on("repo-fetch-all", (_) => loadBranches());
+ipcRenderer.on("refresh-workdir", (_) => refreshWorkdir());
 registerHandler(IpcAction.OPEN_REPO, repoOpened);
 registerHandler(IpcAction.LOAD_BRANCHES, branchesLoaded);
 registerHandler(IpcAction.CHECKOUT_BRANCH, updateCurrentBranch);
