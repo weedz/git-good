@@ -27,7 +27,7 @@ function renderLine(line: LineObj) {
 }
 
 export default class FileDiff extends Component {
-    componentDidMount() {
+    componentWillMount() {
         subscribe(this.update, "currentFile");
     }
     componentWillUnmount() {

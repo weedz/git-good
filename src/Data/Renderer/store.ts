@@ -79,16 +79,23 @@ export function checkoutBranch(branch: string) {
     sendAsyncMessage(IpcAction.CHECKOUT_BRANCH, branch);
 }
 
-export function openFile(sha: string, patch: PatchObj) {
+export function openFile(params: ({sha: string} | {workDir: boolean}) & {patch: PatchObj}) {
     setState({
         currentFile: {
-            patch
+            patch: params.patch
         }
     });
-    sendAsyncMessage(IpcAction.LOAD_HUNKS, {
-        sha: sha,
-        path: patch.actualFile.path
-    });
+    if ("sha" in params) {
+        sendAsyncMessage(IpcAction.LOAD_HUNKS, {
+            sha: params.sha,
+            path: params.patch.actualFile.path,
+        });
+    } else {
+        sendAsyncMessage(IpcAction.LOAD_HUNKS, {
+            workDir: params.workDir,
+            path: params.patch.actualFile.path,
+        });
+    }
 }
 export function closeFile() {
     setState({
@@ -149,11 +156,15 @@ function updateCurrentBranch(result: IpcActionReturn[IpcAction.CHECKOUT_BRANCH])
 export function refreshWorkdir() {
     sendAsyncMessage(IpcAction.REFRESH_WORKDIR);
 }
+export function openSettings() {
+    console.log("open settings");
+}
 
 attach();
 ipcRenderer.on("repo-opened", (_, opened) => repoOpened(opened));
 ipcRenderer.on("repo-fetch-all", (_) => loadBranches());
 ipcRenderer.on("refresh-workdir", (_) => refreshWorkdir());
+ipcRenderer.on("open-settings", (_) => openSettings());
 registerHandler(IpcAction.OPEN_REPO, repoOpened);
 registerHandler(IpcAction.LOAD_BRANCHES, branchesLoaded);
 registerHandler(IpcAction.CHECKOUT_BRANCH, updateCurrentBranch);

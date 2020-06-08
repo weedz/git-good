@@ -97,6 +97,19 @@ export async function getBranches(repo: Repository): Promise<BranchesObj> {
     };
 }
 
+export function loadChanges(patches: ConvenientPatch[]) {
+    workDirIndexCache = {};
+    return patches.map(convPatch => {
+        const patch = handlePatch(convPatch);
+        workDirIndexCache[patch.actualFile.path] = convPatch;
+        return patch;
+    });
+}
+export async function getWorkdirHunks(path: string) {
+    const patch = workDirIndexCache[path];
+    return loadHunks(patch);
+}
+
 function handleLine(line: DiffLine): LineObj {
     const oldLineno = line.oldLineno();
     const newLineno = line.newLineno();
@@ -127,6 +140,9 @@ async function handleHunk(hunk: ConvenientHunk): Promise<HunkObj> {
 }
 export async function getHunks(sha: string, path: string) {
     const patch = commitObjectCache[sha]?.patches[path];
+    return loadHunks(patch);
+}
+async function loadHunks(patch: ConvenientPatch) {
     if (!patch) {
         return false;
     }
@@ -170,15 +186,17 @@ function handlePatch(patch: ConvenientPatch): PatchObj {
         oldFile,
         actualFile: newFile.path ? newFile : oldFile,
     };
-    
-    commitObjectCache[currentCommit].patches[patchResult.actualFile.path] = patch;
 
     return patchResult;
 }
 
 async function handleDiff(diff: Diff) {
     const convenientPatches = await diff.patches();
-    return convenientPatches.map(handlePatch);
+    return convenientPatches.map(convPatch => {
+        const patch = handlePatch(convPatch);
+        commitObjectCache[currentCommit].patches[patch.actualFile.path] = convPatch;
+        return patch;
+    });
 }
 
 export async function getCommitPatches(sha: string) {
@@ -187,7 +205,7 @@ export async function getCommitPatches(sha: string) {
     // TODO: fix this. Merge commits are a bit messy without this.
     const tree = await commit.getTree();
     const diffOpts = {
-        flags: Diff.FIND.RENAMES | Diff.FIND.RENAMES_FROM_REWRITES | Diff.FIND.FOR_UNTRACKED,
+        flags: Diff.FIND.RENAMES | Diff.FIND.RENAMES_FROM_REWRITES | Diff.FIND.FOR_UNTRACKED | Diff.FIND.IGNORE_WHITESPACE,
     };
 
     // TODO: which parent to chose?
@@ -252,4 +270,7 @@ let commitObjectCache: {
             [path: string]: ConvenientPatch
         }
     }
+} = {};
+let workDirIndexCache: {
+    [path: string]: ConvenientPatch
 } = {};

@@ -1,8 +1,7 @@
 import { join } from "path";
-import { readFileSync } from 'fs';
 import { app, BrowserWindow, ipcMain, Menu, dialog } from 'electron';
-import { Repository, Commit, Object, Revwalk, Cred, Diff } from "nodegit";
-import { getBranches, getCommits, getCommitWithDiff, getHunks, eventReply, actionLock, getCommitPatches, eventReplyError } from "./Data/Provider";
+import { Repository, Commit, Object, Revwalk, Cred, Diff, ConvenientPatch } from "nodegit";
+import { getBranches, getCommits, getCommitWithDiff, getHunks, eventReply, actionLock, getCommitPatches, eventReplyError, loadChanges, getWorkdirHunks } from "./Data/Provider";
 import { IpcAction, IpcActionParams, IpcActionReturn } from './Data/Actions';
 
 let win: BrowserWindow;
@@ -84,6 +83,16 @@ const menuTemplate = [
                             });
                         }
                     });
+                }
+            },
+            {
+                type: 'separator'
+            },
+            {
+                label: "Preferences...",
+                accelerator: 'CmdOrCtrl+,',
+                click: () => {
+                    win.webContents.send("open-settings");
                 }
             },
             {
@@ -205,7 +214,10 @@ Menu.setApplicationMenu(menu);
 
 
 let repo: Repository;
-let indexWorkDir: any;
+let workDirIndex: {
+    unstagedPatches: ConvenientPatch[]
+    stagedPatches: ConvenientPatch[]
+};
 
 type EventArgs = {
     action: IpcAction
@@ -258,6 +270,9 @@ ipcMain.on("asynchronous-message", async (event, arg: EventArgs) => {
             case IpcAction.REFRESH_WORKDIR:
                 eventReply(event, arg.action, await refreshWorkDir());
                 break;
+            case IpcAction.GET_CHANGES:
+                eventReply(event, arg.action, await getChanges());
+                break;
         }
     }
 });
@@ -272,25 +287,37 @@ async function openRepo(repoPath: string) {
     return opened;
 }
 
-async function refreshWorkDir() {
+async function getChanges() {
+    return {
+        staged: loadChanges(workDirIndex.stagedPatches),
+        unstaged: loadChanges(workDirIndex.unstagedPatches),
+    }
+}
+
+async function getStagedPatches() {
     const unstagedDiff = await Diff.indexToWorkdir(repo, undefined, {
         flags: Diff.OPTION.SHOW_UNTRACKED_CONTENT | Diff.OPTION.RECURSE_UNTRACKED_DIRS
     });
-    const unstagedPatches = await unstagedDiff.patches();
-    
+    return unstagedDiff.patches();
+}
+
+async function getUnstagedPatches() {
     const head = await repo.getHeadCommit();
     const stagedDiff = await Diff.treeToIndex(repo, await head.getTree());
-    const stagedPatches = await stagedDiff.patches();
+    return stagedDiff.patches();
+}
 
+async function refreshWorkDir() {
+    const changes = await Promise.all([getStagedPatches(), getUnstagedPatches()]);
 
-    indexWorkDir = {
-        unstagedPatches,
-        stagedPatches
+    workDirIndex = {
+        unstagedPatches: changes[0],
+        stagedPatches: changes[1],
     };
 
     return {
-        unstaged: unstagedPatches.length,
-        staged: stagedPatches.length
+        unstaged: workDirIndex.unstagedPatches.length,
+        staged: workDirIndex.stagedPatches.length
     };
 }
 
@@ -323,7 +350,11 @@ function loadPatches(sha: IpcActionParams[IpcAction.LOAD_PATCHES_WITHOUT_HUNKS])
 }
 
 function loadHunks(params: IpcActionParams[IpcAction.LOAD_HUNKS]) {
-    return getHunks(params.sha, params.path);
+    if ("sha" in params) {
+        return getHunks(params.sha, params.path);
+    } else {
+        return getWorkdirHunks(params.path);
+    }
 }
 
 function loadBranches() {

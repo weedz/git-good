@@ -7,6 +7,7 @@ export enum IpcAction {
     LOAD_HUNKS,
     CHECKOUT_BRANCH,
     REFRESH_WORKDIR,
+    GET_CHANGES,
 };
 
 export type IpcActionParams = {
@@ -15,12 +16,17 @@ export type IpcActionParams = {
     [IpcAction.OPEN_REPO]: string
     [IpcAction.LOAD_COMMIT]: string
     [IpcAction.LOAD_PATCHES_WITHOUT_HUNKS]: string
-    [IpcAction.LOAD_HUNKS]: {
+    [IpcAction.LOAD_HUNKS]: 
+    ({
+        workDir: boolean
+    } | {
         sha: string
+    }) & {
         path: string
     }
     [IpcAction.CHECKOUT_BRANCH]: string
     [IpcAction.REFRESH_WORKDIR]: never
+    [IpcAction.GET_CHANGES]: never
 };
 
 export type IpcActionReturn = {
@@ -37,7 +43,14 @@ export type IpcActionReturn = {
         hunks: HunkObj[] | false
     }
     [IpcAction.CHECKOUT_BRANCH]: false | BranchObj
-    [IpcAction.REFRESH_WORKDIR]: any
+    [IpcAction.REFRESH_WORKDIR]: {
+        unstaged: number
+        staged: number
+    }
+    [IpcAction.GET_CHANGES]: {
+        staged: PatchObj[]
+        unstaged: PatchObj[]
+    }
 };
 
 export type IpcActionReturnError = {

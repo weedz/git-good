@@ -10,7 +10,7 @@ import { subscribe, Store, unsubscribe, openRepo, StoreType } from "./Data/Rende
 
 export default class App extends Component {
     openRecent: boolean = true;
-    componentDidMount() {
+    componentWillMount() {
         subscribe(this.update, "repo");
         const path = process.argv[0];
         openRepo(path);

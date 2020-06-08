@@ -1,7 +1,7 @@
 import { h, Component } from "preact";
 import { Link } from "@weedzcokie/router-tsx";
 import { registerHandler, unregisterHandler } from "src/Data/Renderer";
-import { IpcAction } from "src/Data/Actions";
+import { IpcAction, IpcActionReturn } from "src/Data/Actions";
 import { refreshWorkdir } from "../Data/Renderer/store";
 
 export default class Changes extends Component {
@@ -11,15 +11,15 @@ export default class Changes extends Component {
             unstaged: 0,
         },
     };
-    componentDidMount() {
+    componentWillMount() {
         registerHandler(IpcAction.REFRESH_WORKDIR, this.updateIndex);
         refreshWorkdir();
     }
     componentWillUnmount() {
         unregisterHandler(IpcAction.REFRESH_WORKDIR, this.updateIndex);
     }
-    updateIndex = (changes: any) => {
-        if ("staged" in changes) {
+    updateIndex = (changes: IpcActionReturn[IpcAction.REFRESH_WORKDIR]) => {
+        if (!("error" in changes)) {
             this.setState({
                 changes
             });
