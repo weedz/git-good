@@ -10,8 +10,8 @@
     "package": "electron-forge package",
     "make": "electron-forge make",
     "publish": "electron-forge publish",
-    "build": "rollup -c",
-    "build:watch": "rollup -c -w",
+    "build": "rm -r dist; rollup -c && cp -R static/* dist/",
+    "build:watch": "mkdir dist; cp -R static/* dist/ && rollup -c -w",
     "lint": "eslint --ext .ts ."
   },
   "keywords": [],
