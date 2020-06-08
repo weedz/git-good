@@ -341,7 +341,7 @@ async function changeBranch(branch: string) {
             normalizedName: head.name(),
         };
     } catch(err) {
-        console.log(err);
+        console.error(err);
         return false;
     }
 }

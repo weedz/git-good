@@ -4,7 +4,7 @@ import { remote } from "electron";
 
 import "./style.css";
 import { getBranchTree, filterBranches, BranchTree, normalizeLocalName } from "../../Data/Branch";
-import { BranchesObj } from "../../Data/Actions";
+import { BranchesObj, BranchObj } from "../../Data/Actions";
 import { loadBranches, subscribe, Store, unsubscribe, checkoutBranch, contextMenuState } from "../../Data/Renderer/store";
 
 const { Menu, MenuItem } = remote;
@@ -90,6 +90,48 @@ headMenu.append(new MenuItem({
     }
 }));
 
+function showOriginMenu(e: any) {
+    e.preventDefault();
+    contextMenuState.data = e.currentTarget;
+    originMenu.popup({
+        window: remote.getCurrentWindow()
+    });
+}
+function showRemoteMenu(e: any) {
+    e.preventDefault();
+    contextMenuState.data = e.currentTarget;
+    remoteMenu.popup({
+        window: remote.getCurrentWindow()
+    });
+}
+function showLocalMenu(e: any) {
+    e.preventDefault();
+    contextMenuState.data = e.currentTarget;
+    localMenu.popup({
+        window: remote.getCurrentWindow()
+    });
+}
+function showHeadMenu(e: any) {
+    e.preventDefault();
+    contextMenuState.data = e.currentTarget;
+    headMenu.popup({
+        window: remote.getCurrentWindow()
+    });
+}
+
+function BranchAheadBehind(ref: BranchObj) {
+    let aheadbehind = [];
+    if (ref.status) {
+        if (ref.status.ahead) {
+            aheadbehind.push(<span>{ref.status.ahead}&uarr;</span>);
+        }
+        if (ref.status.behind) {
+            aheadbehind.push(<span>{ref.status.behind}&darr;</span>);
+        }
+    }
+    return aheadbehind;
+}
+
 function toggleTreeItem(e: any) {
     e.preventDefault();
     const parent = e.target.parentNode;
@@ -116,20 +158,10 @@ function branchTree(branches: BranchTree, contextMenuCb?: (event: any) => void, 
     }
     if (branches.items) {
         for (const branch of branches.items) {
-            let aheadBehind;
-            if (branch.status) {
-                if (branch.status.ahead && branch.status.behind) {
-                    aheadBehind = <span>{branch.status.ahead}&uarr;{branch.status.behind}&darr;</span>;
-                } else if (branch.status.ahead) {
-                    aheadBehind = <span>{branch.status.ahead}&uarr;</span>;
-                } else if (branch.status.behind) {
-                    aheadBehind = <span>{branch.status.behind}&darr;</span>;
-                }
-            }
             items.push(
                 <li key={branch.ref.headSHA}>
                     <Link data-ref={branch.ref.name} onDblClick={dblClickHandle} onContextMenu={contextMenuCb} activeClassName="selected" href={`/branch/${encodeURIComponent(branch.ref.name)}`}>
-                        {branch.name}&nbsp;{aheadBehind}
+                        {branch.name}&nbsp;{BranchAheadBehind(branch.ref)}
                     </Link>
                 </li>
             );
@@ -187,35 +219,6 @@ export default class BranchList extends Component<Props, State> {
             filter: e.target.value.toLocaleLowerCase()
         });
     }
-    showOriginMenu = (e: any) => {
-        e.preventDefault();
-        originMenu.popup({
-            window: remote.getCurrentWindow()
-        });
-    }
-    showRemoteMenu = (e: any) => {
-        e.preventDefault();
-        remoteMenu.popup({
-            window: remote.getCurrentWindow()
-        });
-    }
-    showLocalMenu = (e: any) => {
-        e.preventDefault();
-        contextMenuState.data = e.target;
-        localMenu.popup({
-            window: remote.getCurrentWindow()
-        });
-    }
-    showHeadMenu = (e: any) => {
-        e.preventDefault();
-        headMenu.popup({
-            window: remote.getCurrentWindow()
-        });
-    }
-
-    checkoutBranch = (e: any) => {
-        checkoutBranch(e.target.dataset.ref);
-    }
 
     render() {
         if (!Store.branches) {
@@ -230,32 +233,47 @@ export default class BranchList extends Component<Props, State> {
                 )
                 : Store.branches
         );
-        const head = Store.branches.head;
+
+        let headRef = [];
+        if (Store.branches.head) {
+            headRef.push(<span>&nbsp;({normalizeLocalName(Store.branches.head.name)})</span>);
+            const aheadBehind = BranchAheadBehind(Store.heads[Store.branches.head.headSHA][0]);
+            if (aheadBehind.length > 0) {
+                headRef.push(<span>&nbsp;{aheadBehind}</span>);
+            }
+        }
+
         return (
             <Fragment>
-            <div id="branch-pane" class="pane">
-                <h4>Refs</h4>
-                <ul>
-                    <li><Link activeClassName="selected" href="/history">History</Link></li>
-                    <li><Link onContextMenu={this.showHeadMenu} activeClassName="selected" href="/">HEAD ({head && normalizeLocalName(head.name)})</Link></li>
-                </ul>
-                <hr />
-                {branches && <ul class="tree-list">
-                    <li class="sub-tree">
-                        <a href="#" onClick={toggleTreeItem}>Local</a>
-                        {branchTree(branches.local, this.showLocalMenu, this.checkoutBranch)}
-                    </li>
-                    <hr />
-                    <li class="sub-tree">
-                        <a href="#" onClick={toggleTreeItem}>Remote</a>
-                        {listRemotes(branches.remote, this.showOriginMenu, this.showRemoteMenu)}
-                    </li>
-                    <hr />
-                    <li class="sub-tree">
-                        <a href="#" onClick={toggleTreeItem}>Tags</a>
-                        {branchTree(branches.tags)}
-                    </li>
-                    </ul>}
+                <div id="branch-pane" class="pane">
+                    <div style={{
+                        display: "inline-block",
+                        minWidth: "100%",
+                    }}>
+                        <h4>Refs</h4>
+                        <ul>
+                            <li><Link activeClassName="selected" href="/history">History</Link></li>
+                            <li><Link onContextMenu={showHeadMenu} activeClassName="selected" data-ref="HEAD" href="/branch/HEAD">HEAD{headRef}</Link></li>
+                        </ul>
+                        <hr />
+                        {branches &&
+                        <ul class="tree-list">
+                            <li class="sub-tree">
+                                <a href="#" onClick={toggleTreeItem}>Local</a>
+                                {branchTree(branches.local, showLocalMenu, (e:any) => checkoutBranch(e.currentTarget.dataset.ref))}
+                            </li>
+                            <hr />
+                            <li class="sub-tree">
+                                <a href="#" onClick={toggleTreeItem}>Remote</a>
+                                {listRemotes(branches.remote, showOriginMenu, showRemoteMenu)}
+                            </li>
+                            <hr />
+                            <li class="sub-tree">
+                                <a href="#" onClick={toggleTreeItem}>Tags</a>
+                                {branchTree(branches.tags)}
+                            </li>
+                        </ul>}
+                    </div>
                 </div>
                 <div class="pane">
                     <input type="text" placeholder="Filter..." onKeyUp={this.filter} />
