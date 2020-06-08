@@ -65,7 +65,7 @@ export default class CommitList extends Component<Props, State> {
         return (
             <div id="commits-pane" class="pane">
                 <h4>Commits</h4>
-                <ul>
+                <ul className="block-list">
                     {this.state.commits && this.state.commits.map((commit, index) => (
                         <li class="short" key={commit.sha}>
                             <Link activeClassName="selected" href={ (this.props.branch ? `/branch/${this.props.branch}/` : "/commit/") + commit.sha}>

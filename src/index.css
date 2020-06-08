@@ -109,3 +109,7 @@ li .tree-list {
 .diff-removed {
   color: red;
 }
+
+ul.block-list > li > a {
+  display: block;
+}

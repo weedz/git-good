@@ -32,18 +32,24 @@ export default class WorkingArea extends Component<RoutableProps, State> {
             unstaged: data.unstaged,
         });
     }
+    stageFile = (e: any) => {
+
+    }
+    unstageFile = (e: any) => {
+
+    }
     render() {
         return (
             <div id="working-area">
                 <FileDiff />
                 <div id="commit-stage">
                     <div id="unstaged-changes" class="pane">
-                        <h4>Unstaged ({this.state.unstaged?.length})</h4>
-                        {this.state.unstaged && <ChangedFiles patches={this.state.unstaged} workDir />}
+                        <h4>Unstaged ({this.state.unstaged?.length})<button>Stage all</button></h4>
+                        {this.state.unstaged && <ChangedFiles patches={this.state.unstaged} workDir actions={[{label: "Stage", click: this.stageFile}]} />}
                     </div>
                     <div id="staged-changes" class="pane">
-                        <h4>Staged ({this.state.staged?.length})</h4>
-                        {this.state.staged && <ChangedFiles patches={this.state.staged} workDir />}
+                        <h4>Staged ({this.state.staged?.length})<button>Unstage all</button></h4>
+                        {this.state.staged && <ChangedFiles patches={this.state.staged} workDir actions={[{label: "Unstage", click: this.unstageFile}]} />}
                     </div>
                     <div class="pane">
                         <h4>Commit</h4>

@@ -2,10 +2,15 @@ import { h, Component } from "preact";
 import { PatchObj, CommitObj } from "src/Data/Actions";
 import { openFile } from "src/Data/Renderer/store";
 
+type ButtonAction = {
+    label: string
+    click: h.JSX.MouseEventHandler<HTMLButtonElement>
+}
 type Props = {
     commit?: CommitObj
     workDir?: boolean
     patches: PatchObj[]
+    actions?: ButtonAction[]
 }
 
 export default class ChangedFiles extends Component<Props, {}> {
@@ -39,13 +44,17 @@ export default class ChangedFiles extends Component<Props, {}> {
                     <span className={typeCss}>{patch.type}</span>&nbsp;
                     <span>{patch.actualFile.path}</span>
                 </a>
+                {this.props.actions?.map(this.renderActionButton)}
             </li>
         );
+    }
+    renderActionButton(action: ButtonAction) {
+        return <button onClick={action.click}>{action.label}</button>;
     }
     render() {
         return (
             <div>
-                <ul class="diff-view">
+                <ul className="diff-view block-list">
                     {this.props.patches.map(this.renderPatch)}
                 </ul>
             </div>

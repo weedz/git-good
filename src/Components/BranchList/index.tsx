@@ -168,7 +168,7 @@ function branchTree(branches: BranchTree, contextMenuCb?: (event: any) => void, 
         }
     }
     return (
-        <ul class="tree-list">
+        <ul class="tree-list block-list">
             {items}
         </ul>
     );
@@ -251,13 +251,13 @@ export default class BranchList extends Component<Props, State> {
                         minWidth: "100%",
                     }}>
                         <h4>Refs</h4>
-                        <ul>
+                        <ul className="block-list">
                             <li><Link activeClassName="selected" href="/history">History</Link></li>
                             <li><Link onContextMenu={showHeadMenu} activeClassName="selected" data-ref="HEAD" href="/branch/HEAD">HEAD{headRef}</Link></li>
                         </ul>
                         <hr />
                         {branches &&
-                        <ul class="tree-list">
+                        <ul class="tree-list block-list">
                             <li class="sub-tree">
                                 <a href="#" onClick={toggleTreeItem}>Local</a>
                                 {branchTree(branches.local, showLocalMenu, (e:any) => checkoutBranch(e.currentTarget.dataset.ref))}

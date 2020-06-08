@@ -34,8 +34,18 @@
 .diff-view {
     overflow: auto;
 }
-.diff-view li {
+.diff-view > li {
     white-space: nowrap;
+    position: relative;
+}
+.diff-view > li > a {
+    padding: 3px;
+}
+.diff-view > li > button {
+    position: absolute;
+    right: 0;
+    top: 0;
+    bottom: 0;
 }
 
 #diff-pane .msg pre {

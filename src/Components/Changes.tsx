@@ -29,7 +29,7 @@ export default class Changes extends Component {
         return (
             <div id="changes-pane" class="pane">
                 <h4>Working area</h4>
-                <ul>
+                <ul className="block-list">
                     <li><Link activeClassName="selected" href="/working-area">Changes ({this.state.changes.staged + this.state.changes.unstaged})</Link></li>
                 </ul>
             </div>
