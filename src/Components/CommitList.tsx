@@ -24,24 +24,28 @@ const headColors = [
 export default class CommitList extends Component<Props, State> {
     componentWillMount() {
         registerHandler(IpcAction.LOAD_COMMITS, this.loadCommits);
-        this.handleProps(this.props);
+        this.handleProps(this.props, true);
     }
     componentWillUnmount() {
         unregisterHandler(IpcAction.LOAD_COMMITS, this.loadCommits);
     }
     componentWillReceiveProps(nextProps: Props) {
-        this.handleProps(nextProps);
+        this.handleProps(nextProps, false);
     }
-    handleProps(props: Props) {
+    handleProps(props: Props, reload: boolean) {
         if (props.history) {
-            sendAsyncMessage(IpcAction.LOAD_COMMITS, {
-                num: 1000,
-                history: true
-            });
+            if (reload || !this.props.history) {
+                sendAsyncMessage(IpcAction.LOAD_COMMITS, {
+                    num: 1000,
+                    history: true
+                });
+            }
         } else if (!props.sha) {
-            sendAsyncMessage(IpcAction.LOAD_COMMITS, {
-                branch: decodeURIComponent(props.branch || "HEAD")
-            });
+            if (reload || this.props.branch !== props.branch) {
+                sendAsyncMessage(IpcAction.LOAD_COMMITS, {
+                    branch: decodeURIComponent(props.branch || "HEAD")
+                });
+            }
         } else {
             // sendAsyncMessage(IPCAction.LOAD_COMMITS, {
             //     sha: decodeURIComponent(props.sha)
