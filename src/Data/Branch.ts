@@ -47,7 +47,7 @@ export function getBranchTree(branches: BranchesObj) {
                 ref: {
                     name: tag.name
                 }
-            }))
+            })).sort( (a,b) => a.name.localeCompare(b.name))
         } as BranchTree
     };
 }

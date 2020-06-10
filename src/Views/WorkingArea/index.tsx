@@ -20,11 +20,22 @@ type State = {
 
 export default class WorkingArea extends Component<RoutableProps, State> {
     componentWillMount() {
+        registerHandler(IpcAction.REFRESH_WORKDIR, this.getChanges);
         registerHandler(IpcAction.GET_CHANGES, this.update);
-        sendAsyncMessage(IpcAction.GET_CHANGES);
+        registerHandler(IpcAction.STAGE_FILE, this.refresh);
+        registerHandler(IpcAction.UNSTAGE_FILE, this.refresh);
+        registerHandler(IpcAction.DISCARD_FILE, this.refresh);
+        this.getChanges();
     }
     componentWillUnmount() {
+        unregisterHandler(IpcAction.REFRESH_WORKDIR, this.getChanges);
         unregisterHandler(IpcAction.GET_CHANGES, this.update);
+        unregisterHandler(IpcAction.STAGE_FILE, this.refresh);
+        unregisterHandler(IpcAction.UNSTAGE_FILE, this.refresh);
+        unregisterHandler(IpcAction.DISCARD_FILE, this.refresh);
+    }
+    getChanges = () => {
+        sendAsyncMessage(IpcAction.GET_CHANGES);
     }
     update = (data: IpcActionReturn[IpcAction.GET_CHANGES]) => {
         this.setState({
@@ -32,11 +43,20 @@ export default class WorkingArea extends Component<RoutableProps, State> {
             unstaged: data.unstaged,
         });
     }
+    refresh = () => {
+        sendAsyncMessage(IpcAction.REFRESH_WORKDIR);
+    }
     stageFile = (e: any) => {
-
+        const path = e.currentTarget.dataset.path;
+        sendAsyncMessage(IpcAction.STAGE_FILE, path);
     }
     unstageFile = (e: any) => {
-
+        const path = e.currentTarget.dataset.path;
+        sendAsyncMessage(IpcAction.UNSTAGE_FILE, path);
+    }
+    discard = (e: any) => {
+        const path = e.currentTarget.dataset.path;
+        sendAsyncMessage(IpcAction.DISCARD_FILE, path);
     }
     render() {
         return (
@@ -45,7 +65,7 @@ export default class WorkingArea extends Component<RoutableProps, State> {
                 <div id="commit-stage">
                     <div id="unstaged-changes" class="pane">
                         <h4>Unstaged ({this.state.unstaged?.length})<button>Stage all</button></h4>
-                        {this.state.unstaged && <ChangedFiles patches={this.state.unstaged} workDir actions={[{label: "Stage", click: this.stageFile}]} />}
+                        {this.state.unstaged && <ChangedFiles patches={this.state.unstaged} workDir actions={[{label: "Stage", click: this.stageFile}, {label: "Discard", click: this.discard}]} />}
                     </div>
                     <div id="staged-changes" class="pane">
                         <h4>Staged ({this.state.staged?.length})<button>Unstage all</button></h4>

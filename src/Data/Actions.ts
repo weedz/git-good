@@ -8,6 +8,10 @@ export enum IpcAction {
     CHECKOUT_BRANCH,
     REFRESH_WORKDIR,
     GET_CHANGES,
+    STAGE_FILE,
+    UNSTAGE_FILE,
+    COMMIT,
+    DISCARD_FILE,
 };
 
 export type IpcActionParams = {
@@ -27,6 +31,14 @@ export type IpcActionParams = {
     [IpcAction.CHECKOUT_BRANCH]: string
     [IpcAction.REFRESH_WORKDIR]: never
     [IpcAction.GET_CHANGES]: never
+    [IpcAction.STAGE_FILE]: string
+    [IpcAction.UNSTAGE_FILE]: string
+    [IpcAction.DISCARD_FILE]: string
+    [IpcAction.COMMIT]: {
+        amend?: boolean
+        summary: string
+        message: string
+    }
 };
 
 export type IpcActionReturn = {
@@ -51,6 +63,10 @@ export type IpcActionReturn = {
         staged: PatchObj[]
         unstaged: PatchObj[]
     }
+    [IpcAction.STAGE_FILE]: number
+    [IpcAction.UNSTAGE_FILE]: number
+    [IpcAction.DISCARD_FILE]: number
+    [IpcAction.COMMIT]: boolean
 };
 
 export type IpcActionReturnError = {

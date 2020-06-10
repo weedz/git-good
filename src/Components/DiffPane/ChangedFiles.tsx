@@ -44,12 +44,11 @@ export default class ChangedFiles extends Component<Props, {}> {
                     <span className={typeCss}>{patch.type}</span>&nbsp;
                     <span>{patch.actualFile.path}</span>
                 </a>
-                {this.props.actions?.map(this.renderActionButton)}
+                {this.props.actions && <div class="action-group">
+                    {this.props.actions?.map(action => <button data-path={patch.actualFile.path} onClick={action.click}>{action.label}</button>)}
+                </div>}
             </li>
         );
-    }
-    renderActionButton(action: ButtonAction) {
-        return <button onClick={action.click}>{action.label}</button>;
     }
     render() {
         return (

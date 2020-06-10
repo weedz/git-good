@@ -16,6 +16,10 @@ const handlers: {[key in IpcAction]: Function[]} = {
     [IpcAction.CHECKOUT_BRANCH]: [],
     [IpcAction.REFRESH_WORKDIR]: [],
     [IpcAction.GET_CHANGES]: [],
+    [IpcAction.STAGE_FILE]: [],
+    [IpcAction.UNSTAGE_FILE]: [],
+    [IpcAction.DISCARD_FILE]: [],
+    [IpcAction.COMMIT]: [],
 };
 export function registerHandler<T extends IpcAction>(action: T, cb: (arg0: IpcActionReturn[T]) => void) {
     handlers[action]?.push(cb);

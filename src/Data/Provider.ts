@@ -1,4 +1,4 @@
-import { Repository, Revwalk, Commit, Diff, ConvenientPatch, ConvenientHunk, DiffLine, Object, DiffFile, Branch, Graph } from "nodegit";
+import { Repository, Revwalk, Commit, Diff, ConvenientPatch, ConvenientHunk, DiffLine, Object, DiffFile, Branch, Graph, Index, Reset, Checkout } from "nodegit";
 import { IpcAction, BranchObj, BranchesObj, LineObj, HunkObj, PatchObj, CommitObj, IpcActionReturn, IpcActionReturnError } from "./Actions";
 import { normalizeLocalName, normalizeRemoteName, normalizeTagName } from "./Branch";
 
@@ -97,16 +97,83 @@ export async function getBranches(repo: Repository): Promise<BranchesObj> {
     };
 }
 
-export function loadChanges(patches: ConvenientPatch[]) {
-    workDirIndexCache = {};
-    return patches.map(convPatch => {
+export async function refreshWorkDir(repo: Repository) {
+    index = await repo.refreshIndex();
+
+    const changes = await Promise.all([getStagedPatches(repo), getUnstagedPatches(repo)]);
+
+    workDirIndexCache = {
+        unstagedPatches: changes[0],
+        stagedPatches: changes[1],
+    };
+
+    return {
+        unstaged: workDirIndexCache.unstagedPatches.length,
+        staged: workDirIndexCache.stagedPatches.length
+    };
+}
+
+export async function stageFile(repo: Repository, path: string) {
+    index = await repo.refreshIndex();
+    const result = await index.addByPath(path);
+    if (!result) {
+        // TODO: this is a promise.
+        await index.write();
+    }
+    return 0;
+}
+export async function unstageFile(repo: Repository, path: string) {
+    const head = await repo.getHeadCommit();
+    const result = await Reset.default(repo, head, path);
+    index = await repo.refreshIndex();
+
+    return 0;
+}
+export async function discardChanges(repo: Repository, path: string) {
+    try {
+        const head = await repo.getHeadCommit();
+        const tree = await head.getTree();
+        await Checkout.tree(repo, tree, { checkoutStrategy: Checkout.STRATEGY.FORCE, paths: [path] });
+    } catch (err) {
+        console.log(err)
+    }
+
+    return 0;
+}
+
+async function getStagedPatches(repo: Repository) {
+    const unstagedDiff = await Diff.indexToWorkdir(repo, undefined, {
+        flags: Diff.OPTION.SHOW_UNTRACKED_CONTENT | Diff.OPTION.RECURSE_UNTRACKED_DIRS
+    });
+    return unstagedDiff.patches();
+}
+
+async function getUnstagedPatches(repo: Repository) {
+    const head = await repo.getHeadCommit();
+    const stagedDiff = await Diff.treeToIndex(repo, await head.getTree());
+    return stagedDiff.patches();
+}
+
+export function loadChanges() {
+    workDirIndexPathMap = {};
+
+    const staged = workDirIndexCache.stagedPatches.map(convPatch => {
         const patch = handlePatch(convPatch);
-        workDirIndexCache[patch.actualFile.path] = convPatch;
+        workDirIndexPathMap[patch.actualFile.path] = convPatch;
         return patch;
     });
+    const unstaged = workDirIndexCache.unstagedPatches.map(convPatch => {
+        const patch = handlePatch(convPatch);
+        workDirIndexPathMap[patch.actualFile.path] = convPatch;
+        return patch;
+    });
+    return {
+        staged,
+        unstaged,
+    };
 }
 export async function getWorkdirHunks(path: string) {
-    const patch = workDirIndexCache[path];
+    const patch = workDirIndexPathMap[path];
     return loadHunks(patch);
 }
 
@@ -205,14 +272,15 @@ export async function getCommitPatches(sha: string) {
     // TODO: fix this. Merge commits are a bit messy without this.
     const tree = await commit.getTree();
     const diffOpts = {
-        flags: Diff.FIND.RENAMES | Diff.FIND.RENAMES_FROM_REWRITES | Diff.FIND.FOR_UNTRACKED | Diff.FIND.IGNORE_WHITESPACE,
+        flags: Diff.FIND.RENAMES | Diff.FIND.IGNORE_WHITESPACE,
     };
 
     // TODO: which parent to chose?
     const parents = await commit.getParents(1);
-    let diffs: DiffFile[][];
+    let diffs: Diff[];
     if (parents.length) {
         // TODO: how many parents?
+        // @ts-ignore
         diffs = await Promise.all(
             parents.map(parent => parent.getTree().then(parentTree => tree.diffWithOptions(parentTree)))
         );
@@ -272,5 +340,10 @@ let commitObjectCache: {
     }
 } = {};
 let workDirIndexCache: {
+    unstagedPatches: ConvenientPatch[]
+    stagedPatches: ConvenientPatch[]
+};
+let workDirIndexPathMap: {
     [path: string]: ConvenientPatch
-} = {};
+}
+let index: Index;

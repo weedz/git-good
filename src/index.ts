@@ -1,8 +1,9 @@
 import { join } from "path";
 import { app, BrowserWindow, ipcMain, Menu, dialog } from 'electron';
 import { Repository, Commit, Object, Revwalk, Cred, Diff, ConvenientPatch } from "nodegit";
-import { getBranches, getCommits, getCommitWithDiff, getHunks, eventReply, actionLock, getCommitPatches, eventReplyError, loadChanges, getWorkdirHunks } from "./Data/Provider";
+import { getBranches, getCommits, getCommitWithDiff, getHunks, eventReply, actionLock, getCommitPatches, eventReplyError, loadChanges, getWorkdirHunks, refreshWorkDir, stageFile, unstageFile, discardChanges } from "./Data/Provider";
 import { IpcAction, IpcActionParams, IpcActionReturn } from './Data/Actions';
+import { readFileSync } from "fs";
 
 let win: BrowserWindow;
 const createWindow = () => {
@@ -214,10 +215,6 @@ Menu.setApplicationMenu(menu);
 
 
 let repo: Repository;
-let workDirIndex: {
-    unstagedPatches: ConvenientPatch[]
-    stagedPatches: ConvenientPatch[]
-};
 
 type EventArgs = {
     action: IpcAction
@@ -268,10 +265,19 @@ ipcMain.on("asynchronous-message", async (event, arg: EventArgs) => {
                 eventReply(event, arg.action, await changeBranch(arg.data));
                 break;
             case IpcAction.REFRESH_WORKDIR:
-                eventReply(event, arg.action, await refreshWorkDir());
+                eventReply(event, arg.action, await refreshWorkDir(repo));
                 break;
             case IpcAction.GET_CHANGES:
-                eventReply(event, arg.action, await getChanges());
+                eventReply(event, arg.action, loadChanges());
+                break;
+            case IpcAction.STAGE_FILE:
+                eventReply(event, arg.action, await stageFile(repo, arg.data));
+                break;
+            case IpcAction.UNSTAGE_FILE:
+                eventReply(event, arg.action, await unstageFile(repo, arg.data));
+                break;
+            case IpcAction.DISCARD_FILE:
+                eventReply(event, arg.action, await discardChanges(repo, arg.data));
                 break;
         }
     }
@@ -287,49 +293,21 @@ async function openRepo(repoPath: string) {
     return opened;
 }
 
-async function getChanges() {
-    return {
-        staged: loadChanges(workDirIndex.stagedPatches),
-        unstaged: loadChanges(workDirIndex.unstagedPatches),
-    }
-}
-
-async function getStagedPatches() {
-    const unstagedDiff = await Diff.indexToWorkdir(repo, undefined, {
-        flags: Diff.OPTION.SHOW_UNTRACKED_CONTENT | Diff.OPTION.RECURSE_UNTRACKED_DIRS
-    });
-    return unstagedDiff.patches();
-}
-
-async function getUnstagedPatches() {
-    const head = await repo.getHeadCommit();
-    const stagedDiff = await Diff.treeToIndex(repo, await head.getTree());
-    return stagedDiff.patches();
-}
-
-async function refreshWorkDir() {
-    const changes = await Promise.all([getStagedPatches(), getUnstagedPatches()]);
-
-    workDirIndex = {
-        unstagedPatches: changes[0],
-        stagedPatches: changes[1],
-    };
-
-    return {
-        unstaged: workDirIndex.unstagedPatches.length,
-        staged: workDirIndex.stagedPatches.length
-    };
-}
-
 async function loadCommits(params: IpcActionParams[IpcAction.LOAD_COMMITS]) {
-    let start: Commit;
+    let start: Commit | false = false;
     let revwalk = repo.createRevWalk();
     revwalk.sorting(Revwalk.SORT.TOPOLOGICAL | Revwalk.SORT.TIME);
     if ("history" in params) {
         revwalk.pushGlob("refs/*");
     } else {
         if ("branch" in params) {
-            start = await repo.getReferenceCommit(params.branch);
+            if (params.branch.includes("refs/tags")) {
+                const tag = await repo.getTagByName(params.branch);
+                const target = tag.targetId();
+                start = await repo.getCommit(target.tostrS());
+            } else {
+                start = await repo.getReferenceCommit(params.branch);
+            }
         } else {
             start = await repo.getCommit(params.sha);
         }

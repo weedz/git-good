@@ -41,7 +41,7 @@
 .diff-view > li > a {
     padding: 3px;
 }
-.diff-view > li > button {
+.diff-view > li > .action-group {
     position: absolute;
     right: 0;
     top: 0;
