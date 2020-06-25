@@ -11,6 +11,7 @@ type Props = {
 };
 type State = {
     commits: IpcActionReturn[IpcAction.LOAD_COMMITS]
+    filter: string
 };
 
 const headColors = [
@@ -53,6 +54,7 @@ export default class CommitList extends Component<Props, State> {
         }
     }
     loadCommits = (commits: IpcActionReturn[IpcAction.LOAD_COMMITS] | IpcActionReturnError) => {
+        console.log("loaded commits");
         if ("error" in commits) {
             console.warn(commits);
             return;
@@ -61,12 +63,29 @@ export default class CommitList extends Component<Props, State> {
             commits
         });
     }
+    filter = (e: any) => {
+        e.target.value !== this.state.filter && this.setState({
+            filter: e.target.value.toLocaleLowerCase()
+        });
+    }
+    filterCommits() {
+        if (this.state.filter) {
+            return this.state.commits.filter((commit) =>
+                commit.sha.toLocaleLowerCase().includes(this.state.filter)
+                || commit.message.toLocaleLowerCase().includes(this.state.filter)
+            );
+        }
+        return this.state.commits;
+    }
     render() {
         return (
             <div id="commits-pane" class="pane">
                 <h4>Commits</h4>
+                <div>
+                    <input type="text" value={this.state.filter} onKeyUp={this.filter} placeholder="sha,message" />
+                </div>
                 <ul className="block-list">
-                    {this.state.commits && this.state.commits.map((commit, index) => (
+                    {this.state.commits && this.filterCommits().map((commit, index) => (
                         <li class="short" key={commit.sha}>
                             <Link activeClassName="selected" href={ (this.props.branch ? `/branch/${this.props.branch}/` : "/commit/") + commit.sha}>
                                 {Store.heads[commit.sha] && 
