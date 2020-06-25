@@ -7,12 +7,6 @@ import { IpcAction, IpcActionReturn, PatchObj } from "src/Data/Actions";
 import { registerHandler, unregisterHandler, sendAsyncMessage } from "src/Data/Renderer";
 import ChangedFiles from "src/Components/DiffPane/ChangedFiles";
 
-/*
-
-Stage/unstage: Repository#stageFilemode
-
-*/
-
 type State = {
     unstaged?: PatchObj[]
     staged?: PatchObj[]
