@@ -103,13 +103,12 @@ export type HunkObj = {
     // new: number
 };
 export type PatchObj = {
-    type: string
     status: number
     hunks?: HunkObj[]
-    lineStats: LineStats
     newFile: FileObj
     oldFile: FileObj
     actualFile: FileObj
+    similarity?: number
 };
 export type DiffObj = {
     patches?: PatchObj[]

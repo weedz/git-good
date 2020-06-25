@@ -1,6 +1,7 @@
 import { h, Component } from "preact";
 import { PatchObj, CommitObj } from "src/Data/Actions";
 import { openFile } from "src/Data/Renderer/store";
+import { getType, DELTA } from "src/Data/Utils";
 
 type ButtonAction = {
     label: string
@@ -29,19 +30,19 @@ export default class ChangedFiles extends Component<Props, {}> {
     }
     renderPatch = (patch: PatchObj) => {
         let typeCss;
-        if (patch.type === "M") {
+        if (patch.status === DELTA.MODIFIED) {
             typeCss = "file-modified";
-        } else if (patch.type === "D") {
+        } else if (patch.status === DELTA.DELETED) {
             typeCss = "file-deleted";
-        } else if (patch.type === "A") {
+        } else if (patch.status === DELTA.ADDED) {
             typeCss = "file-added";
-        } else if (patch.type === "R") {
+        } else if (patch.status === DELTA.RENAMED) {
             typeCss = "file-renamed";
         }
         return (
             <li class="sub-tree" key={patch.actualFile.path}>
                 <a href="#" onClick={_ => this.openFile(patch)}>
-                    <span className={typeCss}>{patch.type}</span>&nbsp;
+                    <span className={typeCss}>{getType(patch.status)}</span>&nbsp;
                     <span>{patch.actualFile.path}</span>
                 </a>
                 {this.props.actions && <div class="action-group">

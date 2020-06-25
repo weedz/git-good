@@ -1,7 +1,7 @@
 import { join } from "path";
 import { app, BrowserWindow, ipcMain, Menu, dialog } from 'electron';
-import { Repository, Commit, Object, Revwalk, Cred, Diff, ConvenientPatch } from "nodegit";
-import { getBranches, getCommits, getCommitWithDiff, getHunks, eventReply, actionLock, getCommitPatches, eventReplyError, loadChanges, getWorkdirHunks, refreshWorkDir, stageFile, unstageFile, discardChanges } from "./Data/Provider";
+import { Repository, Commit, Revwalk, Cred } from "nodegit";
+import { getBranches, getCommits, getCommitWithDiff, getHunks, eventReply, actionLock, getCommitPatches, eventReplyError, loadChanges, getWorkdirHunks, refreshWorkDir, stageFile, unstageFile, discardChanges, changeBranch } from "./Data/Provider";
 import { IpcAction, IpcActionParams, IpcActionReturn } from './Data/Actions';
 import { readFileSync } from "fs";
 
@@ -262,7 +262,8 @@ ipcMain.on("asynchronous-message", async (event, arg: EventArgs) => {
                 eventReply(event, arg.action, data);
                 break;
             case IpcAction.CHECKOUT_BRANCH:
-                eventReply(event, arg.action, await changeBranch(arg.data));
+                eventReply(event, arg.action, await changeBranch(repo, arg.data));
+                win.webContents.send("refresh-workdir");
                 break;
             case IpcAction.REFRESH_WORKDIR:
                 eventReply(event, arg.action, await refreshWorkDir(repo));
@@ -337,20 +338,4 @@ function loadHunks(params: IpcActionParams[IpcAction.LOAD_HUNKS]) {
 
 function loadBranches() {
     return getBranches(repo);
-}
-
-async function changeBranch(branch: string) {
-    try {
-        await repo.checkoutBranch(branch);
-        const head = await repo.head();
-        const headCommit = await head.peel(Object.TYPE.COMMIT);
-        return {
-            name: head.name(),
-            headSHA: headCommit.id().tostrS(),
-            normalizedName: head.name(),
-        };
-    } catch(err) {
-        console.error(err);
-        return false;
-    }
 }
