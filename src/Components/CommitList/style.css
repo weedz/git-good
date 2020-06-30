@@ -1,0 +1,42 @@
+#commits-pane {
+  overflow-x: auto;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+#commits-pane > ul {
+  overflow-y: auto;
+}
+#commits-pane > ul > li {
+  display: flex;
+  flex-direction: row;
+  white-space: nowrap;
+}
+#commits-pane .short .date {
+  display: none;
+}
+
+#commits-pane .commit-graph::before {
+  content: "<";
+}
+#commits-pane .commit-graph::after {
+  content: ">";
+}
+#commits-pane .commit-graph,
+#commits-pane .commit-graph > li {
+  display: inline;
+}
+#commits-pane .commit-graph > li::after {
+  content: ",";
+}
+#commits-pane .commit-graph > li:last-child::after {
+  content: none;
+}
+
+#commits-pane .graph-indicator {
+  width: 13px;
+  height: 13px;
+  border-radius: 10px;
+  margin: 2px;
+  flex: none;
+}

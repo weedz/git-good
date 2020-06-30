@@ -1,5 +1,5 @@
 import { remote } from "electron";
-import { contextMenuState, checkoutBranch } from "src/Data/Renderer/store";
+import { contextMenuState, checkoutBranch, pullHead } from "src/Data/Renderer/store";
 
 const { Menu, MenuItem } = remote;
 
@@ -81,6 +81,7 @@ headMenu.append(new MenuItem({
     label: 'Pull...',
     click() {
         console.log("Pull");
+        pullHead();
     }
 }));
 

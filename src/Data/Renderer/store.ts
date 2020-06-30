@@ -1,6 +1,7 @@
-import { IpcAction, BranchesObj, BranchObj, IpcActionReturn, PatchObj, IpcActionReturnError } from "../Actions";
+import { IpcAction, BranchesObj, BranchObj, IpcActionReturn, PatchObj, IpcActionReturnError, Locks } from "../Actions";
 import { registerHandler, sendAsyncMessage, attach } from ".";
 import { ipcRenderer } from "electron";
+import { WindowEvents, WindowArguments } from "../WindowEventTypes";
 
 export type StoreType = {
     repo: false | string
@@ -11,6 +12,9 @@ export type StoreType = {
     currentFile: null | {
         patch: PatchObj
     }
+    locks: Partial<{
+        [key in Locks]: boolean
+    }>
 };
 
 const store: StoreType = {
@@ -18,6 +22,7 @@ const store: StoreType = {
     branches: null,
     heads: {},
     currentFile: null,
+    locks: {},
 };
 
 export const Store = store as Readonly<StoreType>
@@ -34,6 +39,7 @@ const keyListeners: {
     branches: [],
     heads: [],
     currentFile: [],
+    locks: [],
 };
 
 export function subscribe<T extends keyof StoreType>(cb: (arg: StoreType[T]) => void, key: T): void;
@@ -68,14 +74,17 @@ export function setState(newState: Partial<StoreType>) {
 }
 
 export function openRepo(repoPath: string) {
+    setLock(Locks.MAIN);
     sendAsyncMessage(IpcAction.OPEN_REPO, repoPath);
 }
 export function loadBranches() {
     console.log("fetched");
+    setLock(Locks.MAIN);
     sendAsyncMessage(IpcAction.LOAD_BRANCHES);
 }
 
 export function checkoutBranch(branch: string) {
+    setLock(Locks.MAIN);
     sendAsyncMessage(IpcAction.CHECKOUT_BRANCH, branch);
 }
 
@@ -85,16 +94,18 @@ export function openFile(params: ({sha: string} | {workDir: boolean}) & {patch: 
             patch: params.patch
         }
     });
-    if ("sha" in params) {
-        sendAsyncMessage(IpcAction.LOAD_HUNKS, {
-            sha: params.sha,
-            path: params.patch.actualFile.path,
-        });
-    } else {
-        sendAsyncMessage(IpcAction.LOAD_HUNKS, {
-            workDir: params.workDir,
-            path: params.patch.actualFile.path,
-        });
+    if (!params.patch.hunks) {
+        if ("sha" in params) {
+            sendAsyncMessage(IpcAction.LOAD_HUNKS, {
+                sha: params.sha,
+                path: params.patch.actualFile.path,
+            });
+        } else {
+            sendAsyncMessage(IpcAction.LOAD_HUNKS, {
+                workDir: params.workDir,
+                path: params.patch.actualFile.path,
+            });
+        }
     }
 }
 export function closeFile() {
@@ -113,6 +124,7 @@ function loadHunks(data: IpcActionReturn[IpcAction.LOAD_HUNKS]) {
 }
 
 function repoOpened(result: IpcActionReturn[IpcAction.OPEN_REPO] | IpcActionReturnError) {
+    clearLock(Locks.MAIN);
     if ("error" in result) {
         console.warn(result);
     } else if (result.opened) {
@@ -135,6 +147,7 @@ function mapHeads(heads: any, refs: BranchObj[]) {
     }
 }
 function branchesLoaded(branches: BranchesObj) {
+    clearLock(Locks.MAIN);
     console.log("loaded branches");
     const heads:any = {};
     mapHeads(heads, branches.local);
@@ -146,6 +159,7 @@ function branchesLoaded(branches: BranchesObj) {
     });
 }
 function updateCurrentBranch(result: IpcActionReturn[IpcAction.CHECKOUT_BRANCH]) {
+    clearLock(Locks.MAIN);
     if (result && store.branches) {
         store.branches.head = result;
         setState({
@@ -153,19 +167,47 @@ function updateCurrentBranch(result: IpcActionReturn[IpcAction.CHECKOUT_BRANCH])
         });
     }
 }
+export function setLock(lock: keyof StoreType["locks"]) {
+    const locks = store.locks;
+    locks[lock] = true;
+    setState({
+        locks,
+    });
+}
+export function clearLock(lock: keyof StoreType["locks"]) {
+    const locks = store.locks;
+    delete locks[lock];
+    setState({
+        locks,
+    });
+}
 export function refreshWorkdir() {
     sendAsyncMessage(IpcAction.REFRESH_WORKDIR);
 }
 export function openSettings() {
     console.log("open settings");
 }
+export function pullHead() {
+    setLock(Locks.MAIN);
+    sendAsyncMessage(IpcAction.PULL);
+}
+
+function addWindowEventListener<T extends WindowEvents>(event: T, cb: (args: WindowArguments[T]) => void) {
+    ipcRenderer.on(event, (_, args) => cb(args));
+}
 
 attach();
-ipcRenderer.on("repo-opened", (_, opened) => repoOpened(opened));
-ipcRenderer.on("repo-fetch-all", (_) => loadBranches());
-ipcRenderer.on("refresh-workdir", (_) => refreshWorkdir());
-ipcRenderer.on("open-settings", (_) => openSettings());
+addWindowEventListener("repo-opened", repoOpened);
+addWindowEventListener("repo-fetch-all", loadBranches);
+addWindowEventListener("refresh-workdir", refreshWorkdir);
+addWindowEventListener("open-settings", openSettings);
+addWindowEventListener("app-lock-ui", setLock);
+addWindowEventListener("app-unlock-ui", clearLock);
+addWindowEventListener("pull-head", pullHead);
+
 registerHandler(IpcAction.OPEN_REPO, repoOpened);
 registerHandler(IpcAction.LOAD_BRANCHES, branchesLoaded);
 registerHandler(IpcAction.CHECKOUT_BRANCH, updateCurrentBranch);
 registerHandler(IpcAction.LOAD_HUNKS, loadHunks);
+registerHandler(IpcAction.PULL, loadBranches);
+registerHandler(IpcAction.PUSH, loadBranches);

@@ -20,8 +20,10 @@ const handlers: {[key in IpcAction]: Function[]} = {
     [IpcAction.UNSTAGE_FILE]: [],
     [IpcAction.DISCARD_FILE]: [],
     [IpcAction.COMMIT]: [],
+    [IpcAction.PULL]: [],
+    [IpcAction.PUSH]: [],
 };
-export function registerHandler<T extends IpcAction>(action: T, cb: (arg0: IpcActionReturn[T]) => void) {
+export function registerHandler<T extends IpcAction>(action: T, cb: (arg: IpcActionReturn[T]) => void) {
     handlers[action]?.push(cb);
 }
 export function unregisterHandler(action: IpcAction, cb: Function) {

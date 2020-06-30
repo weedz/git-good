@@ -1,8 +1,8 @@
 import { h, Component, Fragment } from "preact";
 import { RoutableProps } from "@weedzcokie/router-tsx";
-import CommitList from "../Components/CommitList";
-import DiffPane from "../Components/DiffPane";
-import FileDiff from "../Components/FileDiff";
+import CommitList from "src/Components/CommitList";
+import DiffPane from "src/Components/DiffPane";
+import FileDiff from "src/Components/FileDiff";
 
 type Props = {
     sha?: string

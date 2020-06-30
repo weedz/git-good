@@ -68,19 +68,6 @@ a:hover {
   white-space: nowrap;
   flex-grow: 1;
 }
-#commits-pane {
-  overflow-x: auto;
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-}
-#commits-pane > ul {
-  overflow-y: auto;
-}
-#commits-pane ul li {
-  display: block;
-  white-space: nowrap;
-}
 
 .tree-list > li > ul.tree-list {
   display: none;
@@ -92,9 +79,6 @@ li .tree-list {
   margin-left: 11px;
 }
 
-#commits-pane .short .date {
-  display: none;
-}
 
 .selected,
 .selected * {
@@ -117,4 +101,14 @@ li .tree-list {
 
 ul.block-list > li > a {
   display: block;
+}
+
+.lock-overlay {
+  display: block;
+  position: fixed;
+  height: 100vh;
+  width: 100vw;
+  opacity: .5;
+  z-index: 9999;
+  background-color: #000;
 }

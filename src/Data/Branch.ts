@@ -1,5 +1,3 @@
-import { BranchObj, BranchesObj } from "./Actions";
-
 export function normalizeRemoteName(name: string) {
     // omits the "refs/remotes/" part of the name
     return name.substring(13);

@@ -7,11 +7,20 @@ import WorkingArea from "./Views/WorkingArea";
 import Changes from "./Components/Changes";
 import BranchList from "./Components/BranchList";
 import { subscribe, Store, unsubscribe, openRepo, StoreType } from "./Data/Renderer/store";
+import { Locks } from "./Data/Actions";
 
-export default class App extends Component {
+type State = {
+    lock: boolean
+};
+
+export default class App extends Component<{}, State> {
     openRecent: boolean = true;
+    state = {
+        lock: false
+    }
     componentWillMount() {
         subscribe(this.update, "repo");
+        subscribe(this.checkLocks, "locks");
         const path = process.argv[0];
         openRepo(path);
     }
@@ -30,6 +39,13 @@ export default class App extends Component {
             }
         }
     }
+    checkLocks = (locks: StoreType["locks"]) => {
+        if (this.state.lock || Locks.MAIN in locks) {
+            this.setState({
+                lock: locks[Locks.MAIN]
+            });
+        }
+    }
     render() {
         if (!Store.repo) {
             return (
@@ -38,6 +54,7 @@ export default class App extends Component {
         }
         return (
             <div id="main-window">
+                {this.state.lock && <div class="lock-overlay" />}
                 <div id="left-pane">
                     <Changes />
                     <BranchList />

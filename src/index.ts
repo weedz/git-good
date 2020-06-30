@@ -1,9 +1,10 @@
 import { join } from "path";
 import { app, BrowserWindow, ipcMain, Menu, dialog } from 'electron';
-import { Repository, Commit, Revwalk, Cred } from "nodegit";
-import { getBranches, getCommits, getCommitWithDiff, getHunks, eventReply, actionLock, getCommitPatches, eventReplyError, loadChanges, getWorkdirHunks, refreshWorkDir, stageFile, unstageFile, discardChanges, changeBranch } from "./Data/Provider";
-import { IpcAction, IpcActionParams, IpcActionReturn } from './Data/Actions';
+import { Repository, Commit, Revwalk, Cred, Branch } from "nodegit";
+import { getBranches, getCommits, getCommitWithDiff, getHunks, eventReply, actionLock, getCommitPatches, eventReplyError, loadChanges, getWorkdirHunks, refreshWorkDir, stageFile, unstageFile, discardChanges, changeBranch } from "./Data/Main/Provider";
+import { IpcAction, IpcActionParams, IpcActionReturn, Locks } from './Data/Actions';
 import { readFileSync } from "fs";
+import { sendEvent } from "./Data/Main/WindowEvents";
 
 let win: BrowserWindow;
 const createWindow = () => {
@@ -78,7 +79,7 @@ const menuTemplate = [
                         properties: ["openDirectory"]
                     }).then(async res => {
                         if (!res.canceled) {
-                            win.webContents.send("repo-opened", {
+                            sendEvent(win.webContents, "repo-opened", {
                                 path: res.filePaths[0],
                                 opened: await openRepo(res.filePaths[0])
                             });
@@ -93,7 +94,7 @@ const menuTemplate = [
                 label: "Preferences...",
                 accelerator: 'CmdOrCtrl+,',
                 click: () => {
-                    win.webContents.send("open-settings");
+                    sendEvent(win.webContents, "open-settings");
                 }
             },
             {
@@ -152,6 +153,8 @@ const menuTemplate = [
             {
                 label: 'Fetch all',
                 click: async () => {
+                    sendEvent(win.webContents, "app-lock-ui", Locks.MAIN);
+
                     // FIXME: make this configurable
                     // const username = "git";
                     // const publickey = readFileSync("/Users/linusbjorklund/.ssh/id_rsa.pub").toString();
@@ -167,16 +170,21 @@ const menuTemplate = [
                             }
                         }
                     });
-                    win.webContents.send("repo-fetch-all");
+                    sendEvent(win.webContents, "repo-fetch-all");
                 }
             },
             {
                 label: "Refresh",
                 click: () => {
-                    win.webContents.send("refresh-workdir");
+                    sendEvent(win.webContents, "refresh-workdir");
                 }
             },
-            { label: 'Pull...' },
+            {
+                label: 'Pull...',
+                click: async () => {
+                    sendEvent(win.webContents, "pull-head");
+                }
+            },
             { label: 'Push...' },
         ]
     },
@@ -263,7 +271,7 @@ ipcMain.on("asynchronous-message", async (event, arg: EventArgs) => {
                 break;
             case IpcAction.CHECKOUT_BRANCH:
                 eventReply(event, arg.action, await changeBranch(repo, arg.data));
-                win.webContents.send("refresh-workdir");
+                sendEvent(win.webContents, "refresh-workdir");
                 break;
             case IpcAction.REFRESH_WORKDIR:
                 eventReply(event, arg.action, await refreshWorkDir(repo));
@@ -280,6 +288,12 @@ ipcMain.on("asynchronous-message", async (event, arg: EventArgs) => {
             case IpcAction.DISCARD_FILE:
                 eventReply(event, arg.action, await discardChanges(repo, arg.data));
                 break;
+            case IpcAction.PULL:
+                const head = await repo.head();
+                const upstream = await Branch.upstream(head);
+                const result = await repo.mergeBranches(head, upstream);
+                eventReply(event, arg.action, !!result);
+                break;
         }
     }
 });
@@ -295,7 +309,7 @@ async function openRepo(repoPath: string) {
 }
 
 async function loadCommits(params: IpcActionParams[IpcAction.LOAD_COMMITS]) {
-    let start: Commit | false = false;
+    let start: Commit | false = false;
     let revwalk = repo.createRevWalk();
     revwalk.sorting(Revwalk.SORT.TOPOLOGICAL | Revwalk.SORT.TIME);
     if ("history" in params) {
@@ -318,7 +332,7 @@ async function loadCommits(params: IpcActionParams[IpcAction.LOAD_COMMITS]) {
         revwalk.push(start.id());
     }
 
-    return await getCommits(revwalk, params.num);
+    return await getCommits(revwalk, params.file, params.num);
 }
 
 function loadCommit(sha: IpcActionParams[IpcAction.LOAD_COMMIT]) {

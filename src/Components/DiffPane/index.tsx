@@ -79,11 +79,8 @@ export default class DiffPane extends Component<RoutableProps<Props>, State> {
 
                 <input type="text" onKeyUp={this.filterFiles} placeholder="Search file..." value={this.state.fileFilter} />
                 <p>Files: {patches.length}</p>
-                {
-                    !this.state.loadingComplete
-                        ? <p>Loading...</p>
-                        : <ChangedFiles patches={patches} commit={this.state.commit} />
-                }
+                {!this.state.loadingComplete && <p>Loading...</p>}
+                <ChangedFiles patches={patches.slice(0,1000)} commit={this.state.commit} />
             </div>
         );
     }

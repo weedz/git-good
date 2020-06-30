@@ -1,3 +1,5 @@
+import { Oid } from "nodegit";
+
 export enum IpcAction {
     LOAD_COMMITS,
     LOAD_BRANCHES,
@@ -12,6 +14,8 @@ export enum IpcAction {
     UNSTAGE_FILE,
     COMMIT,
     DISCARD_FILE,
+    PULL,
+    PUSH,
 };
 
 export type IpcActionParams = {
@@ -38,6 +42,10 @@ export type IpcActionParams = {
         amend?: boolean
         summary: string
         message: string
+    }
+    [IpcAction.PULL]: never
+    [IpcAction.PUSH]: {
+        force?: boolean
     }
 };
 
@@ -67,6 +75,8 @@ export type IpcActionReturn = {
     [IpcAction.UNSTAGE_FILE]: number
     [IpcAction.DISCARD_FILE]: number
     [IpcAction.COMMIT]: boolean
+    [IpcAction.PULL]: boolean
+    [IpcAction.PUSH]: boolean
 };
 
 export type IpcActionReturnError = {
@@ -109,6 +119,7 @@ export type PatchObj = {
     oldFile: FileObj
     actualFile: FileObj
     similarity?: number
+    lineStats: LineStats
 };
 export type DiffObj = {
     patches?: PatchObj[]
@@ -153,13 +164,22 @@ interface LoadCommitsParamSha {
 interface LoadCommitsParamBranch {
     branch: string
 };
-type LoadCommitsParam = {num?: number} & (LoadCommitsParamBranch | LoadCommitsParamSha | {history: true})
-type LoadCommitsReturn = {
+type LoadCommitsParam = {
+    num?: number
+    file?: string
+} & (LoadCommitsParamBranch | LoadCommitsParamSha | {history: true})
+export type LoadCommitReturn = {
     sha: string
+    parents: string[]
     message: string
     date: number
     author: {
         name: string
         email: string
     }
-}[];
+}
+type LoadCommitsReturn = LoadCommitReturn[];
+
+export enum Locks {
+    MAIN
+};
