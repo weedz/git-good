@@ -1,7 +1,5 @@
-import { Repository, Revwalk, Commit, Diff, ConvenientPatch, ConvenientHunk, DiffLine, Object, Branch, Graph, Index, Reset, Checkout, DiffFindOptions, DiffDelta } from "nodegit";
-// @ts-ignore
-// import { Patch } from "nodegit";
-import { IpcAction, BranchObj, BranchesObj, LineObj, HunkObj, PatchObj, CommitObj, IpcActionReturn, IpcActionReturnError, LineStats } from "../Actions";
+import { Repository, Revwalk, Commit, Diff, ConvenientPatch, ConvenientHunk, DiffLine, Object, Branch, Graph, Index, Reset, Checkout, DiffFindOptions } from "nodegit";
+import { IpcAction, BranchObj, BranchesObj, LineObj, HunkObj, PatchObj, CommitObj, IpcActionReturn, IpcActionReturnError } from "../Actions";
 import { normalizeLocalName, normalizeRemoteName, normalizeTagName } from "../Branch";
 
 export let actionLock: {
@@ -218,32 +216,6 @@ async function handleHunk(hunk: ConvenientHunk): Promise<HunkObj> {
 export async function getHunks(sha: string, path: string): Promise<false | HunkObj[]> {
     const patch = commitObjectCache[sha]?.patches[path];
     return loadHunks(patch);
-
-
-    // const diff = commitObjectCache[sha]?.diff;
-    // const idx = commitObjectCache[sha]?.patchIdx[path];
-
-    // const p = await Patch.fromDiff(diff, idx);
-
-    // eventReply(event, IpcAction.LOAD_LINE_STATS, p.lineStats() as LineStats);
-
-    // const hunks = [];
-    // for (let i = 0, numHunks = p.numHunks(); i < numHunks; i++) {
-    //     hunks.push(p.getHunk(i).then(async (res: any) => {
-    //         const hunk = res.hunk;
-    //         const lines = [];
-
-    //         for (let j = 0, numLines = p.numLinesInHunk(i); j < numLines; j++) {
-    //             lines.push(p.getLineInHunk(i, j));
-    //         }
-
-    //         return {
-    //             header: hunk.header().trim(),
-    //             lines: (await Promise.all(lines)).map(handleLine),
-    //         };
-    //     }));
-    // }
-    // return Promise.all(hunks);
 }
 async function loadHunks(patch: ConvenientPatch) {
     if (!patch) {
@@ -283,27 +255,11 @@ function handlePatch(patch: ConvenientPatch): PatchObj {
 }
 
 async function handleDiff(diff: Diff) {
-    const patches: PatchObj[] = [];
-
-    // commitObjectCache[currentCommit].diff = diff;
-    // for (let i = 0, numDeltas = diff.numDeltas(); i < numDeltas; i++) {
-    //     const delta = diff.getDelta(i);
-    //     const patch = handlePatch(delta);
-
-    //     patch.similarity = delta.similarity();
-    //     commitObjectCache[currentCommit].patchIdx[patch.actualFile.path] = i;
-
-    //     patches.push(patch);
-    // }
-
-
-    for (const convPatch of await diff.patches()) {
+    return (await diff.patches()).map(convPatch => {
         const patch = handlePatch(convPatch);
-        patches.push(patch);
         commitObjectCache[currentCommit].patches[patch.actualFile.path] = convPatch;
-    }
-
-    return patches;
+        return patch;
+    });
 }
 
 export async function getCommitPatches(sha: string) {
@@ -389,8 +345,9 @@ let currentCommit: string;
 let commitObjectCache: {
     [sha: string]: {
         commit: Commit
-        diff?: Diff
-        patches: {[path: string]: ConvenientPatch}
+        patches: {
+            [path: string]: ConvenientPatch
+        }
     }
 } = {};
 let workDirIndexCache: {
