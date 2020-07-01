@@ -42,7 +42,7 @@ const headColors = [
 export default class CommitList extends Component<Props, State> {
     graph: {
         [key: string]: {
-            commit: LoadCommitReturn[]
+            descendants: LoadCommitReturn[]
             colorId: number
         }
     } = {};
@@ -90,19 +90,20 @@ export default class CommitList extends Component<Props, State> {
             if (!this.graph[commit.sha]) {
                 this.graph[commit.sha] = {
                     colorId: color++ % headColors.length,
-                    commit: [],
+                    descendants: [],
                 };
             }
-            
-            for (const parent of commit.parents) {
+            for (let i = 0; i < commit.parents.length; i++) {
+                const parent = commit.parents[i];
                 if (!this.graph[parent]) {
                     this.graph[parent] = {
-                        commit: [],
-                        colorId: color++ % headColors.length
+                        descendants: [],
+                        colorId: i === 0 ? this.graph[commit.sha].colorId : color++ % headColors.length,
                     };
                 }
-                this.graph[parent].commit.push(commit);
+                this.graph[parent].descendants.push(commit);
             }
+
         }
         this.setState({
             commits
@@ -152,13 +153,13 @@ export default class CommitList extends Component<Props, State> {
             <li class="short" key={commit.sha} data-sha={commit.sha} onContextMenu={showCommitMenu}>
                 <span className="graph-indicator" style={{backgroundColor: headColors[this.graph[commit.sha].colorId]}}></span>
                 {
-                    this.graph[commit.sha].commit.length > 0 && <ul class="commit-graph">
-                        {this.graph[commit.sha].commit.map(child => <li><StaticLink style={{color: headColors[this.graph[child.sha].colorId]}} href={ (this.props.branch ? `/branch/${this.props.branch}/` : "/commit/") + child.sha}>{child.sha.substring(0,7)}</StaticLink></li>)}
+                    this.graph[commit.sha].descendants.length > 0 && <ul class="commit-graph">
+                        {this.graph[commit.sha].descendants.map(child => <li><StaticLink style={{color: headColors[this.graph[child.sha].colorId]}} href={ (this.props.branch ? `/branch/${this.props.branch}/` : "/commit/") + child.sha}>{child.sha.substring(0,7)}</StaticLink></li>)}
                     </ul>
                 }
                 <Link activeClassName="selected" href={ (this.props.branch ? `/branch/${this.props.branch}/` : "/commit/") + commit.sha}>
                     {Store.heads[commit.sha] && 
-                        Store.heads[commit.sha].map(ref => <span>({ref.normalizedName})</span>)
+                        Store.heads[commit.sha].map(ref => <span style={{color: headColors[this.graph[commit.sha].colorId]}}>({ref.normalizedName})</span>)
                     }
                     <span class="msg">{commit.message.substring(0, commit.message.indexOf("\n")>>>0 || 60)}</span>
                 </Link>
