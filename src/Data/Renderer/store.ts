@@ -3,6 +3,12 @@ import { registerHandler, sendAsyncMessage, attach } from ".";
 import { ipcRenderer } from "electron";
 import { WindowEvents, WindowArguments } from "../WindowEventTypes";
 
+export type DialogWindow = {
+    title: string
+    confirmCb: Function
+    cancelCb: Function
+}
+
 export type StoreType = {
     repo: false | string
     branches: null | BranchesObj
@@ -15,6 +21,7 @@ export type StoreType = {
     locks: Partial<{
         [key in Locks]: boolean
     }>
+    dialogWindow: null | DialogWindow
 };
 
 const store: StoreType = {
@@ -23,6 +30,7 @@ const store: StoreType = {
     heads: {},
     currentFile: null,
     locks: {},
+    dialogWindow: null
 };
 
 export const Store = store as Readonly<StoreType>
@@ -40,6 +48,7 @@ const keyListeners: {
     heads: [],
     currentFile: [],
     locks: [],
+    dialogWindow: [],
 };
 
 export function subscribe<T extends keyof StoreType>(cb: (arg: StoreType[T]) => void, key: T): void;
@@ -191,6 +200,27 @@ export function pullHead() {
     setLock(Locks.MAIN);
     sendAsyncMessage(IpcAction.PULL);
 }
+export function createBranch(fromSha: string, name: string) {
+    sendAsyncMessage(IpcAction.CREATE_BRANCH, {
+        sha: fromSha,
+        name,
+    });
+}
+export function deleteBranch(name: string) {
+    sendAsyncMessage(IpcAction.DELETE_REF, {
+        name
+    });
+}
+export function openDialogWindow(dialogWindow: StoreType["dialogWindow"]) {
+    setState({
+        dialogWindow
+    });
+}
+export function closeDialogWindow() {
+    setState({
+        dialogWindow: null
+    });
+}
 
 function addWindowEventListener<T extends WindowEvents>(event: T, cb: (args: WindowArguments[T]) => void) {
     ipcRenderer.on(event, (_, args) => cb(args));
@@ -211,3 +241,5 @@ registerHandler(IpcAction.CHECKOUT_BRANCH, updateCurrentBranch);
 registerHandler(IpcAction.LOAD_HUNKS, loadHunks);
 registerHandler(IpcAction.PULL, loadBranches);
 registerHandler(IpcAction.PUSH, loadBranches);
+registerHandler(IpcAction.CREATE_BRANCH, loadBranches);
+registerHandler(IpcAction.DELETE_REF, loadBranches);

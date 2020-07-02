@@ -8,6 +8,7 @@ import Changes from "./Components/Changes";
 import BranchList from "./Components/BranchList";
 import { subscribe, Store, unsubscribe, openRepo, StoreType } from "./Data/Renderer/store";
 import { Locks } from "./Data/Actions";
+import { Dialog } from "./Components/Dialog";
 
 type State = {
     lock: boolean
@@ -21,11 +22,17 @@ export default class App extends Component<{}, State> {
     componentWillMount() {
         subscribe(this.update, "repo");
         subscribe(this.checkLocks, "locks");
+        subscribe(this.updateDialogWindow, "dialogWindow");
         const path = process.argv[0];
         openRepo(path);
     }
     componentWillUnmount() {
         unsubscribe(this.update, "repo");
+        unsubscribe(this.checkLocks, "locks");
+        unsubscribe(this.updateDialogWindow, "dialogWindow");
+    }
+    updateDialogWindow = (_: StoreType["dialogWindow"]) => {
+        this.setState({});
     }
     update = (repo: StoreType["repo"]) => {
         if (repo) {
@@ -54,6 +61,7 @@ export default class App extends Component<{}, State> {
         }
         return (
             <div id="main-window">
+                {Store.dialogWindow && <Dialog dialogWindow={Store.dialogWindow} />}
                 {this.state.lock && <div class="lock-overlay" />}
                 <div id="left-pane">
                     <Changes />

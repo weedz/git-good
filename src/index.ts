@@ -294,6 +294,14 @@ ipcMain.on("asynchronous-message", async (event, arg: EventArgs) => {
                 const result = await repo.mergeBranches(head, upstream);
                 eventReply(event, arg.action, !!result);
                 break;
+            case IpcAction.CREATE_BRANCH:
+                const newRef = await repo.createBranch(arg.data.name, arg.data.sha);
+                eventReply(event, arg.action, newRef !== null);
+                break;
+            case IpcAction.DELETE_REF:
+                const ref = await repo.getReference(arg.data.name);
+                const res = Branch.delete(ref);
+                eventReply(event, arg.action, !!res);
         }
     }
 });

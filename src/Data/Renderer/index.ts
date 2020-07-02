@@ -22,6 +22,8 @@ const handlers: {[key in IpcAction]: Function[]} = {
     [IpcAction.COMMIT]: [],
     [IpcAction.PULL]: [],
     [IpcAction.PUSH]: [],
+    [IpcAction.CREATE_BRANCH]: [],
+    [IpcAction.DELETE_REF]: [],
 };
 export function registerHandler<T extends IpcAction>(action: T, cb: (arg: IpcActionReturn[T]) => void) {
     handlers[action]?.push(cb);

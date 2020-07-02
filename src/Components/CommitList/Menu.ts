@@ -1,5 +1,5 @@
 import { remote } from "electron";
-import { contextMenuState } from "src/Data/Renderer/store";
+import { contextMenuState, createBranch, openDialogWindow, closeDialogWindow } from "src/Data/Renderer/store";
 
 const { Menu, MenuItem } = remote;
 
@@ -23,9 +23,27 @@ commitMenu.append(new MenuItem({
     }
 }));
 commitMenu.append(new MenuItem({
-    label: 'Create branch...',
+    label: 'Branch...',
     click() {
-        console.log("Create branch", contextMenuState.data.dataset.sha);
+        const sha = contextMenuState.data.dataset.sha;
+        openDialogWindow({
+            title: "New branch",
+            confirmCb(data: any) {
+                if (data.branchName) {
+                    createBranch(sha, data.branchName);
+                }
+                closeDialogWindow();
+            },
+            cancelCb() {
+                closeDialogWindow();
+            }
+        });
+    }
+}));
+commitMenu.append(new MenuItem({
+    label: 'Tag...',
+    click() {
+        console.log("Tag", contextMenuState.data.dataset.sha);
     }
 }));
 commitMenu.append(new MenuItem({
