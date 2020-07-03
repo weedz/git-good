@@ -1,6 +1,7 @@
-import { Repository, Revwalk, Commit, Diff, ConvenientPatch, ConvenientHunk, DiffLine, Object, Branch, Graph, Index, Reset, Checkout, DiffFindOptions } from "nodegit";
+import { Repository, Revwalk, Commit, Diff, ConvenientPatch, ConvenientHunk, DiffLine, Object, Branch, Graph, Index, Reset, Checkout, DiffFindOptions, Oid } from "nodegit";
 import { IpcAction, BranchObj, BranchesObj, LineObj, HunkObj, PatchObj, CommitObj, IpcActionReturn, IpcActionReturnError } from "../Actions";
 import { normalizeLocalName, normalizeRemoteName, normalizeTagName } from "../Branch";
+import { IpcMainEvent } from "electron/main";
 
 export let actionLock: {
     [key in IpcAction]?: {
@@ -40,13 +41,28 @@ function compileHistoryCommit(commit: Commit) {
         }
     };
 }
-export async function getCommits(revwalk: Revwalk, file?: string, num: number = 1000): Promise<IpcActionReturn[IpcAction.LOAD_COMMITS]> {
+export async function getCommits(event: IpcMainEvent, revwalk: Revwalk, repo: Repository, file?: string, num: number = 1000) {
     if (file) {
         const commits = await revwalk.fileHistoryWalk(file, num) as {commit: Commit, status: number, isMergeCommit: boolean}[];
         return commits.map(historyEntry => compileHistoryCommit(historyEntry.commit));
     } else {
-        const commits = await revwalk.getCommits(num);
-        return commits.map(compileHistoryCommit);
+        // TODO: more filters..
+        const filter = (_: Commit) => true;
+    
+        let oid: Oid;
+        let count = 0;
+        const history: Commit[] = [];
+        while (!!(oid = await revwalk.next()) && count < num) {
+            count++;
+            const commit = await Commit.lookup(repo, oid);
+            if (await filter(commit)) {
+                history.push(commit);
+            }
+            if (history.length >= 100) {
+                eventReply(event, IpcAction.LOAD_COMMITS_PARTIAL, history.splice(0, 100).map(compileHistoryCommit));
+            }
+        }
+        return history.map(compileHistoryCommit);
     }
 }
 
@@ -103,6 +119,25 @@ export async function getBranches(repo: Repository): Promise<BranchesObj> {
             normalizedName: head.name(),
         }
     };
+}
+
+export async function findFile(repo: Repository, file: string) {
+    index = await repo.refreshIndex();
+
+    const results: string[] = [];
+
+    const entries = index.entries();
+
+    for (const entry of entries) {
+        if (entry.path.toLocaleLowerCase().includes(file.toLocaleLowerCase())) {
+            results.push(entry.path);
+            if (results.length >= 100) {
+                break;
+            }
+        }
+    }
+
+    return results;
 }
 
 export async function refreshWorkDir(repo: Repository) {

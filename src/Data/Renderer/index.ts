@@ -8,6 +8,7 @@ export const state = {
 
 const handlers: {[key in IpcAction]: Function[]} = {
     [IpcAction.LOAD_COMMITS]: [],
+    [IpcAction.LOAD_COMMITS_PARTIAL]: [],
     [IpcAction.LOAD_BRANCHES]: [],
     [IpcAction.OPEN_REPO]: [],
     [IpcAction.LOAD_COMMIT]: [],
@@ -24,6 +25,7 @@ const handlers: {[key in IpcAction]: Function[]} = {
     [IpcAction.PUSH]: [],
     [IpcAction.CREATE_BRANCH]: [],
     [IpcAction.DELETE_REF]: [],
+    [IpcAction.FIND_FILE]: [],
 };
 export function registerHandler<T extends IpcAction>(action: T, cb: (arg: IpcActionReturn[T]) => void) {
     handlers[action]?.push(cb);

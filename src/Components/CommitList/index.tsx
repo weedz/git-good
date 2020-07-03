@@ -1,7 +1,7 @@
 import { h, Component } from "preact";
 import { Link, StaticLink } from "@weedzcokie/router-tsx";
 import { sendAsyncMessage, unregisterHandler, registerHandler } from "src/Data/Renderer";
-import { IpcAction, IpcActionReturn, IpcActionReturnError, LoadCommitReturn } from "src/Data/Actions";
+import { IpcAction, IpcActionReturn, IpcActionReturnError, LoadCommitReturn, IpcActionParams } from "src/Data/Actions";
 import { Store } from "src/Data/Renderer/store";
 import { showCommitMenu } from "./Menu";
 
@@ -14,8 +14,10 @@ type Props = {
 };
 type State = {
     commits: IpcActionReturn[IpcAction.LOAD_COMMITS]
-    filter: string
-    filterFile: string
+    filter: undefined | string
+    fileFilter: undefined | string
+    fileResults: string[]
+    showFiles: undefined | boolean
 };
 
 const headColors = [
@@ -46,14 +48,18 @@ export default class CommitList extends Component<Props, State> {
             colorId: number
         }
     } = {};
-    fileHistoryTimeout: any;
+    findFileTimeout: any;
     componentWillMount() {
         registerHandler(IpcAction.LOAD_COMMITS, this.commitsLoaded);
+        registerHandler(IpcAction.LOAD_COMMITS_PARTIAL, this.commitsLoaded);
+        registerHandler(IpcAction.FIND_FILE, this.handleFindFile);
         this.handleProps(this.props, true);
     }
     componentWillUnmount() {
         unregisterHandler(IpcAction.LOAD_COMMITS, this.commitsLoaded);
-        clearTimeout(this.fileHistoryTimeout);
+        unregisterHandler(IpcAction.LOAD_COMMITS_PARTIAL, this.commitsLoaded);
+        unregisterHandler(IpcAction.FIND_FILE, this.handleFindFile);
+        clearTimeout(this.findFileTimeout);
     }
     componentWillReceiveProps(nextProps: Props) {
         this.handleProps(nextProps, false);
@@ -61,14 +67,14 @@ export default class CommitList extends Component<Props, State> {
     handleProps(props: Props, reload: boolean) {
         if (props.history) {
             if (reload || !this.props.history) {
-                sendAsyncMessage(IpcAction.LOAD_COMMITS, {
+                this.getCommits({
                     num: 1000,
                     history: true
                 });
             }
         } else if (!props.sha) {
             if (reload || this.props.branch !== props.branch) {
-                sendAsyncMessage(IpcAction.LOAD_COMMITS, {
+                this.getCommits({
                     branch: decodeURIComponent(props.branch || "HEAD"),
                 });
             }
@@ -78,13 +84,14 @@ export default class CommitList extends Component<Props, State> {
             // });
         }
     }
-    commitsLoaded = (commits: IpcActionReturn[IpcAction.LOAD_COMMITS] | IpcActionReturnError) => {
-        console.log("commits loaded");
+    getCommits = (options: IpcActionParams[IpcAction.LOAD_COMMITS]) => {
         this.graph = {};
-        if ("error" in commits) {
-            console.warn(commits);
-            return;
-        }
+        this.setState({
+            commits: [],
+        });
+        sendAsyncMessage(IpcAction.LOAD_COMMITS, options);
+    }
+    handleCommits(commits: IpcActionReturn[IpcAction.LOAD_COMMITS_PARTIAL]) {
         let color = 0;
         for (const commit of commits) {
             if (!this.graph[commit.sha]) {
@@ -103,47 +110,67 @@ export default class CommitList extends Component<Props, State> {
                 }
                 this.graph[parent].descendants.push(commit);
             }
-
         }
         this.setState({
-            commits
+            commits: this.state.commits.concat(commits),
         });
+    }
+    handleFindFile = (files: IpcActionReturn[IpcAction.FIND_FILE]) => {
+        this.setState({
+            fileResults: files,
+            showFiles: files.length > 0
+        });
+    }
+    commitsLoaded = (result: IpcActionReturn[IpcAction.LOAD_COMMITS] | IpcActionReturnError) => {
+        console.log("commits loaded");
+        if ("error" in result) {
+            console.warn(result);
+            return;
+        }
+        this.handleCommits(result);
     }
     filter = (e: any) => {
         e.target.value !== this.state.filter && this.setState({
             filter: e.target.value.toLocaleLowerCase()
         });
     }
-    filterFile = (e: any) => {
-        if (e.target.value === this.state.filterFile) {
-            return;
-        }
-
+    filterByFile = (event?: any) => {
+        const file = event ? event.target.dataset.path : undefined;
         this.setState({
-            filterFile: e.target.value
+            showFiles: false,
+            fileFilter: file,
         });
+        // TODO: refactor this.
+        if (this.props.history) {
+            this.getCommits({
+                history: true,
+                file,
+            });
+        } else {
+            this.getCommits({
+                branch: decodeURIComponent(this.props.branch || "HEAD"),
+                file,
+            });
+        }
+    }
+    findFiles = (e: any) => {
+        clearTimeout(this.findFileTimeout);
 
-        clearTimeout(this.fileHistoryTimeout);
-        this.fileHistoryTimeout = setTimeout(() => {
-            // TODO: refactor this.
-            if (this.props.history) {
-                sendAsyncMessage(IpcAction.LOAD_COMMITS, {
-                    history: true,
-                    file: e.target.value,
-                });
-            } else {
-                sendAsyncMessage(IpcAction.LOAD_COMMITS, {
-                    branch: decodeURIComponent(this.props.branch || "HEAD"),
-                    file: e.target.value,
-                });
-            }
-        }, 250);
+        if (e.target.value) {
+            this.findFileTimeout = setTimeout(() => {
+                sendAsyncMessage(IpcAction.FIND_FILE, e.target.value);
+            }, 250);
+            this.setState({
+                fileFilter: e.target.value,
+            });
+        }
     }
     filterCommits() {
-        if (this.state.filter) {
+        const filter = this.state.filter;
+        if (filter) {
             return this.state.commits.filter((commit) =>
-                commit.sha.toLocaleLowerCase().includes(this.state.filter)
-                || commit.message.toLocaleLowerCase().includes(this.state.filter)
+                commit.sha.toLocaleLowerCase().includes(filter)
+                || commit.message.toLocaleLowerCase().includes(filter)
             );
         }
         return this.state.commits;
@@ -172,10 +199,19 @@ export default class CommitList extends Component<Props, State> {
                 <h4>Commits</h4>
                 <div>
                     <input type="text" value={this.state.filter} onKeyUp={this.filter} placeholder="sha,message" />
-                    <input type="text" onKeyUp={this.filterFile} placeholder="File/path..." />
+                    <input type="text" onClick={() => this.setState({showFiles: true})} onKeyUp={this.findFiles} placeholder="File/path..." />
+                    {this.state.fileFilter && <button onClick={() => this.filterByFile()}>Reset</button>}
+                    {this.state.showFiles && this.state.fileResults?.length &&
+                        <ul style={{
+                            maxHeight: "100px",
+                            overflow: "auto",
+                        }}>
+                            {this.state.fileResults.map(file => <li onClick={this.filterByFile} data-path={file}>{file}</li>)}
+                        </ul>
+                    }
                 </div>
                 <ul>
-                    {this.state.commits && this.filterCommits().map((commit) => this.commitItem(commit))}
+                    {this.state.commits?.length && this.filterCommits().map((commit) => this.commitItem(commit))}
                 </ul>
             </div>
         );

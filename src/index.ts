@@ -1,10 +1,11 @@
 import { join } from "path";
 import { app, BrowserWindow, ipcMain, Menu, dialog } from 'electron';
 import { Repository, Commit, Revwalk, Cred, Branch } from "nodegit";
-import { getBranches, getCommits, getCommitWithDiff, getHunks, eventReply, actionLock, getCommitPatches, eventReplyError, loadChanges, getWorkdirHunks, refreshWorkDir, stageFile, unstageFile, discardChanges, changeBranch } from "./Data/Main/Provider";
+import { getBranches, getCommits, getCommitWithDiff, getHunks, eventReply, actionLock, getCommitPatches, eventReplyError, loadChanges, getWorkdirHunks, refreshWorkDir, stageFile, unstageFile, discardChanges, changeBranch, findFile } from "./Data/Main/Provider";
 import { IpcAction, IpcActionParams, IpcActionReturn, Locks } from './Data/Actions';
 import { readFileSync } from "fs";
 import { sendEvent } from "./Data/Main/WindowEvents";
+import { IpcMainEvent } from "electron/main";
 
 let win: BrowserWindow;
 const createWindow = () => {
@@ -251,16 +252,16 @@ ipcMain.on("asynchronous-message", async (event, arg: EventArgs) => {
     if (repo) {
         switch (arg.action) {
             case IpcAction.LOAD_BRANCHES:
-                eventReply(event, arg.action, await loadBranches());
+                eventReply(event, arg.action, await getBranches(repo));
                 break;
             case IpcAction.LOAD_COMMITS:
-                eventReply(event, arg.action, await loadCommits(arg.data));
+                eventReply(event, arg.action, await loadCommits(event, arg.data));
                 break;
             case IpcAction.LOAD_COMMIT:
-                eventReply(event, arg.action, await loadCommit(arg.data));
+                eventReply(event, arg.action, await getCommitWithDiff(repo, arg.data));
                 break;
             case IpcAction.LOAD_PATCHES_WITHOUT_HUNKS:
-                eventReply(event, arg.action, await loadPatches(arg.data));
+                eventReply(event, arg.action, await getCommitPatches(arg.data));
                 break;
             case IpcAction.LOAD_HUNKS:
                 const data: IpcActionReturn[IpcAction.LOAD_HUNKS] = {
@@ -302,6 +303,8 @@ ipcMain.on("asynchronous-message", async (event, arg: EventArgs) => {
                 const ref = await repo.getReference(arg.data.name);
                 const res = Branch.delete(ref);
                 eventReply(event, arg.action, !!res);
+            case IpcAction.FIND_FILE:
+                eventReply(event, arg.action, await findFile(repo, arg.data));
         }
     }
 });
@@ -316,7 +319,7 @@ async function openRepo(repoPath: string) {
     return opened;
 }
 
-async function loadCommits(params: IpcActionParams[IpcAction.LOAD_COMMITS]) {
+async function loadCommits(event: IpcMainEvent, params: IpcActionParams[IpcAction.LOAD_COMMITS]) {
     let start: Commit | false = false;
     let revwalk = repo.createRevWalk();
     revwalk.sorting(Revwalk.SORT.TOPOLOGICAL | Revwalk.SORT.TIME);
@@ -340,14 +343,7 @@ async function loadCommits(params: IpcActionParams[IpcAction.LOAD_COMMITS]) {
         revwalk.push(start.id());
     }
 
-    return await getCommits(revwalk, params.file, params.num);
-}
-
-function loadCommit(sha: IpcActionParams[IpcAction.LOAD_COMMIT]) {
-    return getCommitWithDiff(repo, sha);
-}
-function loadPatches(sha: IpcActionParams[IpcAction.LOAD_PATCHES_WITHOUT_HUNKS]) {
-    return getCommitPatches(sha);
+    return await getCommits(event, revwalk, repo, params.file, params.num);
 }
 
 function loadHunks(params: IpcActionParams[IpcAction.LOAD_HUNKS]) {
@@ -356,8 +352,4 @@ function loadHunks(params: IpcActionParams[IpcAction.LOAD_HUNKS]) {
     } else {
         return getWorkdirHunks(params.path);
     }
-}
-
-function loadBranches() {
-    return getBranches(repo);
 }

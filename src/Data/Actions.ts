@@ -2,6 +2,7 @@ import { Oid } from "nodegit";
 
 export enum IpcAction {
     LOAD_COMMITS,
+    LOAD_COMMITS_PARTIAL,
     LOAD_BRANCHES,
     OPEN_REPO,
     LOAD_COMMIT,
@@ -18,11 +19,13 @@ export enum IpcAction {
     PUSH,
     CREATE_BRANCH,
     DELETE_REF,
+    FIND_FILE,
 };
 
 export type IpcActionParams = {
     [IpcAction.LOAD_BRANCHES]: never
     [IpcAction.LOAD_COMMITS]: LoadCommitsParam
+    [IpcAction.LOAD_COMMITS_PARTIAL]: never
     [IpcAction.OPEN_REPO]: string
     [IpcAction.LOAD_COMMIT]: string
     [IpcAction.LOAD_PATCHES_WITHOUT_HUNKS]: string
@@ -58,11 +61,13 @@ export type IpcActionParams = {
         force?: boolean
         prune?: boolean
     }
+    [IpcAction.FIND_FILE]: string
 };
 
 export type IpcActionReturn = {
     [IpcAction.LOAD_BRANCHES]: BranchesObj
     [IpcAction.LOAD_COMMITS]: LoadCommitsReturn
+    [IpcAction.LOAD_COMMITS_PARTIAL]: LoadCommitsReturn
     [IpcAction.OPEN_REPO]: {
         opened: boolean
         path: string
@@ -90,6 +95,7 @@ export type IpcActionReturn = {
     [IpcAction.PUSH]: boolean
     [IpcAction.CREATE_BRANCH]: boolean
     [IpcAction.DELETE_REF]: boolean
+    [IpcAction.FIND_FILE]: string[]
 };
 
 export type IpcActionReturnError = {
