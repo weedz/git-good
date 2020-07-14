@@ -1,4 +1,4 @@
-import { h, Component, } from "preact";
+import { h, Component, Fragment, } from "preact";
 import { RoutableProps } from "@weedzcokie/router-tsx";
 import FileDiff from "../../Components/FileDiff";
 
@@ -6,6 +6,7 @@ import "./style.css";
 import { IpcAction, IpcActionReturn, PatchObj } from "src/Data/Actions";
 import { registerHandler, unregisterHandler, sendAsyncMessage } from "src/Data/Renderer";
 import ChangedFiles from "src/Components/DiffPane/ChangedFiles";
+import { Store, abortRebase, continueRebase } from "src/Data/Renderer/store";
 
 type State = {
     unstaged?: PatchObj[]
@@ -54,33 +55,43 @@ export default class WorkingArea extends Component<RoutableProps, State> {
     }
     render() {
         return (
-            <div id="working-area">
+            <Fragment>
                 <FileDiff />
-                <div id="commit-stage">
-                    <div id="unstaged-changes" class="pane">
-                        <h4>Unstaged ({this.state.unstaged?.length})<button>Stage all</button></h4>
-                        {this.state.unstaged && <ChangedFiles patches={this.state.unstaged} workDir actions={[{label: "Stage", click: this.stageFile}, {label: "Discard", click: this.discard}]} />}
-                    </div>
-                    <div id="staged-changes" class="pane">
-                        <h4>Staged ({this.state.staged?.length})<button>Unstage all</button></h4>
-                        {this.state.staged && <ChangedFiles patches={this.state.staged} workDir actions={[{label: "Unstage", click: this.unstageFile}]} />}
-                    </div>
-                    <div class="pane">
-                        <h4>Commit</h4>
-                        <form>
-                            <input type="text" name="summary" placeholder="Summary" />
-                            <br />
-                            <textarea name="msg"></textarea>
-                            <br />
-                            <input type="submit" name="commit" value="Commit" />
-                            <label>
-                                <input type="checkbox" name="amend" />
-                                <span>Amend</span>
-                            </label>
-                        </form>
+                <div id="working-area-actions" class="pane">
+                    {Store.repo?.status?.rebasing &&
+                        <div>
+                            <button onClick={() => continueRebase()}>Continue rebase</button>
+                            <button onClick={() => abortRebase()}>Abort rebase</button>
+                        </div>
+                    }
+                </div>
+                <div id="working-area">
+                    <div id="commit-stage">
+                        <div id="unstaged-changes" class="pane">
+                            <h4>Unstaged ({this.state.unstaged?.length})<button>Stage all</button></h4>
+                            {this.state.unstaged && <ChangedFiles patches={this.state.unstaged} workDir actions={[{label: "Stage", click: this.stageFile}, {label: "Discard", click: this.discard}]} />}
+                        </div>
+                        <div id="staged-changes" class="pane">
+                            <h4>Staged ({this.state.staged?.length})<button>Unstage all</button></h4>
+                            {this.state.staged && <ChangedFiles patches={this.state.staged} workDir actions={[{label: "Unstage", click: this.unstageFile}]} />}
+                        </div>
+                        <div class="pane">
+                            <h4>Commit</h4>
+                            <form>
+                                <input type="text" name="summary" placeholder="Summary" />
+                                <br />
+                                <textarea name="msg"></textarea>
+                                <br />
+                                <input type="submit" name="commit" value="Commit" />
+                                <label>
+                                    <input type="checkbox" name="amend" />
+                                    <span>Amend</span>
+                                </label>
+                            </form>
+                        </div>
                     </div>
                 </div>
-            </div>
+            </Fragment>
         );
     }
 }

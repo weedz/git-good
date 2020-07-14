@@ -47,7 +47,7 @@ export async function getCommits(event: IpcMainEvent, revwalk: Revwalk, repo: Re
         return commits.map(historyEntry => compileHistoryCommit(historyEntry.commit));
     } else {
         // TODO: more filters..
-        const filter = (_: Commit) => true;
+        const filter = async (_: Commit) => true;
     
         let oid: Oid;
         let count = 0;

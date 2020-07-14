@@ -51,9 +51,11 @@ export default class BranchList extends Component<Props, State> {
         let headRef = [];
         if (Store.branches.head) {
             headRef.push(<span>&nbsp;({normalizeLocalName(Store.branches.head.name)})</span>);
-            const aheadBehind = BranchAheadBehind(Store.heads[Store.branches.head.headSHA][0]);
-            if (aheadBehind.length > 0) {
-                headRef.push(<span>&nbsp;{aheadBehind}</span>);
+            if (Store.heads[Store.branches.head.headSHA]) {
+                const aheadBehind = BranchAheadBehind(Store.heads[Store.branches.head.headSHA][0]);
+                if (aheadBehind.length > 0) {
+                    headRef.push(<span>&nbsp;{aheadBehind}</span>);
+                }
             }
         }
 

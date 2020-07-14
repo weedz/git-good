@@ -1,4 +1,4 @@
-import { Locks } from "./Actions";
+import { Locks, IpcActionReturn, IpcAction } from "./Actions";
 
 export type WindowEvents =
     "repo-opened" |
@@ -10,10 +10,7 @@ export type WindowEvents =
     "pull-head";
 
 export type WindowArguments = {
-    "repo-opened": {
-        path: string
-        opened: boolean
-    }
+    "repo-opened": IpcActionReturn[IpcAction.OPEN_REPO]
     "repo-fetch-all": undefined
     "refresh-workdir": undefined
     "open-settings": undefined

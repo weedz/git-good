@@ -6,6 +6,7 @@ import { Store } from "src/Data/Renderer/store";
 import { showCommitMenu } from "./Menu";
 
 import "./style.css";
+import FileFilter from "./FileFilter";
 
 type Props = {
     branch?: string
@@ -17,7 +18,6 @@ type State = {
     filter: undefined | string
     fileFilter: undefined | string
     fileResults: string[]
-    showFiles: undefined | boolean
 };
 
 const headColors = [
@@ -48,18 +48,15 @@ export default class CommitList extends Component<Props, State> {
             colorId: number
         }
     } = {};
-    findFileTimeout: any;
+
     componentWillMount() {
         registerHandler(IpcAction.LOAD_COMMITS, this.commitsLoaded);
         registerHandler(IpcAction.LOAD_COMMITS_PARTIAL, this.commitsLoaded);
-        registerHandler(IpcAction.FIND_FILE, this.handleFindFile);
         this.handleProps(this.props, true);
     }
     componentWillUnmount() {
         unregisterHandler(IpcAction.LOAD_COMMITS, this.commitsLoaded);
         unregisterHandler(IpcAction.LOAD_COMMITS_PARTIAL, this.commitsLoaded);
-        unregisterHandler(IpcAction.FIND_FILE, this.handleFindFile);
-        clearTimeout(this.findFileTimeout);
     }
     componentWillReceiveProps(nextProps: Props) {
         this.handleProps(nextProps, false);
@@ -115,12 +112,6 @@ export default class CommitList extends Component<Props, State> {
             commits: this.state.commits.concat(commits),
         });
     }
-    handleFindFile = (files: IpcActionReturn[IpcAction.FIND_FILE]) => {
-        this.setState({
-            fileResults: files,
-            showFiles: files.length > 0
-        });
-    }
     commitsLoaded = (result: IpcActionReturn[IpcAction.LOAD_COMMITS] | IpcActionReturnError) => {
         console.log("commits loaded");
         if ("error" in result) {
@@ -134,10 +125,8 @@ export default class CommitList extends Component<Props, State> {
             filter: e.target.value.toLocaleLowerCase()
         });
     }
-    filterByFile = (event?: any) => {
-        const file = event ? event.target.dataset.path : undefined;
+    filterByFile = (file: string) => {
         this.setState({
-            showFiles: false,
             fileFilter: file,
         });
         // TODO: refactor this.
@@ -153,18 +142,7 @@ export default class CommitList extends Component<Props, State> {
             });
         }
     }
-    findFiles = (e: any) => {
-        clearTimeout(this.findFileTimeout);
-
-        if (e.target.value) {
-            this.findFileTimeout = setTimeout(() => {
-                sendAsyncMessage(IpcAction.FIND_FILE, e.target.value);
-            }, 250);
-            this.setState({
-                fileFilter: e.target.value,
-            });
-        }
-    }
+    
     filterCommits() {
         const filter = this.state.filter;
         if (filter) {
@@ -199,16 +177,7 @@ export default class CommitList extends Component<Props, State> {
                 <h4>Commits</h4>
                 <div>
                     <input type="text" value={this.state.filter} onKeyUp={this.filter} placeholder="sha,message" />
-                    <input type="text" onClick={() => this.setState({showFiles: true})} onKeyUp={this.findFiles} placeholder="File/path..." />
-                    {this.state.fileFilter && <button onClick={() => this.filterByFile()}>Reset</button>}
-                    {this.state.showFiles && this.state.fileResults?.length &&
-                        <ul style={{
-                            maxHeight: "100px",
-                            overflow: "auto",
-                        }}>
-                            {this.state.fileResults.map(file => <li onClick={this.filterByFile} data-path={file}>{file}</li>)}
-                        </ul>
-                    }
+                    <FileFilter filterByFile={this.filterByFile} />
                 </div>
                 <ul>
                     {this.state.commits?.length && this.filterCommits().map((commit) => this.commitItem(commit))}

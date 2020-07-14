@@ -26,6 +26,8 @@ const handlers: {[key in IpcAction]: Function[]} = {
     [IpcAction.CREATE_BRANCH]: [],
     [IpcAction.DELETE_REF]: [],
     [IpcAction.FIND_FILE]: [],
+    [IpcAction.ABORT_REBASE]: [],
+    [IpcAction.CONTINUE_REBASE]: [],
 };
 export function registerHandler<T extends IpcAction>(action: T, cb: (arg: IpcActionReturn[T]) => void) {
     handlers[action]?.push(cb);

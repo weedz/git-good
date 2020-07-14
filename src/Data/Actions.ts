@@ -1,4 +1,4 @@
-import { Oid } from "nodegit";
+import { Repository } from "nodegit";
 
 export enum IpcAction {
     LOAD_COMMITS,
@@ -20,6 +20,8 @@ export enum IpcAction {
     CREATE_BRANCH,
     DELETE_REF,
     FIND_FILE,
+    ABORT_REBASE,
+    CONTINUE_REBASE,
 };
 
 export type IpcActionParams = {
@@ -62,6 +64,8 @@ export type IpcActionParams = {
         prune?: boolean
     }
     [IpcAction.FIND_FILE]: string
+    [IpcAction.ABORT_REBASE]: never
+    [IpcAction.CONTINUE_REBASE]: never
 };
 
 export type IpcActionReturn = {
@@ -71,6 +75,7 @@ export type IpcActionReturn = {
     [IpcAction.OPEN_REPO]: {
         opened: boolean
         path: string
+        status: null | RepoStatus
     }
     [IpcAction.LOAD_COMMIT]: CommitObj
     [IpcAction.LOAD_PATCHES_WITHOUT_HUNKS]: PatchObj[]
@@ -96,6 +101,8 @@ export type IpcActionReturn = {
     [IpcAction.CREATE_BRANCH]: boolean
     [IpcAction.DELETE_REF]: boolean
     [IpcAction.FIND_FILE]: string[]
+    [IpcAction.ABORT_REBASE]: RepoStatus
+    [IpcAction.CONTINUE_REBASE]: RepoStatus
 };
 
 export type IpcActionReturnError = {
@@ -104,6 +111,14 @@ export type IpcActionReturnError = {
 
 export enum IpcEvent {};
 export type IpcEventParams = {};
+
+export type RepoStatus = {
+    merging: boolean
+    rebasing: boolean
+    reverting: boolean
+    bisecting: boolean
+    state: number // Repository.STATE
+};
 
 export type LineStats = {
     total_context: number

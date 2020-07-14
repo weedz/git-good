@@ -1,4 +1,4 @@
-import { IpcAction, BranchesObj, BranchObj, IpcActionReturn, PatchObj, IpcActionReturnError, Locks } from "../Actions";
+import { IpcAction, BranchesObj, BranchObj, IpcActionReturn, PatchObj, IpcActionReturnError, Locks, RepoStatus } from "../Actions";
 import { registerHandler, sendAsyncMessage, attach } from ".";
 import { ipcRenderer } from "electron";
 import { WindowEvents, WindowArguments } from "../WindowEventTypes";
@@ -10,7 +10,10 @@ export type DialogWindow = {
 }
 
 export type StoreType = {
-    repo: false | string
+    repo: null | {
+        path: string
+        status: null | RepoStatus
+    }
     branches: null | BranchesObj
     heads: {
         [key: string]: BranchObj[]
@@ -25,7 +28,7 @@ export type StoreType = {
 };
 
 const store: StoreType = {
-    repo: false,
+    repo: null,
     branches: null,
     heads: {},
     currentFile: null,
@@ -122,6 +125,22 @@ export function closeFile() {
         currentFile: null
     });
 }
+export function abortRebase() {
+    sendAsyncMessage(IpcAction.ABORT_REBASE);
+}
+export function continueRebase() {
+    sendAsyncMessage(IpcAction.CONTINUE_REBASE);
+}
+
+function setStatus(status: RepoStatus) {
+    const repo = store.repo;
+    if (repo) {
+        repo.status = status;
+        setState({
+            repo
+        });
+    }
+}
 
 function loadHunks(data: IpcActionReturn[IpcAction.LOAD_HUNKS]) {
     if (store.currentFile && data.hunks) {
@@ -139,11 +158,14 @@ function repoOpened(result: IpcActionReturn[IpcAction.OPEN_REPO] | IpcActionRetu
     } else if (result.opened) {
         localStorage.setItem("recent-repo", result.path);
         setState({
-            repo: result.path
+            repo: {
+                path: result.path,
+                status: result.status
+            }
         });
     } else {
         setState({
-            repo: false
+            repo: null
         });
     }
 }
@@ -243,3 +265,5 @@ registerHandler(IpcAction.PULL, loadBranches);
 registerHandler(IpcAction.PUSH, loadBranches);
 registerHandler(IpcAction.CREATE_BRANCH, loadBranches);
 registerHandler(IpcAction.DELETE_REF, loadBranches);
+registerHandler(IpcAction.ABORT_REBASE, setStatus);
+registerHandler(IpcAction.CONTINUE_REBASE, setStatus);

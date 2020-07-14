@@ -1,6 +1,6 @@
 import { join } from "path";
 import { app, BrowserWindow, ipcMain, Menu, dialog } from 'electron';
-import { Repository, Commit, Revwalk, Cred, Branch } from "nodegit";
+import { Repository, Commit, Revwalk, Cred, Branch, Rebase } from "nodegit";
 import { getBranches, getCommits, getCommitWithDiff, getHunks, eventReply, actionLock, getCommitPatches, eventReplyError, loadChanges, getWorkdirHunks, refreshWorkDir, stageFile, unstageFile, discardChanges, changeBranch, findFile } from "./Data/Main/Provider";
 import { IpcAction, IpcActionParams, IpcActionReturn, Locks } from './Data/Actions';
 import { readFileSync } from "fs";
@@ -80,9 +80,11 @@ const menuTemplate = [
                         properties: ["openDirectory"]
                     }).then(async res => {
                         if (!res.canceled) {
+                            const opened = await openRepo(res.filePaths[0]);
                             sendEvent(win.webContents, "repo-opened", {
                                 path: res.filePaths[0],
-                                opened: await openRepo(res.filePaths[0])
+                                opened,
+                                status: opened ? repoStatus() : null,
                             });
                         }
                     });
@@ -242,9 +244,11 @@ ipcMain.on("asynchronous-message", async (event, arg: EventArgs) => {
     actionLock[arg.action] = {interuptable: false};
 
     if (arg.action === IpcAction.OPEN_REPO) {
+        const opened = await openRepo(arg.data);
         eventReply(event, arg.action, {
             path: arg.data,
-            opened: await openRepo(arg.data)
+            opened,
+            status: opened ? repoStatus() : null,
         });
         return;
     }
@@ -303,11 +307,31 @@ ipcMain.on("asynchronous-message", async (event, arg: EventArgs) => {
                 const ref = await repo.getReference(arg.data.name);
                 const res = Branch.delete(ref);
                 eventReply(event, arg.action, !!res);
+                break;
             case IpcAction.FIND_FILE:
                 eventReply(event, arg.action, await findFile(repo, arg.data));
+                break;
+            case IpcAction.ABORT_REBASE:
+                eventReply(event, arg.action, await abortRebase(repo));
+                break;
+            case IpcAction.CONTINUE_REBASE:
+                eventReply(event, arg.action, await continueRebase(repo));
+                break;
         }
     }
 });
+
+async function abortRebase(repo: Repository) {
+    const rebase = await Rebase.open(repo);
+    // rebase.abort();
+    return repoStatus();
+}
+async function continueRebase(repo: Repository) {
+    const rebase = await Rebase.open(repo);
+    // const rebaseAction = await rebase.next();
+    // console.dir(rebaseAction);
+    return repoStatus();
+}
 
 async function openRepo(repoPath: string) {
     let opened = true;
@@ -317,6 +341,16 @@ async function openRepo(repoPath: string) {
         opened = false;
     }
     return opened;
+}
+
+function repoStatus() {
+    return {
+        merging: repo.isMerging(),
+        rebasing: repo.isRebasing(),
+        reverting: repo.isReverting(),
+        bisecting: repo.isBisecting(),
+        state: repo.state(),
+    };
 }
 
 async function loadCommits(event: IpcMainEvent, params: IpcActionParams[IpcAction.LOAD_COMMITS]) {

@@ -1,7 +1,10 @@
 #working-area {
     display: flex;
     flex-direction: column;
-    flex: auto;
+}
+
+#working-area-actions {
+    flex: 1;
 }
 
 #commit-stage {

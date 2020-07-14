@@ -36,7 +36,7 @@ export default class App extends Component<{}, State> {
     }
     update = (repo: StoreType["repo"]) => {
         if (repo) {
-            document.title = basename(repo);
+            document.title = basename(repo.path);
             this.setState({});
         } else if (this.openRecent) {
             this.openRecent = false;
