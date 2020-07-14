@@ -1,16 +1,16 @@
 {
   "compilerOptions": {
     "module": "ESNext",
-    "target": "ESNext",
-    "skipLibCheck": true,
+    "target": "ES2019",
     "strict": true,
     "jsx": "react",
     "jsxFactory": "h",
     "sourceMap": true,
     "baseUrl": ".",
-    "outDir": "dist",
     "moduleResolution": "node",
-    "resolveJsonModule": true,
-    "noEmitOnError": true
-  }
+    "resolveJsonModule": true
+  },
+  "include": [
+    "src/**/*"
+  ]
 }
