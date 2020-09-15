@@ -4,6 +4,7 @@ import { RouterComponent as Router } from "@weedzcokie/router-tsx";
 
 import Main from "./Views/Main";
 import WorkingArea from "./Views/WorkingArea";
+import Compare from "./Views/Compare";
 import Changes from "./Components/Changes";
 import BranchList from "./Components/BranchList";
 import { subscribe, Store, unsubscribe, openRepo, StoreType } from "./Data/Renderer/store";
@@ -75,6 +76,7 @@ export default class App extends Component<{}, State> {
                     <Main path="/branch/:branch" />
                     <Main path="/branch/:branch/:sha" />
                     <WorkingArea path="/working-area" />
+                    <Compare path="/compare" />
                 </Router>
             </div>
         );

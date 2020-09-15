@@ -9,7 +9,8 @@ type ButtonAction = {
 }
 type Props = {
     commit?: CommitObj
-    workDir?: boolean
+    workDir?: true
+    compare?: true
     patches: PatchObj[]
     actions?: ButtonAction[]
 }
@@ -21,7 +22,13 @@ export default class ChangedFiles extends Component<Props, {}> {
                 sha: this.props.commit.sha,
                 patch,
             });
-        } else if (this.props.workDir) {
+        } else if (this.props.compare) {
+            openFile({
+                compare: true,
+                patch,
+            });
+        }
+        else if (this.props.workDir) {
             openFile({
                 workDir: this.props.workDir,
                 patch,

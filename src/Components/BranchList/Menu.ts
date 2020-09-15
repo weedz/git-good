@@ -1,5 +1,5 @@
 import { remote } from "electron";
-import { contextMenuState, checkoutBranch, pullHead, deleteBranch } from "src/Data/Renderer/store";
+import { contextMenuState, checkoutBranch, pullHead, deleteBranch, openDialogWindow, createBranchFromRef, closeDialogWindow } from "src/Data/Renderer/store";
 
 const { Menu, MenuItem } = remote;
 
@@ -12,6 +12,26 @@ originMenu.append(new MenuItem({
     }
 }));
 
+const newBranch = new MenuItem({
+    label: 'Create new branch...',
+    click() {
+        console.log("Create new branch");
+        const sha = contextMenuState.data.dataset.ref;
+        openDialogWindow({
+            title: "New branch",
+            confirmCb(data: any) {
+                if (data.branchName) {
+                    createBranchFromRef(sha, data.branchName);
+                }
+                closeDialogWindow();
+            },
+            cancelCb() {
+                closeDialogWindow();
+            }
+        });
+    }
+});
+
 const remoteMenu = new Menu();
 remoteMenu.append(new MenuItem({
     label: 'Checkout...',
@@ -19,6 +39,7 @@ remoteMenu.append(new MenuItem({
         console.log("Checkout");
     }
 }));
+remoteMenu.append(newBranch);
 remoteMenu.append(new MenuItem({
     label: 'Delete...',
     click() {
@@ -45,12 +66,7 @@ localMenu.append(new MenuItem({
         checkoutBranch(contextMenuState.data.dataset.ref);
     }
 }));
-localMenu.append(new MenuItem({
-    label: 'Create new branch...',
-    click() {
-        console.log("Create new branch");
-    }
-}));
+localMenu.append(newBranch);
 localMenu.append(new MenuItem({
     label: 'Delete...',
     async click() {
@@ -94,6 +110,9 @@ headMenu.append(new MenuItem({
     }
 }));
 
+const tagMenu = new Menu();
+tagMenu.append(newBranch);
+
 export function showOriginMenu(e: any) {
     e.preventDefault();
     contextMenuState.data = e.currentTarget;
@@ -119,6 +138,13 @@ export function showHeadMenu(e: any) {
     e.preventDefault();
     contextMenuState.data = e.currentTarget;
     headMenu.popup({
+        window: remote.getCurrentWindow()
+    });
+}
+export function showTagMenu(e: any) {
+    e.preventDefault();
+    contextMenuState.data = e.currentTarget;
+    tagMenu.popup({
         window: remote.getCurrentWindow()
     });
 }

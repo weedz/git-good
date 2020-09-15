@@ -2,6 +2,7 @@ import { IpcAction, BranchesObj, BranchObj, IpcActionReturn, PatchObj, IpcAction
 import { registerHandler, sendAsyncMessage, attach } from ".";
 import { ipcRenderer } from "electron";
 import { WindowEvents, WindowArguments } from "../WindowEventTypes";
+import { routeTo } from "@weedzcokie/router-tsx";
 
 export type DialogWindow = {
     title: string
@@ -100,7 +101,7 @@ export function checkoutBranch(branch: string) {
     sendAsyncMessage(IpcAction.CHECKOUT_BRANCH, branch);
 }
 
-export function openFile(params: ({sha: string} | {workDir: boolean}) & {patch: PatchObj}) {
+export function openFile(params: ({sha: string} | {workDir: true} | {compare: true}) & {patch: PatchObj}) {
     setState({
         currentFile: {
             patch: params.patch
@@ -112,9 +113,14 @@ export function openFile(params: ({sha: string} | {workDir: boolean}) & {patch: 
                 sha: params.sha,
                 path: params.patch.actualFile.path,
             });
+        } else if ("compare" in params) {
+            sendAsyncMessage(IpcAction.LOAD_HUNKS, {
+                compare: true,
+                path: params.patch.actualFile.path,
+            });
         } else {
             sendAsyncMessage(IpcAction.LOAD_HUNKS, {
-                workDir: params.workDir,
+                workDir: true,
                 path: params.patch.actualFile.path,
             });
         }
@@ -228,11 +234,49 @@ export function createBranch(fromSha: string, name: string) {
         name,
     });
 }
+export function createBranchFromRef(ref: string, name: string) {
+    sendAsyncMessage(IpcAction.CREATE_BRANCH_FROM_REF, {
+        ref,
+        name,
+    });
+}
 export function deleteBranch(name: string) {
     sendAsyncMessage(IpcAction.DELETE_REF, {
         name
     });
 }
+
+function openDialogCompareRevisions() {
+    openDialogWindow({
+        title: "Compare revisions:",
+        confirmCb: (data: any) => {
+            if (data.branchName)
+            {
+                const [from,to] = data.branchName.split("..");
+                if (from && to) {
+                    sendAsyncMessage(IpcAction.OPEN_COMPARE_REVISIONS, {
+                        from,
+                        to
+                    });
+                }
+            }
+            closeDialogWindow();
+        },
+        cancelCb: () => {
+            closeDialogWindow();
+        }
+    });
+}
+export let tempComparePatches: PatchObj[];
+function handleCompareRevisions(data: any) {
+    if ("error" in data) {
+        console.warn(data.error);
+    } else {
+        tempComparePatches = data;
+        routeTo("/compare");
+    }
+}
+
 export function openDialogWindow(dialogWindow: StoreType["dialogWindow"]) {
     setState({
         dialogWindow
@@ -256,6 +300,7 @@ addWindowEventListener("open-settings", openSettings);
 addWindowEventListener("app-lock-ui", setLock);
 addWindowEventListener("app-unlock-ui", clearLock);
 addWindowEventListener("pull-head", pullHead);
+addWindowEventListener("begin-compare-revisions", openDialogCompareRevisions);
 
 registerHandler(IpcAction.OPEN_REPO, repoOpened);
 registerHandler(IpcAction.LOAD_BRANCHES, branchesLoaded);
@@ -264,6 +309,8 @@ registerHandler(IpcAction.LOAD_HUNKS, loadHunks);
 registerHandler(IpcAction.PULL, loadBranches);
 registerHandler(IpcAction.PUSH, loadBranches);
 registerHandler(IpcAction.CREATE_BRANCH, loadBranches);
+registerHandler(IpcAction.CREATE_BRANCH_FROM_REF, loadBranches);
 registerHandler(IpcAction.DELETE_REF, loadBranches);
 registerHandler(IpcAction.ABORT_REBASE, setStatus);
 registerHandler(IpcAction.CONTINUE_REBASE, setStatus);
+registerHandler(IpcAction.OPEN_COMPARE_REVISIONS, handleCompareRevisions);

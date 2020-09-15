@@ -1,4 +1,4 @@
-import { Repository, Revwalk, Commit, Diff, ConvenientPatch, ConvenientHunk, DiffLine, Object, Branch, Graph, Index, Reset, Checkout, DiffFindOptions, Oid } from "nodegit";
+import { Repository, Revwalk, Commit, Diff, ConvenientPatch, ConvenientHunk, DiffLine, Object, Branch, Graph, Index, Reset, Checkout, DiffFindOptions } from "nodegit";
 import { IpcAction, BranchObj, BranchesObj, LineObj, HunkObj, PatchObj, CommitObj, IpcActionReturn, IpcActionReturnError } from "../Actions";
 import { normalizeLocalName, normalizeRemoteName, normalizeTagName } from "../Branch";
 import { IpcMainEvent } from "electron/main";
@@ -49,11 +49,8 @@ export async function getCommits(event: IpcMainEvent, revwalk: Revwalk, repo: Re
         // TODO: more filters..
         const filter = async (_: Commit) => true;
     
-        let oid: Oid;
-        let count = 0;
         const history: Commit[] = [];
-        while (!!(oid = await revwalk.next()) && count < num) {
-            count++;
+        for await (const oid of walkTheRev(revwalk, num)) {
             const commit = await Commit.lookup(repo, oid);
             if (await filter(commit)) {
                 history.push(commit);
@@ -66,6 +63,18 @@ export async function getCommits(event: IpcMainEvent, revwalk: Revwalk, repo: Re
     }
 }
 
+async function *walkTheRev(revwalk: Revwalk, num: number) {
+    let count = 0;
+    while (count < num) {
+        count++;
+        try {
+            const oid = revwalk.next();
+            yield oid;
+        } catch {
+            return false;
+        }
+    }
+}
 
 // {local: Branch[], remote: Branch[], tags: Branch[]}
 export async function getBranches(repo: Repository): Promise<BranchesObj> {
@@ -178,7 +187,7 @@ export async function discardChanges(repo: Repository, path: string) {
         const tree = await head.getTree();
         await Checkout.tree(repo, tree, { checkoutStrategy: Checkout.STRATEGY.FORCE, paths: [path] });
     } catch (err) {
-        console.log(err)
+        console.error(err)
     }
 
     return 0;
@@ -188,12 +197,20 @@ async function getStagedPatches(repo: Repository) {
     const unstagedDiff = await Diff.indexToWorkdir(repo, undefined, {
         flags: Diff.OPTION.SHOW_UNTRACKED_CONTENT | Diff.OPTION.RECURSE_UNTRACKED_DIRS
     });
+    const diffOpts: DiffFindOptions = {
+        flags: Diff.FIND.RENAMES | Diff.FIND.IGNORE_WHITESPACE,
+    };
+    await unstagedDiff.findSimilar(diffOpts);
     return unstagedDiff.patches();
 }
 
 async function getUnstagedPatches(repo: Repository) {
     const head = await repo.getHeadCommit();
     const stagedDiff = await Diff.treeToIndex(repo, await head.getTree());
+    const diffOpts: DiffFindOptions = {
+        flags: Diff.FIND.RENAMES | Diff.FIND.IGNORE_WHITESPACE,
+    };
+    await stagedDiff.findSimilar(diffOpts);
     return stagedDiff.patches();
 }
 
@@ -252,6 +269,9 @@ export async function getHunks(sha: string, path: string): Promise<false | HunkO
     const patch = commitObjectCache[sha]?.patches[path];
     return loadHunks(patch);
 }
+export async function hunksFromCompare(path: string): Promise<false | HunkObj[]> {
+    return loadHunks(compareObjCache.patches[path]);
+}
 async function loadHunks(patch: ConvenientPatch) {
     if (!patch) {
         return false;
@@ -289,10 +309,10 @@ function handlePatch(patch: ConvenientPatch): PatchObj {
     return patchResult;
 }
 
-async function handleDiff(diff: Diff) {
+async function handleDiff(diff: Diff, patches: {[path: string]: ConvenientPatch}) {
     return (await diff.patches()).map(convPatch => {
         const patch = handlePatch(convPatch);
-        commitObjectCache[currentCommit].patches[patch.actualFile.path] = convPatch;
+        patches[patch.actualFile.path] = convPatch;
         return patch;
     });
 }
@@ -321,15 +341,56 @@ export async function getCommitPatches(sha: string) {
         diffs = [await tree.diffWithOptions(null)];
     }
 
+    // console.log(diffs);
+
     const patches = diffs.map(async diff => {
         await diff.findSimilar(diffOpts);
-        return handleDiff(diff);
+        return handleDiff(diff, commitObjectCache[currentCommit].patches);
     });
 
     return (await Promise.all(patches)).flat();
 }
 
-export async function getCommitWithDiff(repo: Repository, sha: string) {
+export async function compareRevisions(repo: Repository, revisions: {from: string, to: string}) {
+    const fromCommit = await repo.getCommit(revisions.from).catch(_ => repo.getReferenceCommit(revisions.from));
+    if (!fromCommit) {
+        return false;
+    }
+
+    const  toCommit = await repo.getCommit(revisions.to).catch(_ => repo.getReferenceCommit(revisions.to));
+    if (!toCommit) {
+        return false;
+    }
+
+    // TODO: show commits if `descandant === true`
+    compareObjCache = {
+        descendant: await Graph.descendantOf(repo, toCommit.id(), fromCommit.id()) === 1,
+        from: fromCommit,
+        to: toCommit,
+        patches: {}
+    };
+    return true;
+}
+
+export async function compareRevisionsPatches() {
+    const from = compareObjCache.from;
+    const to = compareObjCache.to;
+    
+    // TODO: fix this. Merge commits are a bit messy without this.
+    const tree = await to.getTree();
+    const diffOpts: DiffFindOptions = {
+        flags: Diff.FIND.RENAMES | Diff.FIND.IGNORE_WHITESPACE,
+    };
+
+    const diff = await from.getTree().then(async fromTree => await tree.diffWithOptions(fromTree));
+    await diff.findSimilar(diffOpts);
+
+    const patches = await handleDiff(diff, compareObjCache.patches);
+
+    return patches.flat();
+}
+
+export async function commitWithDiff(repo: Repository, sha: string) {
     currentCommit = sha;
 
     const commit = await repo.getCommit(sha);
@@ -385,6 +446,14 @@ let commitObjectCache: {
         }
     }
 } = {};
+let compareObjCache: {
+    descendant: boolean
+    from: Commit
+    to: Commit
+    patches: {
+        [path: string]: ConvenientPatch
+    }
+};
 let workDirIndexCache: {
     unstagedPatches: ConvenientPatch[]
     stagedPatches: ConvenientPatch[]

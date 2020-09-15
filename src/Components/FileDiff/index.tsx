@@ -19,9 +19,9 @@ function renderHunk(hunk: HunkObj) {
 function renderLine(line: LineObj) {
     return (
         <tr class={line.type && `diff-line ${line.type === "+" ? "added" : "deleted"}` || "diff-line"}>
-            <td class="diff-type">{line.type}</td>
             <td class="diff-line-number old">{line.oldLineno !== -1 && line.oldLineno}</td>
             <td class="diff-line-number new">{line.newLineno !== -1 && line.newLineno}</td>
+            <td class="diff-type">{line.type}</td>
             <td class="diff-line-content">{line.content}</td>
         </tr>
     );

@@ -15,6 +15,9 @@
 #commits-pane .short .date {
   display: none;
 }
+#commits-pane .short > a {
+  flex: 1;
+}
 
 #commits-pane .commit-graph::before {
   content: "<";

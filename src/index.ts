@@ -1,9 +1,12 @@
 import { join } from "path";
 import { app, BrowserWindow, ipcMain, Menu, dialog } from 'electron';
+
+import * as NodeGit from "nodegit";
 import { Repository, Commit, Revwalk, Cred, Branch, Rebase } from "nodegit";
-import { getBranches, getCommits, getCommitWithDiff, getHunks, eventReply, actionLock, getCommitPatches, eventReplyError, loadChanges, getWorkdirHunks, refreshWorkDir, stageFile, unstageFile, discardChanges, changeBranch, findFile } from "./Data/Main/Provider";
+
+import { getBranches, getCommits, commitWithDiff, getHunks, eventReply, actionLock, getCommitPatches, eventReplyError, loadChanges, getWorkdirHunks, refreshWorkDir, stageFile, unstageFile, discardChanges, changeBranch, findFile, compareRevisions, compareRevisionsPatches, hunksFromCompare } from "./Data/Main/Provider";
 import { IpcAction, IpcActionParams, IpcActionReturn, Locks } from './Data/Actions';
-import { readFileSync } from "fs";
+// import { readFileSync } from "fs";
 import { sendEvent } from "./Data/Main/WindowEvents";
 import { IpcMainEvent } from "electron/main";
 
@@ -16,6 +19,8 @@ const createWindow = () => {
         webPreferences: {
             nodeIntegration: true,
             enableRemoteModule: true,
+            // contextIsolation: true,
+            worldSafeExecuteJavaScript: true,
         }
     });
 
@@ -189,6 +194,15 @@ const menuTemplate = [
                 }
             },
             { label: 'Push...' },
+            {
+                type: "separator"
+            },
+            {
+                label: "Compare revisions...",
+                click: async() => {
+                    sendEvent(win.webContents, "begin-compare-revisions");
+                }
+            }
         ]
     },
     // { role: 'windowMenu' }
@@ -254,6 +268,7 @@ ipcMain.on("asynchronous-message", async (event, arg: EventArgs) => {
     }
 
     if (repo) {
+        // console.log(IpcAction[arg.action]);
         switch (arg.action) {
             case IpcAction.LOAD_BRANCHES:
                 eventReply(event, arg.action, await getBranches(repo));
@@ -262,7 +277,7 @@ ipcMain.on("asynchronous-message", async (event, arg: EventArgs) => {
                 eventReply(event, arg.action, await loadCommits(event, arg.data));
                 break;
             case IpcAction.LOAD_COMMIT:
-                eventReply(event, arg.action, await getCommitWithDiff(repo, arg.data));
+                eventReply(event, arg.action, await commitWithDiff(repo, arg.data));
                 break;
             case IpcAction.LOAD_PATCHES_WITHOUT_HUNKS:
                 eventReply(event, arg.action, await getCommitPatches(arg.data));
@@ -300,8 +315,12 @@ ipcMain.on("asynchronous-message", async (event, arg: EventArgs) => {
                 eventReply(event, arg.action, !!result);
                 break;
             case IpcAction.CREATE_BRANCH:
-                const newRef = await repo.createBranch(arg.data.name, arg.data.sha);
-                eventReply(event, arg.action, newRef !== null);
+                eventReply(event, arg.action, await repo.createBranch(arg.data.name, arg.data.sha) !== null);
+                break;
+            case IpcAction.CREATE_BRANCH_FROM_REF:
+                const ref1 = await repo.getReference(arg.data.ref);
+                const sha = ref1.isTag() ? (await ref1.peel(NodeGit.Object.TYPE.COMMIT)) as unknown as Commit : await repo.getReferenceCommit(arg.data.ref);
+                eventReply(event, arg.action, await repo.createBranch(arg.data.name, sha) !== null);
                 break;
             case IpcAction.DELETE_REF:
                 const ref = await repo.getReference(arg.data.name);
@@ -316,6 +335,13 @@ ipcMain.on("asynchronous-message", async (event, arg: EventArgs) => {
                 break;
             case IpcAction.CONTINUE_REBASE:
                 eventReply(event, arg.action, await continueRebase(repo));
+                break;
+            case IpcAction.OPEN_COMPARE_REVISIONS:
+                if (await compareRevisions(repo, arg.data)) {
+                    eventReply(event, arg.action, await compareRevisionsPatches());
+                } else {
+                    eventReply(event, arg.action, {error: "revisions not found"});
+                }
                 break;
         }
     }
@@ -354,12 +380,12 @@ function repoStatus() {
 }
 
 async function loadCommits(event: IpcMainEvent, params: IpcActionParams[IpcAction.LOAD_COMMITS]) {
-    let start: Commit | false = false;
     let revwalk = repo.createRevWalk();
     revwalk.sorting(Revwalk.SORT.TOPOLOGICAL | Revwalk.SORT.TIME);
     if ("history" in params) {
         revwalk.pushGlob("refs/*");
     } else {
+        let start: Commit;
         if ("branch" in params) {
             if (params.branch.includes("refs/tags")) {
                 const tag = await repo.getTagByName(params.branch);
@@ -383,6 +409,8 @@ async function loadCommits(event: IpcMainEvent, params: IpcActionParams[IpcActio
 function loadHunks(params: IpcActionParams[IpcAction.LOAD_HUNKS]) {
     if ("sha" in params) {
         return getHunks(params.sha, params.path);
+    } else if ("compare" in params) {
+        return hunksFromCompare(params.path);
     } else {
         return getWorkdirHunks(params.path);
     }

@@ -1,5 +1,3 @@
-import { Repository } from "nodegit";
-
 export enum IpcAction {
     LOAD_COMMITS,
     LOAD_COMMITS_PARTIAL,
@@ -18,10 +16,12 @@ export enum IpcAction {
     PULL,
     PUSH,
     CREATE_BRANCH,
+    CREATE_BRANCH_FROM_REF,
     DELETE_REF,
     FIND_FILE,
     ABORT_REBASE,
     CONTINUE_REBASE,
+    OPEN_COMPARE_REVISIONS,
 };
 
 export type IpcActionParams = {
@@ -36,6 +36,8 @@ export type IpcActionParams = {
         workDir: boolean
     } | {
         sha: string
+    } | {
+        compare: boolean
     }) & {
         path: string
     }
@@ -58,6 +60,10 @@ export type IpcActionParams = {
         sha: string
         name: string
     }
+    [IpcAction.CREATE_BRANCH_FROM_REF]: {
+        ref: string
+        name: string
+    }
     [IpcAction.DELETE_REF]: {
         name: string
         force?: boolean
@@ -66,6 +72,7 @@ export type IpcActionParams = {
     [IpcAction.FIND_FILE]: string
     [IpcAction.ABORT_REBASE]: never
     [IpcAction.CONTINUE_REBASE]: never
+    [IpcAction.OPEN_COMPARE_REVISIONS]: {from: string, to: string}
 };
 
 export type IpcActionReturn = {
@@ -99,10 +106,12 @@ export type IpcActionReturn = {
     [IpcAction.PULL]: boolean
     [IpcAction.PUSH]: boolean
     [IpcAction.CREATE_BRANCH]: boolean
+    [IpcAction.CREATE_BRANCH_FROM_REF]: boolean
     [IpcAction.DELETE_REF]: boolean
     [IpcAction.FIND_FILE]: string[]
     [IpcAction.ABORT_REBASE]: RepoStatus
     [IpcAction.CONTINUE_REBASE]: RepoStatus
+    [IpcAction.OPEN_COMPARE_REVISIONS]: PatchObj[]
 };
 
 export type IpcActionReturnError = {

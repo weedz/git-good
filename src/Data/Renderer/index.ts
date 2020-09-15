@@ -1,4 +1,4 @@
-import { ipcRenderer, IpcRendererEvent } from "electron";
+import { ipcRenderer, IpcRendererEvent, remote } from "electron";
 import { IpcAction, IpcActionParams, IpcActionReturn } from "../Actions";
 
 export const state = {
@@ -24,10 +24,12 @@ const handlers: {[key in IpcAction]: Function[]} = {
     [IpcAction.PULL]: [],
     [IpcAction.PUSH]: [],
     [IpcAction.CREATE_BRANCH]: [],
+    [IpcAction.CREATE_BRANCH_FROM_REF]: [],
     [IpcAction.DELETE_REF]: [],
     [IpcAction.FIND_FILE]: [],
     [IpcAction.ABORT_REBASE]: [],
     [IpcAction.CONTINUE_REBASE]: [],
+    [IpcAction.OPEN_COMPARE_REVISIONS]: [],
 };
 export function registerHandler<T extends IpcAction>(action: T, cb: (arg: IpcActionReturn[T]) => void) {
     handlers[action]?.push(cb);
@@ -40,6 +42,9 @@ export function attach() {
     ipcRenderer.on("asynchronous-reply", handleEvent);
 }
 function handleEvent(event: IpcRendererEvent, payload: {action: IpcAction, data: any}) {
+    if (payload.data.error) {
+        remote.dialog.showErrorBox(`Error ${IpcAction[payload.action]}`, payload.data.error);
+    }
     if (!handlers[payload.action]) {
         console.warn(`Missing handler for action "${payload.action}"`);
         return;

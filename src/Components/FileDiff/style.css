@@ -6,6 +6,7 @@
     background-color: #000;
     display: flex;
     flex-direction: column;
+    --border-color: #aaa;
 }
 #file-diff h1 {
     overflow-wrap: anywhere;
@@ -18,4 +19,18 @@
 }
 #file-diff > ul li > table {
     width: 100%;
+    border-top: 1px solid var(--border-color);
+    border-bottom: 1px solid var(--border-color);
+}
+
+#file-diff .diff-line .diff-type,
+#file-diff .diff-line .diff-line-number {
+    user-select: none;
+}
+.diff-line:hover .diff-line-number {
+    background-color: cadetblue;
+}
+.diff-line-number.old,
+.diff-line-number.new {
+    border-right: 1px solid var(--border-color);
 }

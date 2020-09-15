@@ -3,10 +3,10 @@ import { Link } from "@weedzcokie/router-tsx";
 
 import "./style.css";
 import { normalizeLocalName } from "../../Data/Branch";
-import { BranchesObj, BranchObj } from "../../Data/Actions";
+import { BranchesObj } from "../../Data/Actions";
 import { loadBranches, subscribe, Store, unsubscribe, checkoutBranch } from "../../Data/Renderer/store";
-import { showHeadMenu, showLocalMenu, showOriginMenu, showRemoteMenu } from "./Menu";
-import { BranchAheadBehind, toggleTreeItem, branchTree, listRemotes, BranchTree, getBranchTree, filterBranches } from "./Utils";
+import { showHeadMenu, showLocalMenu, showOriginMenu, showRemoteMenu, showTagMenu } from "./Menu";
+import { BranchAheadBehind, toggleTreeItem, branchTree, listRemotes, getBranchTree, filterBranches } from "./Utils";
 
 type Props = {
     branches?: BranchesObj
@@ -86,7 +86,7 @@ export default class BranchList extends Component<Props, State> {
                             <hr />
                             <li class="sub-tree">
                                 <a href="#" onClick={toggleTreeItem}>Tags</a>
-                                {branchTree(branches.tags)}
+                                {branchTree(branches.tags, showTagMenu)}
                             </li>
                         </ul>}
                     </div>

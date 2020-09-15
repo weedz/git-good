@@ -7,7 +7,8 @@ export type WindowEvents =
     "open-settings" |
     "app-lock-ui" |
     "app-unlock-ui" |
-    "pull-head";
+    "pull-head" |
+    "begin-compare-revisions";
 
 export type WindowArguments = {
     "repo-opened": IpcActionReturn[IpcAction.OPEN_REPO]
@@ -17,4 +18,5 @@ export type WindowArguments = {
     "app-lock-ui": Locks
     "app-unlock-ui": Locks
     "pull-head": undefined
+    "begin-compare-revisions": undefined
 }

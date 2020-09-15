@@ -11,16 +11,10 @@
 .diff-line:empty {
     content: "&nbsp;";
 }
-/* .diff-line.added {
-    color: green;
-}
-.diff-line.deleted {
-    color: red;
-} */
-.diff-line.added .diff-line-content {
+.diff-line.added {
     background-color: darkgreen;
 }
-.diff-line.deleted .diff-line-content {
+.diff-line.deleted {
     background-color: darkred;
 }
 .diff-line-content {
@@ -43,9 +37,14 @@
 }
 .diff-view > li > .action-group {
     position: absolute;
+    display: none;
     right: 0;
     top: 0;
     bottom: 0;
+}
+
+.diff-view > li:hover > .action-group {
+    display: initial;
 }
 
 #diff-pane .msg pre {
