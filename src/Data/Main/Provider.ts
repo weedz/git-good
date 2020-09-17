@@ -248,8 +248,8 @@ function handleLine(line: DiffLine): LineObj {
     }
     return {
         type,
-        // offset: line.contentOffset(),
-        // length: line.contentLen(),
+        offset: line.contentOffset(),
+        length: line.contentLen(),
         oldLineno: oldLineno,
         newLineno: newLineno,
         content: line.rawContent().trimRight()

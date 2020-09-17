@@ -146,8 +146,8 @@ export type LineObj = {
     oldLineno: number
     newLineno: number
     content: string
-    // offset: number
-    // length: number
+    offset?: number
+    length?: number
 };
 export type HunkObj = {
     header: string
