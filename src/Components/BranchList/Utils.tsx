@@ -42,7 +42,7 @@ export function branchTree(branches: BranchTree, contextMenuCb?: (event: any) =>
         for (const item of Object.keys(branches.subtree)) {
             const children = branchTree(branches.subtree[item], contextMenuCb, dblClickHandle);
             items.push(
-                <li class="sub-tree" key={item}>
+                <li className="sub-tree" key={item}>
                     <a href="#" onClick={toggleTreeItem}>{item}</a>
                     {children}
                 </li>
@@ -61,7 +61,7 @@ export function branchTree(branches: BranchTree, contextMenuCb?: (event: any) =>
         }
     }
     return (
-        <ul class="tree-list block-list">
+        <ul className="tree-list block-list">
             {items}
         </ul>
     );
@@ -74,14 +74,14 @@ export function listRemotes(branches: BranchTree, originContextMenuCb: (event: a
     for (const item of Object.keys(branches.subtree)) {
         const children = branchTree(branches.subtree[item], contextMenuCb);
         items.push(
-            <li class="sub-tree">
+            <li className="sub-tree">
                 <a onContextMenu={originContextMenuCb} href="#" onClick={toggleTreeItem}>{item}</a>
                 {children}
             </li>
         );
     }
     return (
-        <ul class="tree-list block-list">
+        <ul className="tree-list block-list">
             {items}
         </ul>
     )

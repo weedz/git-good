@@ -47,12 +47,12 @@ export default class ChangedFiles extends Component<Props, {}> {
             typeCss = "file-renamed";
         }
         return (
-            <li class="sub-tree" key={patch.actualFile.path}>
+            <li className="sub-tree" key={patch.actualFile.path}>
                 <a href="#" onClick={_ => this.openFile(patch)}>
                     <span className={typeCss}>{getType(patch.status)}</span>&nbsp;
                     <span>{patch.actualFile.path}</span>
                 </a>
-                {this.props.actions && <div class="action-group">
+                {this.props.actions && <div className="action-group">
                     {this.props.actions?.map(action => <button data-path={patch.actualFile.path} onClick={action.click}>{action.label}</button>)}
                 </div>}
             </li>

@@ -113,7 +113,6 @@ export default class CommitList extends Component<Props, State> {
         });
     }
     commitsLoaded = (result: IpcActionReturn[IpcAction.LOAD_COMMITS] | IpcActionReturnError) => {
-        console.log("commits loaded");
         if ("error" in result) {
             console.warn(result);
             return;
@@ -155,10 +154,10 @@ export default class CommitList extends Component<Props, State> {
     }
     commitItem(commit: LoadCommitReturn) {
         return (
-            <li class="short" key={commit.sha} data-sha={commit.sha} onContextMenu={showCommitMenu}>
+            <li className="short" key={commit.sha} data-sha={commit.sha} onContextMenu={showCommitMenu}>
                 <span className="graph-indicator" style={{backgroundColor: headColors[this.graph[commit.sha].colorId]}}></span>
                 {
-                    this.graph[commit.sha].descendants.length > 0 && <ul class="commit-graph">
+                    this.graph[commit.sha].descendants.length > 0 && <ul className="commit-graph">
                         {this.graph[commit.sha].descendants.map(child => <li><StaticLink style={{color: headColors[this.graph[child.sha].colorId]}} href={ (this.props.branch ? `/branch/${this.props.branch}/` : "/commit/") + child.sha}>{child.sha.substring(0,7)}</StaticLink></li>)}
                     </ul>
                 }
@@ -166,14 +165,14 @@ export default class CommitList extends Component<Props, State> {
                     {Store.heads[commit.sha] && 
                         Store.heads[commit.sha].map(ref => <span style={{color: headColors[this.graph[commit.sha].colorId]}}>({ref.normalizedName})</span>)
                     }
-                    <span class="msg">{commit.message.substring(0, commit.message.indexOf("\n")>>>0 || 60)}</span>
+                    <span className="msg">{commit.message.substring(0, commit.message.indexOf("\n")>>>0 || 60)}</span>
                 </Link>
             </li>
         );
     }
     render() {
         return (
-            <div id="commits-pane" class="pane">
+            <div id="commits-pane" className="pane">
                 <h4>Commits</h4>
                 <div>
                     <input type="text" value={this.state.filter} onKeyUp={this.filter} placeholder="sha,message" />

@@ -61,7 +61,7 @@ export default class BranchList extends Component<Props, State> {
 
         return (
             <Fragment>
-                <div id="branch-pane" class="pane">
+                <div id="branch-pane" className="pane">
                     <div style={{
                         display: "inline-block",
                         minWidth: "100%",
@@ -73,25 +73,25 @@ export default class BranchList extends Component<Props, State> {
                         </ul>
                         <hr />
                         {branches &&
-                        <ul class="tree-list block-list">
-                            <li class="sub-tree">
+                        <ul className="tree-list block-list">
+                            <li className="sub-tree">
                                 <a href="#" onClick={toggleTreeItem}>Local</a>
                                 {branchTree(branches.local, showLocalMenu, (e:any) => checkoutBranch(e.currentTarget.dataset.ref))}
                             </li>
                             <hr />
-                            <li class="sub-tree">
+                            <li className="sub-tree">
                                 <a href="#" onClick={toggleTreeItem}>Remote</a>
                                 {listRemotes(branches.remote, showOriginMenu, showRemoteMenu)}
                             </li>
                             <hr />
-                            <li class="sub-tree">
+                            <li className="sub-tree">
                                 <a href="#" onClick={toggleTreeItem}>Tags</a>
                                 {branchTree(branches.tags, showTagMenu)}
                             </li>
                         </ul>}
                     </div>
                 </div>
-                <div class="pane">
+                <div className="pane">
                     <input type="text" placeholder="Filter..." onKeyUp={this.filter} />
                 </div>
             </Fragment>

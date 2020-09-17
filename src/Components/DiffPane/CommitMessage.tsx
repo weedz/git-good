@@ -22,16 +22,16 @@ export default function CommitMessage(props: {commit: CommitObj}) {
             }
             <p>
                 <span>Parents:</span>
-                <ul class="parent-list">
+                <ul className="parent-list">
                     {props.commit.parents.map(parent => <li><StaticLink href={`/commit/${parent.sha}`}>{parent.sha.substring(0,7)}</StaticLink></li>)}
                 </ul>
             </p>
-            <p class="date">Date: {new Date(props.commit.date * 1000).toLocaleString()}</p>
-            {props.commit.date !== props.commit.authorDate && <p class="date">Authored: {new Date(props.commit.authorDate * 1000).toLocaleString()}</p>}
-            <p class="author">author: {props.commit.author.name} &lt;{props.commit.author.email}&gt;</p>
-            {props.commit.committer.email !== props.commit.author.email && <p class="author">commiter: {props.commit.committer.name} &lt;{props.commit.committer.email}&gt;</p>}
+            <p className="date">Date: {new Date(props.commit.date * 1000).toLocaleString()}</p>
+            {props.commit.date !== props.commit.authorDate && <p className="date">Authored: {new Date(props.commit.authorDate * 1000).toLocaleString()}</p>}
+            <p className="author">author: {props.commit.author.name} &lt;{props.commit.author.email}&gt;</p>
+            {props.commit.committer.email !== props.commit.author.email && <p className="author">commiter: {props.commit.committer.name} &lt;{props.commit.committer.email}&gt;</p>}
             <hr />
-            <div class="msg">
+            <div className="msg">
                 <h4>{title}</h4>
                 {message.filter(line => !!line).map(line => <pre>{line}</pre>)}
             </div>

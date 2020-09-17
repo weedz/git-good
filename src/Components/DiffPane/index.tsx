@@ -73,7 +73,7 @@ export default class DiffPane extends Component<RoutableProps<Props>, State> {
         const patches = this.state.fileFilter ? this.state.patches.filter(patch => patch.actualFile.path.toLocaleLowerCase().includes(this.state.fileFilter)) : this.state.patches;
 
         return (
-            <div id="diff-pane" class="pane">
+            <div id="diff-pane" className="pane">
                 <CommitMessage commit={this.state.commit} />
                 <hr />
 

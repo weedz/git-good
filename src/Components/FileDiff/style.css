@@ -23,14 +23,48 @@
     border-bottom: 1px solid var(--border-color);
 }
 
+.diff-header {
+    color: teal;
+}
+.diff-line:empty {
+    content: "&nbsp;";
+}
+.diff-line.new,
+.diff-line .new {
+    background-color: darkgreen;
+}
+.diff-line.old,
+.diff-line .old {
+    background-color: darkred;
+}
+.diff-line-content {
+    margin: 0;
+    white-space: pre;
+}
+#file-diff.wrap-content .diff-line-content {
+    white-space: pre-wrap;
+    word-break: break-all;
+}
+#file-diff.parallel .diff-line-content {
+    width: 45%;
+}
+
 #file-diff .diff-line .diff-type,
 #file-diff .diff-line .diff-line-number {
     user-select: none;
+    width: 1px;
+    vertical-align: top;
 }
 .diff-line:hover .diff-line-number {
     background-color: cadetblue;
 }
-.diff-line-number.old,
-.diff-line-number.new {
+.diff-line-number {
     border-right: 1px solid var(--border-color);
+}
+
+.left-side-selected .right {
+    user-select: none;
+}
+.right-side-selected .left {
+    user-select: none;
 }

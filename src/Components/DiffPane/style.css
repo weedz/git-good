@@ -5,26 +5,6 @@
     width: 325px;
     overflow: auto;
 }
-.diff-header {
-    color: teal;
-}
-.diff-line:empty {
-    content: "&nbsp;";
-}
-.diff-line.added {
-    background-color: darkgreen;
-}
-.diff-line.deleted {
-    background-color: darkred;
-}
-.diff-line-content {
-    margin: 0;
-    white-space: pre;
-}
-.diff-line-number,
-.diff-type {
-    width: 1px;
-}
 .diff-view {
     overflow: auto;
 }

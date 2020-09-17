@@ -13,9 +13,9 @@ export function Dialog({dialogWindow}: Props) {
     }
     return (
         <Fragment>
-            <div class="dialog-window-backdrop"></div>
-            <div class="dialog-window-container">
-                <div class="dialog-window">
+            <div className="dialog-window-backdrop"></div>
+            <div className="dialog-window-container">
+                <div className="dialog-window">
                     <form onSubmit={(e) => {
                         e.preventDefault();
                         dialogWindow.confirmCb(data);

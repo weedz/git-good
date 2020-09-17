@@ -57,7 +57,7 @@ export default class WorkingArea extends Component<RoutableProps, State> {
         return (
             <Fragment>
                 <FileDiff />
-                <div id="working-area-actions" class="pane">
+                <div id="working-area-actions" className="pane">
                     {Store.repo?.status?.rebasing &&
                         <div>
                             <button onClick={() => continueRebase()}>Continue rebase</button>
@@ -67,15 +67,15 @@ export default class WorkingArea extends Component<RoutableProps, State> {
                 </div>
                 <div id="working-area">
                     <div id="commit-stage">
-                        <div id="unstaged-changes" class="pane">
+                        <div id="unstaged-changes" className="pane">
                             <h4>Unstaged ({this.state.unstaged?.length})<button>Stage all</button></h4>
                             {this.state.unstaged && <ChangedFiles patches={this.state.unstaged} workDir actions={[{label: "Stage", click: this.stageFile}, {label: "Discard", click: this.discard}]} />}
                         </div>
-                        <div id="staged-changes" class="pane">
+                        <div id="staged-changes" className="pane">
                             <h4>Staged ({this.state.staged?.length})<button>Unstage all</button></h4>
                             {this.state.staged && <ChangedFiles patches={this.state.staged} workDir actions={[{label: "Unstage", click: this.unstageFile}]} />}
                         </div>
-                        <div class="pane">
+                        <div className="pane">
                             <h4>Commit</h4>
                             <form>
                                 <input type="text" name="summary" placeholder="Summary" />

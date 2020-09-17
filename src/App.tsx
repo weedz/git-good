@@ -63,13 +63,12 @@ export default class App extends Component<{}, State> {
         return (
             <div id="main-window">
                 {Store.dialogWindow && <Dialog dialogWindow={Store.dialogWindow} />}
-                {this.state.lock && <div class="lock-overlay" />}
+                {this.state.lock && <div className="lock-overlay" />}
                 <div id="left-pane">
                     <Changes />
                     <BranchList />
                 </div>
-                <Router>
-                    <Main path="/" />
+                <Router url="/branch/HEAD">
                     <Main path="/history" history />
                     <Main path="/history/commit/:sha" history />
                     <Main path="/commit/:sha" />

@@ -27,7 +27,7 @@ export default class Changes extends Component {
     }
     render() {
         return (
-            <div id="changes-pane" class="pane">
+            <div id="changes-pane" className="pane">
                 <h4>Working area</h4>
                 <ul className="block-list">
                     {Store.repo?.status?.bisecting && <li><span>Bisecting</span></li>}
