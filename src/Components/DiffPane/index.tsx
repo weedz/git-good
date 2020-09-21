@@ -1,5 +1,4 @@
 import { h, Component } from "preact";
-import { RoutableProps } from "@weedzcokie/router-tsx";
 import { registerHandler, unregisterHandler } from "../../Data/Renderer";
 import { sendAsyncMessage } from "../../Data/Renderer";
 import { IpcAction, CommitObj, PatchObj, IpcActionReturn, IpcActionReturnError } from "../../Data/Actions";
@@ -15,7 +14,7 @@ type State = {
     loadingComplete: boolean
     fileFilter: string
 }
-export default class DiffPane extends Component<RoutableProps<Props>, State> {
+export default class DiffPane extends Component<Props, State> {
     constructor() {
         super();
         this.resetView();

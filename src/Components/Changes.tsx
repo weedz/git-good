@@ -13,7 +13,7 @@ export default class Changes extends Component {
     };
     componentWillMount() {
         registerHandler(IpcAction.REFRESH_WORKDIR, this.updateIndex);
-        refreshWorkdir();
+        // refreshWorkdir();
     }
     componentWillUnmount() {
         unregisterHandler(IpcAction.REFRESH_WORKDIR, this.updateIndex);
@@ -26,6 +26,7 @@ export default class Changes extends Component {
         }
     }
     render() {
+        const changes = this.state.changes.staged + this.state.changes.unstaged;
         return (
             <div id="changes-pane" className="pane">
                 <h4>Working area</h4>
@@ -34,7 +35,7 @@ export default class Changes extends Component {
                     {Store.repo?.status?.merging && <li><span>Merging</span></li>}
                     {Store.repo?.status?.rebasing && <li><span>Rebasing</span></li>}
                     {Store.repo?.status?.reverting && <li><span>Reverting</span></li>}
-                    <li><Link activeClassName="selected" href="/working-area">Changes ({this.state.changes.staged + this.state.changes.unstaged})</Link></li>
+                    <li><Link activeClassName="selected" href="/working-area">Changes ({changes})</Link></li>
                 </ul>
             </div>
         );

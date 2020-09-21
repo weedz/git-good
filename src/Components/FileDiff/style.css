@@ -40,6 +40,7 @@
 .diff-line-content {
     margin: 0;
     white-space: pre;
+    vertical-align: top;
 }
 #file-diff.wrap-content .diff-line-content {
     white-space: pre-wrap;

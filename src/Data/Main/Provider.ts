@@ -352,24 +352,30 @@ export async function getCommitPatches(sha: string) {
 }
 
 export async function compareRevisions(repo: Repository, revisions: {from: string, to: string}) {
-    const fromCommit = await repo.getCommit(revisions.from).catch(_ => repo.getReferenceCommit(revisions.from));
-    if (!fromCommit) {
-        return false;
-    }
+    const fromCommit = repo.getReference(revisions.from)
+        .then(ref => ref.peel(Object.TYPE.COMMIT) as unknown as Commit)
+        .then(commit => commit.id().tostrS())
+        .catch(() => revisions.from)
+        .then(sha => repo.getCommit(sha));
 
-    const  toCommit = await repo.getCommit(revisions.to).catch(_ => repo.getReferenceCommit(revisions.to));
-    if (!toCommit) {
-        return false;
-    }
+    const toCommit = repo.getReference(revisions.to)
+        .then(ref => ref.peel(Object.TYPE.COMMIT) as unknown as Commit)
+        .then(commit => commit.id().tostrS())
+        .catch(() => revisions.to)
+        .then(sha => repo.getCommit(sha));
 
-    // TODO: show commits if `descandant === true`
-    compareObjCache = {
-        descendant: await Graph.descendantOf(repo, toCommit.id(), fromCommit.id()) === 1,
-        from: fromCommit,
-        to: toCommit,
-        patches: {}
-    };
-    return true;
+    return Promise.all([fromCommit, toCommit]).then(async commits => {
+        // TODO: show commits if `descandant === true`
+        compareObjCache = {
+            descendant: await Graph.descendantOf(repo, commits[0].id(), commits[1].id()) === 1,
+            from: commits[0],
+            to: commits[1],
+            patches: {}
+        };
+        return true;
+    }).catch(_ => {
+        return false;
+    });
 }
 
 export async function compareRevisionsPatches() {

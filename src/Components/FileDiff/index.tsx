@@ -11,6 +11,28 @@ type State = {
     wrapLine: boolean
 }
 
+function compactLines(lines: LineObj[]) {
+    const parsedLines = [];
+    let oldLines: any[] = [];
+
+    for (const line of lines)
+    {
+        if (line.type === "-") {
+            oldLines.push(line);
+            parsedLines.push(line);
+        }
+        else if (line.type === "+" && oldLines.length > 0) {
+            const oldLine = oldLines.shift();
+            oldLine.newContent = line;
+        } else {
+            oldLines = [];
+            parsedLines.push(line);
+        }
+    }
+
+    return parsedLines;
+}
+
 export default class FileDiff extends Component<{}, State> {
     constructor() {
         super();
@@ -33,8 +55,9 @@ export default class FileDiff extends Component<{}, State> {
     renderHunk = (hunk: HunkObj) => {
         let lines;
         if (hunk.lines) {
-            lines = this.state.viewType === "side-by-side" ? hunk.lines.map(this.renderLineSideBySide) : hunk.lines.map(this.renderLine);
+            lines = this.state.viewType === "side-by-side" ? compactLines(hunk.lines).map(this.renderLineSideBySide) : hunk.lines.map(this.renderLine);
         }
+
         return (
             <li>
                 <p className="diff-header">{hunk.header}</p>
@@ -56,9 +79,11 @@ export default class FileDiff extends Component<{}, State> {
         );
     }
     
-    renderLineSideBySide = (line: LineObj) => {
+    renderLineSideBySide = (line: any) => {
+        const newLine = line.newContent || line;
+
         const oldLineNo = line.oldLineno !== -1 && line.oldLineno;
-        const newLineNo = line.newLineno !== -1 && line.newLineno;
+        const newLineNo = newLine.newLineno !== -1 && newLine.newLineno;
         const type = !!line.type;
         const oldType = type && oldLineNo ? " old" : "";
         const newType = type && newLineNo ? " new" : "";
@@ -68,8 +93,8 @@ export default class FileDiff extends Component<{}, State> {
                 <td onMouseDown={this.selectLeft} className={`left diff-type${oldType}`}>{oldLineNo && line.type}</td>
                 <td onMouseDown={this.selectLeft} className={`left diff-line-content${oldType}`}>{!type || oldLineNo ? line.content : null}</td>
                 <td onMouseDown={this.selectRight} className={`right diff-line-number${newType}`}>{newLineNo}</td>
-                <td onMouseDown={this.selectRight} className={`right diff-type${newType}`}>{newLineNo && line.type}</td>
-                <td onMouseDown={this.selectRight} className={`right diff-line-content${newType}`}>{!type || newLineNo ? line.content : null}</td>
+                <td onMouseDown={this.selectRight} className={`right diff-type${newType}`}>{newLineNo && newLine.type}</td>
+                <td onMouseDown={this.selectRight} className={`right diff-line-content${newType}`}>{!type || newLineNo ? newLine.content : null}</td>
             </tr>
         );
     }

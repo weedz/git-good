@@ -169,6 +169,8 @@ function repoOpened(result: IpcActionReturn[IpcAction.OPEN_REPO] | IpcActionRetu
                 status: result.status
             }
         });
+        loadBranches();
+        refreshWorkdir();
     } else {
         setState({
             repo: null

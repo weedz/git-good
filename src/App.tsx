@@ -10,6 +10,7 @@ import BranchList from "./Components/BranchList";
 import { subscribe, Store, unsubscribe, openRepo, StoreType } from "./Data/Renderer/store";
 import { Locks } from "./Data/Actions";
 import { Dialog } from "./Components/Dialog";
+import FileDiff from "./Components/FileDiff";
 
 type State = {
     lock: boolean
@@ -68,6 +69,7 @@ export default class App extends Component<{}, State> {
                     <Changes />
                     <BranchList />
                 </div>
+                <FileDiff />
                 <Router url="/branch/HEAD">
                     <Main path="/history" history />
                     <Main path="/history/commit/:sha" history />

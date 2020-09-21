@@ -43,7 +43,7 @@ const headColors = [
 
 export default class CommitList extends Component<Props, State> {
     graph: {
-        [key: string]: {
+        [sha: string]: {
             descendants: LoadCommitReturn[]
             colorId: number
         }
@@ -161,7 +161,7 @@ export default class CommitList extends Component<Props, State> {
                         {this.graph[commit.sha].descendants.map(child => <li><StaticLink style={{color: headColors[this.graph[child.sha].colorId]}} href={ (this.props.branch ? `/branch/${this.props.branch}/` : "/commit/") + child.sha}>{child.sha.substring(0,7)}</StaticLink></li>)}
                     </ul>
                 }
-                <Link activeClassName="selected" href={ (this.props.branch ? `/branch/${this.props.branch}/` : "/commit/") + commit.sha}>
+                <Link scrollToWhenActive activeClassName="selected" href={ (this.props.branch ? `/branch/${this.props.branch}/` : "/commit/") + commit.sha}>
                     {Store.heads[commit.sha] && 
                         Store.heads[commit.sha].map(ref => <span style={{color: headColors[this.graph[commit.sha].colorId]}}>({ref.normalizedName})</span>)
                     }

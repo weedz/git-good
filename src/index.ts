@@ -6,7 +6,6 @@ import { Repository, Commit, Revwalk, Cred, Branch, Rebase } from "nodegit";
 
 import { getBranches, getCommits, commitWithDiff, getHunks, eventReply, actionLock, getCommitPatches, eventReplyError, loadChanges, getWorkdirHunks, refreshWorkDir, stageFile, unstageFile, discardChanges, changeBranch, findFile, compareRevisions, compareRevisionsPatches, hunksFromCompare } from "./Data/Main/Provider";
 import { IpcAction, IpcActionParams, IpcActionReturn, Locks } from './Data/Actions';
-// import { readFileSync } from "fs";
 import { sendEvent } from "./Data/Main/WindowEvents";
 import { IpcMainEvent } from "electron/main";
 
@@ -163,20 +162,27 @@ const menuTemplate = [
                 click: async () => {
                     sendEvent(win.webContents, "app-lock-ui", Locks.MAIN);
 
-                    // FIXME: make this configurable
-                    // const username = "git";
-                    // const publickey = readFileSync("/Users/linusbjorklund/.ssh/id_rsa.pub").toString();
-                    // const privatekey = readFileSync("/Users/linusbjorklund/.ssh/id_rsa").toString();
-                    // const passphrase = "";
-                    // const cred = await Cred.sshKeyMemoryNew(username, publickey, privatekey, passphrase);
-                    
                     await repo.fetchAll({
                         callbacks: {
-                            credentials: (url: any, user: any) => {
+                            credentials: (url: string, user: string) => {
                                 const cred = Cred.sshKeyFromAgent(user);
                                 return cred;
-                            }
-                        }
+                            },
+                            transferProgress: (stats: NodeGit.TransferProgress, remote: string) => {
+                                // TODO: we could update UI to show "fetch status"
+                                console.log("transferProgress", remote, stats);
+
+                                // @ts-ignore
+                                if (stats.receivedObjects() == stats.totalObjects()) {
+                                    // @ts-ignore
+                                    console.log(`Resolving deltas ${stats.indexedDeltas()}/${stats.totalDeltas()}`);
+                                // @ts-ignore
+                                } else if (stats.totalObjects() > 0) {
+                                    // @ts-ignore
+                                    console.log(`Received ${stats.receivedObjects()}/${stats.totalObjects()} objects (${stats.indexedObjects()}) in ${stats.receivedBytes()} bytes`);
+                                }
+                            },
+                        },
                     });
                     sendEvent(win.webContents, "repo-fetch-all");
                 }

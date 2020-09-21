@@ -19,7 +19,7 @@ type State = {
 export default class BranchList extends Component<Props, State> {
     componentWillMount() {
         subscribe(this.update, "branches");
-        loadBranches();
+        // loadBranches();
     }
     componentWillUnmount() {
         unsubscribe(this.update, "branches");
