@@ -99,11 +99,17 @@ export default class FileDiff extends Component<{}, State> {
         );
     }
 
-    selectLeft =() => {
-        this.setState({sideSelected: "left"});
+    selectLeft = () => {
+        if (this.state.sideSelected !== "left") {
+            window.getSelection()?.removeAllRanges();
+            this.setState({sideSelected: "left"});
+        }
     }
-    selectRight =() => {
-        this.setState({sideSelected: "right"});
+    selectRight = () => {
+        if (this.state.sideSelected !== "right") {
+            window.getSelection()?.removeAllRanges();
+            this.setState({sideSelected: "right"});
+        }
     }
 
     render() {
