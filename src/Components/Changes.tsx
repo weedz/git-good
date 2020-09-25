@@ -1,8 +1,8 @@
 import { h, Component } from "preact";
-import { Link } from "@weedzcokie/router-tsx";
 import { registerHandler, unregisterHandler } from "src/Data/Renderer";
 import { IpcAction, IpcActionReturn } from "src/Data/Actions";
-import { refreshWorkdir, Store } from "../Data/Renderer/store";
+import { Store } from "../Data/Renderer/store";
+import Link from "./Link";
 
 export default class Changes extends Component {
     state = {
@@ -13,7 +13,6 @@ export default class Changes extends Component {
     };
     componentWillMount() {
         registerHandler(IpcAction.REFRESH_WORKDIR, this.updateIndex);
-        // refreshWorkdir();
     }
     componentWillUnmount() {
         unregisterHandler(IpcAction.REFRESH_WORKDIR, this.updateIndex);

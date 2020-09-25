@@ -1,6 +1,5 @@
 import { h, Component } from "preact";
 import { basename } from "path";
-import { RouterComponent as Router } from "@weedzcokie/router-tsx";
 
 import Main from "./Views/Main";
 import WorkingArea from "./Views/WorkingArea";
@@ -62,24 +61,18 @@ export default class App extends Component<{}, State> {
             );
         }
         return (
-            <div id="main-window">
-                {Store.dialogWindow && <Dialog dialogWindow={Store.dialogWindow} />}
-                {this.state.lock && <div className="lock-overlay" />}
-                <div id="left-pane">
-                    <Changes />
-                    <BranchList />
+                <div id="main-window">
+                    {Store.dialogWindow && <Dialog dialogWindow={Store.dialogWindow} />}
+                    {this.state.lock && <div className="lock-overlay" />}
+                    <div id="left-pane">
+                        <Changes />
+                        <BranchList />
+                    </div>
+                    <FileDiff />
+                    <Main />
+                    {/* <WorkingArea /> */}
+                    {/* <Compare /> */}
                 </div>
-                <FileDiff />
-                <Router url="/branch/HEAD">
-                    <Main path="/history" history />
-                    <Main path="/history/commit/:sha" history />
-                    <Main path="/commit/:sha" />
-                    <Main path="/branch/:branch" />
-                    <Main path="/branch/:branch/:sha" />
-                    <WorkingArea path="/working-area" />
-                    <Compare path="/compare" />
-                </Router>
-            </div>
         );
     }
 }

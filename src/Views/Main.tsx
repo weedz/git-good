@@ -1,5 +1,4 @@
-import { h, Component, Fragment } from "preact";
-import { RoutableProps } from "@weedzcokie/router-tsx";
+import { h, Component } from "preact";
 import CommitList from "src/Components/CommitList";
 import DiffPane from "src/Components/DiffPane";
 
@@ -9,7 +8,7 @@ type Props = {
     history?: boolean
 }
 
-export default class Main extends Component<RoutableProps<Props>> {
+export default class Main extends Component<Props> {
     render() {
         return (
             <div style={{
@@ -19,7 +18,7 @@ export default class Main extends Component<RoutableProps<Props>> {
                 overflowY: "auto",
             }}>
                 <CommitList sha={this.props.sha} branch={this.props.branch} history={this.props.history} />
-                {this.props.sha && <DiffPane sha={this.props.sha} />}
+                <DiffPane />
             </div>
         );
     }

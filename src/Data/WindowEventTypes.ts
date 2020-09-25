@@ -3,6 +3,7 @@ import { Locks, IpcActionReturn, IpcAction } from "./Actions";
 export type WindowEvents =
     "repo-opened" |
     "repo-fetch-all" |
+    "fetch-status" |
     "refresh-workdir" |
     "open-settings" |
     "app-lock-ui" |
@@ -12,11 +13,19 @@ export type WindowEvents =
 
 export type WindowArguments = {
     "repo-opened": IpcActionReturn[IpcAction.OPEN_REPO]
-    "repo-fetch-all": undefined
-    "refresh-workdir": undefined
-    "open-settings": undefined
+    "repo-fetch-all": void
+    "refresh-workdir": void
+    "open-settings": void
     "app-lock-ui": Locks
     "app-unlock-ui": Locks
-    "pull-head": undefined
-    "begin-compare-revisions": undefined
+    "pull-head": void
+    "begin-compare-revisions": void
+    "fetch-status": {
+        totalDeltas: number
+        indexedDeltas: number
+        receivedObjects: number
+        totalObjects: number
+        indexedObjects: number
+        receivedBytes: number
+    }
 }

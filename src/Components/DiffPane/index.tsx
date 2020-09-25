@@ -6,19 +6,21 @@ import { IpcAction, CommitObj, PatchObj, IpcActionReturn, IpcActionReturnError }
 import "./style.css";
 import CommitMessage from "./CommitMessage";
 import ChangedFiles from "./ChangedFiles";
+import { subscribe, unsubscribe } from "src/Data/Renderer/store";
 
-type Props = {sha: string};
 type State = {
     commit: null | CommitObj
+    sha: string
     patches: PatchObj[]
     loadingComplete: boolean
     fileFilter: string
 }
-export default class DiffPane extends Component<Props, State> {
+export default class DiffPane extends Component<{}, State> {
     constructor() {
         super();
         this.resetView();
     }
+    unsubscribe!: Function;
     resetView() {
         this.setState({
             commit: null,
@@ -26,23 +28,25 @@ export default class DiffPane extends Component<Props, State> {
             loadingComplete: false,
         });
     }
+    loadCommitFromStore = (sha: string) => {
+        this.resetView();
+        this.setState({sha});
+        sendAsyncMessage(IpcAction.LOAD_COMMIT, sha);
+    }
     componentWillMount() {
+        this.unsubscribe = subscribe(this.loadCommitFromStore, "diffPaneSrc");
+
         registerHandler(IpcAction.LOAD_COMMIT, this.loadCommit);
         registerHandler(IpcAction.LOAD_PATCHES_WITHOUT_HUNKS, this.handlePatch);
-        sendAsyncMessage(IpcAction.LOAD_COMMIT, this.props.sha);
-    }
-    componentWillReceiveProps(newProps: Props) {
-        if (this.props.sha !== newProps.sha) {
-            sendAsyncMessage(IpcAction.LOAD_COMMIT, newProps.sha);
-            this.resetView();
-        }
     }
     componentWillUnmount() {
+        this.unsubscribe();
+
         unregisterHandler(IpcAction.LOAD_COMMIT, this.loadCommit);
         unregisterHandler(IpcAction.LOAD_PATCHES_WITHOUT_HUNKS, this.handlePatch);
     }
     loadCommit = (commit: IpcActionReturn[IpcAction.LOAD_COMMIT]) => {
-        sendAsyncMessage(IpcAction.LOAD_PATCHES_WITHOUT_HUNKS, this.props.sha);
+        sendAsyncMessage(IpcAction.LOAD_PATCHES_WITHOUT_HUNKS, this.state.sha);
         this.setState({
             commit
         });
@@ -64,9 +68,7 @@ export default class DiffPane extends Component<Props, State> {
     }
     render() {
         if (!this.state.commit) {
-            return (
-                <p>Loading commit...</p>
-            );
+            return;
         }
 
         const patches = this.state.fileFilter ? this.state.patches.filter(patch => patch.actualFile.path.toLocaleLowerCase().includes(this.state.fileFilter)) : this.state.patches;

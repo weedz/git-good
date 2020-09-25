@@ -48,7 +48,7 @@ export async function getCommits(event: IpcMainEvent, revwalk: Revwalk, repo: Re
     } else {
         // TODO: more filters..
         const filter = async (_: Commit) => true;
-    
+
         const history: Commit[] = [];
         for await (const oid of walkTheRev(revwalk, num)) {
             const commit = await Commit.lookup(repo, oid);

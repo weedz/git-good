@@ -2,7 +2,6 @@ import { IpcAction, BranchesObj, BranchObj, IpcActionReturn, PatchObj, IpcAction
 import { registerHandler, sendAsyncMessage, attach } from ".";
 import { ipcRenderer } from "electron";
 import { WindowEvents, WindowArguments } from "../WindowEventTypes";
-import { routeTo } from "@weedzcokie/router-tsx";
 
 export type DialogWindow = {
     title: string
@@ -26,6 +25,8 @@ export type StoreType = {
         [key in Locks]: boolean
     }>
     dialogWindow: null | DialogWindow
+    diffPaneSrc: string
+    selectedBranch: {branch?: string, history?: boolean}
 };
 
 const store: StoreType = {
@@ -34,7 +35,9 @@ const store: StoreType = {
     heads: {},
     currentFile: null,
     locks: {},
-    dialogWindow: null
+    dialogWindow: null,
+    diffPaneSrc: "",
+    selectedBranch: {},
 };
 
 export const Store = store as Readonly<StoreType>
@@ -53,16 +56,19 @@ const keyListeners: {
     currentFile: [],
     locks: [],
     dialogWindow: [],
+    diffPaneSrc: [],
+    selectedBranch: [],
 };
 
-export function subscribe<T extends keyof StoreType>(cb: (arg: StoreType[T]) => void, key: T): void;
-export function subscribe(cb: (arg: StoreType) => void): void;
+export function subscribe<T extends keyof StoreType>(cb: (arg: StoreType[T]) => void, key: T): typeof unsubscribe;
+export function subscribe(cb: (arg: StoreType) => void): typeof unsubscribe;
 export function subscribe(cb: (arg?: any) => void, key?: keyof StoreType) {
     if (key) {
         keyListeners[key].push(cb);
     } else {
         listeners.push(cb);
     }
+    return () => unsubscribe(cb, key);
 }
 
 export function unsubscribe(cb: Function, key?: keyof StoreType) {
@@ -275,7 +281,7 @@ function handleCompareRevisions(data: any) {
         console.warn(data.error);
     } else {
         tempComparePatches = data;
-        routeTo("/compare");
+        // TODO: trigger compare state update
     }
 }
 
@@ -303,6 +309,13 @@ addWindowEventListener("app-lock-ui", setLock);
 addWindowEventListener("app-unlock-ui", clearLock);
 addWindowEventListener("pull-head", pullHead);
 addWindowEventListener("begin-compare-revisions", openDialogCompareRevisions);
+addWindowEventListener("fetch-status", (stats: WindowArguments["fetch-status"]) => {
+    if (stats.receivedObjects == stats.totalObjects) {
+        console.log(`Resolving deltas ${stats.indexedDeltas}/${stats.totalDeltas}`);
+    } else if (stats.totalObjects > 0) {
+        console.log(`Received ${stats.receivedObjects}/${stats.totalObjects} objects (${stats.indexedObjects}) in ${stats.receivedBytes} bytes`);
+    }
+});
 
 registerHandler(IpcAction.OPEN_REPO, repoOpened);
 registerHandler(IpcAction.LOAD_BRANCHES, branchesLoaded);

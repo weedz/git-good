@@ -1,8 +1,8 @@
 import { h } from "preact";
 import { CommitObj } from "src/Data/Actions";
 import { Store } from "src/Data/Renderer/store";
-import { StaticLink } from "@weedzcokie/router-tsx";
 import { normalizeRemoteName } from "src/Data/Branch";
+import Link from "../Link";
 
 export default function CommitMessage(props: {commit: CommitObj}) {
     const message = props.commit.message.split("\n");
@@ -14,8 +14,8 @@ export default function CommitMessage(props: {commit: CommitObj}) {
                 Store.heads[props.commit.sha] && (
                     <ul>
                         {Store.heads[props.commit.sha].map(ref => <li>
-                            <StaticLink href={`/branch/${encodeURIComponent(ref.name)}`}>{ref.normalizedName}</StaticLink>
-                            {ref.remote && <span>:<StaticLink href={`/branch/${encodeURIComponent(ref.remote)}`}>{normalizeRemoteName(ref.remote)}</StaticLink></span>}
+                            <Link href={`/branch/${encodeURIComponent(ref.name)}`}>{ref.normalizedName}</Link>
+                            {ref.remote && <span>:<Link href={`/branch/${encodeURIComponent(ref.remote)}`}>{normalizeRemoteName(ref.remote)}</Link></span>}
                         </li>)}
                     </ul>
                 )
@@ -23,7 +23,7 @@ export default function CommitMessage(props: {commit: CommitObj}) {
             <p>
                 <span>Parents:</span>
                 <ul className="parent-list">
-                    {props.commit.parents.map(parent => <li><StaticLink href={`/commit/${parent.sha}`}>{parent.sha.substring(0,7)}</StaticLink></li>)}
+                    {props.commit.parents.map(parent => <li><Link href={`/commit/${parent.sha}`}>{parent.sha.substring(0,7)}</Link></li>)}
                 </ul>
             </p>
             <p className="date">Date: {new Date(props.commit.date * 1000).toLocaleString()}</p>

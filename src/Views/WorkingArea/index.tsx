@@ -1,5 +1,4 @@
 import { h, Component, Fragment, } from "preact";
-import { RoutableProps } from "@weedzcokie/router-tsx";
 import FileDiff from "../../Components/FileDiff";
 
 import "./style.css";
@@ -13,7 +12,7 @@ type State = {
     staged?: PatchObj[]
 };
 
-export default class WorkingArea extends Component<RoutableProps, State> {
+export default class WorkingArea extends Component<{}, State> {
     componentWillMount() {
         registerHandler(IpcAction.REFRESH_WORKDIR, this.getChanges);
         registerHandler(IpcAction.GET_CHANGES, this.update);

@@ -53,7 +53,7 @@ function handleEvent(event: IpcRendererEvent, payload: {action: IpcAction, data:
         handler(payload.data);
     }
 }
-export function sendAsyncMessage<T extends IpcAction>(action: T, data?: IpcActionParams[T]) {
+export function sendAsyncMessage<T extends IpcAction>(action: T, data: IpcActionParams[T] | void) {
     ipcRenderer.send("asynchronous-message", {
         "action": action,
         data

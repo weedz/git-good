@@ -4,7 +4,7 @@ import { app, BrowserWindow, ipcMain, Menu, dialog } from 'electron';
 import * as NodeGit from "nodegit";
 import { Repository, Commit, Revwalk, Cred, Branch, Rebase } from "nodegit";
 
-import { getBranches, getCommits, commitWithDiff, getHunks, eventReply, actionLock, getCommitPatches, eventReplyError, loadChanges, getWorkdirHunks, refreshWorkDir, stageFile, unstageFile, discardChanges, changeBranch, findFile, compareRevisions, compareRevisionsPatches, hunksFromCompare } from "./Data/Main/Provider";
+import * as provider from "./Data/Main/Provider";
 import { IpcAction, IpcActionParams, IpcActionReturn, Locks } from './Data/Actions';
 import { sendEvent } from "./Data/Main/WindowEvents";
 import { IpcMainEvent } from "electron/main";
@@ -18,8 +18,8 @@ const createWindow = () => {
         webPreferences: {
             nodeIntegration: true,
             enableRemoteModule: true,
-            // contextIsolation: true,
-            worldSafeExecuteJavaScript: true,
+            contextIsolation: false,
+            worldSafeExecuteJavaScript: false,
         }
     });
 
@@ -169,18 +169,20 @@ const menuTemplate = [
                                 return cred;
                             },
                             transferProgress: (stats: NodeGit.TransferProgress, remote: string) => {
-                                // TODO: we could update UI to show "fetch status"
-                                console.log("transferProgress", remote, stats);
-
-                                // @ts-ignore
-                                if (stats.receivedObjects() == stats.totalObjects()) {
+                                sendEvent(win.webContents, "fetch-status", {
                                     // @ts-ignore
-                                    console.log(`Resolving deltas ${stats.indexedDeltas()}/${stats.totalDeltas()}`);
-                                // @ts-ignore
-                                } else if (stats.totalObjects() > 0) {
+                                    receivedObjects: stats.receivedObjects(),
                                     // @ts-ignore
-                                    console.log(`Received ${stats.receivedObjects()}/${stats.totalObjects()} objects (${stats.indexedObjects()}) in ${stats.receivedBytes()} bytes`);
-                                }
+                                    totalObjects: stats.totalObjects(),
+                                    // @ts-ignore
+                                    indexedDeltas: stats.indexedDeltas(),
+                                    // @ts-ignore
+                                    totalDeltas: stats.totalDeltas(),
+                                    // @ts-ignore
+                                    indexedObjects: stats.indexedObjects(),
+                                    // @ts-ignore
+                                    receivedBytes: stats.receivedBytes(),
+                                });
                             },
                         },
                     });
@@ -253,19 +255,19 @@ type EventArgs = {
 };
 
 ipcMain.on("asynchronous-message", async (event, arg: EventArgs) => {
-    const lock = actionLock[arg.action];
+    const lock = provider.actionLock[arg.action];
     if (lock) {
         if (!lock.interuptable) {
-            eventReplyError(event, arg.action, "action pending");
+            provider.eventReplyError(event, arg.action, "action pending");
             return;
         }
     }
 
-    actionLock[arg.action] = {interuptable: false};
+    provider.actionLock[arg.action] = {interuptable: false};
 
     if (arg.action === IpcAction.OPEN_REPO) {
         const opened = await openRepo(arg.data);
-        eventReply(event, arg.action, {
+        provider.eventReply(event, arg.action, {
             path: arg.data,
             opened,
             status: opened ? repoStatus() : null,
@@ -277,76 +279,76 @@ ipcMain.on("asynchronous-message", async (event, arg: EventArgs) => {
         // console.log(IpcAction[arg.action]);
         switch (arg.action) {
             case IpcAction.LOAD_BRANCHES:
-                eventReply(event, arg.action, await getBranches(repo));
+                provider.eventReply(event, arg.action, await provider.getBranches(repo));
                 break;
             case IpcAction.LOAD_COMMITS:
-                eventReply(event, arg.action, await loadCommits(event, arg.data));
+                provider.eventReply(event, arg.action, await loadCommits(event, arg.data));
                 break;
             case IpcAction.LOAD_COMMIT:
-                eventReply(event, arg.action, await commitWithDiff(repo, arg.data));
+                provider.eventReply(event, arg.action, await provider.commitWithDiff(repo, arg.data));
                 break;
             case IpcAction.LOAD_PATCHES_WITHOUT_HUNKS:
-                eventReply(event, arg.action, await getCommitPatches(arg.data));
+                provider.eventReply(event, arg.action, await provider.getCommitPatches(arg.data));
                 break;
             case IpcAction.LOAD_HUNKS:
                 const data: IpcActionReturn[IpcAction.LOAD_HUNKS] = {
                     path: arg.data.path,
                     hunks: await loadHunks(arg.data)
                 };
-                eventReply(event, arg.action, data);
+                provider.eventReply(event, arg.action, data);
                 break;
             case IpcAction.CHECKOUT_BRANCH:
-                eventReply(event, arg.action, await changeBranch(repo, arg.data));
+                provider.eventReply(event, arg.action, await provider.changeBranch(repo, arg.data));
                 sendEvent(win.webContents, "refresh-workdir");
                 break;
             case IpcAction.REFRESH_WORKDIR:
-                eventReply(event, arg.action, await refreshWorkDir(repo));
+                provider.eventReply(event, arg.action, await provider.refreshWorkDir(repo));
                 break;
             case IpcAction.GET_CHANGES:
-                eventReply(event, arg.action, loadChanges());
+                provider.eventReply(event, arg.action, provider.loadChanges());
                 break;
             case IpcAction.STAGE_FILE:
-                eventReply(event, arg.action, await stageFile(repo, arg.data));
+                provider.eventReply(event, arg.action, await provider.stageFile(repo, arg.data));
                 break;
             case IpcAction.UNSTAGE_FILE:
-                eventReply(event, arg.action, await unstageFile(repo, arg.data));
+                provider.eventReply(event, arg.action, await provider.unstageFile(repo, arg.data));
                 break;
             case IpcAction.DISCARD_FILE:
-                eventReply(event, arg.action, await discardChanges(repo, arg.data));
+                provider.eventReply(event, arg.action, await provider.discardChanges(repo, arg.data));
                 break;
             case IpcAction.PULL:
                 const head = await repo.head();
                 const upstream = await Branch.upstream(head);
                 const result = await repo.mergeBranches(head, upstream);
-                eventReply(event, arg.action, !!result);
+                provider.eventReply(event, arg.action, !!result);
                 break;
             case IpcAction.CREATE_BRANCH:
-                eventReply(event, arg.action, await repo.createBranch(arg.data.name, arg.data.sha) !== null);
+                provider.eventReply(event, arg.action, await repo.createBranch(arg.data.name, arg.data.sha) !== null);
                 break;
             case IpcAction.CREATE_BRANCH_FROM_REF:
                 const ref1 = await repo.getReference(arg.data.ref);
                 const sha = ref1.isTag() ? (await ref1.peel(NodeGit.Object.TYPE.COMMIT)) as unknown as Commit : await repo.getReferenceCommit(arg.data.ref);
-                eventReply(event, arg.action, await repo.createBranch(arg.data.name, sha) !== null);
+                provider.eventReply(event, arg.action, await repo.createBranch(arg.data.name, sha) !== null);
                 break;
             case IpcAction.DELETE_REF:
                 const ref = await repo.getReference(arg.data.name);
                 const res = Branch.delete(ref);
-                eventReply(event, arg.action, !!res);
+                provider.eventReply(event, arg.action, !!res);
                 break;
             case IpcAction.FIND_FILE:
-                eventReply(event, arg.action, await findFile(repo, arg.data));
+                provider.eventReply(event, arg.action, await provider.findFile(repo, arg.data));
                 break;
             case IpcAction.ABORT_REBASE:
-                eventReply(event, arg.action, await abortRebase(repo));
+                provider.eventReply(event, arg.action, await abortRebase(repo));
                 break;
             case IpcAction.CONTINUE_REBASE:
-                eventReply(event, arg.action, await continueRebase(repo));
+                provider.eventReply(event, arg.action, await continueRebase(repo));
                 break;
             case IpcAction.OPEN_COMPARE_REVISIONS:
-                if (await compareRevisions(repo, arg.data)) {
-                    eventReply(event, arg.action, await compareRevisionsPatches());
+                if (await provider.compareRevisions(repo, arg.data)) {
+                    provider.eventReply(event, arg.action, await provider.compareRevisionsPatches());
                 } else {
-                    eventReply(event, arg.action, {error: "revisions not found"});
+                    provider.eventReply(event, arg.action, {error: "revisions not found"});
                 }
                 break;
         }
@@ -409,15 +411,15 @@ async function loadCommits(event: IpcMainEvent, params: IpcActionParams[IpcActio
         revwalk.push(start.id());
     }
 
-    return await getCommits(event, revwalk, repo, params.file, params.num);
+    return await provider.getCommits(event, revwalk, repo, params.file, params.num);
 }
 
 function loadHunks(params: IpcActionParams[IpcAction.LOAD_HUNKS]) {
     if ("sha" in params) {
-        return getHunks(params.sha, params.path);
+        return provider.getHunks(params.sha, params.path);
     } else if ("compare" in params) {
-        return hunksFromCompare(params.path);
+        return provider.hunksFromCompare(params.path);
     } else {
-        return getWorkdirHunks(params.path);
+        return provider.getWorkdirHunks(params.path);
     }
 }

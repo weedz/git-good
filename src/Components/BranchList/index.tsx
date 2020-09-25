@@ -1,12 +1,12 @@
 import { h, Component, Fragment } from "preact";
-import { Link } from "@weedzcokie/router-tsx";
 
 import "./style.css";
 import { normalizeLocalName } from "../../Data/Branch";
 import { BranchesObj } from "../../Data/Actions";
-import { loadBranches, subscribe, Store, unsubscribe, checkoutBranch } from "../../Data/Renderer/store";
+import { subscribe, Store, unsubscribe, checkoutBranch, setState } from "../../Data/Renderer/store";
 import { showHeadMenu, showLocalMenu, showOriginMenu, showRemoteMenu, showTagMenu } from "./Menu";
 import { BranchAheadBehind, toggleTreeItem, branchTree, listRemotes, getBranchTree, filterBranches } from "./Utils";
+import Link from "../Link";
 
 type Props = {
     branches?: BranchesObj
@@ -17,12 +17,12 @@ type State = {
 }
 
 export default class BranchList extends Component<Props, State> {
+    unsubscribe!: Function
     componentWillMount() {
-        subscribe(this.update, "branches");
-        // loadBranches();
+        this.unsubscribe = subscribe(this.update, "branches");
     }
     componentWillUnmount() {
-        unsubscribe(this.update, "branches");
+        this.unsubscribe();
     }
     update = () => {
         this.setState({});
@@ -68,8 +68,11 @@ export default class BranchList extends Component<Props, State> {
                     }}>
                         <h4>Refs</h4>
                         <ul className="block-list">
-                            <li><Link activeClassName="selected" href="/history">History</Link></li>
-                            <li><Link onContextMenu={showHeadMenu} activeClassName="selected" data-ref="HEAD" href="/branch/HEAD">HEAD{headRef}</Link></li>
+                            <li><Link selectAction={(c) => setState({selectedBranch: {history: true}})} activeClassName="selected" href="/history">History</Link></li>
+                            <li>{
+                                // @ts-ignore
+                                <Link selectAction={(c) => setState({selectedBranch: {branch: c.props.branch}})} onContextMenu={showHeadMenu} activeClassName="selected" branch="HEAD">HEAD{headRef}</Link>
+                                }</li>
                         </ul>
                         <hr />
                         {branches &&

@@ -1,12 +1,12 @@
 import { h, Component } from "preact";
-import { Link, StaticLink } from "@weedzcokie/router-tsx";
 import { sendAsyncMessage, unregisterHandler, registerHandler } from "src/Data/Renderer";
 import { IpcAction, IpcActionReturn, IpcActionReturnError, LoadCommitReturn, IpcActionParams } from "src/Data/Actions";
-import { Store } from "src/Data/Renderer/store";
+import { setState, Store, subscribe, unsubscribe } from "src/Data/Renderer/store";
 import { showCommitMenu } from "./Menu";
 
 import "./style.css";
 import FileFilter from "./FileFilter";
+import Link from "../Link";
 
 type Props = {
     branch?: string
@@ -48,30 +48,42 @@ export default class CommitList extends Component<Props, State> {
             colorId: number
         }
     } = {};
+    commits: any = {};
+    unsubscribe!: Function;
 
     componentWillMount() {
+        this.unsubscribe = subscribe(this.loadNewCommits, "selectedBranch");
         registerHandler(IpcAction.LOAD_COMMITS, this.commitsLoaded);
         registerHandler(IpcAction.LOAD_COMMITS_PARTIAL, this.commitsLoaded);
         this.handleProps(this.props, true);
     }
     componentWillUnmount() {
+        this.unsubscribe();
         unregisterHandler(IpcAction.LOAD_COMMITS, this.commitsLoaded);
         unregisterHandler(IpcAction.LOAD_COMMITS_PARTIAL, this.commitsLoaded);
     }
-    componentWillReceiveProps(nextProps: Props) {
-        this.handleProps(nextProps, false);
+    loadNewCommits = (arg: {branch?: string, history?: boolean}) => {
+        this.handleProps(arg, false);
+    }
+    reset() {
+        this.graph = {};
+        this.setState({
+            commits: [],
+        });
+        this.commits = {};
     }
     handleProps(props: Props, reload: boolean) {
         if (props.history) {
             if (reload || !this.props.history) {
                 this.getCommits({
                     num: 1000,
-                    history: true
+                    history: true,
                 });
             }
         } else if (!props.sha) {
             if (reload || this.props.branch !== props.branch) {
                 this.getCommits({
+                    num: 1000,
                     branch: decodeURIComponent(props.branch || "HEAD"),
                 });
             }
@@ -82,10 +94,7 @@ export default class CommitList extends Component<Props, State> {
         }
     }
     getCommits = (options: IpcActionParams[IpcAction.LOAD_COMMITS]) => {
-        this.graph = {};
-        this.setState({
-            commits: [],
-        });
+        this.reset();
         sendAsyncMessage(IpcAction.LOAD_COMMITS, options);
     }
     handleCommits(commits: IpcActionReturn[IpcAction.LOAD_COMMITS_PARTIAL]) {
@@ -153,20 +162,26 @@ export default class CommitList extends Component<Props, State> {
         return this.state.commits;
     }
     commitItem(commit: LoadCommitReturn) {
+        const commitLink = (
+            // @ts-ignore
+            <Link selectAction={(c) => setState({diffPaneSrc: c.props.sha})} activeClassName="selected" sha={commit.sha}>
+                {Store.heads[commit.sha] && 
+                    Store.heads[commit.sha].map(ref => <span style={{color: headColors[this.graph[commit.sha].colorId]}}>({ref.normalizedName})</span>)
+                }
+                <span className="msg">{commit.message.substring(0, commit.message.indexOf("\n")>>>0 || 60)}</span>
+            </Link>
+        );
+        this.commits[commit.sha] = commitLink;
+
         return (
             <li className="short" key={commit.sha} data-sha={commit.sha} onContextMenu={showCommitMenu}>
                 <span className="graph-indicator" style={{backgroundColor: headColors[this.graph[commit.sha].colorId]}}></span>
                 {
                     this.graph[commit.sha].descendants.length > 0 && <ul className="commit-graph">
-                        {this.graph[commit.sha].descendants.map(child => <li><StaticLink style={{color: headColors[this.graph[child.sha].colorId]}} href={ (this.props.branch ? `/branch/${this.props.branch}/` : "/commit/") + child.sha}>{child.sha.substring(0,7)}</StaticLink></li>)}
+                        {this.graph[commit.sha].descendants.map(child => <li><Link selectTarget={this.commits[child.sha]} style={{color: headColors[this.graph[child.sha].colorId]}} href={ (this.props.branch ? `/branch/${this.props.branch}/` : "/commit/") + child.sha}>{child.sha.substring(0,7)}</Link></li>)}
                     </ul>
                 }
-                <Link scrollToWhenActive activeClassName="selected" href={ (this.props.branch ? `/branch/${this.props.branch}/` : "/commit/") + commit.sha}>
-                    {Store.heads[commit.sha] && 
-                        Store.heads[commit.sha].map(ref => <span style={{color: headColors[this.graph[commit.sha].colorId]}}>({ref.normalizedName})</span>)
-                    }
-                    <span className="msg">{commit.message.substring(0, commit.message.indexOf("\n")>>>0 || 60)}</span>
-                </Link>
+                {commitLink}
             </li>
         );
     }

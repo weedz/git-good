@@ -1,6 +1,7 @@
 import { h } from "preact";
 import { BranchObj, BranchesObj } from "src/Data/Actions";
-import { Link } from "@weedzcokie/router-tsx";
+import { setState } from "src/Data/Renderer/store";
+import Link from "../Link";
 
 export type BranchTree = {
     subtree?: {
@@ -53,9 +54,12 @@ export function branchTree(branches: BranchTree, contextMenuCb?: (event: any) =>
         for (const branch of branches.items) {
             items.push(
                 <li key={branch.ref.headSHA}>
-                    <Link data-ref={branch.ref.name} onDblClick={dblClickHandle} onContextMenu={contextMenuCb} activeClassName="selected" href={`/branch/${encodeURIComponent(branch.ref.name)}`}>
+                    {
+                    // @ts-ignore
+                    <Link selectAction={c => setState({selectedBranch: {branch: c.props.branch}})} data-ref={branch.ref.name} onDblClick={dblClickHandle} onContextMenu={contextMenuCb} activeClassName="selected" branch={encodeURIComponent(branch.ref.name)}>
                         {branch.name}&nbsp;{BranchAheadBehind(branch.ref)}
                     </Link>
+                    }
                 </li>
             );
         }
