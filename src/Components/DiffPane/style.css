@@ -33,16 +33,16 @@
     white-space: pre-line;
 }
 
-.diff-view .file-modified {
+.changed-files .file-modified {
     color: yellowgreen;
 }
-.diff-view .file-deleted {
+.changed-files .file-deleted {
     color: red;
 }
-.diff-view .file-added {
+.changed-files .file-added {
     color: green;
 }
-.diff-view .file-renamed {
+.changed-files .file-renamed {
     color: blue;
 }
 
@@ -54,4 +54,15 @@
 }
 .parent-list li + li:before {
     content: ", ";
+}
+
+.changed-files .file-types {
+    list-style: none;
+}
+.changed-files .file-types li {
+    display: inline;
+    margin-right: 11px;
+}
+.changed-files .file-types li:last-child {
+    margin-right: 0;
 }

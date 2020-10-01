@@ -16,7 +16,20 @@ type Props = {
 }
 
 export default class ChangedFiles extends Component<Props, {}> {
+    fileTypes = {
+        added: 0,
+        deleted: 0,
+        modified: 0,
+        renamed: 0
+    };
     openFile = (patch: PatchObj) => {
+        this.fileTypes = {
+            added: 0,
+            deleted: 0,
+            modified: 0,
+            renamed: 0
+        };
+
         if (this.props.commit) {
             openFile({
                 sha: this.props.commit.sha,
@@ -38,12 +51,16 @@ export default class ChangedFiles extends Component<Props, {}> {
     renderPatch = (patch: PatchObj) => {
         let typeCss;
         if (patch.status === DELTA.MODIFIED) {
+            this.fileTypes.modified++;
             typeCss = "file-modified";
         } else if (patch.status === DELTA.DELETED) {
+            this.fileTypes.deleted++;
             typeCss = "file-deleted";
         } else if (patch.status === DELTA.ADDED) {
+            this.fileTypes.added++;
             typeCss = "file-added";
         } else if (patch.status === DELTA.RENAMED) {
+            this.fileTypes.renamed++;
             typeCss = "file-renamed";
         }
         return (
@@ -59,10 +76,17 @@ export default class ChangedFiles extends Component<Props, {}> {
         );
     }
     render() {
+        const files = this.props.patches.map(this.renderPatch);
         return (
-            <div>
+            <div className="changed-files">
+                <ul className="file-types">
+                    {this.fileTypes.modified > 0 && <li className="file-modified">{this.fileTypes.modified} M</li>}
+                    {this.fileTypes.added > 0 && <li className="file-added">{this.fileTypes.added} A</li>}
+                    {this.fileTypes.deleted > 0 && <li className="file-deleted">{this.fileTypes.deleted} D</li>}
+                    {this.fileTypes.renamed > 0 && <li className="file-renamed">{this.fileTypes.renamed} R</li>}
+                </ul>
                 <ul className="diff-view block-list">
-                    {this.props.patches.map(this.renderPatch)}
+                    {files}
                 </ul>
             </div>
         );
