@@ -2,14 +2,13 @@ import { h, Component } from "preact";
 import { basename } from "path";
 
 import Main from "./Views/Main";
-import WorkingArea from "./Views/WorkingArea";
-import Compare from "./Views/Compare";
 import Changes from "./Components/Changes";
 import BranchList from "./Components/BranchList";
 import { subscribe, Store, unsubscribe, openRepo, StoreType } from "./Data/Renderer/store";
 import { Locks } from "./Data/Actions";
 import { Dialog } from "./Components/Dialog";
 import FileDiff from "./Components/FileDiff";
+import NewTab from "./Views/NewTab";
 
 type State = {
     lock: boolean
@@ -50,14 +49,14 @@ export default class App extends Component<{}, State> {
     checkLocks = (locks: StoreType["locks"]) => {
         if (this.state.lock || Locks.MAIN in locks) {
             this.setState({
-                lock: locks[Locks.MAIN]
+                lock: !!locks[Locks.MAIN]
             });
         }
     }
     render() {
         if (!Store.repo) {
             return (
-                <h1>Opening repo</h1>
+                <NewTab />
             );
         }
         return (
@@ -70,8 +69,6 @@ export default class App extends Component<{}, State> {
                     </div>
                     <FileDiff />
                     <Main />
-                    {/* <WorkingArea /> */}
-                    {/* <Compare /> */}
                 </div>
         );
     }

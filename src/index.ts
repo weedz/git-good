@@ -160,8 +160,6 @@ const menuTemplate = [
             {
                 label: 'Fetch all',
                 click: async () => {
-                    sendEvent(win.webContents, "app-lock-ui", Locks.MAIN);
-
                     await repo.fetchAll({
                         callbacks: {
                             credentials: (url: string, user: string) => {

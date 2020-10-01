@@ -54,7 +54,7 @@ export default class FileFilter extends Component<{filterByFile: any}, State> {
     render() {
         return (
             <Fragment>
-                <input type="text" onClick={() => this.state.fileResults.length > 0 && this.setState({showFiles: true})} onKeyUp={this.findFiles} placeholder="File/path..." />
+                <input type="text" onClick={() => this.state.fileResults?.length > 0 && this.setState({showFiles: true})} onKeyUp={this.findFiles} placeholder="File/path..." />
                 {this.state.fileFilter && <button onClick={this.filterByFile}>Reset</button>}
                 {this.state.showFiles && this.state.fileResults?.length &&
                     <ul style={{

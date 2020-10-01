@@ -21,9 +21,9 @@ export type StoreType = {
     currentFile: null | {
         patch: PatchObj
     }
-    locks: Partial<{
-        [key in Locks]: boolean
-    }>
+    locks: {
+        [key in Locks]: number
+    }
     dialogWindow: null | DialogWindow
     diffPaneSrc: string
     selectedBranch: {branch?: string, history?: boolean}
@@ -34,7 +34,9 @@ const store: StoreType = {
     branches: null,
     heads: {},
     currentFile: null,
-    locks: {},
+    locks: {
+        [Locks.MAIN]: 0,
+    },
     dialogWindow: null,
     diffPaneSrc: "",
     selectedBranch: {},
@@ -212,16 +214,18 @@ function updateCurrentBranch(result: IpcActionReturn[IpcAction.CHECKOUT_BRANCH])
         });
     }
 }
-export function setLock(lock: keyof StoreType["locks"]) {
+export function setLock(lock: keyof StoreType["locks"], event?:any) {
     const locks = store.locks;
-    locks[lock] = true;
+    locks[lock]++;
     setState({
         locks,
     });
 }
 export function clearLock(lock: keyof StoreType["locks"]) {
     const locks = store.locks;
-    delete locks[lock];
+    if (locks[lock] > 0) {
+        locks[lock]--;
+    }
     setState({
         locks,
     });
@@ -297,7 +301,8 @@ export function closeDialogWindow() {
 }
 
 function addWindowEventListener<T extends WindowEvents>(event: T, cb: (args: WindowArguments[T]) => void) {
-    ipcRenderer.on(event, (_, args) => cb(args));
+    // @ts-ignore
+    ipcRenderer.on(event, (_, args) => cb(args, event));
 }
 
 attach();
