@@ -63,7 +63,11 @@ export default class CommitList extends Component<Props, State> {
         unregisterHandler(IpcAction.LOAD_COMMITS_PARTIAL, this.commitsLoaded);
     }
     loadNewCommits = (arg: {branch?: string, history?: boolean}) => {
-        this.handleProps(arg, false);
+        if (arg) {
+            this.handleProps(arg, false);
+        } else {
+            this.setState({commits: []});
+        }
     }
     reset() {
         this.graph = {};

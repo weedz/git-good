@@ -2,6 +2,8 @@ import { h, Component } from "preact";
 import { subscribe, unsubscribe } from "src/Data/Renderer/store";
 import Commit from "src/Components/DiffPane/Commit";
 import WorkingArea from "src/Views/WorkingArea";
+import { PatchObj } from "src/Data/Actions";
+import Compare from "src/Views/Compare";
 
 type State = {
     view: any
@@ -11,17 +13,24 @@ export default class DiffPane extends Component<{}, State> {
     componentWillMount() {
         subscribe(this.loadCommitFromStore, "diffPaneSrc");
         subscribe(this.viewChanges, "viewChanges");
+        subscribe(this.viewCompareResults, "comparePatches");
     }
     componentWillUnmount() {
         unsubscribe(this.loadCommitFromStore, "diffPaneSrc");
         unsubscribe(this.viewChanges, "viewChanges");
+        unsubscribe(this.viewCompareResults, "comparePatches");
     }
+
     loadCommitFromStore = (sha: string) => {
         const view = <Commit sha={sha} />;
         this.setState({view});
     }
     viewChanges = () => {
         const view = <WorkingArea />;
+        this.setState({view});
+    }
+    viewCompareResults = (comparePatches: PatchObj[]) => {
+        const view = <Compare patches={comparePatches} />
         this.setState({view});
     }
 

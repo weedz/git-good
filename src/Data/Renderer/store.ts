@@ -28,6 +28,7 @@ export type StoreType = {
     selectedBranch: {branch?: string, history?: boolean}
     diffPaneSrc: string
     viewChanges: null
+    comparePatches: PatchObj[],
 };
 
 const store: StoreType = {
@@ -42,6 +43,7 @@ const store: StoreType = {
     selectedBranch: {},
     diffPaneSrc: "",
     viewChanges: null,
+    comparePatches: [],
 };
 
 export const Store = store as Readonly<StoreType>
@@ -63,6 +65,7 @@ const keyListeners: {
     selectedBranch: [],
     diffPaneSrc: [],
     viewChanges: [],
+    comparePatches: [],
 };
 
 export function subscribe<T extends keyof StoreType>(cb: (arg: StoreType[T]) => void, key: T): typeof unsubscribe;
@@ -282,13 +285,14 @@ function openDialogCompareRevisions() {
         }
     });
 }
-export let tempComparePatches: PatchObj[];
 function handleCompareRevisions(data: any) {
     if ("error" in data) {
         console.warn(data.error);
     } else {
-        tempComparePatches = data;
-        // TODO: trigger compare state update
+        setState({
+            comparePatches: data,
+            selectedBranch: undefined,
+        });
     }
 }
 

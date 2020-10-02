@@ -1,21 +1,14 @@
-import { h, Component, Fragment, } from "preact";
-import FileDiff from "../../Components/FileDiff";
-import Commits from "./Commits";
+import { h, Component } from "preact";
 
 import ChangedFiles from "src/Components/DiffPane/ChangedFiles";
-import { tempComparePatches } from "src/Data/Renderer/store";
+import { PatchObj } from "src/Data/Actions";
 
-export default class Compare extends Component {
+export default class Compare extends Component<{patches: PatchObj[]}> {
     render() {
-        const patches = tempComparePatches;
         return (
-            <Fragment>
-                <FileDiff />
-                <Commits />
-                <div id="diff-pane" className="pane">
-                    {patches && <ChangedFiles patches={patches} compare />}
-                </div>
-            </Fragment>
+            <div id="diff-pane" className="pane">
+                <ChangedFiles patches={this.props.patches} compare />
+            </div>
         );
     }
 }
