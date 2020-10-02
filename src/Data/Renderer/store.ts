@@ -25,8 +25,9 @@ export type StoreType = {
         [key in Locks]: number
     }
     dialogWindow: null | DialogWindow
-    diffPaneSrc: string
     selectedBranch: {branch?: string, history?: boolean}
+    diffPaneSrc: string
+    viewChanges: null
 };
 
 const store: StoreType = {
@@ -38,8 +39,9 @@ const store: StoreType = {
         [Locks.MAIN]: 0,
     },
     dialogWindow: null,
-    diffPaneSrc: "",
     selectedBranch: {},
+    diffPaneSrc: "",
+    viewChanges: null,
 };
 
 export const Store = store as Readonly<StoreType>
@@ -58,8 +60,9 @@ const keyListeners: {
     currentFile: [],
     locks: [],
     dialogWindow: [],
-    diffPaneSrc: [],
     selectedBranch: [],
+    diffPaneSrc: [],
+    viewChanges: [],
 };
 
 export function subscribe<T extends keyof StoreType>(cb: (arg: StoreType[T]) => void, key: T): typeof unsubscribe;

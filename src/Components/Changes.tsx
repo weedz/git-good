@@ -1,7 +1,7 @@
 import { h, Component } from "preact";
 import { registerHandler, unregisterHandler } from "src/Data/Renderer";
 import { IpcAction, IpcActionReturn } from "src/Data/Actions";
-import { Store } from "../Data/Renderer/store";
+import { setState, Store } from "../Data/Renderer/store";
 import Link from "./Link";
 
 export default class Changes extends Component {
@@ -34,7 +34,7 @@ export default class Changes extends Component {
                     {Store.repo?.status?.merging && <li><span>Merging</span></li>}
                     {Store.repo?.status?.rebasing && <li><span>Rebasing</span></li>}
                     {Store.repo?.status?.reverting && <li><span>Reverting</span></li>}
-                    <li><Link activeClassName="selected" href="/working-area">Changes ({changes})</Link></li>
+                    <li><Link selectAction={() => setState({viewChanges: null})} activeClassName="selected">Changes ({changes})</Link></li>
                 </ul>
             </div>
         );

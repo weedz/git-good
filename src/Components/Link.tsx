@@ -35,6 +35,6 @@ export default class Link extends Component<Props> {
             classNames += ` ${this.props.activeClassName}`;
         }
 
-        return <a className={classNames} href="#" onClick={this.onSelect} style={this.props.style}>{this.props.children}</a>
+        return <a className={classNames} href="#" onClick={this.onSelect} {...this.props}>{this.props.children}</a>
     }
 }

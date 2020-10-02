@@ -20,16 +20,23 @@ export default class ChangedFiles extends Component<Props, {}> {
         added: 0,
         deleted: 0,
         modified: 0,
-        renamed: 0
+        renamed: 0,
+        // untracked: 0,
     };
-    openFile = (patch: PatchObj) => {
+    resetCounters() {
         this.fileTypes = {
             added: 0,
             deleted: 0,
             modified: 0,
-            renamed: 0
+            renamed: 0,
+            // untracked: 0,
         };
-
+    }
+    componentWillReceiveProps() {
+        this.resetCounters();
+    }
+    openFile = (patch: PatchObj) => {
+        this.resetCounters();
         if (this.props.commit) {
             openFile({
                 sha: this.props.commit.sha,
@@ -62,6 +69,8 @@ export default class ChangedFiles extends Component<Props, {}> {
         } else if (patch.status === DELTA.RENAMED) {
             this.fileTypes.renamed++;
             typeCss = "file-renamed";
+        } else if (patch.status === DELTA.UNTRACKED) {
+            this.fileTypes.added++;
         }
         return (
             <li className="sub-tree" key={patch.actualFile.path}>
