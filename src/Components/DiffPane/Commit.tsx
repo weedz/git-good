@@ -1,7 +1,6 @@
 import { h, Component } from "preact";
-import { registerHandler, unregisterHandler } from "../../Data/Renderer";
-import { sendAsyncMessage } from "../../Data/Renderer";
-import { IpcAction, CommitObj, PatchObj, IpcActionReturn, IpcActionReturnError } from "../../Data/Actions";
+import { registerHandler, unregisterHandler, sendAsyncMessage } from "src/Data/Renderer/IPC";
+import { IpcAction, CommitObj, PatchObj, IpcActionReturn, IpcActionReturnError } from "src/Data/Actions";
 
 import "./style.css";
 import CommitMessage from "./CommitMessage";

@@ -1,6 +1,6 @@
 import { h, Component, Fragment } from "preact";
-import { registerHandler, unregisterHandler, sendAsyncMessage } from "src/Data/Renderer";
 import { IpcAction, IpcActionReturn } from "src/Data/Actions";
+import { registerHandler, sendAsyncMessage, unregisterHandler } from "src/Data/Renderer/IPC";
 
 type State = {
     filter: undefined | string

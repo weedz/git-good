@@ -2,7 +2,7 @@ import { h, Component, Fragment, } from "preact";
 
 import "./style.css";
 import { IpcAction, IpcActionReturn, PatchObj } from "src/Data/Actions";
-import { registerHandler, unregisterHandler, sendAsyncMessage } from "src/Data/Renderer";
+import { registerHandler, unregisterHandler, sendAsyncMessage } from "src/Data/Renderer/IPC";
 import ChangedFiles from "src/Components/DiffPane/ChangedFiles";
 
 type State = {

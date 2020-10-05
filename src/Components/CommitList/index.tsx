@@ -1,7 +1,7 @@
 import { h, Component } from "preact";
-import { sendAsyncMessage, unregisterHandler, registerHandler } from "src/Data/Renderer";
+import { sendAsyncMessage, unregisterHandler, registerHandler } from "src/Data/Renderer/IPC";
 import { IpcAction, IpcActionReturn, IpcActionReturnError, LoadCommitReturn, IpcActionParams } from "src/Data/Actions";
-import { setState, Store, subscribe, unsubscribe } from "src/Data/Renderer/store";
+import { setState, Store, subscribe } from "src/Data/Renderer/store";
 import { showCommitMenu } from "./Menu";
 
 import "./style.css";

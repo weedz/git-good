@@ -1,5 +1,5 @@
 import { h, Component } from "preact";
-import { registerHandler, unregisterHandler } from "src/Data/Renderer";
+import { registerHandler, unregisterHandler } from "src/Data/Renderer/IPC";
 import { IpcAction, IpcActionReturn } from "src/Data/Actions";
 import { setState, Store } from "../Data/Renderer/store";
 import Link from "./Link";

@@ -1,61 +1,147 @@
-import { ipcRenderer, IpcRendererEvent, remote } from "electron";
-import { IpcAction, IpcActionParams, IpcActionReturn } from "../Actions";
+import { BranchesObj, BranchObj, IpcAction, IpcActionReturn, IpcActionReturnError, Locks, RepoStatus } from "../Actions";
+import { WindowArguments } from "../WindowEventTypes";
+import { openDialogBlameFile, openDialogCompareRevisions } from "./Dialogs/Actions";
+import { addWindowEventListener, registerHandler, sendAsyncMessage } from "./IPC";
+import { Store, clearLock, setLock, setState } from "./store";
 
 export const state = {
     repo: {},
     branches: {}
 };
 
-const handlers: {[key in IpcAction]: Function[]} = {
-    [IpcAction.LOAD_COMMITS]: [],
-    [IpcAction.LOAD_COMMITS_PARTIAL]: [],
-    [IpcAction.LOAD_BRANCHES]: [],
-    [IpcAction.OPEN_REPO]: [],
-    [IpcAction.LOAD_COMMIT]: [],
-    [IpcAction.LOAD_PATCHES_WITHOUT_HUNKS]: [],
-    [IpcAction.LOAD_HUNKS]: [],
-    [IpcAction.CHECKOUT_BRANCH]: [],
-    [IpcAction.REFRESH_WORKDIR]: [],
-    [IpcAction.GET_CHANGES]: [],
-    [IpcAction.STAGE_FILE]: [],
-    [IpcAction.UNSTAGE_FILE]: [],
-    [IpcAction.DISCARD_FILE]: [],
-    [IpcAction.COMMIT]: [],
-    [IpcAction.PULL]: [],
-    [IpcAction.PUSH]: [],
-    [IpcAction.CREATE_BRANCH]: [],
-    [IpcAction.CREATE_BRANCH_FROM_REF]: [],
-    [IpcAction.DELETE_REF]: [],
-    [IpcAction.FIND_FILE]: [],
-    [IpcAction.ABORT_REBASE]: [],
-    [IpcAction.CONTINUE_REBASE]: [],
-    [IpcAction.OPEN_COMPARE_REVISIONS]: [],
-};
-export function registerHandler<T extends IpcAction>(action: T, cb: (arg: IpcActionReturn[T]) => void) {
-    handlers[action]?.push(cb);
-}
-export function unregisterHandler(action: IpcAction, cb: Function) {
-    handlers[action].splice(handlers[action].indexOf(cb)>>>0, 1);
+function refreshWorkdir() {
+    sendAsyncMessage(IpcAction.REFRESH_WORKDIR);
 }
 
-export function attach() {
-    ipcRenderer.on("asynchronous-reply", handleEvent);
+function repoOpened(result: IpcActionReturn[IpcAction.OPEN_REPO] | IpcActionReturnError) {
+    clearLock(Locks.MAIN);
+    if ("error" in result) {
+        console.warn(result);
+    } else if (result.opened) {
+        localStorage.setItem("recent-repo", result.path);
+        setState({
+            repo: {
+                path: result.path,
+                status: result.status
+            }
+        });
+        loadBranches();
+        refreshWorkdir();
+    } else {
+        setState({
+            repo: null
+        });
+    }
 }
-function handleEvent(event: IpcRendererEvent, payload: {action: IpcAction, data: any}) {
-    if (payload.data.error) {
-        remote.dialog.showErrorBox(`Error ${IpcAction[payload.action]}`, payload.data.error);
-    }
-    if (!handlers[payload.action]) {
-        console.warn(`Missing handler for action "${payload.action}"`);
-        return;
-    }
-    for (const handler of handlers[payload.action]) {
-        handler(payload.data);
+
+function loadBranches() {
+    console.log("fetched");
+    setLock(Locks.MAIN);
+    sendAsyncMessage(IpcAction.LOAD_BRANCHES);
+}
+
+function openSettings() {
+    console.log("open settings");
+}
+
+export function pullHead() {
+    setLock(Locks.MAIN);
+    sendAsyncMessage(IpcAction.PULL);
+}
+
+function setStatus(status: RepoStatus) {
+    const repo = Store.repo;
+    if (repo) {
+        repo.status = status;
+        setState({
+            repo
+        });
     }
 }
-export function sendAsyncMessage<T extends IpcAction>(action: T, data: IpcActionParams[T] | void) {
-    ipcRenderer.send("asynchronous-message", {
-        "action": action,
-        data
+
+function loadHunks(data: IpcActionReturn[IpcAction.LOAD_HUNKS]) {
+    if (Store.currentFile && data.hunks) {
+        const currentFile = Store.currentFile;
+        currentFile.patch.hunks = data.hunks;
+        setState({
+            currentFile
+        });
+    }
+}
+
+function mapHeads(heads: any, refs: BranchObj[]) {
+    for (const ref of refs) {
+        if (!heads[ref.headSHA]) {
+            heads[ref.headSHA] = [];
+        }
+        heads[ref.headSHA].push(ref);
+    }
+}
+function branchesLoaded(branches: BranchesObj) {
+    clearLock(Locks.MAIN);
+    console.log("loaded branches");
+    const heads:any = {};
+    mapHeads(heads, branches.local);
+    mapHeads(heads, branches.remote);
+    mapHeads(heads, branches.tags);
+    setState({
+        branches,
+        heads
     });
 }
+function updateCurrentBranch(result: IpcActionReturn[IpcAction.CHECKOUT_BRANCH]) {
+    clearLock(Locks.MAIN);
+    if (result && Store.branches) {
+        const branches = Store.branches;
+        branches.head = result;
+        setState({
+            branches
+        });
+    }
+}
+
+function handleCompareRevisions(data: any) {
+    if ("error" in data) {
+        console.warn(data.error);
+    } else {
+        setState({
+            comparePatches: data,
+            selectedBranch: undefined,
+        });
+    }
+}
+
+function handleBlameFile(data: any) {
+    console.log("blame", data);
+}
+
+addWindowEventListener("repo-opened", repoOpened);
+addWindowEventListener("repo-fetch-all", loadBranches);
+addWindowEventListener("refresh-workdir", refreshWorkdir);
+addWindowEventListener("open-settings", openSettings);
+addWindowEventListener("app-lock-ui", setLock);
+addWindowEventListener("app-unlock-ui", clearLock);
+addWindowEventListener("pull-head", pullHead);
+addWindowEventListener("begin-compare-revisions", openDialogCompareRevisions);
+addWindowEventListener("begin-blame-file", openDialogBlameFile);
+addWindowEventListener("fetch-status", (stats: WindowArguments["fetch-status"]) => {
+    if (stats.receivedObjects == stats.totalObjects) {
+        console.log(`Resolving deltas ${stats.indexedDeltas}/${stats.totalDeltas}`);
+    } else if (stats.totalObjects > 0) {
+        console.log(`Received ${stats.receivedObjects}/${stats.totalObjects} objects (${stats.indexedObjects}) in ${stats.receivedBytes} bytes`);
+    }
+});
+
+registerHandler(IpcAction.OPEN_REPO, repoOpened);
+registerHandler(IpcAction.LOAD_BRANCHES, branchesLoaded);
+registerHandler(IpcAction.CHECKOUT_BRANCH, updateCurrentBranch);
+registerHandler(IpcAction.LOAD_HUNKS, loadHunks);
+registerHandler(IpcAction.PULL, loadBranches);
+registerHandler(IpcAction.PUSH, loadBranches);
+registerHandler(IpcAction.CREATE_BRANCH, loadBranches);
+registerHandler(IpcAction.CREATE_BRANCH_FROM_REF, loadBranches);
+registerHandler(IpcAction.DELETE_REF, loadBranches);
+registerHandler(IpcAction.ABORT_REBASE, setStatus);
+registerHandler(IpcAction.CONTINUE_REBASE, setStatus);
+registerHandler(IpcAction.OPEN_COMPARE_REVISIONS, handleCompareRevisions);
+registerHandler(IpcAction.BLAME_FILE, handleBlameFile);

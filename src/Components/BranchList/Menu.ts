@@ -1,5 +1,7 @@
 import { remote } from "electron";
-import { contextMenuState, checkoutBranch, pullHead, deleteBranch, openDialogWindow, createBranchFromRef, closeDialogWindow } from "src/Data/Renderer/store";
+import { pullHead } from "src/Data/Renderer";
+import { BranchFromType, openDialogBranchFrom } from "src/Data/Renderer/Dialogs/Actions";
+import { contextMenuState, checkoutBranch, deleteBranch } from "src/Data/Renderer/store";
 
 const { Menu, MenuItem } = remote;
 
@@ -17,18 +19,7 @@ const newBranch = new MenuItem({
     click() {
         console.log("Create new branch");
         const sha = contextMenuState.data.dataset.ref;
-        openDialogWindow({
-            title: "New branch",
-            confirmCb(data: any) {
-                if (data.branchName) {
-                    createBranchFromRef(sha, data.branchName);
-                }
-                closeDialogWindow();
-            },
-            cancelCb() {
-                closeDialogWindow();
-            }
-        });
+        openDialogBranchFrom(sha, BranchFromType.REF);
     }
 });
 
