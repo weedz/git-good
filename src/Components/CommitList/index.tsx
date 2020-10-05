@@ -167,8 +167,7 @@ export default class CommitList extends Component<Props, State> {
     }
     commitItem(commit: LoadCommitReturn) {
         const commitLink = (
-            // @ts-ignore
-            <Link selectAction={(c) => setState({diffPaneSrc: c.props.sha})} activeClassName="selected" sha={commit.sha}>
+            <Link selectAction={(c) => setState({diffPaneSrc: c.props.linkData})} activeClassName="selected" linkData={commit.sha}>
                 {Store.heads[commit.sha] && 
                     Store.heads[commit.sha].map(ref => <span style={{color: headColors[this.graph[commit.sha].colorId]}}>({ref.normalizedName})</span>)
                 }

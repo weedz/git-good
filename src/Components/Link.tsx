@@ -5,7 +5,8 @@ let selectedLink: Component<Props> | null;
 type Props = {
     activeClassName?: string
     selectTarget?: Component<Props>
-    selectAction?: (arg: Component) => void
+    selectAction?: (arg: Component<Props, {}>) => void
+    linkData?: any
 } & preact.JSX.HTMLAttributes<HTMLAnchorElement>
 
 export default class Link extends Component<Props> {
