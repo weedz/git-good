@@ -182,7 +182,7 @@ export default class CommitList extends Component<Props, State> {
                 <span className="graph-indicator" style={{backgroundColor: headColors[this.graph[commit.sha].colorId]}}></span>
                 {
                     this.graph[commit.sha].descendants.length > 0 && <ul className="commit-graph">
-                        {this.graph[commit.sha].descendants.map(child => <li><Link selectTarget={this.commits[child.sha]} style={{color: headColors[this.graph[child.sha].colorId]}} href={ (this.props.branch ? `/branch/${this.props.branch}/` : "/commit/") + child.sha}>{child.sha.substring(0,7)}</Link></li>)}
+                        {this.graph[commit.sha].descendants.map(child => <li><Link selectTarget={this.commits[child.sha]} style={{color: headColors[this.graph[child.sha].colorId]}}>{child.sha.substring(0,7)}</Link></li>)}
                     </ul>
                 }
                 {commitLink}
