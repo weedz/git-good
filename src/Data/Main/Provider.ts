@@ -109,8 +109,13 @@ export async function getBranches(repo: Repository): Promise<BranchesObj> {
                 refObj.normalizedName = normalizeRemoteName(refObj.name);
                 remote.push(refObj);
             } else if (ref.isTag()) {
-                refObj.normalizedName = normalizeTagName(refObj.name);
-                tags.push(refObj);
+                try {
+                    await repo.getTagByName(refObj.name);
+                    refObj.normalizedName = normalizeTagName(refObj.name);
+                    tags.push(refObj);
+                } catch (err) {
+                    // invalid tag?
+                }
             }
         })
     );
