@@ -15,7 +15,7 @@ export default class Link extends Component<Props> {
         // nothing to see here.
         // @ts-ignore
         selectedLink = this.props?.selectTarget?.__c || this;
-        if (selectedLink) {
+        if (selectedLink && selectedLink !== prevLink) {
             selectedLink.setState({});
             selectedLink.props.selectAction && selectedLink.props.selectAction(selectedLink);
         }
