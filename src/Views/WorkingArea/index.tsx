@@ -8,6 +8,7 @@ import ChangedFiles from "src/Components/DiffPane/ChangedFiles";
 type State = {
     unstaged?: PatchObj[]
     staged?: PatchObj[]
+    amend: boolean
 };
 
 export default class WorkingArea extends Component<{}, State> {
@@ -50,6 +51,14 @@ export default class WorkingArea extends Component<{}, State> {
         const path = e.currentTarget.dataset.path;
         sendAsyncMessage(IpcAction.DISCARD_FILE, path);
     }
+    setAmend = (e: any) => {
+        const target = e.target as h.JSX.HTMLAttributes<HTMLInputElement>;
+        if (target.checked !== this.state.amend) {
+            this.setState({
+                amend: target.checked
+            });
+        }
+    }
     render() {
         return (
             <div id="working-area">
@@ -69,9 +78,9 @@ export default class WorkingArea extends Component<{}, State> {
                             <br />
                             <textarea name="msg"></textarea>
                             <br />
-                            <input type="submit" name="commit" value="Commit" />
+                            <input type="submit" name="commit" value={this.state.amend ? "Amend" : "Commit"} disabled={!this.state.staged?.length} />
                             <label>
-                                <input type="checkbox" name="amend" />
+                                <input type="checkbox" name="amend" onClick={this.setAmend} checked={this.state.amend} />
                                 <span>Amend</span>
                             </label>
                         </form>

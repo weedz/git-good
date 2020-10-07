@@ -1,12 +1,13 @@
 import { h, Component } from "preact";
 import { HunkObj, LineObj } from "src/Data/Actions";
-import { Store, unsubscribe, subscribe, closeFile } from "src/Data/Renderer/store";
+import { Store, unsubscribe, subscribe, closeFile, blameFile } from "src/Data/Renderer/store";
 import { DELTA } from "src/Data/Utils";
 
 import "./style.css";
 
 type State = {
-    viewType: "inline" | "side-by-side"
+    diffType: "inline" | "side-by-side"
+    viewType: "file" | "diff"
     sideSelected: "left" | "right" | null
     wrapLine: boolean
 }
@@ -37,7 +38,8 @@ export default class FileDiff extends Component<{}, State> {
     constructor() {
         super();
         this.state = {
-            viewType: "inline",
+            viewType: "diff",
+            diffType: "inline",
             sideSelected: null,
             wrapLine: true,
         };
@@ -55,7 +57,7 @@ export default class FileDiff extends Component<{}, State> {
     renderHunk = (hunk: HunkObj) => {
         let lines;
         if (hunk.lines) {
-            lines = this.state.viewType === "side-by-side" ? compactLines(hunk.lines).map(this.renderLineSideBySide) : hunk.lines.map(this.renderLine);
+            lines = this.state.diffType === "side-by-side" ? compactLines(hunk.lines).map(this.renderLineSideBySide) : hunk.lines.map(this.renderLine);
         }
 
         return (
@@ -125,7 +127,7 @@ export default class FileDiff extends Component<{}, State> {
         if (this.state.wrapLine) {
             classes.push("wrap-content");
         }
-        if (this.state.viewType === "side-by-side") {
+        if (this.state.diffType === "side-by-side") {
             classes.push("parallel");
         }
 
@@ -134,16 +136,25 @@ export default class FileDiff extends Component<{}, State> {
                 <a href="#" onClick={closeFile}>Close</a>
                 <h1>{patch.actualFile.path}</h1>
                 {patch.status === DELTA.RENAMED && <h4>{patch.oldFile.path} &rArr; {patch.newFile.path} ({patch.similarity}%)</h4>}
-                <p>Additions: {patch.lineStats.total_additions}, Deletions: {patch.lineStats.total_deletions}</p>
-                <div className="btn-group">
-                    <button onClick={() => this.setState({viewType: "inline"})}>Inline</button>
-                    <button onClick={() => this.setState({viewType: "side-by-side"})}>Side-by-side</button>
-                    <label>
-                        <span>Wrap line</span>
-                        <input checked={this.state.wrapLine} type="checkbox" onClick={(e) => this.setState({wrapLine: (e.target as unknown as HTMLInputElement).checked})}></input>
-                    </label>
-                </div>
-                {patch.hunks ? <ul>{patch.hunks.map(this.renderHunk)}</ul> : <p>Loading content...</p>}
+                <p>{patch.hunks?.length} chunks, Additions: {patch.lineStats.total_additions}, Deletions: {patch.lineStats.total_deletions}</p>
+                <ul className="horizontal space-evenly">
+                    <li className="btn-group">
+                        <button onClick={() => this.setState({viewType: "file"})}>File View</button>
+                        <button onClick={() => this.setState({viewType: "diff"})}>Diff View</button>
+                    </li>
+                    <li className="btn-group">
+                        <button onClick={() => blameFile(patch.actualFile.path)}>History</button>
+                    </li>
+                    <li className="btn-group">
+                        <button onClick={() => this.setState({diffType: "inline"})}>Inline</button>
+                        <button onClick={() => this.setState({diffType: "side-by-side"})}>Side-by-side</button>
+                    </li>
+                </ul>
+                <label>
+                    <span>Wrap line</span>
+                    <input checked={this.state.wrapLine} type="checkbox" onClick={(e) => this.setState({wrapLine: (e.target as unknown as HTMLInputElement).checked})}></input>
+                </label>
+                {patch.hunks ? <ul className="hunks">{patch.hunks.map(this.renderHunk)}</ul> : <p>Loading content...</p>}
             </div>
         );
     }

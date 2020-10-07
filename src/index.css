@@ -112,3 +112,12 @@ ul.block-list > li > a {
   z-index: 10;
   background-color: #000;
 }
+
+ul.horizontal {
+  display: flex;
+  flex-direction: row;
+}
+.btn-group {
+  margin-left: 7px;
+  margin-right: 7px;
+}
