@@ -162,9 +162,9 @@ export function clearLock(lock: keyof StoreType["locks"]) {
     });
 }
 
-export function createBranch(fromSha: string, name: string) {
+export function createBranchFromSha(sha: string, name: string) {
     sendAsyncMessage(IpcAction.CREATE_BRANCH, {
-        sha: fromSha,
+        sha,
         name,
     });
 }
@@ -189,4 +189,8 @@ export function closeDialogWindow() {
     setState({
         dialogWindow: null
     });
+}
+
+export function blameFile(file: string) {
+    sendAsyncMessage(IpcAction.BLAME_FILE, file);
 }

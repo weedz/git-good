@@ -1,6 +1,22 @@
-import { IpcAction } from "../../Actions";
-import { sendAsyncMessage } from "../IPC";
-import { closeDialogWindow, createBranch, createBranchFromRef, openDialogWindow } from "../store";
+import { IpcAction } from "../Actions";
+import { sendAsyncMessage } from "./IPC";
+import { closeDialogWindow, createBranchFromSha, createBranchFromRef, openDialogWindow, blameFile } from "./store";
+
+export function openDialogBlameFile() {
+    openDialogWindow({
+        title: "Blame file:",
+        confirmCb: (data: any) => {
+            if (data.branchName)
+            {
+                blameFile(data.branchName);
+            }
+            closeDialogWindow();
+        },
+        cancelCb: () => {
+            closeDialogWindow();
+        }
+    });
+}
 
 export function openDialogCompareRevisions() {
     openDialogWindow({
@@ -35,7 +51,7 @@ export function openDialogBranchFrom(sha: string, type: BranchFromType) {
         confirmCb(data: any) {
             if (data.branchName) {
                 if (type === BranchFromType.COMMIT) {
-                    createBranch(sha, data.branchName);
+                    createBranchFromSha(sha, data.branchName);
                 } else if (type === BranchFromType.REF) {
                     createBranchFromRef(sha, data.branchName);
                 }

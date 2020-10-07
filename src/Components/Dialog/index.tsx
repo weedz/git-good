@@ -1,33 +1,46 @@
-import { h, Fragment } from "preact";
-import { DialogWindow } from "src/Data/Renderer/store";
+import { h, Fragment, Component } from "preact";
+import { StoreType, subscribe, unsubscribe } from "src/Data/Renderer/store";
 import "./style.css";
 
-type Props = {
-    dialogWindow: DialogWindow
+type State = {
+    view: any
 };
-
-export function Dialog({dialogWindow}: Props) {
-    const data: any = {};
-    const updateName = (name: string) => {
-        data.branchName = name;
+export default class Dialog extends Component<{}, State> {
+    componentWillMount() {
+        subscribe(this.updateDialog, "dialogWindow");
     }
-    return (
-        <Fragment>
-            <div className="dialog-window-backdrop"></div>
-            <div className="dialog-window-container">
-                <div className="dialog-window">
-                    <form onSubmit={(e) => {
-                        e.preventDefault();
-                        dialogWindow.confirmCb(data);
-                        return false;
-                    }}>
-                        <h4>{dialogWindow.title}</h4>
-                        <input type="text" name="branchName" placeholder="Name..." onChange={(e) => updateName(e.currentTarget.value)} />
-                        <button type="submit">Confirm</button>
-                        <button type="button" onClick={() => dialogWindow.cancelCb()}>Cancel</button>
-                    </form>
+    componentWillUnmount() {
+        unsubscribe(this.updateDialog, "dialogWindow");
+    }
+    updateDialog = (dialogWindow: StoreType["dialogWindow"]) => {
+        if (dialogWindow) {
+            const data: any = {};
+            const updateName = (name: string) => {
+                data.branchName = name;
+            }
+            const view = <Fragment>
+                <div className="dialog-window-backdrop"></div>
+                <div className="dialog-window-container">
+                    <div className="dialog-window">
+                        <form onSubmit={(e) => {
+                            e.preventDefault();
+                            dialogWindow.confirmCb(data);
+                            return false;
+                        }}>
+                            <h4>{dialogWindow.title}</h4>
+                            <input type="text" name="branchName" placeholder="Name..." onChange={(e) => updateName(e.currentTarget.value)} />
+                            <button type="submit">Confirm</button>
+                            <button type="button" onClick={() => dialogWindow.cancelCb()}>Cancel</button>
+                        </form>
+                    </div>
                 </div>
-            </div>
-        </Fragment>
-    );
+            </Fragment>;
+            this.setState({view});
+        } else {
+            this.setState({view: null});
+        }
+    }
+    render() {
+        return this.state.view;
+    }
 }

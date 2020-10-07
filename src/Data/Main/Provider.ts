@@ -1,7 +1,9 @@
-import { Repository, Revwalk, Commit, Diff, ConvenientPatch, ConvenientHunk, DiffLine, Object, Branch, Graph, Index, Reset, Checkout, DiffFindOptions } from "nodegit";
+import * as path from "path";
+import * as fs from "fs";
+import { Repository, Revwalk, Commit, Diff, ConvenientPatch, ConvenientHunk, DiffLine, Object, Branch, Graph, Index, Reset, Checkout, DiffFindOptions, Blame } from "nodegit";
+import { IpcMainEvent } from "electron/main";
 import { IpcAction, BranchObj, BranchesObj, LineObj, HunkObj, PatchObj, CommitObj, IpcActionReturn, IpcActionReturnError } from "../Actions";
 import { normalizeLocalName, normalizeRemoteName, normalizeTagName } from "../Branch";
-import { IpcMainEvent } from "electron/main";
 
 export let actionLock: {
     [key in IpcAction]?: {
@@ -446,6 +448,34 @@ export async function changeBranch(repo: Repository, branch: string) {
         console.error(err);
         return false;
     }
+}
+
+export async function blameFile(repo: Repository, filePath: string) {
+    try {
+        const blame = await Blame.file(repo, filePath);
+
+        const fullFilePath = path.join(repo.workdir(), filePath);
+        const file = fs.readFileSync(fullFilePath);
+
+        const lines = file.toString("utf8").split("\n");
+
+        // console.log(lines.map( (line, lineNumber) => `${lineNumber}: ${line}`).join("\n"), file.length, blame);
+        // console.log(blame.getHunkCount());
+        console.log(lines);
+
+        const hunkCount = blame.getHunkCount();
+        for (let i = 0; i < hunkCount; i++) {
+            const hunk = blame.getHunkByIndex(i)
+            console.log(hunk.finalCommitId().tostrS().slice(0,8), hunk.origCommitId().tostrS().slice(0,8), hunk.finalStartLineNumber(), hunk.origStartLineNumber(), hunk.linesInHunk());
+
+            const startIndex = hunk.finalStartLineNumber() - 1;
+            console.log(lines.slice(startIndex, startIndex + hunk.linesInHunk()).join("\n"));
+        }
+
+    } catch (err) {
+        console.error(err);
+    }
+    return {};
 }
 
 let currentCommit: string;

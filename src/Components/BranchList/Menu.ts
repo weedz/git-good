@@ -1,6 +1,6 @@
 import { remote } from "electron";
 import { pullHead } from "src/Data/Renderer";
-import { BranchFromType, openDialogBranchFrom } from "src/Data/Renderer/Dialogs/Actions";
+import { BranchFromType, openDialogBranchFrom } from "src/Data/Renderer/Dialogs";
 import { contextMenuState, checkoutBranch, deleteBranch } from "src/Data/Renderer/store";
 
 const { Menu, MenuItem } = remote;

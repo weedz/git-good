@@ -1,5 +1,7 @@
 import { remote } from "electron";
-import { BranchFromType, openDialogBranchFrom } from "src/Data/Renderer/Dialogs/Actions";
+import { IpcAction } from "src/Data/Actions";
+import { BranchFromType, openDialogBranchFrom } from "src/Data/Renderer/Dialogs";
+import { sendAsyncMessage } from "src/Data/Renderer/IPC";
 import { contextMenuState } from "src/Data/Renderer/store";
 
 const { Menu, MenuItem } = remote;
@@ -40,6 +42,10 @@ commitMenu.append(new MenuItem({
     label: 'Diff...',
     click() {
         console.log("Diff", contextMenuState.data.dataset.sha);
+        sendAsyncMessage(IpcAction.OPEN_COMPARE_REVISIONS, {
+            to: "HEAD",
+            from: contextMenuState.data.dataset.sha
+        });
     }
 }));
 commitMenu.append(new MenuItem({

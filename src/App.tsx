@@ -6,7 +6,7 @@ import Changes from "./Components/Changes";
 import BranchList from "./Components/BranchList";
 import { subscribe, Store, unsubscribe, openRepo, StoreType } from "./Data/Renderer/store";
 import { Locks } from "./Data/Actions";
-import { Dialog } from "./Components/Dialog";
+import Dialog from "./Components/Dialog";
 import FileDiff from "./Components/FileDiff";
 import NewTab from "./Views/NewTab";
 
@@ -61,7 +61,7 @@ export default class App extends Component<{}, State> {
         }
         return (
                 <div id="main-window">
-                    {Store.dialogWindow && <Dialog dialogWindow={Store.dialogWindow} />}
+                    <Dialog />
                     {this.state.lock && <div className="lock-overlay" />}
                     <div id="left-pane">
                         <Changes />

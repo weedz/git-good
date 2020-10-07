@@ -22,6 +22,7 @@ export enum IpcAction {
     ABORT_REBASE,
     CONTINUE_REBASE,
     OPEN_COMPARE_REVISIONS,
+    BLAME_FILE,
 };
 
 export type IpcActionParams = {
@@ -73,6 +74,7 @@ export type IpcActionParams = {
     [IpcAction.ABORT_REBASE]: never
     [IpcAction.CONTINUE_REBASE]: never
     [IpcAction.OPEN_COMPARE_REVISIONS]: {from: string, to: string}
+    [IpcAction.BLAME_FILE]: string
 };
 
 export type IpcActionReturn = {
@@ -112,6 +114,7 @@ export type IpcActionReturn = {
     [IpcAction.ABORT_REBASE]: RepoStatus
     [IpcAction.CONTINUE_REBASE]: RepoStatus
     [IpcAction.OPEN_COMPARE_REVISIONS]: PatchObj[]
+    [IpcAction.BLAME_FILE]: any
 };
 
 export type IpcActionReturnError = {

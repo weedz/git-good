@@ -208,6 +208,12 @@ const menuTemplate = [
                 click: async() => {
                     sendEvent(win.webContents, "begin-compare-revisions");
                 }
+            },
+            {
+                label: "Blame file...",
+                click: async() => {
+                    sendEvent(win.webContents, "begin-blame-file");
+                }
             }
         ]
     },
@@ -348,6 +354,9 @@ ipcMain.on("asynchronous-message", async (event, arg: EventArgs) => {
                 } else {
                     provider.eventReply(event, arg.action, {error: "revisions not found"});
                 }
+                break;
+            case IpcAction.BLAME_FILE:
+                provider.eventReply(event, arg.action, await provider.blameFile(repo, arg.data));
                 break;
         }
     }

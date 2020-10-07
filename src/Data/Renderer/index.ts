@@ -1,6 +1,6 @@
 import { BranchesObj, BranchObj, IpcAction, IpcActionReturn, IpcActionReturnError, Locks, RepoStatus } from "../Actions";
 import { WindowArguments } from "../WindowEventTypes";
-import { openDialogBlameFile, openDialogCompareRevisions } from "./Dialogs/Actions";
+import { openDialogBlameFile, openDialogCompareRevisions } from "./Dialogs";
 import { addWindowEventListener, registerHandler, sendAsyncMessage } from "./IPC";
 import { Store, clearLock, setLock, setState } from "./store";
 
@@ -35,8 +35,7 @@ function repoOpened(result: IpcActionReturn[IpcAction.OPEN_REPO] | IpcActionRetu
 }
 
 function loadBranches() {
-    console.log("fetched");
-    setLock(Locks.MAIN);
+    console.log("loading branches");
     sendAsyncMessage(IpcAction.LOAD_BRANCHES);
 }
 
@@ -45,7 +44,6 @@ function openSettings() {
 }
 
 export function pullHead() {
-    setLock(Locks.MAIN);
     sendAsyncMessage(IpcAction.PULL);
 }
 
