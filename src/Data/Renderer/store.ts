@@ -180,6 +180,21 @@ export function deleteBranch(name: string) {
     });
 }
 
+export function push(remote: string, localBranch: string, remoteBranch: string) {
+    sendAsyncMessage(IpcAction.PUSH, {
+        localBranch,
+        remoteBranch,
+        remote
+    });
+}
+
+export function setUpstream(local: string, remote: string) {
+    sendAsyncMessage(IpcAction.SET_UPSTREAM, {
+        local,
+        remote
+    });
+}
+
 export function openDialogWindow(dialogWindow: StoreType["dialogWindow"]) {
     setState({
         dialogWindow

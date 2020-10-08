@@ -1,6 +1,6 @@
 import { remote } from "electron";
 import { IpcAction } from "src/Data/Actions";
-import { BranchFromType, openDialogBranchFrom } from "src/Data/Renderer/Dialogs";
+import { BranchFromType, openDialog_BranchFrom } from "src/Data/Renderer/Dialogs";
 import { sendAsyncMessage } from "src/Data/Renderer/IPC";
 import { contextMenuState } from "src/Data/Renderer/store";
 
@@ -29,7 +29,7 @@ commitMenu.append(new MenuItem({
     label: 'Branch...',
     click() {
         const sha = contextMenuState.data.dataset.sha;
-        openDialogBranchFrom(sha, BranchFromType.COMMIT);
+        openDialog_BranchFrom(sha, BranchFromType.COMMIT);
     }
 }));
 commitMenu.append(new MenuItem({

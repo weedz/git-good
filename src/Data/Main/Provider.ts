@@ -1,8 +1,8 @@
 import * as path from "path";
 import * as fs from "fs";
-import { Repository, Revwalk, Commit, Diff, ConvenientPatch, ConvenientHunk, DiffLine, Object, Branch, Graph, Index, Reset, Checkout, DiffFindOptions, Blame } from "nodegit";
+import { Repository, Revwalk, Commit, Diff, ConvenientPatch, ConvenientHunk, DiffLine, Object, Branch, Graph, Index, Reset, Checkout, DiffFindOptions, Blame, Cred } from "nodegit";
 import { IpcMainEvent } from "electron/main";
-import { IpcAction, BranchObj, BranchesObj, LineObj, HunkObj, PatchObj, CommitObj, IpcActionReturn, IpcActionReturnError } from "../Actions";
+import { IpcAction, BranchObj, BranchesObj, LineObj, HunkObj, PatchObj, CommitObj, IpcActionParams, IpcActionReturn, IpcActionReturnError } from "../Actions";
 import { normalizeLocalName, normalizeRemoteName, normalizeTagName } from "../Branch";
 
 export let actionLock: {
@@ -76,6 +76,34 @@ async function *walkTheRev(revwalk: Revwalk, num: number) {
             return false;
         }
     }
+}
+
+export async function pull(repo: Repository) {
+    const head = await repo.head();
+    const upstream = await Branch.upstream(head);
+    return await repo.mergeBranches(head, upstream);
+}
+
+export async function push(repo: Repository, data: IpcActionParams[IpcAction.PUSH]) {
+    const remote = await repo.getRemote(data.remote); // TODO: make this configurable
+
+    const pushResult = remote.push(
+        [`${data.localBranch}:${data.remoteBranch}`],
+        {
+            callbacks: {
+                credentials: (url: string, user: string) => Cred.sshKeyFromAgent(user)
+            }
+        }
+    );
+
+    return pushResult;
+}
+
+export async function setUpstream(repo: Repository, local: string, remote: string) {
+    const reference = await repo.getReference(local);
+    const result = await Branch.setUpstream(reference, remote);
+
+    return result;
 }
 
 // {local: Branch[], remote: Branch[], tags: Branch[]}

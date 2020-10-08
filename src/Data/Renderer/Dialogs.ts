@@ -1,8 +1,8 @@
 import { IpcAction } from "../Actions";
 import { sendAsyncMessage } from "./IPC";
-import { closeDialogWindow, createBranchFromSha, createBranchFromRef, openDialogWindow, blameFile } from "./store";
+import { closeDialogWindow, createBranchFromSha, createBranchFromRef, openDialogWindow, blameFile, setUpstream } from "./store";
 
-export function openDialogBlameFile() {
+export function openDialog_BlameFile() {
     openDialogWindow({
         title: "Blame file:",
         confirmCb: (data: any) => {
@@ -18,7 +18,7 @@ export function openDialogBlameFile() {
     });
 }
 
-export function openDialogCompareRevisions() {
+export function openDialog_CompareRevisions() {
     openDialogWindow({
         title: "Compare revisions:",
         confirmCb: (data: any) => {
@@ -45,7 +45,7 @@ export enum BranchFromType {
     COMMIT,
 };
 
-export function openDialogBranchFrom(sha: string, type: BranchFromType) {
+export function openDialog_BranchFrom(sha: string, type: BranchFromType) {
     openDialogWindow({
         title: "New branch",
         confirmCb(data: any) {
@@ -55,6 +55,21 @@ export function openDialogBranchFrom(sha: string, type: BranchFromType) {
                 } else if (type === BranchFromType.REF) {
                     createBranchFromRef(sha, data.branchName);
                 }
+            }
+            closeDialogWindow();
+        },
+        cancelCb() {
+            closeDialogWindow();
+        }
+    });
+}
+
+export function openDialog_SetUpstream(local: string) {
+    openDialogWindow({
+        title: "Set upstream",
+        confirmCb(data: any) {
+            if (data.branchName) {
+                setUpstream(local, data.branchName);
             }
             closeDialogWindow();
         },
