@@ -37,6 +37,7 @@ const handlers: {[key in IpcAction]: Function[]} = {
     [IpcAction.COMMIT]: [],
     [IpcAction.PULL]: [],
     [IpcAction.PUSH]: [],
+    [IpcAction.SET_UPSTREAM]: [],
     [IpcAction.CREATE_BRANCH]: [],
     [IpcAction.CREATE_BRANCH_FROM_REF]: [],
     [IpcAction.DELETE_REF]: [],

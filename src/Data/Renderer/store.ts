@@ -26,7 +26,7 @@ export type StoreType = {
     selectedBranch: {branch?: string, history?: boolean}
     diffPaneSrc: string
     viewChanges: null
-    comparePatches: PatchObj[],
+    comparePatches: PatchObj[]
 };
 
 const store: StoreType = {
@@ -177,6 +177,22 @@ export function createBranchFromRef(ref: string, name: string) {
 export function deleteBranch(name: string) {
     sendAsyncMessage(IpcAction.DELETE_REF, {
         name
+    });
+}
+
+export function push(remote: string, localBranch: string, remoteBranch?: string, force?: boolean) {
+    sendAsyncMessage(IpcAction.PUSH, {
+        localBranch,
+        remoteBranch,
+        remote,
+        force
+    });
+}
+
+export function setUpstream(local: string, remote: string) {
+    sendAsyncMessage(IpcAction.SET_UPSTREAM, {
+        local,
+        remote: remote || null
     });
 }
 

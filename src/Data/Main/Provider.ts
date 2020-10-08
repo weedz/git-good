@@ -1,8 +1,8 @@
 import * as path from "path";
 import * as fs from "fs";
-import { Repository, Revwalk, Commit, Diff, ConvenientPatch, ConvenientHunk, DiffLine, Object, Branch, Graph, Index, Reset, Checkout, DiffFindOptions, Blame } from "nodegit";
+import { Repository, Revwalk, Commit, Diff, ConvenientPatch, ConvenientHunk, DiffLine, Object, Branch, Graph, Index, Reset, Checkout, DiffFindOptions, Blame, Cred, Reference, Oid } from "nodegit";
 import { IpcMainEvent } from "electron/main";
-import { IpcAction, BranchObj, BranchesObj, LineObj, HunkObj, PatchObj, CommitObj, IpcActionReturn, IpcActionReturnError } from "../Actions";
+import { IpcAction, BranchObj, BranchesObj, LineObj, HunkObj, PatchObj, CommitObj, IpcActionParams, IpcActionReturn, IpcActionReturnError } from "../Actions";
 import { normalizeLocalName, normalizeRemoteName, normalizeTagName } from "../Branch";
 
 export let actionLock: {
@@ -29,6 +29,14 @@ export function eventReplyError<T extends IpcAction>(event: Electron.IpcMainEven
         action,
         data
     });
+}
+
+export function authenticate(url: string, username: string) {
+    if (auth.type === "ssh") {
+        return Cred.sshKeyFromAgent(username || "git");
+    } else if (auth.type === "userpass") {
+        return Cred.userpassPlaintextNew(auth.username, auth.password);
+    }
 }
 
 function compileHistoryCommit(commit: Commit) {
@@ -76,6 +84,54 @@ async function *walkTheRev(revwalk: Revwalk, num: number) {
             return false;
         }
     }
+}
+
+export async function pull(repo: Repository) {
+    const head = await repo.head();
+    const upstream = await Branch.upstream(head);
+    return await repo.mergeBranches(head, upstream);
+}
+
+export async function push(repo: Repository, data: IpcActionParams[IpcAction.PUSH]) {
+    const remote = await repo.getRemote(data.remote);
+
+    if (!data.localBranch) {
+        const localRef = await repo.head();
+        data.localBranch = localRef.name();
+    }
+
+    if (!data.remoteBranch) {
+        data.remoteBranch = data.localBranch;
+    }
+
+    // undocumented, https://github.com/nodegit/nodegit/issues/1270#issuecomment-293742772
+    const force = data.force ? "+" : "";
+
+    const pushResult = await remote.push(
+        [`${force}${data.localBranch}:${data.remoteBranch}`],
+        {
+            callbacks: {
+                credentials: authenticate
+            }
+        }
+    );
+
+    return pushResult;
+}
+
+export async function setUpstream(repo: Repository, local: string, remote: string | null) {
+    const reference = await repo.getReference(local);
+    if (remote) {
+        try {
+            const ref = await repo.getReference(remote);
+        } catch (err) {
+            const remoteRef = await Reference.create(repo, `refs/remotes/${remote}`, (await reference.peel(Object.TYPE.COMMIT)).id() as unknown as Oid, 0, "");
+        }
+    }
+    // @ts-ignore, https://www.nodegit.org/api/branch/#setUpstream (pass NULL to unset)
+    const result = await Branch.setUpstream(reference, remote);
+
+    return result;
 }
 
 // {local: Branch[], remote: Branch[], tags: Branch[]}
@@ -477,6 +533,22 @@ export async function blameFile(repo: Repository, filePath: string) {
     }
     return {};
 }
+
+type Auth = {
+    type: "ssh"
+} | {
+    type: "userpass",
+    username: string,
+    password: string
+};
+
+// TODO: Make this configurable. global- and per reposotiry
+let auth: Auth = {
+    type: "userpass",
+    username: "personal-access-token",
+    password: "x-oauth-basic"
+};
+export const GitAuth: Readonly<typeof auth> = auth;
 
 let currentCommit: string;
 let commitObjectCache: {

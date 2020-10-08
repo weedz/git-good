@@ -15,6 +15,7 @@ export enum IpcAction {
     DISCARD_FILE,
     PULL,
     PUSH,
+    SET_UPSTREAM,
     CREATE_BRANCH,
     CREATE_BRANCH_FROM_REF,
     DELETE_REF,
@@ -54,8 +55,15 @@ export type IpcActionParams = {
         message: string
     }
     [IpcAction.PULL]: never
+    [IpcAction.SET_UPSTREAM]: {
+        local: string
+        remote: string | null
+    }
     [IpcAction.PUSH]: {
         force?: boolean
+        remote: string
+        localBranch: string
+        remoteBranch?: string
     }
     [IpcAction.CREATE_BRANCH]: {
         sha: string
@@ -107,6 +115,7 @@ export type IpcActionReturn = {
     [IpcAction.COMMIT]: boolean
     [IpcAction.PULL]: boolean
     [IpcAction.PUSH]: boolean
+    [IpcAction.SET_UPSTREAM]: boolean
     [IpcAction.CREATE_BRANCH]: boolean
     [IpcAction.CREATE_BRANCH_FROM_REF]: boolean
     [IpcAction.DELETE_REF]: boolean

@@ -162,10 +162,7 @@ const menuTemplate = [
                 click: async () => {
                     await repo.fetchAll({
                         callbacks: {
-                            credentials: (url: string, user: string) => {
-                                const cred = Cred.sshKeyFromAgent(user);
-                                return cred;
-                            },
+                            credentials: provider.authenticate,
                             transferProgress: (stats: NodeGit.TransferProgress, remote: string) => {
                                 sendEvent(win.webContents, "fetch-status", {
                                     // @ts-ignore
@@ -321,10 +318,7 @@ ipcMain.on("asynchronous-message", async (event, arg: EventArgs) => {
                 provider.eventReply(event, arg.action, await provider.discardChanges(repo, arg.data));
                 break;
             case IpcAction.PULL:
-                const head = await repo.head();
-                const upstream = await Branch.upstream(head);
-                const result = await repo.mergeBranches(head, upstream);
-                provider.eventReply(event, arg.action, !!result);
+                provider.eventReply(event, arg.action, !!provider.pull(repo));
                 break;
             case IpcAction.CREATE_BRANCH:
                 provider.eventReply(event, arg.action, await repo.createBranch(arg.data.name, arg.data.sha) !== null);
@@ -357,6 +351,12 @@ ipcMain.on("asynchronous-message", async (event, arg: EventArgs) => {
                 break;
             case IpcAction.BLAME_FILE:
                 provider.eventReply(event, arg.action, await provider.blameFile(repo, arg.data));
+                break;
+            case IpcAction.PUSH:
+                provider.eventReply(event, arg.action, !!(await provider.push(repo, arg.data)));
+                break;
+            case IpcAction.SET_UPSTREAM:
+                provider.eventReply(event, arg.action, !!(await provider.setUpstream(repo, arg.data.local, arg.data.remote)));
                 break;
         }
     }
