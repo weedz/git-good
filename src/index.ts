@@ -401,7 +401,14 @@ async function loadCommits(event: IpcMainEvent, params: IpcActionParams[IpcActio
         revwalk.pushGlob("refs/*");
     } else {
         let start: Commit;
-        if ("branch" in params) {
+        if (params.cursor) {
+            const lastCommit = await repo.getCommit(params.cursor);
+            if (!lastCommit.parentcount()) {
+                return [];
+            }
+            start = await lastCommit.parent(0);
+        }
+        else if ("branch" in params) {
             if (params.branch.includes("refs/tags")) {
                 const tag = await repo.getTagByName(params.branch);
                 const target = tag.targetId();

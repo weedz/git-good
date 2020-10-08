@@ -211,6 +211,8 @@ interface LoadCommitsParamBranch {
     branch: string
 };
 type LoadCommitsParam = {
+    /** SHA of last fetched commit */
+    cursor?: string
     num?: number
     file?: string
 } & (LoadCommitsParamBranch | LoadCommitsParamSha | {history: true})

@@ -41,6 +41,8 @@ const headColors = [
     "antiquewhite",
 ];
 
+const pageSize = 1000;
+
 export default class CommitList extends Component<Props, State> {
     graph: {
         [sha: string]: {
@@ -51,55 +53,55 @@ export default class CommitList extends Component<Props, State> {
     commits: any = {};
     unsubscribe!: Function;
 
+    constructor() {
+        super();
+        this.state = {
+            commits: [],
+            fileFilter: undefined,
+            filter: undefined,
+            fileResults: [],
+        };
+    }
+
     componentWillMount() {
-        this.unsubscribe = subscribe(this.loadNewCommits, "selectedBranch");
+        this.unsubscribe = subscribe(this.handleProps, "selectedBranch");
         registerHandler(IpcAction.LOAD_COMMITS, this.commitsLoaded);
         registerHandler(IpcAction.LOAD_COMMITS_PARTIAL, this.commitsLoaded);
-        this.handleProps(this.props, true);
+        this.getCommits();
     }
     componentWillUnmount() {
         this.unsubscribe();
         unregisterHandler(IpcAction.LOAD_COMMITS, this.commitsLoaded);
         unregisterHandler(IpcAction.LOAD_COMMITS_PARTIAL, this.commitsLoaded);
     }
-    loadNewCommits = (arg: {branch?: string, history?: boolean}) => {
-        if (arg) {
-            this.handleProps(arg, false);
-        } else {
-            this.setState({commits: []});
-        }
-    }
-    reset() {
+    handleProps = (props: Props = this.props) => {
         this.graph = {};
+        this.commits = {};
         this.setState({
             commits: [],
-        });
-        this.commits = {};
+        }, () => this.getCommits(props));
     }
-    handleProps(props: Props, reload: boolean) {
+    getCommits = (props: Props = this.props) => {
+        let options: IpcActionParams[IpcAction.LOAD_COMMITS];
         if (props.history) {
-            if (reload || !this.props.history) {
-                this.getCommits({
-                    num: 1000,
-                    history: true,
-                });
-            }
-        } else if (!props.sha) {
-            if (reload || this.props.branch !== props.branch) {
-                this.getCommits({
-                    num: 1000,
-                    branch: decodeURIComponent(props.branch || "HEAD"),
-                });
-            }
+            options = {
+                num: pageSize,
+                history: true,
+            };
         } else {
-            // sendAsyncMessage(IPCAction.LOAD_COMMITS, {
-            //     sha: decodeURIComponent(props.sha)
-            // });
+            options = {
+                num: pageSize,
+                branch: decodeURIComponent(props.branch || "HEAD"),
+            };
         }
-    }
-    getCommits = (options: IpcActionParams[IpcAction.LOAD_COMMITS]) => {
-        this.reset();
-        sendAsyncMessage(IpcAction.LOAD_COMMITS, options);
+        if (this.state.fileFilter) {
+            options.file = this.state.fileFilter;
+        }
+
+        sendAsyncMessage(IpcAction.LOAD_COMMITS, {
+            cursor: this.state.commits.length ? this.state.commits[this.state.commits.length - 1].sha : undefined,
+            ...options
+        });
     }
     handleCommits(commits: IpcActionReturn[IpcAction.LOAD_COMMITS_PARTIAL]) {
         let color = 0;
@@ -140,19 +142,7 @@ export default class CommitList extends Component<Props, State> {
     filterByFile = (file: string) => {
         this.setState({
             fileFilter: file,
-        });
-        // TODO: refactor this.
-        if (this.props.history) {
-            this.getCommits({
-                history: true,
-                file,
-            });
-        } else {
-            this.getCommits({
-                branch: decodeURIComponent(this.props.branch || "HEAD"),
-                file,
-            });
-        }
+        }, this.handleProps);
     }
     
     filterCommits() {
@@ -199,6 +189,7 @@ export default class CommitList extends Component<Props, State> {
                 <ul>
                     {this.state.commits?.length && this.filterCommits().map((commit) => this.commitItem(commit))}
                 </ul>
+                <button onClick={() => this.getCommits()}>Load more...</button>
             </div>
         );
     }
