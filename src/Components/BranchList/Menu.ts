@@ -1,7 +1,7 @@
 import { remote } from "electron";
 import { pullHead } from "src/Data/Renderer";
-import { BranchFromType, openDialogBranchFrom } from "src/Data/Renderer/Dialogs";
-import { contextMenuState, checkoutBranch, deleteBranch } from "src/Data/Renderer/store";
+import { BranchFromType, openDialog_BranchFrom, openDialog_SetUpstream } from "src/Data/Renderer/Dialogs";
+import { contextMenuState, checkoutBranch, deleteBranch, setUpstream, push } from "src/Data/Renderer/store";
 
 const { Menu, MenuItem } = remote;
 
@@ -19,7 +19,7 @@ const newBranch = new MenuItem({
     click() {
         console.log("Create new branch");
         const sha = contextMenuState.data.dataset.ref;
-        openDialogBranchFrom(sha, BranchFromType.REF);
+        openDialog_BranchFrom(sha, BranchFromType.REF);
     }
 });
 
@@ -85,11 +85,19 @@ localMenu.append(new MenuItem({
         console.log("Merge");
     }
 }));
+localMenu.append(new MenuItem({
+    label: 'Set upstream...',
+    click() {
+        const local = contextMenuState.data.dataset.ref;
+        openDialog_SetUpstream(local);
+    }
+}));
 
 const headMenu = new Menu();
 headMenu.append(new MenuItem({
     label: 'Push...',
     click() {
+        push("origin", contextMenuState.data.dataset.ref);
         console.log("Push");
     }
 }));

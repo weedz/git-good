@@ -1,6 +1,6 @@
 import { BranchesObj, BranchObj, IpcAction, IpcActionReturn, IpcActionReturnError, Locks, RepoStatus } from "../Actions";
 import { WindowArguments } from "../WindowEventTypes";
-import { openDialogBlameFile, openDialogCompareRevisions } from "./Dialogs";
+import { openDialog_BlameFile, openDialog_CompareRevisions } from "./Dialogs";
 import { addWindowEventListener, registerHandler, sendAsyncMessage } from "./IPC";
 import { Store, clearLock, setLock, setState } from "./store";
 
@@ -120,8 +120,8 @@ addWindowEventListener("open-settings", openSettings);
 addWindowEventListener("app-lock-ui", setLock);
 addWindowEventListener("app-unlock-ui", clearLock);
 addWindowEventListener("pull-head", pullHead);
-addWindowEventListener("begin-compare-revisions", openDialogCompareRevisions);
-addWindowEventListener("begin-blame-file", openDialogBlameFile);
+addWindowEventListener("begin-compare-revisions", openDialog_CompareRevisions);
+addWindowEventListener("begin-blame-file", openDialog_BlameFile);
 addWindowEventListener("fetch-status", (stats: WindowArguments["fetch-status"]) => {
     if (stats.receivedObjects == stats.totalObjects) {
         console.log(`Resolving deltas ${stats.indexedDeltas}/${stats.totalDeltas}`);
@@ -136,6 +136,7 @@ registerHandler(IpcAction.CHECKOUT_BRANCH, updateCurrentBranch);
 registerHandler(IpcAction.LOAD_HUNKS, loadHunks);
 registerHandler(IpcAction.PULL, loadBranches);
 registerHandler(IpcAction.PUSH, loadBranches);
+registerHandler(IpcAction.SET_UPSTREAM, loadBranches);
 registerHandler(IpcAction.CREATE_BRANCH, loadBranches);
 registerHandler(IpcAction.CREATE_BRANCH_FROM_REF, loadBranches);
 registerHandler(IpcAction.DELETE_REF, loadBranches);
