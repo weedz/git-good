@@ -318,7 +318,7 @@ ipcMain.on("asynchronous-message", async (event, arg: EventArgs) => {
                 provider.eventReply(event, arg.action, await provider.discardChanges(repo, arg.data));
                 break;
             case IpcAction.PULL:
-                provider.eventReply(event, arg.action, !!provider.pull(repo));
+                provider.eventReply(event, arg.action, !!(await provider.pull(repo)));
                 break;
             case IpcAction.CREATE_BRANCH:
                 provider.eventReply(event, arg.action, await repo.createBranch(arg.data.name, arg.data.sha) !== null);
