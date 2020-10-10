@@ -51,10 +51,23 @@ function compileHistoryCommit(commit: Commit) {
         }
     };
 }
-export async function getCommits(event: IpcMainEvent, revwalk: Revwalk, repo: Repository, file?: string, num: number = 1000) {
+
+export async function getCommits(event: IpcMainEvent, lockName: string, start: "refs/*" | Oid, repo: Repository, file?: string, num: number = 1000) {
+    const revwalk = repo.createRevWalk();
+    revwalk.sorting(Revwalk.SORT.TOPOLOGICAL | Revwalk.SORT.TIME);
+
+    if (start === "refs/*") {
+        revwalk.pushGlob(start);
+    } else {
+        revwalk.push(start);
+    }
+
     if (file) {
         const commits = await revwalk.fileHistoryWalk(file, num) as {commit: Commit, status: number, isMergeCommit: boolean}[];
-        return commits.map(historyEntry => compileHistoryCommit(historyEntry.commit));
+        return {
+            branch: lockName,
+            commits: commits.map(historyEntry => compileHistoryCommit(historyEntry.commit))
+        };
     } else {
         // TODO: more filters..
         const filter = async (_: Commit) => true;
@@ -65,11 +78,17 @@ export async function getCommits(event: IpcMainEvent, revwalk: Revwalk, repo: Re
             if (await filter(commit)) {
                 history.push(commit);
             }
-            if (history.length >= 100) {
-                eventReply(event, IpcAction.LOAD_COMMITS_PARTIAL, history.splice(0, 100).map(compileHistoryCommit));
+            if (history.length >= 10) {
+                eventReply(event, IpcAction.LOAD_COMMITS_PARTIAL, {
+                    branch: lockName,
+                    commits: history.splice(0, 100).map(compileHistoryCommit)
+                });
             }
         }
-        return history.map(compileHistoryCommit);
+        return {
+            commits: history.map(compileHistoryCommit),
+            branch: lockName
+        };
     }
 }
 

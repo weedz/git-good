@@ -283,6 +283,7 @@ ipcMain.on("asynchronous-message", async (event, arg: EventArgs) => {
                 provider.eventReply(event, arg.action, await provider.getBranches(repo));
                 break;
             case IpcAction.LOAD_COMMITS:
+                provider.eventReply(event, arg.action, {commits: [], branch: ""});
                 provider.eventReply(event, arg.action, await loadCommits(event, arg.data));
                 break;
             case IpcAction.LOAD_COMMIT:
@@ -395,20 +396,22 @@ function repoStatus() {
 }
 
 async function loadCommits(event: IpcMainEvent, params: IpcActionParams[IpcAction.LOAD_COMMITS]) {
-    let revwalk = repo.createRevWalk();
-    revwalk.sorting(Revwalk.SORT.TOPOLOGICAL | Revwalk.SORT.TIME);
+    let lockName: string = "HEAD";
+    let revwalkStart: "refs/*" | NodeGit.Oid;
     if ("history" in params) {
-        revwalk.pushGlob("refs/*");
+        lockName = "history";
+        revwalkStart = "refs/*";
     } else {
         let start: Commit;
         if (params.cursor) {
             const lastCommit = await repo.getCommit(params.cursor);
             if (!lastCommit.parentcount()) {
-                return [];
+                return {commits: [], branch: ""};
             }
             start = await lastCommit.parent(0);
         }
         else if ("branch" in params) {
+            lockName = params.branch;
             if (params.branch.includes("refs/tags")) {
                 const tag = await repo.getTagByName(params.branch);
                 const target = tag.targetId();
@@ -422,10 +425,10 @@ async function loadCommits(event: IpcMainEvent, params: IpcActionParams[IpcActio
         if (!start) {
             start = await repo.getHeadCommit();
         }
-        revwalk.push(start.id());
+        revwalkStart = start.id();
     }
 
-    return await provider.getCommits(event, revwalk, repo, params.file, params.num);
+    return await provider.getCommits(event, lockName, revwalkStart, repo, params.file, params.num);
 }
 
 function loadHunks(params: IpcActionParams[IpcAction.LOAD_HUNKS]) {

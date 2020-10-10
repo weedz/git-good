@@ -54,7 +54,7 @@ export function branchTree(branches: BranchTree, contextMenuCb?: (event: any) =>
         for (const branch of branches.items) {
             items.push(
                 <li key={branch.ref.headSHA}>
-                    <Link selectAction={c => setState({selectedBranch: {branch: c.props.linkData}})} data-ref={branch.ref.name} onDblClick={dblClickHandle} onContextMenu={contextMenuCb} activeClassName="selected" linkData={encodeURIComponent(branch.ref.name)}>
+                    <Link selectAction={c => setState({selectedBranch: {branch: c.props.linkData}})} data-ref={branch.ref.name} onDblClick={dblClickHandle} onContextMenu={contextMenuCb} activeClassName="selected" linkData={branch.ref.name}>
                         {branch.name}&nbsp;{BranchAheadBehind(branch.ref)}
                     </Link>
                 </li>

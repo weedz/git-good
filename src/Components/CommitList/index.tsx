@@ -14,7 +14,7 @@ type Props = {
     history?: boolean
 };
 type State = {
-    commits: IpcActionReturn[IpcAction.LOAD_COMMITS]
+    fetched: IpcActionReturn[IpcAction.LOAD_COMMITS]
     filter: undefined | string
     fileFilter: undefined | string
     fileResults: string[]
@@ -56,7 +56,10 @@ export default class CommitList extends Component<Props, State> {
     constructor() {
         super();
         this.state = {
-            commits: [],
+            fetched: {
+                commits: [],
+                branch: ""
+            },
             fileFilter: undefined,
             filter: undefined,
             fileResults: [],
@@ -67,7 +70,7 @@ export default class CommitList extends Component<Props, State> {
         this.unsubscribe = subscribe(this.handleProps, "selectedBranch");
         registerHandler(IpcAction.LOAD_COMMITS, this.commitsLoaded);
         registerHandler(IpcAction.LOAD_COMMITS_PARTIAL, this.commitsLoaded);
-        this.getCommits();
+        this.getCommits({branch: "HEAD"});
     }
     componentWillUnmount() {
         this.unsubscribe();
@@ -78,7 +81,10 @@ export default class CommitList extends Component<Props, State> {
         this.graph = {};
         this.commits = {};
         this.setState({
-            commits: [],
+            fetched: {
+                commits: [],
+                branch: ""
+            },
         }, () => this.getCommits(props));
     }
     getCommits = (props: Props = this.props) => {
@@ -91,7 +97,7 @@ export default class CommitList extends Component<Props, State> {
         } else {
             options = {
                 num: pageSize,
-                branch: decodeURIComponent(props.branch || "HEAD"),
+                branch: props.branch || "HEAD",
             };
         }
         if (this.state.fileFilter) {
@@ -99,13 +105,21 @@ export default class CommitList extends Component<Props, State> {
         }
 
         sendAsyncMessage(IpcAction.LOAD_COMMITS, {
-            cursor: this.state.commits.length ? this.state.commits[this.state.commits.length - 1].sha : undefined,
+            cursor: this.state.fetched.commits.length ? this.state.fetched.commits[this.state.fetched.commits.length - 1].sha : undefined,
             ...options
         });
     }
-    handleCommits(commits: IpcActionReturn[IpcAction.LOAD_COMMITS_PARTIAL]) {
+    handleCommits(fetched: IpcActionReturn[IpcAction.LOAD_COMMITS_PARTIAL]) {
+        if (fetched.branch === "history") {
+            if (!Store.selectedBranch.history) {
+                return;
+            }
+        } else if (fetched.branch !== Store.selectedBranch.branch) {
+            return
+        }
+
         let color = 0;
-        for (const commit of commits) {
+        for (const commit of fetched.commits) {
             if (!this.graph[commit.sha]) {
                 this.graph[commit.sha] = {
                     colorId: color++ % headColors.length,
@@ -123,8 +137,11 @@ export default class CommitList extends Component<Props, State> {
                 this.graph[parent].descendants.push(commit);
             }
         }
+
+        const stateFetched = this.state.fetched;
+        stateFetched.commits = this.state.fetched.commits.concat(fetched.commits)
         this.setState({
-            commits: this.state.commits.concat(commits),
+            fetched: stateFetched
         });
     }
     commitsLoaded = (result: IpcActionReturn[IpcAction.LOAD_COMMITS] | IpcActionReturnError) => {
@@ -148,12 +165,12 @@ export default class CommitList extends Component<Props, State> {
     filterCommits() {
         const filter = this.state.filter;
         if (filter) {
-            return this.state.commits.filter((commit) =>
+            return this.state.fetched.commits.filter((commit) =>
                 commit.sha.toLocaleLowerCase().includes(filter)
                 || commit.message.toLocaleLowerCase().includes(filter)
             );
         }
-        return this.state.commits;
+        return this.state.fetched.commits;
     }
     commitItem(commit: LoadCommitReturn) {
         const commitLink = (
@@ -187,7 +204,7 @@ export default class CommitList extends Component<Props, State> {
                     <FileFilter filterByFile={this.filterByFile} />
                 </div>
                 <ul>
-                    {this.state.commits?.length && this.filterCommits().map((commit) => this.commitItem(commit))}
+                    {this.state.fetched.commits.length && this.filterCommits().map((commit) => this.commitItem(commit))}
                 </ul>
                 <button onClick={() => this.getCommits()}>Load more...</button>
             </div>

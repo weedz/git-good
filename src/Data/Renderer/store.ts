@@ -38,7 +38,7 @@ const store: StoreType = {
         [Locks.MAIN]: 0,
     },
     dialogWindow: null,
-    selectedBranch: {},
+    selectedBranch: {branch: "HEAD"},
     diffPaneSrc: "",
     viewChanges: null,
     comparePatches: [],

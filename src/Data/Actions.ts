@@ -235,7 +235,10 @@ export type LoadCommitReturn = {
         email: string
     }
 }
-type LoadCommitsReturn = LoadCommitReturn[];
+type LoadCommitsReturn = {
+    commits: LoadCommitReturn[]
+    branch: string
+};
 
 export enum Locks {
     MAIN
