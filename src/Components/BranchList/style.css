@@ -7,3 +7,7 @@
 #branch-pane > ul.tree-list > li.sub-tree.open > ul a {
     display: block;
 }
+
+#branch-pane ul {
+    user-select: none;
+}

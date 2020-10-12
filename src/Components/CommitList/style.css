@@ -6,6 +6,7 @@
 }
 #commits-pane > ul {
   overflow-y: auto;
+  user-select: none;
 }
 #commits-pane > ul > li {
   display: flex;

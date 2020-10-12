@@ -21,4 +21,5 @@
     overflow: auto;
     /* flex-grow: 1; */
     flex: 1;
+    user-select: none;
 }
