@@ -238,6 +238,7 @@ export type LoadCommitReturn = {
 type LoadCommitsReturn = {
     commits: LoadCommitReturn[]
     branch: string
+    cursor?: string
 };
 
 export enum Locks {

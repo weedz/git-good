@@ -65,12 +65,14 @@ export async function getCommits(event: IpcMainEvent, lockName: string, start: "
     if (file) {
         const commits = await revwalk.fileHistoryWalk(file, num) as {commit: Commit, status: number, isMergeCommit: boolean}[];
         return {
+            cursor: commits[commits.length - 1]?.commit.sha(),
             branch: lockName,
             commits: commits.map(historyEntry => compileHistoryCommit(historyEntry.commit))
         };
     } else {
         // TODO: more filters..
         const filter = async (_: Commit) => true;
+        let cursorCommit: Commit | null = null;
 
         const history: Commit[] = [];
         for await (const oid of walkTheRev(revwalk, num)) {
@@ -78,14 +80,17 @@ export async function getCommits(event: IpcMainEvent, lockName: string, start: "
             if (await filter(commit)) {
                 history.push(commit);
             }
-            if (history.length >= 10) {
+            if (history.length >= 100) {
+                cursorCommit = history[history.length - 1];
                 eventReply(event, IpcAction.LOAD_COMMITS_PARTIAL, {
                     branch: lockName,
                     commits: history.splice(0, 100).map(compileHistoryCommit)
                 });
             }
         }
+
         return {
+            cursor: cursorCommit ? cursorCommit.sha() : history[history.length - 1]?.sha(),
             commits: history.map(compileHistoryCommit),
             branch: lockName
         };

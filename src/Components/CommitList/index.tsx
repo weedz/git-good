@@ -1,12 +1,12 @@
 import { h, Component } from "preact";
 import { sendAsyncMessage, unregisterHandler, registerHandler } from "src/Data/Renderer/IPC";
 import { IpcAction, IpcActionReturn, IpcActionReturnError, LoadCommitReturn, IpcActionParams } from "src/Data/Actions";
-import { setState, Store, subscribe } from "src/Data/Renderer/store";
-import { showCommitMenu } from "./Menu";
+import { Store, subscribe } from "src/Data/Renderer/store";
 
 import "./style.css";
 import FileFilter from "./FileFilter";
-import Link from "../Link";
+import CommitListItem from "./CommitListItem";
+import HeadColors from "./HeadColors";
 
 type Props = {
     branch?: string
@@ -14,32 +14,11 @@ type Props = {
     history?: boolean
 };
 type State = {
-    fetched: IpcActionReturn[IpcAction.LOAD_COMMITS]
+    commits: IpcActionReturn[IpcAction.LOAD_COMMITS]["commits"]
     filter: undefined | string
     fileFilter: undefined | string
     fileResults: string[]
 };
-
-const headColors = [
-    "cyan",
-    "red",
-    "lightgreen",
-    "pink",
-    "teal",
-    "darkslategrey",
-    "yellow",
-    "darkviolet",
-    "orange",
-    "hotpink",
-    "sienna",
-    "springgreen",
-    "deeppink",
-    "limegreen",
-    "fuchsia",
-    "gold",
-    "crimson",
-    "antiquewhite",
-];
 
 const pageSize = 1000;
 
@@ -52,14 +31,13 @@ export default class CommitList extends Component<Props, State> {
     } = {};
     commits: any = {};
     unsubscribe!: Function;
+    cursor: IpcActionReturn[IpcAction.LOAD_COMMITS]["cursor"];
+    color: number = 0;
 
     constructor() {
         super();
         this.state = {
-            fetched: {
-                commits: [],
-                branch: ""
-            },
+            commits: [],
             fileFilter: undefined,
             filter: undefined,
             fileResults: [],
@@ -78,16 +56,18 @@ export default class CommitList extends Component<Props, State> {
         unregisterHandler(IpcAction.LOAD_COMMITS_PARTIAL, this.commitsLoaded);
     }
     handleProps = (props: Props = this.props) => {
-        this.graph = {};
         this.commits = {};
+        this.cursor = undefined;
+        this.color = 0;
         this.setState({
-            fetched: {
-                commits: [],
-                branch: ""
-            },
+            commits: [],
         }, () => this.getCommits(props));
     }
     getCommits = (props: Props = this.props) => {
+        this.graph = {};
+        this.loadMoreCommits(props);
+    }
+    loadMoreCommits = (props: Props = this.props) => {
         let options: IpcActionParams[IpcAction.LOAD_COMMITS];
         if (props.history) {
             options = {
@@ -105,7 +85,7 @@ export default class CommitList extends Component<Props, State> {
         }
 
         sendAsyncMessage(IpcAction.LOAD_COMMITS, {
-            cursor: this.state.fetched.commits.length ? this.state.fetched.commits[this.state.fetched.commits.length - 1].sha : undefined,
+            cursor: this.cursor,
             ...options
         });
     }
@@ -115,14 +95,13 @@ export default class CommitList extends Component<Props, State> {
                 return;
             }
         } else if (fetched.branch !== Store.selectedBranch.branch) {
-            return
+            return;
         }
 
-        let color = 0;
         for (const commit of fetched.commits) {
             if (!this.graph[commit.sha]) {
                 this.graph[commit.sha] = {
-                    colorId: color++ % headColors.length,
+                    colorId: this.color++ % HeadColors.length,
                     descendants: [],
                 };
             }
@@ -131,17 +110,19 @@ export default class CommitList extends Component<Props, State> {
                 if (!this.graph[parent]) {
                     this.graph[parent] = {
                         descendants: [],
-                        colorId: i === 0 ? this.graph[commit.sha].colorId : color++ % headColors.length,
+                        colorId: i === 0 ? this.graph[commit.sha].colorId : this.color++ % HeadColors.length,
                     };
                 }
                 this.graph[parent].descendants.push(commit);
             }
         }
 
-        const stateFetched = this.state.fetched;
-        stateFetched.commits = this.state.fetched.commits.concat(fetched.commits)
+        if (fetched.cursor) {
+            this.cursor = fetched.cursor;
+        }
+
         this.setState({
-            fetched: stateFetched
+            commits: this.state.commits.concat(fetched.commits)
         });
     }
     commitsLoaded = (result: IpcActionReturn[IpcAction.LOAD_COMMITS] | IpcActionReturnError) => {
@@ -165,36 +146,14 @@ export default class CommitList extends Component<Props, State> {
     filterCommits() {
         const filter = this.state.filter;
         if (filter) {
-            return this.state.fetched.commits.filter((commit) =>
+            return this.state.commits.filter((commit) =>
                 commit.sha.toLocaleLowerCase().includes(filter)
                 || commit.message.toLocaleLowerCase().includes(filter)
             );
         }
-        return this.state.fetched.commits;
+        return this.state.commits;
     }
-    commitItem(commit: LoadCommitReturn) {
-        const commitLink = (
-            <Link selectAction={(c) => setState({diffPaneSrc: c.props.linkData})} activeClassName="selected" linkData={commit.sha}>
-                {Store.heads[commit.sha] && 
-                    Store.heads[commit.sha].map(ref => <span style={{color: headColors[this.graph[commit.sha].colorId]}}>({ref.normalizedName})</span>)
-                }
-                <span className="msg">{commit.message.substring(0, commit.message.indexOf("\n")>>>0 || 60)}</span>
-            </Link>
-        );
-        this.commits[commit.sha] = commitLink;
 
-        return (
-            <li className="short" key={commit.sha} data-sha={commit.sha} onContextMenu={showCommitMenu}>
-                <span className="graph-indicator" style={{backgroundColor: headColors[this.graph[commit.sha].colorId]}}></span>
-                {
-                    this.graph[commit.sha].descendants.length > 0 && <ul className="commit-graph">
-                        {this.graph[commit.sha].descendants.map(child => <li><Link selectTarget={this.commits[child.sha]} style={{color: headColors[this.graph[child.sha].colorId]}}>{child.sha.substring(0,7)}</Link></li>)}
-                    </ul>
-                }
-                {commitLink}
-            </li>
-        );
-    }
     render() {
         return (
             <div id="commits-pane" className="pane">
@@ -204,9 +163,9 @@ export default class CommitList extends Component<Props, State> {
                     <FileFilter filterByFile={this.filterByFile} />
                 </div>
                 <ul>
-                    {this.state.fetched.commits.length && this.filterCommits().map((commit) => this.commitItem(commit))}
+                    {this.state.commits.length && this.filterCommits().map((commit) => <CommitListItem key={commit.sha} graph={this.graph} commit={commit} commits={this.commits} />)}
                 </ul>
-                <button onClick={() => this.getCommits()}>Load more...</button>
+                <button onClick={() => this.loadMoreCommits()}>Load more...</button>
             </div>
         );
     }
