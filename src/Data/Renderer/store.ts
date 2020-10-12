@@ -5,6 +5,7 @@ export type DialogWindow = {
     title: string
     confirmCb: Function
     cancelCb: Function
+    defaultValue?: string
 }
 
 export type StoreType = {
@@ -178,6 +179,10 @@ export function deleteBranch(name: string) {
     sendAsyncMessage(IpcAction.DELETE_REF, {
         name
     });
+}
+
+export function deleteRemoteBranch(name: string) {
+    sendAsyncMessage(IpcAction.DELETE_REMOTE_REF, name);
 }
 
 export function push(remote: string, localBranch: string, remoteBranch?: string, force?: boolean) {

@@ -118,10 +118,21 @@ export async function pull(repo: Repository) {
 
 export async function push(repo: Repository, data: IpcActionParams[IpcAction.PUSH]) {
     const remote = await repo.getRemote(data.remote);
+    let localRef;
 
     if (!data.localBranch) {
-        const localRef = await repo.head();
+        localRef = await repo.head();
         data.localBranch = localRef.name();
+    } else {
+        localRef = await repo.getReference(data.localBranch);
+    }
+
+    try {
+        // throws if no upstream
+        await Branch.upstream(localRef);
+    } catch (err) {
+        console.log("push failed, invalid upstream");
+        return 1;
     }
 
     if (!data.remoteBranch) {
@@ -143,19 +154,39 @@ export async function push(repo: Repository, data: IpcActionParams[IpcAction.PUS
     return pushResult;
 }
 
-export async function setUpstream(repo: Repository, local: string, remote: string | null) {
+export async function setUpstream(repo: Repository, local: string, remoteRefName: string | null) {
     const reference = await repo.getReference(local);
-    if (remote) {
+    if (remoteRefName) {
         try {
-            const ref = await repo.getReference(remote);
+            await repo.getReference(remoteRefName);
         } catch (err) {
-            const remoteRef = await Reference.create(repo, `refs/remotes/${remote}`, (await reference.peel(Object.TYPE.COMMIT)).id() as unknown as Oid, 0, "");
+            await Reference.create(repo, `refs/remotes/${remoteRefName}`, (await reference.peel(Object.TYPE.COMMIT)).id() as unknown as Oid, 0, "");
         }
     }
     // @ts-ignore, https://www.nodegit.org/api/branch/#setUpstream (pass NULL to unset)
-    const result = await Branch.setUpstream(reference, remote);
+    const result = await Branch.setUpstream(reference, remoteRefName);
 
     return result;
+}
+
+export async function deleteRemoteRef(repo: Repository, refName: string) {
+    const ref = await repo.getReference(refName);
+    console.log(ref.name(), ref.isRemote());
+
+    if (ref.isRemote()) {
+        refName = ref.name();
+        const end = refName.indexOf("/", 14) - 13;
+        const remoteName = refName.substr(13, end);
+        const remote = await repo.getRemote(remoteName);
+
+        remote.push([`:${refName}`], {
+            callbacks: {
+                credentials: authenticate
+            }
+        });
+        ref.delete();
+    }
+    return false;
 }
 
 // {local: Branch[], remote: Branch[], tags: Branch[]}

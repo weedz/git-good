@@ -1,4 +1,5 @@
 import { IpcAction } from "../Actions";
+import { normalizeLocalName } from "../Branch";
 import { sendAsyncMessage } from "./IPC";
 import { closeDialogWindow, createBranchFromSha, createBranchFromRef, openDialogWindow, blameFile, setUpstream } from "./store";
 
@@ -67,6 +68,7 @@ export function openDialog_BranchFrom(sha: string, type: BranchFromType) {
 export function openDialog_SetUpstream(local: string) {
     openDialogWindow({
         title: "Set upstream",
+        defaultValue: `origin/${normalizeLocalName(local)}`,
         confirmCb(data: any) {
             setUpstream(local, data.branchName);
             closeDialogWindow();

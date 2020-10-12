@@ -1,7 +1,7 @@
 import { remote } from "electron";
 import { pullHead } from "src/Data/Renderer";
 import { BranchFromType, openDialog_BranchFrom, openDialog_SetUpstream } from "src/Data/Renderer/Dialogs";
-import { contextMenuState, checkoutBranch, deleteBranch, setUpstream, push } from "src/Data/Renderer/store";
+import { contextMenuState, checkoutBranch, deleteBranch, push, deleteRemoteBranch } from "src/Data/Renderer/store";
 
 const { Menu, MenuItem } = remote;
 
@@ -33,8 +33,17 @@ remoteMenu.append(new MenuItem({
 remoteMenu.append(newBranch);
 remoteMenu.append(new MenuItem({
     label: 'Delete...',
-    click() {
-        console.log("Delete");
+    async click() {
+        const refName = contextMenuState.data.dataset.ref;
+        const result = await remote.dialog.showMessageBox({
+            message: `Delete branch ${refName}?`,
+            type: "question",
+            buttons: ["Confirm", "Cancel"],
+            cancelId: 1,
+        });
+        if (result.response === 0) {
+            deleteRemoteBranch(refName);
+        }
     }
 }));
 remoteMenu.append(new MenuItem({

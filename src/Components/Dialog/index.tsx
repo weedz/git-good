@@ -14,7 +14,9 @@ export default class Dialog extends Component<{}, State> {
     }
     updateDialog = (dialogWindow: StoreType["dialogWindow"]) => {
         if (dialogWindow) {
-            const data: any = {};
+            const data: any = {
+                branchName: dialogWindow.defaultValue
+            };
             const updateName = (name: string) => {
                 data.branchName = name;
             }
@@ -28,7 +30,7 @@ export default class Dialog extends Component<{}, State> {
                             return false;
                         }}>
                             <h4>{dialogWindow.title}</h4>
-                            <input type="text" name="branchName" placeholder="Name..." onChange={(e) => updateName(e.currentTarget.value)} />
+                            <input type="text" name="branchName" placeholder="Name..." onChange={(e) => updateName(e.currentTarget.value)} value={dialogWindow.defaultValue || ""} />
                             <button type="submit">Confirm</button>
                             <button type="button" onClick={() => dialogWindow.cancelCb()}>Cancel</button>
                         </form>

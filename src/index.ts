@@ -332,7 +332,10 @@ ipcMain.on("asynchronous-message", async (event, arg: EventArgs) => {
             case IpcAction.DELETE_REF:
                 const ref = await repo.getReference(arg.data.name);
                 const res = Branch.delete(ref);
-                provider.eventReply(event, arg.action, !!res);
+                provider.eventReply(event, arg.action, !res);
+                break;
+            case IpcAction.DELETE_REMOTE_REF:
+                provider.eventReply(event, arg.action, await provider.deleteRemoteRef(repo, arg.data));
                 break;
             case IpcAction.FIND_FILE:
                 provider.eventReply(event, arg.action, await provider.findFile(repo, arg.data));
@@ -354,10 +357,10 @@ ipcMain.on("asynchronous-message", async (event, arg: EventArgs) => {
                 provider.eventReply(event, arg.action, await provider.blameFile(repo, arg.data));
                 break;
             case IpcAction.PUSH:
-                provider.eventReply(event, arg.action, !!(await provider.push(repo, arg.data)));
+                provider.eventReply(event, arg.action, !(await provider.push(repo, arg.data)));
                 break;
             case IpcAction.SET_UPSTREAM:
-                provider.eventReply(event, arg.action, !!(await provider.setUpstream(repo, arg.data.local, arg.data.remote)));
+                provider.eventReply(event, arg.action, !(await provider.setUpstream(repo, arg.data.local, arg.data.remote)));
                 break;
         }
     }

@@ -41,6 +41,7 @@ const handlers: {[key in IpcAction]: Function[]} = {
     [IpcAction.CREATE_BRANCH]: [],
     [IpcAction.CREATE_BRANCH_FROM_REF]: [],
     [IpcAction.DELETE_REF]: [],
+    [IpcAction.DELETE_REMOTE_REF]: [],
     [IpcAction.FIND_FILE]: [],
     [IpcAction.ABORT_REBASE]: [],
     [IpcAction.CONTINUE_REBASE]: [],

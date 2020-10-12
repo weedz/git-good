@@ -113,6 +113,10 @@ function handleBlameFile(data: any) {
     console.log("blame", data);
 }
 
+function handlePushResult(data: IpcActionReturn[IpcAction.PUSH]) {
+    loadBranches();
+}
+
 addWindowEventListener("repo-opened", repoOpened);
 addWindowEventListener("repo-fetch-all", loadBranches);
 addWindowEventListener("refresh-workdir", refreshWorkdir);
@@ -135,7 +139,7 @@ registerHandler(IpcAction.LOAD_BRANCHES, branchesLoaded);
 registerHandler(IpcAction.CHECKOUT_BRANCH, updateCurrentBranch);
 registerHandler(IpcAction.LOAD_HUNKS, loadHunks);
 registerHandler(IpcAction.PULL, loadBranches);
-registerHandler(IpcAction.PUSH, loadBranches);
+registerHandler(IpcAction.PUSH, handlePushResult);
 registerHandler(IpcAction.SET_UPSTREAM, loadBranches);
 registerHandler(IpcAction.CREATE_BRANCH, loadBranches);
 registerHandler(IpcAction.CREATE_BRANCH_FROM_REF, loadBranches);
