@@ -281,7 +281,6 @@ export async function findFile(repo: Repository, file: string) {
 
 export async function commit(repo: Repository, params: IpcActionParams[IpcAction.COMMIT]) {
     // TODO: get from settings
-    const author = Signature.now("Linus Björklund", "weedzcokie@gmail.com");
     const committer = Signature.now("Linus Björklund", "weedzcokie@gmail.com");
 
     const parent = await repo.getHeadCommit();
@@ -293,9 +292,10 @@ export async function commit(repo: Repository, params: IpcActionParams[IpcAction
     let newCommit;
 
     if (params.amend) {
+        const author = parent.author();
         newCommit = await parent.amend("HEAD", author, committer, "utf8", message, oid);
     } else {
-        newCommit = await repo.createCommit("HEAD", author, committer, message, oid, [parent]);
+        newCommit = await repo.createCommit("HEAD", committer, committer, message, oid, [parent]);
     }
 
     return !!newCommit;
