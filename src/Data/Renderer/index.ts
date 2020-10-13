@@ -121,6 +121,14 @@ function handlePushResult(data: IpcActionReturn[IpcAction.PUSH]) {
     loadBranches();
 }
 
+function handleNewCommit() {
+    refreshWorkdir();
+    loadBranches();
+    setState({
+        selectedBranch: Store.selectedBranch
+    });
+}
+
 addWindowEventListener("repo-opened", repoOpened);
 addWindowEventListener("repo-fetch-all", loadBranches);
 addWindowEventListener("refresh-workdir", refreshWorkdir);
@@ -153,3 +161,4 @@ registerHandler(IpcAction.ABORT_REBASE, setStatus);
 registerHandler(IpcAction.CONTINUE_REBASE, setStatus);
 registerHandler(IpcAction.OPEN_COMPARE_REVISIONS, handleCompareRevisions);
 registerHandler(IpcAction.BLAME_FILE, handleBlameFile);
+registerHandler(IpcAction.COMMIT, handleNewCommit);

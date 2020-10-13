@@ -5,7 +5,7 @@ import { CommitObj, IpcAction, IpcActionReturn, PatchObj } from "src/Data/Action
 import { registerHandler, unregisterHandler, sendAsyncMessage } from "src/Data/Renderer/IPC";
 import ChangedFiles from "src/Components/DiffPane/ChangedFiles";
 import { remote } from "electron";
-import { setState, Store, StoreType, subscribe, unsubscribe } from "src/Data/Renderer/store";
+import { commit, setState, Store, StoreType, subscribe, unsubscribe } from "src/Data/Renderer/store";
 
 type State = {
     unstaged?: PatchObj[]
@@ -101,12 +101,28 @@ export default class WorkingArea extends Component<{}, State> {
             this.setState(newState);
         }
     }
+    commit = (e: h.JSX.TargetedEvent<HTMLInputElement, MouseEvent>) => {
+        e.preventDefault();
+        commit({
+            message: this.state.commitMsg,
+            amend: this.state.amend,
+        });
+    }
+    updateMessage(msg: {summary: string} | {body: string}) {
+        const commitMsg = this.state.amend ? this.state.commitMsg : Store.commitMsg;
+        Object.assign(commitMsg, msg);
+        if (this.state.amend) {
+            this.setState({commitMsg});
+        } else {
+            setState({commitMsg});
+        }
+    }
     render() {
         let commitButton;
         if (this.state.amend) {
-            commitButton = <input type="submit" name="amend" value="Amend" />
+            commitButton = <input type="submit" name="amend" value="Amend" onClick={this.commit} />
         } else {
-            commitButton = <input type="submit" name="commit" value="Commit"  disabled={!this.state.staged?.length} />
+            commitButton = <input type="submit" name="commit" value="Commit" onClick={this.commit} disabled={!this.state.staged?.length} />
         }
 
         return (
@@ -124,15 +140,11 @@ export default class WorkingArea extends Component<{}, State> {
                         <h4>Commit</h4>
                         <form>
                             <input type="text" name="summary" placeholder="Summary" value={this.state.commitMsg.summary} onKeyUp={(e:any) => {
-                                const commitMsg = Store.commitMsg;
-                                commitMsg.summary = e.target.value;
-                                setState({commitMsg});
+                                this.updateMessage({summary: e.target.value});
                             }} />
                             <br />
                             <textarea name="msg" onKeyUp={(e:any) => {
-                                const commitMsg = Store.commitMsg;
-                                commitMsg.body = e.target.value;
-                                setState({commitMsg});
+                                this.updateMessage({body: e.target.value});
                             }} value={this.state.commitMsg.body} />
                             <br />
                             {commitButton}

@@ -1,6 +1,6 @@
 import * as path from "path";
 import { promises as fs } from "fs";
-import { Repository, Revwalk, Commit, Diff, ConvenientPatch, ConvenientHunk, DiffLine, Object, Branch, Graph, Index, Reset, Checkout, DiffFindOptions, Blame, Cred, Reference, Oid } from "nodegit";
+import { Repository, Revwalk, Commit, Diff, ConvenientPatch, ConvenientHunk, DiffLine, Object, Branch, Graph, Index, Reset, Checkout, DiffFindOptions, Blame, Cred, Reference, Oid, Signature } from "nodegit";
 import { IpcMainEvent } from "electron/main";
 import { IpcAction, BranchObj, BranchesObj, LineObj, HunkObj, PatchObj, CommitObj, IpcActionParams, IpcActionReturn, IpcActionReturnError } from "../Actions";
 import { normalizeLocalName, normalizeRemoteName, normalizeTagName } from "../Branch";
@@ -279,6 +279,28 @@ export async function findFile(repo: Repository, file: string) {
     return results;
 }
 
+export async function commit(repo: Repository, params: IpcActionParams[IpcAction.COMMIT]) {
+    // TODO: get from settings
+    const author = Signature.now("Linus Björklund", "weedzcokie@gmail.com");
+    const committer = Signature.now("Linus Björklund", "weedzcokie@gmail.com");
+
+    const parent = await repo.getHeadCommit();
+
+    const oid = await index.writeTree();
+
+    const message = params.message.body ? `${params.message.summary}\n${params.message.body}` : params.message.summary;
+
+    let newCommit;
+
+    if (params.amend) {
+        newCommit = await parent.amend("HEAD", author, committer, "utf8", message, oid);
+    } else {
+        newCommit = await repo.createCommit("HEAD", author, committer, message, oid, [parent]);
+    }
+
+    return !!newCommit;
+}
+
 export async function refreshWorkDir(repo: Repository) {
     index = await repo.refreshIndex();
 
@@ -551,7 +573,7 @@ export async function loadCommit(repo: Repository, sha?: string) {
     const committer = commit.committer();
 
     const msg = commit.message();
-    const msgSummary = msg.substr(0, msg.indexOf("\n"));
+    const msgSummary = msg.substr(0, msg.indexOf("\n")>>>0);
     const msgBody = msg.substr(msgSummary.length).trimStart().trimEnd();
 
     return {
