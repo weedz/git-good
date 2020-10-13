@@ -1,9 +1,10 @@
 import * as path from "path";
-import * as fs from "fs";
+import { promises as fs } from "fs";
 import { Repository, Revwalk, Commit, Diff, ConvenientPatch, ConvenientHunk, DiffLine, Object, Branch, Graph, Index, Reset, Checkout, DiffFindOptions, Blame, Cred, Reference, Oid } from "nodegit";
 import { IpcMainEvent } from "electron/main";
 import { IpcAction, BranchObj, BranchesObj, LineObj, HunkObj, PatchObj, CommitObj, IpcActionParams, IpcActionReturn, IpcActionReturnError } from "../Actions";
 import { normalizeLocalName, normalizeRemoteName, normalizeTagName } from "../Branch";
+import { dialog } from "electron";
 
 export let actionLock: {
     [key in IpcAction]?: {
@@ -310,11 +311,24 @@ export async function unstageFile(repo: Repository, path: string) {
 
     return 0;
 }
-export async function discardChanges(repo: Repository, path: string) {
+export async function discardChanges(repo: Repository, filePath: string) {
+    if (!index.getByPath(filePath)) {
+        // file not found in index (untracked), delete?
+        const result = await dialog.showMessageBox({
+            message: `Delete untracked file ${filePath}?`,
+            type: "question",
+            buttons: ["Confirm", "Cancel"],
+            cancelId: 1,
+        });
+        if (result.response === 0) {
+            await fs.unlink(path.join(repo.workdir(), filePath));
+        }
+        return 0;
+    }
     try {
         const head = await repo.getHeadCommit();
         const tree = await head.getTree();
-        await Checkout.tree(repo, tree, { checkoutStrategy: Checkout.STRATEGY.FORCE, paths: [path] });
+        await Checkout.tree(repo, tree, { checkoutStrategy: Checkout.STRATEGY.FORCE, paths: [filePath] });
     } catch (err) {
         console.error(err)
     }
@@ -577,7 +591,7 @@ export async function blameFile(repo: Repository, filePath: string) {
         const blame = await Blame.file(repo, filePath);
 
         const fullFilePath = path.join(repo.workdir(), filePath);
-        const file = fs.readFileSync(fullFilePath);
+        const file = await fs.readFile(fullFilePath);
 
         const lines = file.toString("utf8").split("\n");
 
