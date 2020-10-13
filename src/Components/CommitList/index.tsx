@@ -163,7 +163,7 @@ export default class CommitList extends Component<Props, State> {
                     <FileFilter filterByFile={this.filterByFile} />
                 </div>
                 <ul>
-                    {this.state.commits.length && this.filterCommits().map((commit) => <CommitListItem key={commit.sha} graph={this.graph} commit={commit} commits={this.commits} />)}
+                    {this.state.commits.length ? this.filterCommits().map((commit) => <CommitListItem key={commit.sha} graph={this.graph} commit={commit} commits={this.commits} />) : "No commits yet?"}
                 </ul>
                 <button onClick={() => this.loadMoreCommits()}>Load more...</button>
             </div>

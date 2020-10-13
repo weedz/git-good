@@ -19,14 +19,17 @@ function repoOpened(result: IpcActionReturn[IpcAction.OPEN_REPO] | IpcActionRetu
         console.warn(result);
     } else if (result.opened) {
         localStorage.setItem("recent-repo", result.path);
+        loadBranches();
+        refreshWorkdir();
         setState({
             repo: {
                 path: result.path,
                 status: result.status
-            }
+            },
+            selectedBranch: {
+                branch: "HEAD"
+            },
         });
-        loadBranches();
-        refreshWorkdir();
     } else {
         setState({
             repo: null
