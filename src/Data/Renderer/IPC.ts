@@ -8,8 +8,7 @@ function attach() {
 }
 attach();
 
-export function addWindowEventListener<T extends WindowEvents>(event: T, cb: (args: WindowArguments[T]) => void) {
-    // @ts-ignore
+export function addWindowEventListener<T extends WindowEvents>(event: T, cb: (args: WindowArguments[T], event: T) => void) {
     ipcRenderer.on(event, (_, args) => cb(args, event));
 }
 
@@ -49,12 +48,12 @@ const handlers: {[key in IpcAction]: Function[]} = {
     [IpcAction.BLAME_FILE]: [],
 };
 export function registerHandler<T extends IpcAction>(action: T, cb: (arg: IpcActionReturn[T]) => void) {
-    handlers[action]?.push(cb);
+    handlers[action].push(cb);
 }
 export function unregisterHandler(action: IpcAction, cb: Function) {
     handlers[action].splice(handlers[action].indexOf(cb)>>>0, 1);
 }
-function handleEvent(event: IpcRendererEvent, payload: {action: IpcAction, data: any}) {
+function handleEvent(_: IpcRendererEvent, payload: {action: IpcAction, data: any}) {
     if (payload.data.error) {
         remote.dialog.showErrorBox(`Error ${IpcAction[payload.action]}`, payload.data.error);
     }

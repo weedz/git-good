@@ -1,4 +1,4 @@
-import { IpcAction, BranchesObj, BranchObj, PatchObj, Locks, RepoStatus } from "../Actions";
+import { IpcAction, BranchesObj, BranchObj, PatchObj, Locks, RepoStatus, IpcActionParams } from "../Actions";
 import { sendAsyncMessage } from "./IPC";
 
 export type DialogWindow = {
@@ -116,7 +116,7 @@ function setStateDeep(paths: any[], data: any) {
     }
 }
 
-export function openRepo(repoPath: string) {
+export function openRepo(repoPath: IpcActionParams[IpcAction.OPEN_REPO]) {
     setLock(Locks.MAIN);
     sendAsyncMessage(IpcAction.OPEN_REPO, repoPath);
 }

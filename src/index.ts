@@ -2,10 +2,10 @@ import { join } from "path";
 import { app, BrowserWindow, ipcMain, Menu, dialog } from 'electron';
 
 import * as NodeGit from "nodegit";
-import { Repository, Commit, Revwalk, Cred, Branch, Rebase } from "nodegit";
+import { Repository, Commit, Branch, Rebase } from "nodegit";
 
 import * as provider from "./Data/Main/Provider";
-import { IpcAction, IpcActionParams, IpcActionReturn, Locks } from './Data/Actions';
+import { IpcAction, IpcActionParams, IpcActionReturn } from './Data/Actions';
 import { sendEvent } from "./Data/Main/WindowEvents";
 import { IpcMainEvent } from "electron/main";
 
@@ -25,7 +25,7 @@ const createWindow = () => {
 
     win.loadFile(join(__dirname, "../dist/index.html"));
 
-    win.webContents.openDevTools();
+    // win.webContents.openDevTools();
 };
 
 app.commandLine.appendSwitch('disable-smooth-scrolling');
@@ -80,18 +80,7 @@ const menuTemplate = [
                 label: 'Open repository...',
                 accelerator: 'CmdOrCtrl+O',
                 click: async () => {
-                    dialog.showOpenDialog({
-                        properties: ["openDirectory"]
-                    }).then(async res => {
-                        if (!res.canceled) {
-                            const opened = await openRepo(res.filePaths[0]);
-                            sendEvent(win.webContents, "repo-opened", {
-                                path: res.filePaths[0],
-                                opened,
-                                status: opened ? repoStatus() : null,
-                            });
-                        }
-                    });
+                    sendEvent(win.webContents, "repo-opened", await openRepoDialog());
                 }
             },
             {
@@ -267,12 +256,16 @@ ipcMain.on("asynchronous-message", async (event, arg: EventArgs) => {
     provider.actionLock[arg.action] = {interuptable: false};
 
     if (arg.action === IpcAction.OPEN_REPO) {
-        const opened = await openRepo(arg.data);
-        provider.eventReply(event, arg.action, {
-            path: arg.data,
-            opened,
-            status: opened ? repoStatus() : null,
-        });
+        if (arg.data) {
+            const opened = await openRepo(arg.data);
+            provider.eventReply(event, arg.action, {
+                path: arg.data,
+                opened,
+                status: opened ? repoStatus() : null,
+            });
+        } else {
+            provider.eventReply(event, arg.action, await openRepoDialog());
+        }
         return;
     }
 
@@ -376,6 +369,19 @@ async function continueRebase(repo: Repository) {
     // const rebaseAction = await rebase.next();
     // console.dir(rebaseAction);
     return repoStatus();
+}
+
+async function openRepoDialog() {
+    const res = await dialog.showOpenDialog({
+        properties: ["openDirectory"]
+    });
+
+    const opened = !res.canceled && await openRepo(res.filePaths[0]);
+    return {
+        path: res.filePaths[0],
+        opened,
+        status: opened ? repoStatus() : null,
+    };
 }
 
 async function openRepo(repoPath: string) {

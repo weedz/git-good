@@ -1,4 +1,5 @@
 import { h, Component } from "preact";
+import { openRepo } from "src/Data/Renderer/store";
 
 export default class NewTab extends Component {
     render() {
@@ -10,7 +11,7 @@ export default class NewTab extends Component {
             }}>
                 <nav>
                     <li>
-                        <button>Open repo</button>
+                        <button onClick={() => openRepo(null)}>Open repo</button>
                     </li>
                     <li>
                         <button>Clone repo</button>
