@@ -227,6 +227,10 @@ export function setUpstream(local: string, remote: string) {
     });
 }
 
+export function commit(params: IpcActionParams[IpcAction.COMMIT]) {
+    sendAsyncMessage(IpcAction.COMMIT, params);
+}
+
 export function openDialogWindow(dialogWindow: StoreType["dialogWindow"]) {
     setState({
         dialogWindow

@@ -52,8 +52,10 @@ export type IpcActionParams = {
     [IpcAction.DISCARD_FILE]: string
     [IpcAction.COMMIT]: {
         amend?: boolean
-        summary: string
-        message: string
+        message: {
+            summary: string
+            body: string
+        }
     }
     [IpcAction.PULL]: never
     [IpcAction.SET_UPSTREAM]: {

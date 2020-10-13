@@ -355,6 +355,9 @@ ipcMain.on("asynchronous-message", async (event, arg: EventArgs) => {
             case IpcAction.SET_UPSTREAM:
                 provider.eventReply(event, arg.action, !(await provider.setUpstream(repo, arg.data.local, arg.data.remote)));
                 break;
+            case IpcAction.COMMIT:
+                provider.eventReply(event, arg.action, await provider.commit(repo, arg.data));
+                break;
         }
     }
 });
