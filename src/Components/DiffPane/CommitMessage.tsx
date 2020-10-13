@@ -5,8 +5,6 @@ import { normalizeRemoteName } from "src/Data/Branch";
 import Link from "../Link";
 
 export default function CommitMessage(props: {commit: CommitObj}) {
-    const message = props.commit.message.split("\n");
-    const title = message.shift();
     return (
         <div>
             <h4>{props.commit.sha}</h4>
@@ -32,8 +30,8 @@ export default function CommitMessage(props: {commit: CommitObj}) {
             {props.commit.committer.email !== props.commit.author.email && <p className="author">commiter: {props.commit.committer.name} &lt;{props.commit.committer.email}&gt;</p>}
             <hr />
             <div className="msg">
-                <h4>{title}</h4>
-                {message.filter(line => !!line).map(line => <pre>{line}</pre>)}
+                <h4>{props.commit.message.summary}</h4>
+                <pre>{props.commit.message.body}</pre>
             </div>
         </div>
     );

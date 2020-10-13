@@ -5,16 +5,24 @@ import { CommitObj, IpcAction, IpcActionReturn, PatchObj } from "src/Data/Action
 import { registerHandler, unregisterHandler, sendAsyncMessage } from "src/Data/Renderer/IPC";
 import ChangedFiles from "src/Components/DiffPane/ChangedFiles";
 import { remote } from "electron";
+import { setState, Store, StoreType, subscribe, unsubscribe } from "src/Data/Renderer/store";
 
 type State = {
     unstaged?: PatchObj[]
     staged?: PatchObj[]
-    amend: boolean
-    head: CommitObj
-    commitMsg: any
+    amend?: boolean
+    head?: CommitObj
+    commitMsg: StoreType["commitMsg"]
 };
 
 export default class WorkingArea extends Component<{}, State> {
+    constructor() {
+        super();
+
+        this.state = {
+            commitMsg: Store.commitMsg,
+        }
+    }
     componentWillMount() {
         registerHandler(IpcAction.REFRESH_WORKDIR, this.getChanges);
         registerHandler(IpcAction.GET_CHANGES, this.update);
@@ -23,6 +31,8 @@ export default class WorkingArea extends Component<{}, State> {
         registerHandler(IpcAction.DISCARD_FILE, this.refresh);
         registerHandler(IpcAction.LOAD_COMMIT, this.setHead);
         sendAsyncMessage(IpcAction.LOAD_COMMIT, null);
+
+        subscribe(this.setCommitMsg, "commitMsg");
         this.getChanges();
     }
     componentWillUnmount() {
@@ -32,6 +42,11 @@ export default class WorkingArea extends Component<{}, State> {
         unregisterHandler(IpcAction.UNSTAGE_FILE, this.refresh);
         unregisterHandler(IpcAction.DISCARD_FILE, this.refresh);
         unregisterHandler(IpcAction.LOAD_COMMIT, this.setHead);
+
+        unsubscribe(this.setCommitMsg, "commitMsg");
+    }
+    setCommitMsg = (msg: StoreType["commitMsg"]) => {
+        this.setState({commitMsg: msg});
     }
     setHead = (head: CommitObj) => {
         this.setState({
@@ -74,9 +89,16 @@ export default class WorkingArea extends Component<{}, State> {
     setAmend = (e: any) => {
         const target = e.target as h.JSX.HTMLAttributes<HTMLInputElement>;
         if (target.checked !== this.state.amend) {
-            this.setState({
-                amend: target.checked
-            });
+            const amend = target.checked;
+            const newState: Partial<State> = {
+                amend,
+            };
+            if (!amend) {
+                newState.commitMsg = Store.commitMsg;
+            } else {
+                newState.commitMsg = this.state.head?.message
+            }
+            this.setState(newState);
         }
     }
     render() {
@@ -101,9 +123,17 @@ export default class WorkingArea extends Component<{}, State> {
                     <div className="pane">
                         <h4>Commit</h4>
                         <form>
-                            <input type="text" name="summary" placeholder="Summary" />
+                            <input type="text" name="summary" placeholder="Summary" value={this.state.commitMsg.summary} onKeyUp={(e:any) => {
+                                const commitMsg = Store.commitMsg;
+                                commitMsg.summary = e.target.value;
+                                setState({commitMsg});
+                            }} />
                             <br />
-                            <textarea name="msg"></textarea>
+                            <textarea name="msg" onKeyUp={(e:any) => {
+                                const commitMsg = Store.commitMsg;
+                                commitMsg.body = e.target.value;
+                                setState({commitMsg});
+                            }} value={this.state.commitMsg.body} />
                             <br />
                             {commitButton}
                             <label>
