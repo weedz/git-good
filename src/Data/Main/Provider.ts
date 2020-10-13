@@ -550,12 +550,19 @@ export async function loadCommit(repo: Repository, sha?: string) {
     const author = commit.author();
     const committer = commit.committer();
 
+    const msg = commit.message();
+    const msgSummary = msg.substr(0, msg.indexOf("\n"));
+    const msgBody = msg.substr(msgSummary.length).trimStart().trimEnd();
+
     return {
         parents: commit.parents().map(parent => ({sha: parent.tostrS()})),
         sha: commit.sha(),
         authorDate: author.when().time(),
         date: committer.when().time(),
-        message: commit.message(),
+        message: {
+            summary: msgSummary,
+            body: msgBody
+        },
         author: {
             name: author.name(),
             email: author.email()

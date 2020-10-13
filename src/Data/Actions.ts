@@ -194,7 +194,10 @@ export type CommitObj = {
     diff?: DiffObj[]
     authorDate: number
     date: number
-    message: string
+    message: {
+        summary: string
+        body: string
+    }
     author: AuthorObj
     committer: AuthorObj
 };

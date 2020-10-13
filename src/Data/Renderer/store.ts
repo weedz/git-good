@@ -28,6 +28,10 @@ export type StoreType = {
     diffPaneSrc: string
     viewChanges: null
     comparePatches: PatchObj[]
+    commitMsg: {
+        summary: string
+        body: string
+    }
 };
 
 const store: StoreType = {
@@ -44,6 +48,7 @@ const store: StoreType = {
     diffPaneSrc: "",
     viewChanges: null,
     comparePatches: [],
+    commitMsg: {summary: "", body: ""},
 };
 
 export const Store = store as Readonly<StoreType>
@@ -52,7 +57,7 @@ export const contextMenuState: {data: any} = {
     data: null
 };
 
-type KeyListeners = "repo" | "branches" | "heads" | "currentFile" | "locks" | "dialogWindow" | "selectedBranch" | "diffPaneSrc" | "viewChanges" | "comparePatches";
+type KeyListeners = "repo" | "branches" | "heads" | "currentFile" | "locks" | "dialogWindow" | "selectedBranch" | "diffPaneSrc" | "viewChanges" | "comparePatches" | "commitMsg";
 
 const listeners: Function[] = [];
 const keyListeners: Pick<{
@@ -68,6 +73,7 @@ const keyListeners: Pick<{
     diffPaneSrc: [],
     viewChanges: [],
     comparePatches: [],
+    commitMsg: [],
 };
 
 export function subscribe<T extends KeyListeners>(cb: (arg: StoreType[T]) => void, key: T): typeof unsubscribe;
