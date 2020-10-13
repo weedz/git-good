@@ -1,7 +1,7 @@
 import { h, Component } from "preact";
 
 import "./style.css";
-import { IpcAction, IpcActionReturn, PatchObj } from "src/Data/Actions";
+import { CommitObj, IpcAction, IpcActionReturn, PatchObj } from "src/Data/Actions";
 import { registerHandler, unregisterHandler, sendAsyncMessage } from "src/Data/Renderer/IPC";
 import ChangedFiles from "src/Components/DiffPane/ChangedFiles";
 import { remote } from "electron";
@@ -10,6 +10,8 @@ type State = {
     unstaged?: PatchObj[]
     staged?: PatchObj[]
     amend: boolean
+    head: CommitObj
+    commitMsg: any
 };
 
 export default class WorkingArea extends Component<{}, State> {
@@ -19,6 +21,8 @@ export default class WorkingArea extends Component<{}, State> {
         registerHandler(IpcAction.STAGE_FILE, this.refresh);
         registerHandler(IpcAction.UNSTAGE_FILE, this.refresh);
         registerHandler(IpcAction.DISCARD_FILE, this.refresh);
+        registerHandler(IpcAction.LOAD_COMMIT, this.setHead);
+        sendAsyncMessage(IpcAction.LOAD_COMMIT, null);
         this.getChanges();
     }
     componentWillUnmount() {
@@ -27,6 +31,12 @@ export default class WorkingArea extends Component<{}, State> {
         unregisterHandler(IpcAction.STAGE_FILE, this.refresh);
         unregisterHandler(IpcAction.UNSTAGE_FILE, this.refresh);
         unregisterHandler(IpcAction.DISCARD_FILE, this.refresh);
+        unregisterHandler(IpcAction.LOAD_COMMIT, this.setHead);
+    }
+    setHead = (head: CommitObj) => {
+        this.setState({
+            head
+        });
     }
     getChanges = () => {
         sendAsyncMessage(IpcAction.GET_CHANGES);

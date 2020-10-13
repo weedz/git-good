@@ -539,16 +539,13 @@ export async function compareRevisionsPatches() {
     return patches.flat();
 }
 
-export async function commitWithDiff(repo: Repository, sha: string) {
-    currentCommit = sha;
-
-    const commit = await repo.getCommit(sha);
-    commitObjectCache = {
-        [sha]: {
-            commit,
-            patches: {},
-        }
-    };
+export async function loadCommit(repo: Repository, sha?: string) {
+    let commit;
+    if (sha) {
+        commit = await commitWithDiff(repo, sha);
+    } else {
+        commit = await repo.getHeadCommit();
+    }
 
     const author = commit.author();
     const committer = commit.committer();
@@ -568,6 +565,20 @@ export async function commitWithDiff(repo: Repository, sha: string) {
             email: committer.email()
         },
     } as CommitObj;
+}
+
+export async function commitWithDiff(repo: Repository, sha: string) {
+    currentCommit = sha;
+
+    const commit = await repo.getCommit(sha);
+    commitObjectCache = {
+        [sha]: {
+            commit,
+            patches: {},
+        }
+    };
+
+    return commit;
 }
 
 export async function changeBranch(repo: Repository, branch: string) {

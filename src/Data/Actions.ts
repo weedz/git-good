@@ -32,7 +32,7 @@ export type IpcActionParams = {
     [IpcAction.LOAD_COMMITS]: LoadCommitsParam
     [IpcAction.LOAD_COMMITS_PARTIAL]: never
     [IpcAction.OPEN_REPO]: string | null
-    [IpcAction.LOAD_COMMIT]: string
+    [IpcAction.LOAD_COMMIT]: string | null
     [IpcAction.LOAD_PATCHES_WITHOUT_HUNKS]: string
     [IpcAction.LOAD_HUNKS]: 
     ({

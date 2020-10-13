@@ -280,7 +280,7 @@ ipcMain.on("asynchronous-message", async (event, arg: EventArgs) => {
                 provider.eventReply(event, arg.action, await loadCommits(event, arg.data));
                 break;
             case IpcAction.LOAD_COMMIT:
-                provider.eventReply(event, arg.action, await provider.commitWithDiff(repo, arg.data));
+                provider.eventReply(event, arg.action, await provider.loadCommit(repo, arg.data));
                 break;
             case IpcAction.LOAD_PATCHES_WITHOUT_HUNKS:
                 provider.eventReply(event, arg.action, await provider.getCommitPatches(arg.data));
