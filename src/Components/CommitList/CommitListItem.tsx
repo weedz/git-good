@@ -28,7 +28,7 @@ export default function CommitListItem({commit, graph, commits}: Props) {
     commits[commit.sha] = commitLink;
 
     return (
-        <li className="short" key={commit.sha} data-sha={commit.sha} onContextMenu={showCommitMenu}>
+        <li className="short" data-sha={commit.sha} onContextMenu={showCommitMenu}>
             <span className="graph-indicator" style={{backgroundColor: HeadColors[graph[commit.sha].colorId]}}></span>
             {
                 graph[commit.sha].descendants.length > 0 && <ul className="commit-graph">

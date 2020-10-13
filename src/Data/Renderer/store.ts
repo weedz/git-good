@@ -37,6 +37,7 @@ const store: StoreType = {
     currentFile: null,
     locks: {
         [Locks.MAIN]: 0,
+        [Locks.BRANCH_LIST]: 0,
     },
     dialogWindow: null,
     selectedBranch: {branch: "HEAD"},
@@ -99,6 +100,22 @@ export function setState(newState: Partial<StoreType>) {
     }
 }
 
+function setStateDeep(paths: any[], data: any) {
+    let obj = store as any;
+    for (const path of paths.slice(0, paths.length - 1)) {
+        obj = obj[path];
+    }
+
+    const key = paths[paths.length - 1];
+    const newState = { [key]: data };
+
+    Object.assign(obj[key], newState);
+    // @ts-ignore
+    for (const listener of keyListeners[paths[0]]) {
+        listener(newState);
+    }
+}
+
 export function openRepo(repoPath: string) {
     setLock(Locks.MAIN);
     sendAsyncMessage(IpcAction.OPEN_REPO, repoPath);
@@ -149,43 +166,44 @@ export function continueRebase() {
 export function setLock(lock: keyof StoreType["locks"], event?:any) {
     const locks = store.locks;
     locks[lock]++;
-    setState({
-        locks,
-    });
+    setStateDeep(["locks", lock], locks[lock]);
 }
 export function clearLock(lock: keyof StoreType["locks"]) {
     const locks = store.locks;
     if (locks[lock] > 0) {
         locks[lock]--;
     }
-    setState({
-        locks,
-    });
+    setStateDeep(["locks", lock], locks[lock]);
 }
 
 export function createBranchFromSha(sha: string, name: string) {
+    setLock(Locks.BRANCH_LIST);
     sendAsyncMessage(IpcAction.CREATE_BRANCH, {
         sha,
         name,
     });
 }
 export function createBranchFromRef(ref: string, name: string) {
+    setLock(Locks.BRANCH_LIST);
     sendAsyncMessage(IpcAction.CREATE_BRANCH_FROM_REF, {
         ref,
         name,
     });
 }
 export function deleteBranch(name: string) {
+    setLock(Locks.BRANCH_LIST);
     sendAsyncMessage(IpcAction.DELETE_REF, {
         name
     });
 }
 
 export function deleteRemoteBranch(name: string) {
+    setLock(Locks.BRANCH_LIST);
     sendAsyncMessage(IpcAction.DELETE_REMOTE_REF, name);
 }
 
 export function push(remote: string, localBranch: string, remoteBranch?: string, force?: boolean) {
+    setLock(Locks.BRANCH_LIST);
     sendAsyncMessage(IpcAction.PUSH, {
         localBranch,
         remoteBranch,

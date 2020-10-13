@@ -1,18 +1,13 @@
 import { h, Component } from "preact";
 import { sendAsyncMessage, unregisterHandler, registerHandler } from "src/Data/Renderer/IPC";
-import { IpcAction, IpcActionReturn, IpcActionReturnError, LoadCommitReturn, IpcActionParams } from "src/Data/Actions";
-import { Store, subscribe } from "src/Data/Renderer/store";
+import { IpcAction, IpcActionReturn, IpcActionReturnError, LoadCommitReturn, IpcActionParams, Locks } from "src/Data/Actions";
+import { clearLock, setLock, Store, subscribe } from "src/Data/Renderer/store";
 
 import "./style.css";
 import FileFilter from "./FileFilter";
 import CommitListItem from "./CommitListItem";
 import HeadColors from "./HeadColors";
 
-type Props = {
-    branch?: string
-    sha?: string
-    history?: boolean
-};
 type State = {
     commits: IpcActionReturn[IpcAction.LOAD_COMMITS]["commits"]
     filter: undefined | string
@@ -22,7 +17,7 @@ type State = {
 
 const pageSize = 1000;
 
-export default class CommitList extends Component<Props, State> {
+export default class CommitList extends Component<{}, State> {
     graph: {
         [sha: string]: {
             descendants: LoadCommitReturn[]
@@ -48,28 +43,29 @@ export default class CommitList extends Component<Props, State> {
         this.unsubscribe = subscribe(this.handleProps, "selectedBranch");
         registerHandler(IpcAction.LOAD_COMMITS, this.commitsLoaded);
         registerHandler(IpcAction.LOAD_COMMITS_PARTIAL, this.commitsLoaded);
-        this.getCommits({branch: "HEAD"});
+        this.getCommits();
     }
     componentWillUnmount() {
         this.unsubscribe();
         unregisterHandler(IpcAction.LOAD_COMMITS, this.commitsLoaded);
         unregisterHandler(IpcAction.LOAD_COMMITS_PARTIAL, this.commitsLoaded);
     }
-    handleProps = (props: Props = this.props) => {
+    handleProps = () => {
         this.commits = {};
         this.cursor = undefined;
         this.color = 0;
         this.setState({
             commits: [],
-        }, () => this.getCommits(props));
+        }, this.getCommits);
     }
-    getCommits = (props: Props = this.props) => {
+    getCommits = () => {
         this.graph = {};
-        this.loadMoreCommits(props);
+        this.loadMoreCommits();
     }
-    loadMoreCommits = (props: Props = this.props) => {
+    loadMoreCommits = () => {
+        setLock(Locks.BRANCH_LIST);
         let options: IpcActionParams[IpcAction.LOAD_COMMITS];
-        if (props.history) {
+        if (Store.selectedBranch.history) {
             options = {
                 num: pageSize,
                 history: true,
@@ -77,7 +73,7 @@ export default class CommitList extends Component<Props, State> {
         } else {
             options = {
                 num: pageSize,
-                branch: props.branch || "HEAD",
+                branch: Store.selectedBranch.branch || "HEAD",
             };
         }
         if (this.state.fileFilter) {
@@ -117,7 +113,9 @@ export default class CommitList extends Component<Props, State> {
             }
         }
 
+        // sent on last event
         if (fetched.cursor) {
+            clearLock(Locks.BRANCH_LIST);
             this.cursor = fetched.cursor;
         }
 
@@ -165,7 +163,7 @@ export default class CommitList extends Component<Props, State> {
                 <ul>
                     {this.state.commits.length ? this.filterCommits().map((commit) => <CommitListItem key={commit.sha} graph={this.graph} commit={commit} commits={this.commits} />) : "No commits yet?"}
                 </ul>
-                <button onClick={() => this.loadMoreCommits()}>Load more...</button>
+                {!Store.selectedBranch.history ? <button onClick={() => this.loadMoreCommits()}>Load more...</button> : null}
             </div>
         );
     }

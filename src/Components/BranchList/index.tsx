@@ -2,30 +2,33 @@ import { h, Component, Fragment } from "preact";
 
 import "./style.css";
 import { normalizeLocalName } from "../../Data/Branch";
-import { BranchesObj } from "../../Data/Actions";
-import { subscribe, Store, unsubscribe, checkoutBranch, setState } from "../../Data/Renderer/store";
+import { BranchesObj, Locks } from "../../Data/Actions";
+import { subscribe, Store, unsubscribe, checkoutBranch, setState, StoreType } from "../../Data/Renderer/store";
 import { showHeadMenu, showLocalMenu, showOriginMenu, showRemoteMenu, showTagMenu } from "./Menu";
 import { BranchAheadBehind, toggleTreeItem, branchTree, listRemotes, getBranchTree, filterBranches } from "./Utils";
 import Link from "../Link";
-
-type Props = {
-    branches?: BranchesObj
-}
 
 type State = {
     filter: string
 }
 
-export default class BranchList extends Component<Props, State> {
-    unsubscribe!: Function
+export default class BranchList extends Component<{}, State> {
     componentWillMount() {
-        this.unsubscribe = subscribe(this.update, "branches");
+        subscribe(this.checkLocks, "locks");
+        subscribe(this.update, "branches");
     }
     componentWillUnmount() {
-        this.unsubscribe();
+        unsubscribe(this.checkLocks, "locks");
+        unsubscribe(this.update, "branches");
     }
     update = () => {
         this.setState({});
+    }
+
+    checkLocks = (locks: StoreType["locks"]) => {
+        if (Locks.BRANCH_LIST in locks) {
+            this.setState({});
+        }
     }
 
     filter = (e: any) => {
@@ -61,7 +64,7 @@ export default class BranchList extends Component<Props, State> {
 
         return (
             <Fragment>
-                <div id="branch-pane" className="pane">
+                <div id="branch-pane" className={`pane${Store.locks[Locks.BRANCH_LIST] ? " disabled" : ""}`}>
                     <div style={{
                         display: "inline-block",
                         minWidth: "100%",

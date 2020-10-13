@@ -245,5 +245,6 @@ type LoadCommitsReturn = {
 };
 
 export enum Locks {
-    MAIN
+    MAIN,
+    BRANCH_LIST,
 };

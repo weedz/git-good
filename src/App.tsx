@@ -10,15 +10,9 @@ import Dialog from "./Components/Dialog";
 import FileDiff from "./Components/FileDiff";
 import NewTab from "./Views/NewTab";
 
-type State = {
-    lock: boolean
-};
 
-export default class App extends Component<{}, State> {
+export default class App extends Component {
     openRecent: boolean = true;
-    state = {
-        lock: false
-    }
     componentWillMount() {
         subscribe(this.update, "repo");
         subscribe(this.checkLocks, "locks");
@@ -47,10 +41,8 @@ export default class App extends Component<{}, State> {
         }
     }
     checkLocks = (locks: StoreType["locks"]) => {
-        if (this.state.lock || Locks.MAIN in locks) {
-            this.setState({
-                lock: !!locks[Locks.MAIN]
-            });
+        if (Locks.MAIN in locks) {
+            this.setState({});
         }
     }
     render() {
@@ -60,9 +52,8 @@ export default class App extends Component<{}, State> {
             );
         }
         return (
-                <div id="main-window">
+                <div id="main-window" className={Store.locks[Locks.MAIN] ? "disabled" : ""}>
                     <Dialog />
-                    {this.state.lock && <div className="lock-overlay" />}
                     <div id="left-pane">
                         <Changes />
                         <BranchList />
