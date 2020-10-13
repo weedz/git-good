@@ -1,7 +1,7 @@
 import { h, Component } from "preact";
 import { sendAsyncMessage, unregisterHandler, registerHandler } from "src/Data/Renderer/IPC";
 import { IpcAction, IpcActionReturn, IpcActionReturnError, LoadCommitReturn, IpcActionParams, Locks } from "src/Data/Actions";
-import { clearLock, setLock, Store, subscribe } from "src/Data/Renderer/store";
+import { clearLock, setLock, Store, StoreType, subscribe, unsubscribe } from "src/Data/Renderer/store";
 
 import "./style.css";
 import FileFilter from "./FileFilter";
@@ -15,7 +15,8 @@ type State = {
     fileResults: string[]
 };
 
-const pageSize = 1000;
+const pageSize = 200;
+const historyLimit = 1000;
 
 export default class CommitList extends Component<{}, State> {
     graph: {
@@ -25,7 +26,6 @@ export default class CommitList extends Component<{}, State> {
         }
     } = {};
     commits: any = {};
-    unsubscribe!: Function;
     cursor: IpcActionReturn[IpcAction.LOAD_COMMITS]["cursor"];
     color: number = 0;
 
@@ -40,15 +40,22 @@ export default class CommitList extends Component<{}, State> {
     }
 
     componentWillMount() {
-        this.unsubscribe = subscribe(this.handleProps, "selectedBranch");
+        subscribe(this.checkLocks, "locks");
+        subscribe(this.handleProps, "selectedBranch");
         registerHandler(IpcAction.LOAD_COMMITS, this.commitsLoaded);
         registerHandler(IpcAction.LOAD_COMMITS_PARTIAL, this.commitsLoaded);
         this.getCommits();
     }
     componentWillUnmount() {
-        this.unsubscribe();
+        unsubscribe(this.checkLocks, "locks");
+        unsubscribe(this.handleProps, "selectedBranch");
         unregisterHandler(IpcAction.LOAD_COMMITS, this.commitsLoaded);
         unregisterHandler(IpcAction.LOAD_COMMITS_PARTIAL, this.commitsLoaded);
+    }
+    checkLocks = (locks: StoreType["locks"]) => {
+        if (Locks.BRANCH_LIST in locks) {
+            this.setState({});
+        }
     }
     handleProps = () => {
         this.commits = {};
@@ -67,7 +74,7 @@ export default class CommitList extends Component<{}, State> {
         let options: IpcActionParams[IpcAction.LOAD_COMMITS];
         if (Store.selectedBranch.history) {
             options = {
-                num: pageSize,
+                num: historyLimit,
                 history: true,
             };
         } else {
@@ -163,7 +170,7 @@ export default class CommitList extends Component<{}, State> {
                 <ul>
                     {this.state.commits.length ? this.filterCommits().map((commit) => <CommitListItem key={commit.sha} graph={this.graph} commit={commit} commits={this.commits} />) : "No commits yet?"}
                 </ul>
-                {!Store.selectedBranch.history ? <button onClick={() => this.loadMoreCommits()}>Load more...</button> : null}
+                {!Store.selectedBranch.history ? <button onClick={() => this.loadMoreCommits()} disabled={!!Store.locks[Locks.BRANCH_LIST]}>Load more...</button> : null}
             </div>
         );
     }
