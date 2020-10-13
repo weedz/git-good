@@ -97,7 +97,7 @@ export default class CommitList extends Component<{}, State> {
             if (!Store.selectedBranch.history) {
                 return;
             }
-        } else if (fetched.branch !== Store.selectedBranch.branch) {
+        } else if (fetched.branch && fetched.branch !== Store.selectedBranch.branch) {
             return;
         }
 

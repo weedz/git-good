@@ -418,7 +418,7 @@ async function loadCommits(event: IpcMainEvent, params: IpcActionParams[IpcActio
         if (params.cursor) {
             const lastCommit = await repo.getCommit(params.cursor);
             if (!lastCommit.parentcount()) {
-                return {commits: [], branch: ""};
+                return {commits: [], branch: "", cursor: params.cursor};
             }
             start = await lastCommit.parent(0);
         }
