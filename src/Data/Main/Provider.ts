@@ -142,14 +142,20 @@ export async function push(repo: Repository, data: IpcActionParams[IpcAction.PUS
     // undocumented, https://github.com/nodegit/nodegit/issues/1270#issuecomment-293742772
     const force = data.force ? "+" : "";
 
-    const pushResult = await remote.push(
-        [`${force}${data.localBranch}:${data.remoteBranch}`],
-        {
-            callbacks: {
-                credentials: authenticate
+    let pushResult: number = 1;
+    try {
+        pushResult = await remote.push(
+            [`${force}${data.localBranch}:${data.remoteBranch}`],
+            {
+                callbacks: {
+                    credentials: authenticate
+                }
             }
-        }
-    );
+        );
+    } catch (err) {
+        // invalid authentication?
+        console.warn("push failed", err);
+    }
 
     return pushResult;
 }
@@ -171,19 +177,24 @@ export async function setUpstream(repo: Repository, local: string, remoteRefName
 
 export async function deleteRemoteRef(repo: Repository, refName: string) {
     const ref = await repo.getReference(refName);
-    console.log(ref.name(), ref.isRemote());
 
     if (ref.isRemote()) {
         refName = ref.name();
-        const end = refName.indexOf("/", 14) - 13;
-        const remoteName = refName.substr(13, end);
+        const end = refName.indexOf("/", 14);
+        const remoteName = refName.substr(13, end - 13);
         const remote = await repo.getRemote(remoteName);
 
-        remote.push([`:${refName}`], {
-            callbacks: {
-                credentials: authenticate
-            }
-        });
+        const branchName = refName.substr(end + 1);
+
+        try {
+            await remote.push([`:refs/heads/${branchName}`], {
+                callbacks: {
+                    credentials: authenticate
+                }
+            });
+        } catch (err) {
+            console.log("no remote ref found", err);
+        }
         ref.delete();
     }
     return false;
