@@ -1,9 +1,10 @@
-import { h, Component, Fragment, } from "preact";
+import { h, Component } from "preact";
 
 import "./style.css";
 import { IpcAction, IpcActionReturn, PatchObj } from "src/Data/Actions";
 import { registerHandler, unregisterHandler, sendAsyncMessage } from "src/Data/Renderer/IPC";
 import ChangedFiles from "src/Components/DiffPane/ChangedFiles";
+import { remote } from "electron";
 
 type State = {
     unstaged?: PatchObj[]
@@ -47,9 +48,18 @@ export default class WorkingArea extends Component<{}, State> {
         const path = e.currentTarget.dataset.path;
         sendAsyncMessage(IpcAction.UNSTAGE_FILE, path);
     }
-    discard = (e: any) => {
+    discard = async (e: any) => {
         const path = e.currentTarget.dataset.path;
-        sendAsyncMessage(IpcAction.DISCARD_FILE, path);
+
+        const result = await remote.dialog.showMessageBox({
+            message: `Discard changes to "${path}"?`,
+            type: "question",
+            buttons: ["Confirm", "Cancel"],
+            cancelId: 1,
+        });
+        if (result.response === 0) {
+            sendAsyncMessage(IpcAction.DISCARD_FILE, path);
+        }
     }
     setAmend = (e: any) => {
         const target = e.target as h.JSX.HTMLAttributes<HTMLInputElement>;
@@ -60,6 +70,13 @@ export default class WorkingArea extends Component<{}, State> {
         }
     }
     render() {
+        let commitButton;
+        if (this.state.amend) {
+            commitButton = <input type="submit" name="amend" value="Amend" />
+        } else {
+            commitButton = <input type="submit" name="commit" value="Commit"  disabled={!this.state.staged?.length} />
+        }
+
         return (
             <div id="working-area">
                 <div id="commit-stage">
@@ -78,7 +95,7 @@ export default class WorkingArea extends Component<{}, State> {
                             <br />
                             <textarea name="msg"></textarea>
                             <br />
-                            <input type="submit" name="commit" value={this.state.amend ? "Amend" : "Commit"} disabled={!this.state.staged?.length} />
+                            {commitButton}
                             <label>
                                 <input type="checkbox" name="amend" onClick={this.setAmend} checked={this.state.amend} />
                                 <span>Amend</span>
