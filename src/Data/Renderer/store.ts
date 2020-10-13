@@ -52,10 +52,12 @@ export const contextMenuState: {data: any} = {
     data: null
 };
 
+type KeyListeners = "repo" | "branches" | "heads" | "currentFile" | "locks" | "dialogWindow" | "selectedBranch" | "diffPaneSrc" | "viewChanges" | "comparePatches";
+
 const listeners: Function[] = [];
-const keyListeners: {
+const keyListeners: Pick<{
     [key in keyof StoreType]: Function[]
-} = {
+}, KeyListeners> = {
     repo: [],
     branches: [],
     heads: [],
@@ -68,9 +70,9 @@ const keyListeners: {
     comparePatches: [],
 };
 
-export function subscribe<T extends keyof StoreType>(cb: (arg: StoreType[T]) => void, key: T): typeof unsubscribe;
+export function subscribe<T extends KeyListeners>(cb: (arg: StoreType[T]) => void, key: T): typeof unsubscribe;
 export function subscribe(cb: (arg: StoreType) => void): typeof unsubscribe;
-export function subscribe(cb: (arg?: any) => void, key?: keyof StoreType) {
+export function subscribe(cb: (arg?: any) => void, key?: KeyListeners) {
     if (key) {
         keyListeners[key].push(cb);
     } else {
@@ -79,7 +81,7 @@ export function subscribe(cb: (arg?: any) => void, key?: keyof StoreType) {
     return () => unsubscribe(cb, key);
 }
 
-export function unsubscribe(cb: Function, key?: keyof StoreType) {
+export function unsubscribe(cb: Function, key?: KeyListeners) {
     if (key) {
         // x>>>0 casts x to a 32-bit unsigned int, -1 becomes 4294967295
         keyListeners[key].splice(keyListeners[key].indexOf(cb)>>>0, 1);
@@ -93,7 +95,7 @@ export function setState(newState: Partial<StoreType>) {
     for (const listener of listeners) {
         listener(newState);
     }
-    for (const key of Object.keys(newState) as Array<keyof StoreType>) {
+    for (const key of Object.keys(newState).filter(key => key in keyListeners) as Array<KeyListeners>) {
         for (const listener of keyListeners[key]) {
             listener(newState[key]);
         }
