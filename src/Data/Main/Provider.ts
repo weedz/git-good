@@ -317,9 +317,18 @@ export async function refreshWorkDir(repo: Repository) {
     };
 }
 
-export async function stageFile(repo: Repository, path: string) {
+export async function stageFile(repo: Repository, filePath: string) {
     index = await repo.refreshIndex();
-    const result = await index.addByPath(path);
+    const status = index.getByPath(filePath);
+
+    let result;
+    try {
+        await fs.access(path.join(repo.workdir(), status.path));
+        result = await index.addByPath(filePath);
+    } catch(err) {
+        result = await index.removeByPath(filePath);
+    }
+
     if (!result) {
         // TODO: this is a promise.
         await index.write();
