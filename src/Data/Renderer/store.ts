@@ -21,7 +21,7 @@ export type StoreType = {
         patch: PatchObj
     }
     locks: {
-        [key in Locks]: number
+        [key in Locks]: boolean
     }
     dialogWindow: null | DialogWindow
     selectedBranch: {branch?: string, history?: boolean}
@@ -40,8 +40,8 @@ const store: StoreType = {
     heads: {},
     currentFile: null,
     locks: {
-        [Locks.MAIN]: 0,
-        [Locks.BRANCH_LIST]: 0,
+        [Locks.MAIN]: false,
+        [Locks.BRANCH_LIST]: false,
     },
     dialogWindow: null,
     selectedBranch: {branch: "HEAD"},
@@ -173,14 +173,12 @@ export function continueRebase() {
 
 export function setLock(lock: keyof StoreType["locks"], event?:any) {
     const locks = store.locks;
-    locks[lock]++;
+    locks[lock] = true;
     setStateDeep(["locks", lock], locks[lock]);
 }
 export function clearLock(lock: keyof StoreType["locks"]) {
     const locks = store.locks;
-    if (locks[lock] > 0) {
-        locks[lock]--;
-    }
+    locks[lock] = false;
     setStateDeep(["locks", lock], locks[lock]);
 }
 
