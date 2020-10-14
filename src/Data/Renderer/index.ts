@@ -4,11 +4,6 @@ import { openDialog_BlameFile, openDialog_CompareRevisions } from "./Dialogs";
 import { addWindowEventListener, registerHandler, sendAsyncMessage } from "./IPC";
 import { Store, clearLock, setLock, setState } from "./store";
 
-export const state = {
-    repo: {},
-    branches: {}
-};
-
 function refreshWorkdir() {
     sendAsyncMessage(IpcAction.REFRESH_WORKDIR);
 }
@@ -21,6 +16,7 @@ function repoOpened(result: IpcActionReturn[IpcAction.OPEN_REPO] | IpcActionRetu
         localStorage.setItem("recent-repo", result.path);
         loadBranches();
         refreshWorkdir();
+        loadRemotes();
         setState({
             repo: {
                 path: result.path,
@@ -40,6 +36,10 @@ function repoOpened(result: IpcActionReturn[IpcAction.OPEN_REPO] | IpcActionRetu
 function loadBranches() {
     setLock(Locks.BRANCH_LIST);
     sendAsyncMessage(IpcAction.LOAD_BRANCHES);
+}
+
+function loadRemotes() {
+    sendAsyncMessage(IpcAction.REMOTES);
 }
 
 function openSettings() {
@@ -106,7 +106,7 @@ function handleCompareRevisions(data: any) {
     } else {
         setState({
             comparePatches: data,
-            selectedBranch: undefined,
+            // selectedBranch: undefined,
         });
     }
 }
@@ -115,7 +115,7 @@ function handleBlameFile(data: any) {
     console.log("blame", data);
 }
 
-function handlePushResult(data: IpcActionReturn[IpcAction.PUSH]) {
+function handlePushResult(_: IpcActionReturn[IpcAction.PUSH]) {
     loadBranches();
 }
 
@@ -124,6 +124,12 @@ function handleNewCommit() {
     loadBranches();
     setState({
         selectedBranch: Store.selectedBranch
+    });
+}
+
+function handleRemotes(remotes: IpcActionReturn[IpcAction.REMOTES]) {
+    setState({
+        remotes
     });
 }
 
@@ -160,3 +166,4 @@ registerHandler(IpcAction.CONTINUE_REBASE, setStatus);
 registerHandler(IpcAction.OPEN_COMPARE_REVISIONS, handleCompareRevisions);
 registerHandler(IpcAction.BLAME_FILE, handleBlameFile);
 registerHandler(IpcAction.COMMIT, handleNewCommit);
+registerHandler(IpcAction.REMOTES, handleRemotes);

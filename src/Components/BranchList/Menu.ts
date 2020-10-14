@@ -83,6 +83,12 @@ localMenu.append(new MenuItem({
     }
 }));
 localMenu.append(new MenuItem({
+    label: 'Rename...',
+    click() {
+        console.log("Rename");
+    }
+}));
+localMenu.append(new MenuItem({
     label: 'Rebase...',
     click() {
         console.log("Rebase");

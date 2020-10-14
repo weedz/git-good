@@ -46,6 +46,7 @@ const handlers: {[key in IpcAction]: Function[]} = {
     [IpcAction.CONTINUE_REBASE]: [],
     [IpcAction.OPEN_COMPARE_REVISIONS]: [],
     [IpcAction.BLAME_FILE]: [],
+    [IpcAction.REMOTES]: [],
 };
 export function registerHandler<T extends IpcAction>(action: T, cb: (arg: IpcActionReturn[T]) => void) {
     handlers[action].push(cb);
