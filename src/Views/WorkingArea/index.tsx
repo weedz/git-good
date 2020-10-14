@@ -103,6 +103,15 @@ export default class WorkingArea extends Component<{}, State> {
     }
     commit = (e: h.JSX.TargetedEvent<HTMLInputElement, MouseEvent>) => {
         e.preventDefault();
+        setState({
+            commitMsg: {
+                body: "",
+                summary: ""
+            }
+        });
+        this.setState({
+            amend: false
+        });
         commit({
             message: this.state.commitMsg,
             amend: this.state.amend,
