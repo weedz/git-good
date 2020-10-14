@@ -38,7 +38,6 @@ function repoOpened(result: IpcActionReturn[IpcAction.OPEN_REPO] | IpcActionRetu
 }
 
 function loadBranches() {
-    console.log("loading branches");
     setLock(Locks.BRANCH_LIST);
     sendAsyncMessage(IpcAction.LOAD_BRANCHES);
 }
@@ -81,7 +80,6 @@ function mapHeads(heads: any, refs: BranchObj[]) {
 }
 function branchesLoaded(branches: BranchesObj) {
     clearLock(Locks.BRANCH_LIST);
-    console.log("loaded branches");
     const heads:any = {};
     mapHeads(heads, branches.local);
     mapHeads(heads, branches.remote);

@@ -515,8 +515,6 @@ export async function getCommitPatches(sha: string) {
         diffs = [await tree.diffWithOptions(null)];
     }
 
-    // console.log(diffs);
-
     const patches = diffs.map(async diff => {
         await diff.findSimilar(diffOpts);
         return handleDiff(diff, commitObjectCache[currentCommit].patches);
