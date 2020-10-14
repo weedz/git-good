@@ -260,6 +260,11 @@ export async function getBranches(repo: Repository): Promise<BranchesObj> {
     };
 }
 
+export async function remotes(repo: Repository) {
+    const remotes = await repo.getRemotes();
+    return remotes.map(remote => remote.name());
+}
+
 export async function findFile(repo: Repository, file: string) {
     index = await repo.refreshIndex();
 

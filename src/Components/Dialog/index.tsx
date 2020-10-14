@@ -1,9 +1,23 @@
 import { h, Fragment, Component } from "preact";
 import { StoreType, subscribe, unsubscribe } from "src/Data/Renderer/store";
+import { DialogProps, DialogTypes } from "./types";
+import { NewBranch, RenameBranch } from "./Branch";
+import { SetUpstream } from "./SetUpstream";
+import { Compare } from "./Compare";
+
 import "./style.css";
+import { Blame } from "./Blame";
+
+const dialogTypes: {[type in DialogTypes]: (arg: DialogProps[type]) => h.JSX.Element} = {
+    [DialogTypes.NEW_BRANCH]: NewBranch,
+    [DialogTypes.RENAME_BRANCH]: RenameBranch,
+    [DialogTypes.COMPARE]: Compare,
+    [DialogTypes.SET_UPSTREAM]: SetUpstream,
+    [DialogTypes.BLAME]: Blame,
+};
 
 type State = {
-    view: any
+    view: h.JSX.Element | null
 };
 export default class Dialog extends Component<{}, State> {
     componentWillMount() {
@@ -14,26 +28,16 @@ export default class Dialog extends Component<{}, State> {
     }
     updateDialog = (dialogWindow: StoreType["dialogWindow"]) => {
         if (dialogWindow) {
-            const data: any = {
-                branchName: dialogWindow.defaultValue
-            };
-            const updateName = (name: string) => {
-                data.branchName = name;
-            }
+            const Dialog = dialogTypes[dialogWindow.type];
+
             const view = <Fragment>
                 <div className="dialog-window-backdrop"></div>
                 <div className="dialog-window-container">
                     <div className="dialog-window">
-                        <form onSubmit={(e) => {
-                            e.preventDefault();
-                            dialogWindow.confirmCb(data);
-                            return false;
-                        }}>
-                            <h4>{dialogWindow.title}</h4>
-                            <input type="text" name="branchName" placeholder="Name..." onChange={(e) => updateName(e.currentTarget.value)} value={dialogWindow.defaultValue || ""} />
-                            <button type="submit">Confirm</button>
-                            <button type="button" onClick={() => dialogWindow.cancelCb()}>Cancel</button>
-                        </form>
+                        {
+                        // @ts-ignore, type guarded by Store.openDialogWindow. TODO: get better at types and fix this..
+                        <Dialog {...dialogWindow.props} />
+                        }
                     </div>
                 </div>
             </Fragment>;

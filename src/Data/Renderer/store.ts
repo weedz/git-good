@@ -1,11 +1,10 @@
+import { DialogProps, DialogTypes } from "src/Components/Dialog/types";
 import { IpcAction, BranchesObj, BranchObj, PatchObj, Locks, RepoStatus, IpcActionParams } from "../Actions";
 import { sendAsyncMessage } from "./IPC";
 
 export type DialogWindow = {
-    title: string
-    confirmCb: Function
-    cancelCb: Function
-    defaultValue?: string
+    type: DialogTypes
+    props: DialogProps[DialogTypes]
 }
 
 export type StoreType = {
@@ -14,6 +13,7 @@ export type StoreType = {
         status: null | RepoStatus
     }
     branches: null | BranchesObj
+    remotes: string[]
     heads: {
         [key: string]: BranchObj[]
     }
@@ -37,6 +37,7 @@ export type StoreType = {
 const store: StoreType = {
     repo: null,
     branches: null,
+    remotes: [],
     heads: {},
     currentFile: null,
     locks: {
@@ -229,9 +230,12 @@ export function commit(params: IpcActionParams[IpcAction.COMMIT]) {
     sendAsyncMessage(IpcAction.COMMIT, params);
 }
 
-export function openDialogWindow(dialogWindow: StoreType["dialogWindow"]) {
+export function openDialogWindow<T extends DialogTypes>(type: T, props: DialogProps[T]) {
     setState({
-        dialogWindow
+        dialogWindow: {
+            type,
+            props
+        }
     });
 }
 export function closeDialogWindow() {

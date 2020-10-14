@@ -358,6 +358,9 @@ ipcMain.on("asynchronous-message", async (event, arg: EventArgs) => {
             case IpcAction.COMMIT:
                 provider.eventReply(event, arg.action, await provider.commit(repo, arg.data));
                 break;
+            case IpcAction.REMOTES:
+                provider.eventReply(event, arg.action, await provider.remotes(repo));
+                break;
         }
     }
 });
