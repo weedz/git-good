@@ -15,7 +15,7 @@ type Props = {
     actions?: ButtonAction[]
 }
 
-export default class ChangedFiles extends Component<Props, {}> {
+export default class ChangedFiles extends Component<Props, {fileFilter?: string}> {
     fileTypes = {
         added: 0,
         deleted: 0,
@@ -55,6 +55,12 @@ export default class ChangedFiles extends Component<Props, {}> {
             });
         }
     }
+    filterFiles = (e: any) => {
+        this.resetCounters();
+        this.setState({
+            fileFilter: e.target.value.toLocaleLowerCase()
+        });
+    }
     renderPatch = (patch: PatchObj) => {
         let typeCss;
         if (patch.status === DELTA.MODIFIED) {
@@ -85,9 +91,13 @@ export default class ChangedFiles extends Component<Props, {}> {
         );
     }
     render() {
-        const files = this.props.patches.map(this.renderPatch);
+        const fileFilter = this.state.fileFilter;
+        const patches = fileFilter ? this.props.patches.filter(patch => patch.actualFile.path.toLocaleLowerCase().includes(fileFilter)) : this.props.patches;
+
+        const files = patches.slice(0, 1000).map(this.renderPatch);
         return (
             <div className="changed-files">
+                <input type="text" onKeyUp={this.filterFiles} placeholder="Search file..." value={this.state.fileFilter} />
                 <ul className="file-types">
                     {this.fileTypes.modified > 0 && <li className="file-modified">{this.fileTypes.modified} M</li>}
                     {this.fileTypes.added > 0 && <li className="file-added">{this.fileTypes.added} A</li>}

@@ -10,7 +10,6 @@ type State = {
     commit: null | CommitObj
     patches: PatchObj[]
     loadingComplete: boolean
-    fileFilter?: string
 }
 type Props = {
     sha: string
@@ -57,27 +56,18 @@ export default class Commit extends Component<Props, State> {
             loadingComplete: true,
         });
     }
-    filterFiles = (e: any) => {
-        this.setState({
-            fileFilter: e.target.value.toLocaleLowerCase()
-        });
-    }
     render() {
         if (!this.state.commit) {
             return;
         }
-
-        const fileFilter = this.state.fileFilter;
-        const patches = fileFilter ? this.state.patches.filter(patch => patch.actualFile.path.toLocaleLowerCase().includes(fileFilter)) : this.state.patches;
 
         return (
             <div id="diff-pane" className="pane">
                 <CommitMessage commit={this.state.commit} />
                 <hr />
 
-                <input type="text" onKeyUp={this.filterFiles} placeholder="Search file..." value={this.state.fileFilter} />
                 {!this.state.loadingComplete && <p>Loading...</p>}
-                <ChangedFiles patches={patches.slice(0,1000)} commit={this.state.commit} />
+                <ChangedFiles patches={this.state.patches} commit={this.state.commit} />
             </div>
         );
     }
