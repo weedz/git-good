@@ -8,6 +8,7 @@ type ButtonAction = {
     click: h.JSX.MouseEventHandler<HTMLButtonElement>
 }
 type Props = {
+    className?: string
     commit?: CommitObj
     workDir?: true
     compare?: true
@@ -95,8 +96,12 @@ export default class ChangedFiles extends Component<Props, {fileFilter?: string}
         const patches = fileFilter ? this.props.patches.filter(patch => patch.actualFile.path.toLocaleLowerCase().includes(fileFilter)) : this.props.patches;
 
         const files = patches.slice(0, 1000).map(this.renderPatch);
+        const className = ["changed-files"];
+        if (this.props.className) {
+            className.push(this.props.className);
+        }
         return (
-            <div className="changed-files">
+            <div className={className.join(" ")}>
                 <input type="text" onKeyUp={this.filterFiles} placeholder="Search file..." value={this.state.fileFilter} />
                 <ul className="file-types">
                     {this.fileTypes.modified > 0 && <li className="file-modified">{this.fileTypes.modified} M</li>}

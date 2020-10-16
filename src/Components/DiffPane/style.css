@@ -33,6 +33,19 @@
     white-space: pre-line;
 }
 
+.parent-list {
+    display: inline;
+}
+.parent-list li {
+    display: inline;
+}
+.parent-list li + li:before {
+    content: ", ";
+}
+
+.changed-files {
+    flex: 1;
+}
 .changed-files .file-modified {
     color: yellowgreen;
 }
@@ -45,17 +58,6 @@
 .changed-files .file-renamed {
     color: blue;
 }
-
-.parent-list {
-    display: inline;
-}
-.parent-list li {
-    display: inline;
-}
-.parent-list li + li:before {
-    content: ", ";
-}
-
 .changed-files .file-types {
     list-style: none;
 }

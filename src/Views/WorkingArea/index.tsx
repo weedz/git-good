@@ -135,34 +135,32 @@ export default class WorkingArea extends Component<{}, State> {
         }
 
         return (
-            <div id="working-area">
-                <div id="commit-stage">
-                    <div id="unstaged-changes" className="pane">
-                        <h4>Unstaged ({this.state.unstaged?.length})<button>Stage all</button></h4>
-                        {this.state.unstaged && <ChangedFiles patches={this.state.unstaged} workDir actions={[{label: "Stage", click: this.stageFile}, {label: "Discard", click: this.discard}]} />}
-                    </div>
-                    <div id="staged-changes" className="pane">
-                        <h4>Staged ({this.state.staged?.length})<button>Unstage all</button></h4>
-                        {this.state.staged && <ChangedFiles patches={this.state.staged} workDir actions={[{label: "Unstage", click: this.unstageFile}]} />}
-                    </div>
-                    <div className="pane">
-                        <h4>Commit</h4>
-                        <form>
-                            <input type="text" name="summary" placeholder="Summary" value={this.state.commitMsg.summary} onKeyUp={(e:any) => {
-                                this.updateMessage({summary: e.target.value});
-                            }} />
-                            <br />
-                            <textarea name="msg" onKeyUp={(e:any) => {
-                                this.updateMessage({body: e.target.value});
-                            }} value={this.state.commitMsg.body} />
-                            <br />
-                            {commitButton}
-                            <label>
-                                <input type="checkbox" name="amend" onClick={this.setAmend} checked={this.state.amend} />
-                                <span>Amend</span>
-                            </label>
-                        </form>
-                    </div>
+            <div id="working-area" className="pane">
+                <div id="unstaged-changes">
+                    <h4>Unstaged ({this.state.unstaged?.length})<button>Stage all</button></h4>
+                    {this.state.unstaged && <ChangedFiles className="inset" patches={this.state.unstaged} workDir actions={[{label: "Stage", click: this.stageFile}, {label: "Discard", click: this.discard}]} />}
+                </div>
+                <div id="staged-changes">
+                    <h4>Staged ({this.state.staged?.length})<button>Unstage all</button></h4>
+                    {this.state.staged && <ChangedFiles className="inset" patches={this.state.staged} workDir actions={[{label: "Unstage", click: this.unstageFile}]} />}
+                </div>
+                <div>
+                    <h4>Commit</h4>
+                    <form className="inset">
+                        <input type="text" name="summary" placeholder="Summary" value={this.state.commitMsg.summary} onKeyUp={(e:any) => {
+                            this.updateMessage({summary: e.target.value});
+                        }} />
+                        <br />
+                        <textarea name="msg" onKeyUp={(e:any) => {
+                            this.updateMessage({body: e.target.value});
+                        }} value={this.state.commitMsg.body} />
+                        <br />
+                        {commitButton}
+                        <label>
+                            <input type="checkbox" name="amend" onClick={this.setAmend} checked={this.state.amend} />
+                            <span>Amend</span>
+                        </label>
+                    </form>
                 </div>
             </div>
         );

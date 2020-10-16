@@ -59,6 +59,10 @@ a:hover {
   padding: 3px;
   margin: 3px;
 }
+.inset {
+  padding: 4px;
+  border: 1px solid #666;
+}
 #changes-pane {
   height: 100px;
   flex: 0;

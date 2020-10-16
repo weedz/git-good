@@ -1,25 +1,18 @@
 #working-area {
     display: flex;
     flex-direction: column;
+    width: 325px;
 }
 
 #working-area-actions {
     flex: 1;
 }
 
-#commit-stage {
-    width: 325px;
-    align-self: flex-end;
-    display: flex;
-    flex-direction: column;
-    flex-grow: 1;
-    height: calc(100vh - 6px);
-}
-
 #unstaged-changes,
 #staged-changes {
     overflow: auto;
-    /* flex-grow: 1; */
     flex: 1;
     user-select: none;
+    display: flex;
+    flex-direction: column;
 }
