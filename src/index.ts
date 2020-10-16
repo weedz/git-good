@@ -14,7 +14,9 @@ const createWindow = () => {
     // Create the browser window.
     win = new BrowserWindow({
         height: 600,
-        width: 800,
+        width: 1024,
+        minHeight: 600,
+        minWidth: 1024,
         webPreferences: {
             nodeIntegration: true,
             enableRemoteModule: true,

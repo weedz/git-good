@@ -1,6 +1,7 @@
 #file-diff {
     position: fixed;
     left: 0;
+    z-index: 1;
     height: calc(100vh - 6px);
     /* TODO: fix layout.. */
     width: calc(100vw - 325px - 12px);

@@ -20,21 +20,37 @@
   flex: 1;
 }
 
-#commits-pane .commit-graph::before {
-  content: "<";
+.commit-refs-container {
+  width: 150px;
+  overflow: hidden;
+  position: relative;
+  flex: none;
 }
-#commits-pane .commit-graph::after {
-  content: ">";
+.commit-refs-container:hover {
+  overflow: visible;
+  z-index: 9999;
 }
-#commits-pane .commit-graph,
-#commits-pane .commit-graph > li {
-  display: inline;
+.commit-refs > li {
+  display: none;
 }
-#commits-pane .commit-graph > li::after {
-  content: ",";
+.commit-refs > li:first-child {
+  display: block;
 }
-#commits-pane .commit-graph > li:last-child::after {
-  content: none;
+.commit-refs-container:hover .commit-refs {
+  position: absolute;
+  overflow: visible;
+  background-color: #000;
+  min-width: 150px;
+  left: 0;
+  border: 1px solid #777;
+  padding: 3px;
+}
+.commit-refs-container:hover .commit-refs > li {
+  display: block;
+}
+/* TODO: fix this */
+#commits-pane .commit-graph {
+  display: none;
 }
 
 #commits-pane .graph-indicator {
