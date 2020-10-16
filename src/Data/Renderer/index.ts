@@ -133,6 +133,13 @@ function handleRemotes(remotes: IpcActionReturn[IpcAction.REMOTES]) {
     });
 }
 
+function handlePullHead() {
+    loadBranches();
+    setState({
+        selectedBranch: Store.selectedBranch
+    });
+}
+
 addWindowEventListener("repo-opened", repoOpened);
 addWindowEventListener("repo-fetch-all", loadBranches);
 addWindowEventListener("refresh-workdir", refreshWorkdir);
@@ -154,7 +161,7 @@ registerHandler(IpcAction.OPEN_REPO, repoOpened);
 registerHandler(IpcAction.LOAD_BRANCHES, branchesLoaded);
 registerHandler(IpcAction.CHECKOUT_BRANCH, updateCurrentBranch);
 registerHandler(IpcAction.LOAD_HUNKS, loadHunks);
-registerHandler(IpcAction.PULL, loadBranches);
+registerHandler(IpcAction.PULL, handlePullHead);
 registerHandler(IpcAction.PUSH, handlePushResult);
 registerHandler(IpcAction.SET_UPSTREAM, loadBranches);
 registerHandler(IpcAction.CREATE_BRANCH, loadBranches);
