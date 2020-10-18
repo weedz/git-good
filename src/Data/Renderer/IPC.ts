@@ -21,7 +21,6 @@ export function sendAsyncMessage<T extends IpcAction>(action: T, data: IpcAction
 
 const handlers: {[key in IpcAction]: Function[]} = {
     [IpcAction.LOAD_COMMITS]: [],
-    [IpcAction.LOAD_COMMITS_PARTIAL]: [],
     [IpcAction.LOAD_BRANCHES]: [],
     [IpcAction.OPEN_REPO]: [],
     [IpcAction.LOAD_COMMIT]: [],

@@ -9,6 +9,7 @@ export type WindowEvents =
     "app-lock-ui" |
     "app-unlock-ui" |
     "pull-head" |
+    "push-head" |
     "begin-compare-revisions" |
     "begin-blame-file";
 
@@ -20,6 +21,7 @@ export type WindowArguments = {
     "app-lock-ui": Locks
     "app-unlock-ui": Locks
     "pull-head": void
+    "push-head": void
     "begin-compare-revisions": void
     "fetch-status": {
         totalDeltas: number

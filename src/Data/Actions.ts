@@ -1,6 +1,5 @@
 export enum IpcAction {
     LOAD_COMMITS,
-    LOAD_COMMITS_PARTIAL,
     LOAD_BRANCHES,
     OPEN_REPO,
     LOAD_COMMIT,
@@ -31,7 +30,6 @@ export enum IpcAction {
 export type IpcActionParams = {
     [IpcAction.LOAD_BRANCHES]: never
     [IpcAction.LOAD_COMMITS]: LoadCommitsParam
-    [IpcAction.LOAD_COMMITS_PARTIAL]: never
     [IpcAction.OPEN_REPO]: string | null
     [IpcAction.LOAD_COMMIT]: string | null
     [IpcAction.LOAD_PATCHES_WITHOUT_HUNKS]: string
@@ -94,7 +92,6 @@ export type IpcActionParams = {
 export type IpcActionReturn = {
     [IpcAction.LOAD_BRANCHES]: BranchesObj
     [IpcAction.LOAD_COMMITS]: LoadCommitsReturn
-    [IpcAction.LOAD_COMMITS_PARTIAL]: LoadCommitsReturn
     [IpcAction.OPEN_REPO]: {
         opened: boolean
         path: string

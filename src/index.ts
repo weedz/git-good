@@ -187,7 +187,12 @@ const menuTemplate = [
                     sendEvent(win.webContents, "pull-head");
                 }
             },
-            { label: 'Push...' },
+            {
+                label: 'Push...',
+                click: async () => {
+                    sendEvent(win.webContents, "push-head");
+                }
+            },
             {
                 type: "separator"
             },
@@ -246,123 +251,101 @@ type EventArgs = {
     data: any
 };
 
-ipcMain.on("asynchronous-message", async (event, arg: EventArgs) => {
-    const lock = provider.actionLock[arg.action];
-    if (lock) {
-        if (!lock.interuptable) {
-            provider.eventReplyError(event, arg.action, "action pending");
-            return;
+const eventMap = {
+    [IpcAction.LOAD_BRANCHES]: provider.getBranches,
+    [IpcAction.LOAD_COMMIT]: provider.loadCommit,
+    [IpcAction.LOAD_COMMITS]: async function *(repo: Repository, params: IpcActionParams[IpcAction.LOAD_COMMITS]) {
+        const arg = await initGetComits(repo, params);
+        if (!arg) {
+            yield {commits: [], branch: "", cursor: params.cursor};
+        } else {
+            for await (const commits of provider.getCommits(repo, arg.branch, arg.revwalkStart, params.file, params.num)) {
+                yield commits;
+            }
         }
+    },
+    [IpcAction.LOAD_PATCHES_WITHOUT_HUNKS]: provider.getCommitPatches,
+    [IpcAction.LOAD_HUNKS]: async (_: Repository, arg: IpcActionParams[IpcAction.LOAD_HUNKS]) => {
+        return {
+            path: arg.path,
+            hunks: await loadHunks(arg)
+        };
+    },
+    [IpcAction.CHECKOUT_BRANCH]: provider.changeBranch,
+    [IpcAction.REFRESH_WORKDIR]: provider.refreshWorkDir,
+    [IpcAction.GET_CHANGES]: provider.loadChanges,
+    [IpcAction.STAGE_FILE]: provider.stageFile,
+    [IpcAction.UNSTAGE_FILE]: provider.unstageFile,
+    [IpcAction.DISCARD_FILE]: provider.discardChanges,
+    [IpcAction.PULL]: provider.pull,
+    [IpcAction.CREATE_BRANCH]: async (repo: Repository, data: IpcActionParams[IpcAction.CREATE_BRANCH]) => {
+        return await repo.createBranch(data.name, data.sha) !== null
+    },
+    [IpcAction.CREATE_BRANCH_FROM_REF]: async (repo: Repository, data: IpcActionParams[IpcAction.CREATE_BRANCH_FROM_REF]) => {
+        const ref = await repo.getReference(data.ref);
+        const sha = ref.isTag() ? (await ref.peel(NodeGit.Object.TYPE.COMMIT)) as unknown as Commit : await repo.getReferenceCommit(data.ref);
+        return await repo.createBranch(data.name, sha) !== null;
+    },
+    [IpcAction.DELETE_REF]: async (repo: Repository, data: IpcActionParams[IpcAction.DELETE_REF]) => {
+        const ref = await repo.getReference(data.name);
+        const res = Branch.delete(ref);
+        return !res;
+    },
+    [IpcAction.DELETE_REMOTE_REF]: provider.deleteRemoteRef,
+    [IpcAction.FIND_FILE]: provider.findFile,
+    [IpcAction.ABORT_REBASE]: abortRebase,
+    [IpcAction.CONTINUE_REBASE]: continueRebase,
+    [IpcAction.OPEN_COMPARE_REVISIONS]: async (repo: Repository, data: IpcActionParams[IpcAction.OPEN_COMPARE_REVISIONS]) => {
+        if (await provider.compareRevisions(repo, data)) {
+            return await provider.compareRevisionsPatches();
+        } else {
+            return {error: "revisions not found"};
+        }
+    },
+    [IpcAction.BLAME_FILE]: provider.blameFile,
+    [IpcAction.PUSH]: async (repo: Repository, data: IpcActionParams[IpcAction.PUSH]) => {
+        const result = await provider.push(repo, data);
+        return !result;
+    },
+    [IpcAction.SET_UPSTREAM]: async (repo: Repository, data: IpcActionParams[IpcAction.SET_UPSTREAM]) => {
+        const result = await provider.setUpstream(repo, data.local, data.remote);
+        return !result;
+
+    },
+    [IpcAction.COMMIT]: provider.commit,
+    [IpcAction.REMOTES]: provider.remotes,
+}
+
+// arg.data is typeguarded by sendAsyncMessage in IPC.ts
+ipcMain.on("asynchronous-message", async (event, arg: EventArgs) => {
+    const action = arg.action;
+    const lock = provider.actionLock[action];
+    if (lock && !lock.interuptable) {
+        provider.eventReplyError(event, action, "action pending");
+        return;
     }
 
-    provider.actionLock[arg.action] = {interuptable: false};
+    provider.actionLock[action] = {interuptable: false};
 
-    if (arg.action === IpcAction.OPEN_REPO) {
+    if (action === IpcAction.OPEN_REPO) {
         if (arg.data) {
             const opened = await openRepo(arg.data);
-            provider.eventReply(event, arg.action, {
+            provider.eventReply(event, action, {
                 path: arg.data,
                 opened,
                 status: opened ? repoStatus() : null,
             });
         } else {
-            provider.eventReply(event, arg.action, await openRepoDialog());
+            provider.eventReply(event, action, await openRepoDialog());
         }
-        return;
-    }
-
-    if (repo) {
-        // console.log(IpcAction[arg.action]);
-        switch (arg.action) {
-            case IpcAction.LOAD_BRANCHES:
-                provider.eventReply(event, arg.action, await provider.getBranches(repo));
-                break;
-            case IpcAction.LOAD_COMMITS:
-                provider.eventReply(event, arg.action, {commits: [], branch: ""});
-                provider.eventReply(event, arg.action, await loadCommits(event, arg.data));
-                break;
-            case IpcAction.LOAD_COMMIT:
-                provider.eventReply(event, arg.action, await provider.loadCommit(repo, arg.data));
-                break;
-            case IpcAction.LOAD_PATCHES_WITHOUT_HUNKS:
-                provider.eventReply(event, arg.action, await provider.getCommitPatches(arg.data));
-                break;
-            case IpcAction.LOAD_HUNKS:
-                const data: IpcActionReturn[IpcAction.LOAD_HUNKS] = {
-                    path: arg.data.path,
-                    hunks: await loadHunks(arg.data)
-                };
-                provider.eventReply(event, arg.action, data);
-                break;
-            case IpcAction.CHECKOUT_BRANCH:
-                provider.eventReply(event, arg.action, await provider.changeBranch(repo, arg.data));
-                sendEvent(win.webContents, "refresh-workdir");
-                break;
-            case IpcAction.REFRESH_WORKDIR:
-                provider.eventReply(event, arg.action, await provider.refreshWorkDir(repo));
-                break;
-            case IpcAction.GET_CHANGES:
-                provider.eventReply(event, arg.action, provider.loadChanges());
-                break;
-            case IpcAction.STAGE_FILE:
-                provider.eventReply(event, arg.action, await provider.stageFile(repo, arg.data));
-                break;
-            case IpcAction.UNSTAGE_FILE:
-                provider.eventReply(event, arg.action, await provider.unstageFile(repo, arg.data));
-                break;
-            case IpcAction.DISCARD_FILE:
-                provider.eventReply(event, arg.action, await provider.discardChanges(repo, arg.data));
-                break;
-            case IpcAction.PULL:
-                provider.eventReply(event, arg.action, !!(await provider.pull(repo)));
-                break;
-            case IpcAction.CREATE_BRANCH:
-                provider.eventReply(event, arg.action, await repo.createBranch(arg.data.name, arg.data.sha) !== null);
-                break;
-            case IpcAction.CREATE_BRANCH_FROM_REF:
-                const ref1 = await repo.getReference(arg.data.ref);
-                const sha = ref1.isTag() ? (await ref1.peel(NodeGit.Object.TYPE.COMMIT)) as unknown as Commit : await repo.getReferenceCommit(arg.data.ref);
-                provider.eventReply(event, arg.action, await repo.createBranch(arg.data.name, sha) !== null);
-                break;
-            case IpcAction.DELETE_REF:
-                const ref = await repo.getReference(arg.data.name);
-                const res = Branch.delete(ref);
-                provider.eventReply(event, arg.action, !res);
-                break;
-            case IpcAction.DELETE_REMOTE_REF:
-                provider.eventReply(event, arg.action, await provider.deleteRemoteRef(repo, arg.data));
-                break;
-            case IpcAction.FIND_FILE:
-                provider.eventReply(event, arg.action, await provider.findFile(repo, arg.data));
-                break;
-            case IpcAction.ABORT_REBASE:
-                provider.eventReply(event, arg.action, await abortRebase(repo));
-                break;
-            case IpcAction.CONTINUE_REBASE:
-                provider.eventReply(event, arg.action, await continueRebase(repo));
-                break;
-            case IpcAction.OPEN_COMPARE_REVISIONS:
-                if (await provider.compareRevisions(repo, arg.data)) {
-                    provider.eventReply(event, arg.action, await provider.compareRevisionsPatches());
-                } else {
-                    provider.eventReply(event, arg.action, {error: "revisions not found"});
-                }
-                break;
-            case IpcAction.BLAME_FILE:
-                provider.eventReply(event, arg.action, await provider.blameFile(repo, arg.data));
-                break;
-            case IpcAction.PUSH:
-                provider.eventReply(event, arg.action, !(await provider.push(repo, arg.data)));
-                break;
-            case IpcAction.SET_UPSTREAM:
-                provider.eventReply(event, arg.action, !(await provider.setUpstream(repo, arg.data.local, arg.data.remote)));
-                break;
-            case IpcAction.COMMIT:
-                provider.eventReply(event, arg.action, await provider.commit(repo, arg.data));
-                break;
-            case IpcAction.REMOTES:
-                provider.eventReply(event, arg.action, await provider.remotes(repo));
-                break;
+    } else if (repo) {
+        // TODO: fix proper type to detect AsyncIterator-stuff
+        if (action === IpcAction.LOAD_COMMITS) {
+            for await (const data of eventMap[action](repo, arg.data)) {
+                provider.eventReply(event, action, data);
+            }
+        } else {
+            provider.eventReply(event, action, await eventMap[action](repo, arg.data));
         }
     }
 });
@@ -412,23 +395,23 @@ function repoStatus() {
     };
 }
 
-async function loadCommits(event: IpcMainEvent, params: IpcActionParams[IpcAction.LOAD_COMMITS]) {
-    let lockName: string = "HEAD";
+async function initGetComits(repo: Repository, params: IpcActionParams[IpcAction.LOAD_COMMITS]) {
+    let branch: string = "HEAD";
     let revwalkStart: "refs/*" | NodeGit.Oid;
     if ("history" in params) {
-        lockName = "history";
+        branch = "history";
         revwalkStart = "refs/*";
     } else {
         let start: Commit;
         if (params.cursor) {
             const lastCommit = await repo.getCommit(params.cursor);
             if (!lastCommit.parentcount()) {
-                return {commits: [], branch: "", cursor: params.cursor};
+                return false;
             }
             start = await lastCommit.parent(0);
         }
         else if ("branch" in params) {
-            lockName = params.branch;
+            branch = params.branch;
             if (params.branch.includes("refs/tags")) {
                 const tag = await repo.getTagByName(params.branch);
                 const target = tag.targetId();
@@ -445,7 +428,10 @@ async function loadCommits(event: IpcMainEvent, params: IpcActionParams[IpcActio
         revwalkStart = start.id();
     }
 
-    return await provider.getCommits(event, lockName, revwalkStart, repo, params.file, params.num);
+    return {
+        branch,
+        revwalkStart,
+    };
 }
 
 function loadHunks(params: IpcActionParams[IpcAction.LOAD_HUNKS]) {

@@ -49,6 +49,9 @@ function openSettings() {
 export function pullHead() {
     sendAsyncMessage(IpcAction.PULL);
 }
+function pushHead() {
+    sendAsyncMessage(IpcAction.PUSH);
+}
 
 function setStatus(status: RepoStatus) {
     const repo = Store.repo;
@@ -147,6 +150,7 @@ addWindowEventListener("open-settings", openSettings);
 addWindowEventListener("app-lock-ui", setLock);
 addWindowEventListener("app-unlock-ui", clearLock);
 addWindowEventListener("pull-head", pullHead);
+addWindowEventListener("push-head", pushHead);
 addWindowEventListener("begin-compare-revisions", openDialog_CompareRevisions);
 addWindowEventListener("begin-blame-file", openDialog_BlameFile);
 addWindowEventListener("fetch-status", (stats: WindowArguments["fetch-status"]) => {

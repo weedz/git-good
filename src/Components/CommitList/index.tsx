@@ -43,14 +43,12 @@ export default class CommitList extends Component<{}, State> {
         subscribe(this.checkLocks, "locks");
         subscribe(this.handleProps, "selectedBranch");
         registerHandler(IpcAction.LOAD_COMMITS, this.commitsLoaded);
-        registerHandler(IpcAction.LOAD_COMMITS_PARTIAL, this.commitsLoaded);
         this.getCommits();
     }
     componentWillUnmount() {
         unsubscribe(this.checkLocks, "locks");
         unsubscribe(this.handleProps, "selectedBranch");
         unregisterHandler(IpcAction.LOAD_COMMITS, this.commitsLoaded);
-        unregisterHandler(IpcAction.LOAD_COMMITS_PARTIAL, this.commitsLoaded);
     }
     checkLocks = (locks: StoreType["locks"]) => {
         if (Locks.BRANCH_LIST in locks) {
@@ -92,7 +90,7 @@ export default class CommitList extends Component<{}, State> {
             ...options
         });
     }
-    handleCommits(fetched: IpcActionReturn[IpcAction.LOAD_COMMITS_PARTIAL]) {
+    handleCommits(fetched: IpcActionReturn[IpcAction.LOAD_COMMITS]) {
         if (fetched.branch === "history") {
             if (!Store.selectedBranch.history) {
                 return;

@@ -53,7 +53,7 @@ function compileHistoryCommit(commit: Commit) {
     };
 }
 
-export async function getCommits(event: IpcMainEvent, lockName: string, start: "refs/*" | Oid, repo: Repository, file?: string, num: number = 1000) {
+export async function *getCommits(repo: Repository, branch: string, start: "refs/*" | Oid, file?: string, num: number = 1000) {
     const revwalk = repo.createRevWalk();
     revwalk.sorting(Revwalk.SORT.TOPOLOGICAL | Revwalk.SORT.TIME);
 
@@ -65,9 +65,9 @@ export async function getCommits(event: IpcMainEvent, lockName: string, start: "
 
     if (file) {
         const commits = await revwalk.fileHistoryWalk(file, num) as {commit: Commit, status: number, isMergeCommit: boolean}[];
-        return {
+        yield {
             cursor: commits[commits.length - 1]?.commit.sha(),
-            branch: lockName,
+            branch,
             commits: commits.map(historyEntry => compileHistoryCommit(historyEntry.commit))
         };
     } else {
@@ -83,17 +83,19 @@ export async function getCommits(event: IpcMainEvent, lockName: string, start: "
             }
             if (history.length >= 100) {
                 cursorCommit = history[history.length - 1];
-                eventReply(event, IpcAction.LOAD_COMMITS_PARTIAL, {
-                    branch: lockName,
+                yield {
+                    branch,
                     commits: history.splice(0, 100).map(compileHistoryCommit)
-                });
+                };
             }
         }
 
-        return {
-            cursor: cursorCommit ? cursorCommit.sha() : history[history.length - 1]?.sha(),
+        const cursor = cursorCommit ? cursorCommit.sha() : history[history.length - 1]?.sha();
+
+        yield {
+            cursor,
             commits: history.map(compileHistoryCommit),
-            branch: lockName
+            branch
         };
     }
 }
@@ -114,7 +116,8 @@ async function *walkTheRev(revwalk: Revwalk, num: number) {
 export async function pull(repo: Repository) {
     const head = await repo.head();
     const upstream = await Branch.upstream(head);
-    return await repo.mergeBranches(head, upstream);
+    const result = await repo.mergeBranches(head, upstream);
+    return !!result;
 }
 
 export async function push(repo: Repository, data: IpcActionParams[IpcAction.PUSH]) {
@@ -202,7 +205,7 @@ export async function deleteRemoteRef(repo: Repository, refName: string) {
 }
 
 // {local: Branch[], remote: Branch[], tags: Branch[]}
-export async function getBranches(repo: Repository): Promise<BranchesObj> {
+export async function getBranches(repo: Repository) {
     const refs = await repo.getReferences();
 
     const local: BranchesObj["local"] = [];
@@ -335,7 +338,6 @@ export async function stageFile(repo: Repository, filePath: string) {
     }
 
     if (!result) {
-        // TODO: this is a promise.
         await index.write();
     }
     return 0;
@@ -393,7 +395,7 @@ async function getUnstagedPatches(repo: Repository) {
     return stagedDiff.patches();
 }
 
-export function loadChanges() {
+export async function loadChanges() {
     workDirIndexPathMap = {};
 
     const staged = workDirIndexCache.stagedPatches.map(convPatch => {
@@ -496,7 +498,7 @@ async function handleDiff(diff: Diff, patches: {[path: string]: ConvenientPatch}
     });
 }
 
-export async function getCommitPatches(sha: string) {
+export async function getCommitPatches(_: Repository, sha: string) {
     const commit = commitObjectCache[sha].commit;
     
     // TODO: fix this. Merge commits are a bit messy without this.
@@ -510,7 +512,6 @@ export async function getCommitPatches(sha: string) {
     let diffs: Diff[];
     if (parents.length) {
         // TODO: how many parents?
-        // @ts-ignore
         diffs = await Promise.all(
             parents.map(parent => parent.getTree().then(parentTree => tree.diffWithOptions(parentTree)))
         );
