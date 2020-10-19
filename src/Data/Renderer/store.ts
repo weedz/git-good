@@ -1,4 +1,5 @@
 import { DialogProps, DialogTypes } from "src/Components/Dialog/types";
+import Link from "src/Components/Link";
 import { IpcAction, BranchesObj, BranchObj, PatchObj, Locks, RepoStatus, IpcActionParams } from "../Actions";
 import { sendAsyncMessage } from "./IPC";
 
@@ -51,7 +52,13 @@ const store: StoreType = {
     comparePatches: [],
     commitMsg: {summary: "", body: ""},
 };
-
+export const GlobalLinks: {
+    commits: {[key: string]: Link}
+    branches: {[key: string]: Link}
+ } = {
+    commits: {},
+    branches: {}
+ };
 export const Store = store as Readonly<StoreType>
 
 export const contextMenuState: {data: any} = {

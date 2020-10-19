@@ -1,7 +1,7 @@
 import { h, Component } from "preact";
 import { sendAsyncMessage, unregisterHandler, registerHandler } from "src/Data/Renderer/IPC";
 import { IpcAction, IpcActionReturn, IpcActionReturnError, LoadCommitReturn, IpcActionParams, Locks } from "src/Data/Actions";
-import { clearLock, setLock, Store, StoreType, subscribe, unsubscribe } from "src/Data/Renderer/store";
+import { clearLock, GlobalLinks, setLock, Store, StoreType, subscribe, unsubscribe } from "src/Data/Renderer/store";
 
 import "./style.css";
 import FileFilter from "./FileFilter";
@@ -25,7 +25,6 @@ export default class CommitList extends Component<{}, State> {
             colorId: number
         }
     } = {};
-    commits: any = {};
     cursor: IpcActionReturn[IpcAction.LOAD_COMMITS]["cursor"];
     color: number = 0;
 
@@ -56,7 +55,7 @@ export default class CommitList extends Component<{}, State> {
         }
     }
     handleProps = () => {
-        this.commits = {};
+        GlobalLinks.commits = {};
         this.cursor = undefined;
         this.color = 0;
         this.setState({
@@ -166,7 +165,7 @@ export default class CommitList extends Component<{}, State> {
                     <FileFilter filterByFile={this.filterByFile} />
                 </div>
                 <ul>
-                    {this.state.commits.length ? this.filterCommits().map((commit) => <CommitListItem key={commit.sha} graph={this.graph} commit={commit} commits={this.commits} />) : "No commits yet?"}
+                    {this.state.commits.length ? this.filterCommits().map((commit) => <CommitListItem key={commit.sha} graph={this.graph} commit={commit} />) : "No commits yet?"}
                 </ul>
                 {!Store.selectedBranch.history ? <button onClick={() => this.loadMoreCommits()} disabled={!!Store.locks[Locks.BRANCH_LIST]}>Load more...</button> : null}
             </div>

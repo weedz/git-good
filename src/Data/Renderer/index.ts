@@ -2,7 +2,7 @@ import { BranchesObj, BranchObj, IpcAction, IpcActionReturn, IpcActionReturnErro
 import { WindowArguments } from "../WindowEventTypes";
 import { openDialog_BlameFile, openDialog_CompareRevisions } from "./Dialogs";
 import { addWindowEventListener, registerHandler, sendAsyncMessage } from "./IPC";
-import { Store, clearLock, setLock, setState } from "./store";
+import { Store, clearLock, setLock, setState, StoreType, GlobalLinks } from "./store";
 
 function refreshWorkdir() {
     sendAsyncMessage(IpcAction.REFRESH_WORKDIR);
@@ -73,7 +73,7 @@ function loadHunks(data: IpcActionReturn[IpcAction.LOAD_HUNKS]) {
     }
 }
 
-function mapHeads(heads: any, refs: BranchObj[]) {
+function mapHeads(heads: StoreType["heads"], refs: BranchObj[]) {
     for (const ref of refs) {
         if (!heads[ref.headSHA]) {
             heads[ref.headSHA] = [];
@@ -83,7 +83,10 @@ function mapHeads(heads: any, refs: BranchObj[]) {
 }
 function branchesLoaded(branches: BranchesObj) {
     clearLock(Locks.BRANCH_LIST);
-    const heads:any = {};
+    const heads: StoreType["heads"] = {};
+
+    GlobalLinks.branches = {};
+
     mapHeads(heads, branches.local);
     mapHeads(heads, branches.remote);
     mapHeads(heads, branches.tags);
@@ -103,7 +106,7 @@ function updateCurrentBranch(result: IpcActionReturn[IpcAction.CHECKOUT_BRANCH])
     }
 }
 
-function handleCompareRevisions(data: any) {
+function handleCompareRevisions(data: IpcActionReturn[IpcAction.OPEN_COMPARE_REVISIONS] | IpcActionReturnError) {
     if ("error" in data) {
         console.warn(data.error);
     } else {
@@ -114,7 +117,7 @@ function handleCompareRevisions(data: any) {
     }
 }
 
-function handleBlameFile(data: any) {
+function handleBlameFile(data: IpcActionReturn[IpcAction.BLAME_FILE] | IpcActionReturnError) {
     console.log("blame", data);
 }
 

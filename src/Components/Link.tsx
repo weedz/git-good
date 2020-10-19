@@ -1,11 +1,11 @@
 import { Component, h } from "preact";
 
-let selectedLink: Component<Props> | null;
+let selectedLink: Link | null;
 
 type Props = {
     activeClassName?: string
-    selectTarget?: Component<Props>
-    selectAction?: (arg: Component<Props, {}>) => void
+    selectTarget?: Link
+    selectAction?: (arg: Link) => void
     linkData?: any
 } & preact.JSX.HTMLAttributes<HTMLAnchorElement>
 

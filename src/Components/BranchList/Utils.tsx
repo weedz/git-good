@@ -1,6 +1,6 @@
 import { h } from "preact";
 import { BranchObj, BranchesObj } from "src/Data/Actions";
-import { setState } from "src/Data/Renderer/store";
+import { GlobalLinks, setState } from "src/Data/Renderer/store";
 import Link from "../Link";
 
 export type BranchTree = {
@@ -37,6 +37,10 @@ export function toggleTreeItem(e: any) {
     return false;
 }
 
+function selectAction(c: Link) {
+    setState({selectedBranch: {branch: c.props.linkData}})
+}
+
 export function branchTree(branches: BranchTree, contextMenuCb?: (event: any) => void, dblClickHandle?: (event: any) => void) {
     const items = [];
     if (branches.subtree) {
@@ -52,12 +56,14 @@ export function branchTree(branches: BranchTree, contextMenuCb?: (event: any) =>
     }
     if (branches.items) {
         for (const branch of branches.items) {
+            const link = (
+                <Link selectAction={selectAction} onDblClick={dblClickHandle} onContextMenu={contextMenuCb} activeClassName="selected" data-ref={branch.ref.name} linkData={branch.ref.name}>
+                    {branch.name}&nbsp;{BranchAheadBehind(branch.ref)}
+                </Link>
+            ) as unknown as Link;
+            GlobalLinks.branches[branch.ref.name] = link;
             items.push(
-                <li key={branch.ref.headSHA}>
-                    <Link selectAction={c => setState({selectedBranch: {branch: c.props.linkData}})} data-ref={branch.ref.name} onDblClick={dblClickHandle} onContextMenu={contextMenuCb} activeClassName="selected" linkData={branch.ref.name}>
-                        {branch.name}&nbsp;{BranchAheadBehind(branch.ref)}
-                    </Link>
-                </li>
+                <li key={branch.ref.headSHA}>{link}</li>
             );
         }
     }
@@ -92,10 +98,11 @@ export function transformToBranchTree(branches: BranchObj[]) {
     let root: BranchTree = {};
     for (const branch of branches.sort((a,b) => a.normalizedName.localeCompare(b.normalizedName))) {
         const paths = branch.normalizedName.split("/");
+        const name = paths.pop() as string;
 
         let tree = root;
-        while (paths.length > 1) {
-            const path = paths.shift() || "";
+
+        for (const path of paths) {
             if (!tree.subtree) {
                 tree.subtree = {};
             }
@@ -104,11 +111,12 @@ export function transformToBranchTree(branches: BranchObj[]) {
             }
             tree = tree.subtree[path];
         }
+
         if (!tree.items) {
             tree.items = [];
         }
         tree.items.push({
-            name: paths[0],
+            name,
             ref: branch,
         });
     }
