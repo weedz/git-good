@@ -5,6 +5,14 @@ import { contextMenuState, checkoutBranch, deleteBranch, push, deleteRemoteBranc
 
 const { Menu, MenuItem } = remote;
 
+const setUpstreamMenuItem = new MenuItem({
+    label: 'Set upstream...',
+    click() {
+        const local = contextMenuState.data.dataset.ref;
+        openDialog_SetUpstream(local);
+    }
+})
+
 const originMenu = new Menu();
 originMenu.append(new MenuItem({
     label: 'Fetch...',
@@ -100,29 +108,22 @@ localMenu.append(new MenuItem({
         console.log("Merge");
     }
 }));
-localMenu.append(new MenuItem({
-    label: 'Set upstream...',
-    click() {
-        const local = contextMenuState.data.dataset.ref;
-        openDialog_SetUpstream(local);
-    }
-}));
+localMenu.append(setUpstreamMenuItem);
 
 const headMenu = new Menu();
 headMenu.append(new MenuItem({
     label: 'Push...',
     click() {
         push("origin", contextMenuState.data.dataset.ref);
-        console.log("Push");
     }
 }));
 headMenu.append(new MenuItem({
     label: 'Pull...',
     click() {
-        console.log("Pull");
         pullHead();
     }
 }));
+headMenu.append(setUpstreamMenuItem);
 
 const tagMenu = new Menu();
 tagMenu.append(newBranch);

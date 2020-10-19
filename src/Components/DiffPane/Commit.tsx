@@ -58,15 +58,13 @@ export default class Commit extends Component<Props, State> {
     }
     render() {
         if (!this.state.commit) {
-            return;
+            return <div id="diff-pane" className="pane" />;
         }
 
         return (
             <div id="diff-pane" className="pane">
                 <CommitMessage commit={this.state.commit} />
                 <hr />
-
-                {!this.state.loadingComplete && <p>Loading...</p>}
                 <ChangedFiles patches={this.state.patches} commit={this.state.commit} />
             </div>
         );
