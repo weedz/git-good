@@ -12,6 +12,7 @@
   display: flex;
   flex-direction: row;
   white-space: nowrap;
+  align-items: stretch;
 }
 #commits-pane .short .date {
   display: none;
@@ -20,8 +21,14 @@
   flex: 1;
 }
 
+#commits-pane .short > * {
+  display: flex;
+  align-items: center;
+}
+
 .commit-refs-container {
   width: 150px;
+  height: 17px;
   overflow: hidden;
   position: relative;
   flex: none;
@@ -48,15 +55,39 @@
 .commit-refs-container:hover .commit-refs > li {
   display: block;
 }
-/* TODO: fix this */
-#commits-pane .commit-graph {
+.commit-graph > li {
   display: none;
 }
 
-#commits-pane .graph-indicator {
-  width: 13px;
-  height: 13px;
-  border-radius: 10px;
+.graph-container {
+  overflow: hidden;
+  position: relative;
+
   margin: 2px;
   flex: none;
+  display: flex;
+}
+.graph-indicator {
+  border-radius: 9px;
+}
+.graph-container,
+.graph-indicator {
+  width: 16px;
+  height: 16px;
+}
+
+.graph-container:hover {
+  overflow: visible;
+  z-index: 9999;
+}
+.graph-container:hover .commit-graph {
+  position: absolute;
+  overflow: visible;
+  background-color: #000;
+  left: 0;
+  border: 1px solid #777;
+  padding: 3px;
+}
+.graph-container:hover .commit-graph > li {
+  display: block;
 }
