@@ -89,6 +89,15 @@ export class Settings extends Component<SettingsProps, State> {
                         <input type="text" id="git-name" name="name" onKeyUp={e => this.setState({gitName: e.currentTarget.value})} />
                     </div>
                 </div>
+                <div className="pane">
+                    <h4>Terminal</h4>
+                    <div>
+                        <label for="terminal-app">Terminal application:</label>
+                        <select>
+                            <option>gnome-terminal</option>
+                        </select>
+                    </div>
+                </div>
                 <button type="button" onClick={() => this.props.confirmCb(this.state)}>Save</button>
                 <button type="button" onClick={this.props.cancelCb}>Close</button>
             </form>
