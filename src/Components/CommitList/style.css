@@ -4,11 +4,14 @@
   display: flex;
   flex-direction: column;
 }
-#commits-pane > ul {
-  overflow-y: auto;
+#commits-container {
+  flex-grow: 1;
+  overflow: auto;
+}
+#commits-pane > #commits-container > ul {
   user-select: none;
 }
-#commits-pane > ul > li {
+#commits-pane > #commits-container > ul > li {
   display: flex;
   flex-direction: row;
   white-space: nowrap;

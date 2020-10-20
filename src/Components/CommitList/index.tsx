@@ -164,10 +164,12 @@ export default class CommitList extends Component<{}, State> {
                     <input type="text" value={this.state.filter} onKeyUp={this.filter} placeholder="sha,message" />
                     <FileFilter filterByFile={this.filterByFile} />
                 </div>
-                <ul>
-                    {this.state.commits.length ? this.filterCommits().map((commit) => <CommitListItem key={commit.sha} graph={this.graph} commit={commit} />) : "No commits yet?"}
-                </ul>
-                {!Store.selectedBranch.history ? <button onClick={() => this.loadMoreCommits()} disabled={!!Store.locks[Locks.BRANCH_LIST]}>Load more...</button> : null}
+                <div id="commits-container">
+                    <ul>
+                        {this.state.commits.length ? this.filterCommits().map((commit) => <CommitListItem key={commit.sha} graph={this.graph} commit={commit} />) : "No commits yet?"}
+                    </ul>
+                    {!Store.selectedBranch.history ? <button onClick={() => this.loadMoreCommits()} disabled={!!Store.locks[Locks.BRANCH_LIST]}>Load more...</button> : null}
+                </div>
             </div>
         );
     }
