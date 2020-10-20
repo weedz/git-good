@@ -168,7 +168,7 @@ export default class CommitList extends Component<{}, State> {
                     <ul>
                         {this.state.commits.length ? this.filterCommits().map((commit) => <CommitListItem key={commit.sha} graph={this.graph} commit={commit} />) : "No commits yet?"}
                     </ul>
-                    {!Store.selectedBranch.history ? <button onClick={() => this.loadMoreCommits()} disabled={!!Store.locks[Locks.BRANCH_LIST]}>Load more...</button> : null}
+                    {!Store.selectedBranch.history && <button onClick={() => this.loadMoreCommits()} disabled={!!Store.locks[Locks.BRANCH_LIST]}>Load more...</button>}
                 </div>
             </div>
         );
