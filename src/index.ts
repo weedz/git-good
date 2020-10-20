@@ -1,13 +1,17 @@
 import { join } from "path";
-import { app, BrowserWindow, ipcMain, Menu, dialog } from 'electron';
+import { app, BrowserWindow, ipcMain, Menu, dialog, shell } from "electron";
+import { spawn } from "child_process";
 
 import * as NodeGit from "nodegit";
 import { Repository, Commit, Branch, Rebase } from "nodegit";
 
 import * as provider from "./Data/Main/Provider";
-import { IpcAction, IpcActionParams, IpcActionReturn } from './Data/Actions';
+import { IpcAction, IpcActionParams } from "./Data/Actions";
 import { sendEvent } from "./Data/Main/WindowEvents";
-import { IpcMainEvent } from "electron/main";
+
+const isMac = process.platform === "darwin";
+const isLinux = process.platform === "linux";
+const isWindows = process.platform === "win32";
 
 let win: BrowserWindow;
 const createWindow = () => {
@@ -41,7 +45,7 @@ app.on('ready', createWindow);
 app.on('window-all-closed', () => {
     // On OS X it is common for applications and their menu bar
     // to stay active until the user quits explicitly with Cmd + Q
-    if (process.platform !== 'darwin') {
+    if (!isMac) {
         app.quit();
     }
 });
@@ -54,10 +58,6 @@ app.on('activate', () => {
     }
 });
 
-// In this file you can include the rest of your app's specific main process
-// code. You can also put them in separate files and import them here.
-
-const isMac = process.platform === 'darwin'
 const menuTemplate = [
     // { role: 'appMenu' }
     ...(isMac ? [{
@@ -81,8 +81,45 @@ const menuTemplate = [
             {
                 label: 'Open repository...',
                 accelerator: 'CmdOrCtrl+O',
-                click: async () => {
-                    sendEvent(win.webContents, "repo-opened", await openRepoDialog());
+                async click() {
+                    const result = await openRepoDialog();
+                    if (result.opened) {
+                        sendEvent(win.webContents, "repo-opened", result);
+                    }
+                }
+            },
+            {
+                type: "separator"
+            },
+            {
+                label: "Open in Terminal",
+                click() {
+                    if (repo) {
+                        let process;
+                        // TODO: configure different terminals?
+                        if (isWindows) {
+                            process = spawn("cmd.exe", {
+                                cwd: repo.workdir()
+                            });
+                        } else if (isMac) {
+                            process = spawn("open", ["-a", "."], {
+                                cwd: repo.workdir()
+                            });
+                        } else {
+                            process = spawn("gnome-terminal", {
+                                cwd: repo.workdir()
+                            });
+                        }
+                        process.on("error", (err) => {
+                            console.log(err);
+                        });
+                    }
+                }
+            },
+            {
+                label: "Open in File Manager",
+                click() {
+                    repo && shell.openPath(repo.workdir());
                 }
             },
             {
@@ -91,7 +128,7 @@ const menuTemplate = [
             {
                 label: "Preferences...",
                 accelerator: 'CmdOrCtrl+,',
-                click: () => {
+                click() {
                     sendEvent(win.webContents, "open-settings");
                 }
             },
@@ -150,7 +187,7 @@ const menuTemplate = [
         submenu: [
             {
                 label: 'Fetch all',
-                click: async () => {
+                async click() {
                     await repo.fetchAll({
                         callbacks: {
                             credentials: provider.authenticate,
@@ -177,19 +214,19 @@ const menuTemplate = [
             },
             {
                 label: "Refresh",
-                click: () => {
+                click() {
                     sendEvent(win.webContents, "refresh-workdir");
                 }
             },
             {
                 label: 'Pull...',
-                click: async () => {
+                click() {
                     sendEvent(win.webContents, "pull-head");
                 }
             },
             {
                 label: 'Push...',
-                click: async () => {
+                click() {
                     sendEvent(win.webContents, "push-head");
                 }
             },
@@ -198,13 +235,13 @@ const menuTemplate = [
             },
             {
                 label: "Compare revisions...",
-                click: async() => {
+                click() {
                     sendEvent(win.webContents, "begin-compare-revisions");
                 }
             },
             {
                 label: "Blame file...",
-                click: async() => {
+                click() {
                     sendEvent(win.webContents, "begin-blame-file");
                 }
             }
@@ -230,10 +267,9 @@ const menuTemplate = [
         role: 'help',
         submenu: [
             {
-                label: 'Learn More',
-                click: async () => {
-                    const { shell } = require('electron')
-                    await shell.openExternal('https://electronjs.org')
+                label: "Homepage",
+                async click() {
+                    shell.openExternal("https://github.com/weedz/git-good");
                 }
             }
         ]

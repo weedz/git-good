@@ -12,6 +12,7 @@ export default {
         "nodegit",
         "path",
         "fs",
+        "child_process",
         "electron",
     ],
     input: ["src/renderer.tsx", "src/index.ts"],
