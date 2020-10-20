@@ -1,4 +1,4 @@
-import { Component, h } from "preact";
+import { Component, createRef, h } from "preact";
 
 let selectedLink: Link | null;
 
@@ -10,15 +10,20 @@ type Props = {
 } & preact.JSX.HTMLAttributes<HTMLAnchorElement>
 
 export default class Link extends Component<Props> {
+    ref = createRef<HTMLAnchorElement>();
+
     onSelect = () => {
         const prevLink = selectedLink;
 
         // nothing to see here.
         // @ts-ignore
-        selectedLink = this.props?.selectTarget?.__c || this;
-        if (selectedLink && selectedLink !== prevLink) {
+        selectedLink = this.props?.selectTarget?.__c as Link || this;
+        if (selectedLink !== prevLink) {
             selectedLink.setState({});
             selectedLink.props.selectAction && selectedLink.props.selectAction(selectedLink);
+            selectedLink.ref.current?.scrollIntoView({
+                block: "nearest"
+            });
         }
 
         if (prevLink) {
@@ -36,6 +41,6 @@ export default class Link extends Component<Props> {
             classNames += ` ${this.props.activeClassName}`;
         }
 
-        return <a className={classNames} href="#" onClick={this.onSelect} {...this.props}>{this.props.children}</a>
+        return <a ref={this.ref} className={classNames} href="#" onClick={this.onSelect} {...this.props}>{this.props.children}</a>
     }
 }

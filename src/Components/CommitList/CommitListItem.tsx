@@ -42,17 +42,20 @@ export default function CommitListItem({commit, graph}: Props) {
                             } else if (ref.name.startsWith("refs/tags/")) {
                                 menu = showTagMenu;
                             }
-                            return <li><Link onContextMenu={menu} selectTarget={GlobalLinks.branches[ref.name]} style={{color: HeadColors[graph[commit.sha].colorId]}} data-ref={ref.name}>{ref.normalizedName}</Link></li>
+                            return <li><Link onContextMenu={menu} selectTarget={GlobalLinks.branches[ref.name]} style={{backgroundColor: HeadColors[graph[commit.sha].colorId].background}} data-ref={ref.name}>{ref.normalizedName}</Link></li>
                         })}
                     </ul>
                 }
             </div>
             <div className="graph-container">
-                <span className="graph-indicator" style={{backgroundColor: HeadColors[graph[commit.sha].colorId]}}></span>
+                <span className="graph-indicator" style={{backgroundColor: HeadColors[graph[commit.sha].colorId].color}}></span>
+                {graph[commit.sha].descendants.length > 0 ?
                 <ul className="commit-graph">
-                    {graph[commit.sha].descendants.map(child => <li><Link selectTarget={GlobalLinks.commits[child.sha]} style={{color: HeadColors[graph[child.sha].colorId]}}>{child.sha.substring(0,7)}</Link></li>)}
+                    {graph[commit.sha].descendants.map(child => <li><Link selectTarget={GlobalLinks.commits[child.sha]} style={{color: HeadColors[graph[child.sha].colorId].color}}>{child.sha.substring(0,7)}</Link></li>)}
                 </ul>
+                : null}
             </div>
+            
             {commitLink}
         </li>
     );
