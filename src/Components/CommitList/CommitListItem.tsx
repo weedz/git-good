@@ -13,10 +13,10 @@ type Props = {
             colorId: number
         }
     }
-    commit: any
+    commit: LoadCommitReturn
 };
 
-function selectCommit(c: Link) {
+function selectCommit(c: Link<string>) {
     setState({diffPaneSrc: c.props.linkData});
 }
 
@@ -42,7 +42,7 @@ export default function CommitListItem({commit, graph}: Props) {
                             } else if (ref.name.startsWith("refs/tags/")) {
                                 menu = showTagMenu;
                             }
-                            return <li><Link onContextMenu={menu} selectTarget={GlobalLinks.branches[ref.name]} style={{backgroundColor: HeadColors[graph[commit.sha].colorId].background}} data-ref={ref.name}>{ref.normalizedName}</Link></li>
+                            return <li><Link type="branches" onContextMenu={menu} selectTarget={GlobalLinks.branches[ref.name]} style={{backgroundColor: HeadColors[graph[commit.sha].colorId].background}} data-ref={ref.name}>{ref.normalizedName}</Link></li>
                         })}
                     </ul>
                 }
