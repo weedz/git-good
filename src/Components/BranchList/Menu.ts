@@ -32,12 +32,6 @@ const newBranch = new MenuItem({
 });
 
 const remoteMenu = new Menu();
-remoteMenu.append(new MenuItem({
-    label: 'Checkout...',
-    click() {
-        console.log("Checkout");
-    }
-}));
 remoteMenu.append(newBranch);
 remoteMenu.append(new MenuItem({
     label: 'Delete...',

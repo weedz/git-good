@@ -1,6 +1,7 @@
 import { h } from "preact";
 import { LoadCommitReturn } from "src/Data/Actions";
 import { GlobalLinks, setState, Store } from "src/Data/Renderer/store";
+import { showLocalMenu, showRemoteMenu, showTagMenu } from "../BranchList/Menu";
 import Link from "../Link";
 import HeadColors from "./HeadColors";
 import { showCommitMenu } from "./Menu";
@@ -32,7 +33,17 @@ export default function CommitListItem({commit, graph}: Props) {
             <div className="commit-refs-container">
                 {Store.heads[commit.sha] &&
                     <ul className="commit-refs">
-                        {Store.heads[commit.sha].map(ref => <li style={{color: HeadColors[graph[commit.sha].colorId]}}>{ref.normalizedName}</li>)}
+                        {Store.heads[commit.sha].map(ref => {
+                            let menu;
+                            if (ref.name.startsWith("refs/heads/")) {
+                                menu = showLocalMenu;
+                            } else if (ref.name.startsWith("refs/remotes/")) {
+                                menu = showRemoteMenu;
+                            } else if (ref.name.startsWith("refs/tags/")) {
+                                menu = showTagMenu;
+                            }
+                            return <li><Link onContextMenu={menu} selectTarget={GlobalLinks.branches[ref.name]} style={{color: HeadColors[graph[commit.sha].colorId]}} data-ref={ref.name}>{ref.normalizedName}</Link></li>
+                        })}
                     </ul>
                 }
             </div>
