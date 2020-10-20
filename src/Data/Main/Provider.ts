@@ -90,7 +90,7 @@ export async function *getCommits(repo: Repository, branch: string, start: "refs
             }
         }
 
-        const cursor = cursorCommit ? cursorCommit.sha() : history[history.length - 1]?.sha();
+        const cursor = history.length > 0 ? history[history.length - 1]?.sha() : cursorCommit?.sha();
 
         yield {
             cursor,
