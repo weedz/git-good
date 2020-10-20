@@ -1,3 +1,4 @@
+import { remote } from "electron";
 import { Component, h } from "preact";
 import { SettingsProps } from "./types";
 
@@ -7,6 +8,16 @@ type State = {
     password?: string
     gitEmail: string
     gitName: string
+    sshPrivateKey?: string
+    sshPublicKey?: string
+    sshAgent?: boolean
+}
+
+async function selectFile(cb: (data: string) => void) {
+    const result = await remote.dialog.showOpenDialog({});
+    if (!result.canceled) {
+        cb(result.filePaths[0]);
+    }
 }
 
 export class Settings extends Component<SettingsProps, State> {
@@ -26,33 +37,49 @@ export class Settings extends Component<SettingsProps, State> {
                 e.preventDefault();
             }}>
                 <h2>Settings</h2>
-                <div>
+                <div className="pane">
                     <h4>Auth type</h4>
                     <div>
-                        <input id="ssh-agent" type="radio" name="auth-type" value="ssh" onChange={this.setAuth} />
-                        <label for="ssh-agent">SSH agent</label>
+                        <input id="ssh" type="radio" name="auth-type" value="ssh" onChange={this.setAuth} />
+                        <label for="ssh">SSH</label>
+                        {this.state.authType === "ssh" && (
+                            <div>
+                                <div>
+                                    <label for="ssh-agent">Use SSH agent:</label>
+                                    <input id="ssh-agent" type="checkbox" name="ssh-agent" checked={this.state.sshAgent} onChange={e => this.setState({sshAgent: e.currentTarget.checked})} />
+                                </div>
+                                <div>
+                                    <label for="ssh-public-key">SSH Public key:</label>
+                                    <button disabled={this.state.sshAgent} id="ssh-public-key" type="file" name="ssh-public-key" onClick={() => selectFile((path) => this.setState({sshPublicKey: path}))}>Browse</button>
+                                    {!this.state.sshAgent && <span>{this.state.sshPublicKey}</span>}
+                                </div>
+                                <div>
+                                    <label for="ssh-private-key">SSH Private key:</label>
+                                    <button disabled={this.state.sshAgent} id="ssh-private-key" type="file" name="ssh-private-key" onClick={() => selectFile((path) => this.setState({sshPrivateKey: path}))}>Browse</button>
+                                    {!this.state.sshAgent && <span>{this.state.sshPrivateKey}</span>}
+                                </div>
+                            </div>
+                        )}
                     </div>
                     <div>
                         <input id="access-token" type="radio" name="auth-type" value="userpass" onChange={this.setAuth} />
                         <label for="access-token">Username/password</label>
-                        {
-                            this.state.authType === "userpass" ? (
+                        {this.state.authType === "userpass" && (
+                            <div>
                                 <div>
-                                    <div>
-                                        <label for="auth-username">Username:</label>
-                                        <input id="auth-username" type="text" name="username" value={this.state.username} onKeyUp={e => this.setState({username: e.currentTarget.value})} />
-                                    </div>
-                                    <div>
-                                        <label for="auth-username">Password:</label>
-                                        <input id="auth-password" type="password" name="password" value={this.state.password} onKeyUp={e => this.setState({password: e.currentTarget.value})} />
-                                    </div>
+                                    <label for="auth-username">Username:</label>
+                                    <input id="auth-username" type="text" name="username" value={this.state.username} onKeyUp={e => this.setState({username: e.currentTarget.value})} />
                                 </div>
-                            ) : null
-                        }
+                                <div>
+                                    <label for="auth-username">Password:</label>
+                                    <input id="auth-password" type="password" name="password" value={this.state.password} onKeyUp={e => this.setState({password: e.currentTarget.value})} />
+                                </div>
+                            </div>
+                        )}
                     </div>
                 </div>
-                <div>
-                    <h2>Git credentials</h2>
+                <div className="pane">
+                    <h4>Git credentials</h4>
                     <div>
                         <label for="git-email">Email:</label>
                         <input type="text" id="git-email" name="email" onKeyUp={e => this.setState({gitEmail: e.currentTarget.value})} />
@@ -63,7 +90,7 @@ export class Settings extends Component<SettingsProps, State> {
                     </div>
                 </div>
                 <button type="button" onClick={() => this.props.confirmCb(this.state)}>Save</button>
-                <button type="button" onClick={() => this.props.cancelCb()}>Close</button>
+                <button type="button" onClick={this.props.cancelCb}>Close</button>
             </form>
         </div>;
     }
