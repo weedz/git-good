@@ -1,5 +1,5 @@
 import { DialogProps, DialogTypes } from "src/Components/Dialog/types";
-import Link from "src/Components/Link";
+import Link, { unselectLink } from "src/Components/Link";
 import { IpcAction, BranchesObj, BranchObj, PatchObj, Locks, RepoStatus, IpcActionParams } from "../Actions";
 import { sendAsyncMessage } from "./IPC";
 
@@ -52,12 +52,15 @@ const store: StoreType = {
     comparePatches: [],
     commitMsg: {summary: "", body: ""},
 };
+export type LinkTypes = "commits" | "branches" | "files";
 export const GlobalLinks: {
-    commits: {[key: string]: Link}
-    branches: {[key: string]: Link}
- } = {
+    [key in LinkTypes]: {
+        [key: string]: Link
+    }
+} = {
     commits: {},
-    branches: {}
+    branches: {},
+    files: {}
  };
 export const Store = store as Readonly<StoreType>
 
@@ -171,6 +174,7 @@ export function closeFile() {
     setState({
         currentFile: null
     });
+    unselectLink("files");
 }
 export function abortRebase() {
     sendAsyncMessage(IpcAction.ABORT_REBASE);

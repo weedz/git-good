@@ -37,7 +37,7 @@ export function toggleTreeItem(e: any) {
     return false;
 }
 
-function selectAction(c: Link) {
+function selectAction(c: Link<string>) {
     setState({selectedBranch: {branch: c.props.linkData}})
 }
 

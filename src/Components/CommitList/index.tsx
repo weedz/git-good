@@ -7,6 +7,7 @@ import "./style.css";
 import FileFilter from "./FileFilter";
 import CommitListItem from "./CommitListItem";
 import HeadColors from "./HeadColors";
+import { Links } from "../LinkContainer";
 
 type State = {
     commits: IpcActionReturn[IpcAction.LOAD_COMMITS]["commits"]
@@ -58,6 +59,7 @@ export default class CommitList extends Component<{}, State> {
         GlobalLinks.commits = {};
         this.cursor = undefined;
         this.color = 0;
+        // TODO: fix this, no need to re-render all commits
         this.setState({
             commits: [],
         }, this.getCommits);
@@ -165,9 +167,11 @@ export default class CommitList extends Component<{}, State> {
                     <FileFilter filterByFile={this.filterByFile} />
                 </div>
                 <div id="commits-container">
-                    <ul>
-                        {this.state.commits.length ? this.filterCommits().map((commit) => <CommitListItem key={commit.sha} graph={this.graph} commit={commit} />) : "No commits yet?"}
-                    </ul>
+                    <Links.Provider value="commits">
+                        <ul>
+                            {this.state.commits.length ? this.filterCommits().map((commit) => <CommitListItem key={commit.sha} graph={this.graph} commit={commit} />) : "No commits yet?"}
+                        </ul>
+                    </Links.Provider>
                     {!Store.selectedBranch.history && <button onClick={() => this.loadMoreCommits()} disabled={!!Store.locks[Locks.BRANCH_LIST]}>Load more...</button>}
                 </div>
             </div>

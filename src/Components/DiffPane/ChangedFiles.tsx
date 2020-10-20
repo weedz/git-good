@@ -2,6 +2,8 @@ import { h, Component } from "preact";
 import { PatchObj, CommitObj } from "src/Data/Actions";
 import { openFile } from "src/Data/Renderer/store";
 import { getType, DELTA } from "src/Data/Utils";
+import Link from "../Link";
+import { Links } from "../LinkContainer";
 
 type ButtonAction = {
     label: string
@@ -36,8 +38,9 @@ export default class ChangedFiles extends Component<Props, {fileFilter?: string}
     componentWillReceiveProps() {
         this.resetCounters();
     }
-    openFile = (patch: PatchObj) => {
+    openFile = (data: Link<PatchObj>) => {
         this.resetCounters();
+        const patch = data.props.linkData as unknown as PatchObj;
         if (this.props.commit) {
             openFile({
                 sha: this.props.commit.sha,
@@ -81,10 +84,10 @@ export default class ChangedFiles extends Component<Props, {fileFilter?: string}
         }
         return (
             <li className="sub-tree" key={patch.actualFile.path}>
-                <a href="#" onClick={_ => this.openFile(patch)}>
+                <Link activeClassName="selected" linkData={patch} selectAction={this.openFile}>
                     <span className={typeCss}>{getType(patch.status)}</span>&nbsp;
                     <span>{patch.actualFile.path}</span>
-                </a>
+                </Link>
                 {this.props.actions && <div className="action-group">
                     {this.props.actions?.map(action => <button data-path={patch.actualFile.path} onClick={action.click}>{action.label}</button>)}
                 </div>}
@@ -109,9 +112,11 @@ export default class ChangedFiles extends Component<Props, {fileFilter?: string}
                     {this.fileTypes.deleted > 0 && <li className="file-deleted">{this.fileTypes.deleted} deleted</li>}
                     {this.fileTypes.renamed > 0 && <li className="file-renamed">{this.fileTypes.renamed} renamed</li>}
                 </ul>
-                <ul className="diff-view block-list">
-                    {files}
-                </ul>
+                <Links.Provider value="files">
+                    <ul className="diff-view block-list">
+                        {files}
+                    </ul>
+                </Links.Provider>
             </div>
         );
     }
