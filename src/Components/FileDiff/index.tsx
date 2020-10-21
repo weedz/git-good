@@ -5,11 +5,17 @@ import { DELTA } from "src/Data/Utils";
 
 import "./style.css";
 
+const PAGE_SIZE = 1000;
+
 type State = {
     diffType: "inline" | "side-by-side"
     viewType: "file" | "diff"
     sideSelected: "left" | "right" | null
     wrapLine: boolean
+    viewPort: {
+        start: number
+        end: number
+    }
 }
 
 function compactLines(lines: LineObj[]) {
@@ -35,6 +41,8 @@ function compactLines(lines: LineObj[]) {
 }
 
 export default class FileDiff extends Component<{}, State> {
+    lines: h.JSX.Element[] = [];
+
     constructor() {
         super();
         this.state = {
@@ -42,42 +50,53 @@ export default class FileDiff extends Component<{}, State> {
             diffType: "inline",
             sideSelected: null,
             wrapLine: true,
+            viewPort: {
+                start: 0,
+                end: PAGE_SIZE,
+            }
         };
     }
     componentWillMount() {
-        subscribe(this.update, "currentFile");
+        subscribe(this.renderHunks, "currentFile");
     }
     componentWillUnmount() {
-        unsubscribe(this.update, "currentFile");
+        unsubscribe(this.renderHunks, "currentFile");
     }
-    update = () => {
-        this.setState({});
+
+    renderHunks = () => {
+        const patch = Store.currentFile?.patch;
+        if (patch) {
+            this.lines = patch.hunks ? patch.hunks.map(this.renderHunk).flat() : [];
+        }
+        this.setState({
+            viewPort: {
+                start: 0,
+                end: PAGE_SIZE,
+            }
+        });
     }
 
     renderHunk = (hunk: HunkObj) => {
-        let lines;
+        let lines = [
+            <li className="diff-header">
+                <p>{hunk.header}</p>
+            </li>
+        ];
         if (hunk.lines) {
-            lines = this.state.diffType === "side-by-side" ? compactLines(hunk.lines).map(this.renderLineSideBySide) : hunk.lines.map(this.renderLine);
+            lines = lines.concat(this.state.diffType === "side-by-side" ? compactLines(hunk.lines).map(this.renderLineSideBySide) : hunk.lines.map(this.renderLine));
         }
 
-        return (
-            <li>
-                <p className="diff-header">{hunk.header}</p>
-                <table cellSpacing="0px" cellPadding="2px">
-                    {lines}
-                </table>
-            </li>
-        );
+        return lines;
     }
     
     renderLine = (line: LineObj) => {
         return (
-            <tr className={line.type && `diff-line ${line.type === "+" ? "new" : "old"}` || "diff-line"}>
-                <td className="diff-line-number">{line.oldLineno !== -1 && line.oldLineno}</td>
-                <td className="diff-line-number">{line.newLineno !== -1 && line.newLineno}</td>
-                <td className="diff-type">{line.type}</td>
-                <td className="diff-line-content">{line.content}</td>
-            </tr>
+            <li className={line.type && `diff-line ${line.type === "+" ? "new" : "old"}` || "diff-line"}>
+                <span className="diff-line-number">{line.oldLineno !== -1 && line.oldLineno}</span>
+                <span className="diff-line-number">{line.newLineno !== -1 && line.newLineno}</span>
+                <span className="diff-type">{line.type}</span>
+                <span className="diff-line-content">{line.content}</span>
+            </li>
         );
     }
     
@@ -90,14 +109,14 @@ export default class FileDiff extends Component<{}, State> {
         const oldType = type && oldLineNo ? " old" : "";
         const newType = type && newLineNo ? " new" : "";
         return (
-            <tr className="diff-line">
-                <td onMouseDown={this.selectLeft} className={`left diff-line-number${oldType}`}>{oldLineNo}</td>
-                <td onMouseDown={this.selectLeft} className={`left diff-type${oldType}`}>{oldLineNo && line.type}</td>
-                <td onMouseDown={this.selectLeft} className={`left diff-line-content${oldType}`}>{!type || oldLineNo ? line.content : null}</td>
-                <td onMouseDown={this.selectRight} className={`right diff-line-number${newType}`}>{newLineNo}</td>
-                <td onMouseDown={this.selectRight} className={`right diff-type${newType}`}>{newLineNo && newLine.type}</td>
-                <td onMouseDown={this.selectRight} className={`right diff-line-content${newType}`}>{!type || newLineNo ? newLine.content : null}</td>
-            </tr>
+            <li className="diff-line">
+                <span onMouseDown={this.selectLeft} className={`left diff-line-number${oldType}`}>{oldLineNo}</span>
+                <span onMouseDown={this.selectLeft} className={`left diff-type${oldType}`}>{oldLineNo && line.type}</span>
+                <span onMouseDown={this.selectLeft} className={`left diff-line-content${oldType}`}>{!type || oldLineNo ? line.content : null}</span>
+                <span onMouseDown={this.selectRight} className={`right diff-line-number${newType}`}>{newLineNo}</span>
+                <span onMouseDown={this.selectRight} className={`right diff-type${newType}`}>{newLineNo && newLine.type}</span>
+                <span onMouseDown={this.selectRight} className={`right diff-line-content${newType}`}>{!type || newLineNo ? newLine.content : null}</span>
+            </li>
         );
     }
 
@@ -131,6 +150,8 @@ export default class FileDiff extends Component<{}, State> {
             classes.push("parallel");
         }
 
+        const renderedLines = this.lines.slice(this.state.viewPort.start, this.state.viewPort.end) || [<p>Loading content...</p>];
+
         return (
             <div id="file-diff" className={`pane ${classes.join(" ")}`}>
                 <a href="#" onClick={closeFile}>Close</a>
@@ -139,22 +160,34 @@ export default class FileDiff extends Component<{}, State> {
                 <p>{patch.hunks?.length} chunks, Additions: {patch.lineStats.total_additions}, Deletions: {patch.lineStats.total_deletions}</p>
                 <ul className="horizontal space-evenly">
                     <li className="btn-group">
-                        <button onClick={() => this.setState({viewType: "file"})}>File View</button>
-                        <button onClick={() => this.setState({viewType: "diff"})}>Diff View</button>
+                        <button onClick={() => this.setState({viewType: "file"}, this.renderHunks)}>File View</button>
+                        <button onClick={() => this.setState({viewType: "diff"}, this.renderHunks)}>Diff View</button>
                     </li>
                     <li className="btn-group">
                         <button onClick={() => blameFile(patch.actualFile.path)}>History</button>
                     </li>
                     <li className="btn-group">
-                        <button onClick={() => this.setState({diffType: "inline"})}>Inline</button>
-                        <button onClick={() => this.setState({diffType: "side-by-side"})}>Side-by-side</button>
+                        <button onClick={() => this.setState({diffType: "inline"}, this.renderHunks)}>Inline</button>
+                        <button onClick={() => this.setState({diffType: "side-by-side"}, this.renderHunks)}>Side-by-side</button>
                     </li>
                 </ul>
                 <label>
                     <span>Wrap line</span>
                     <input checked={this.state.wrapLine} type="checkbox" onClick={(e) => this.setState({wrapLine: (e.target as unknown as HTMLInputElement).checked})}></input>
                 </label>
-                {patch.hunks ? <ul className="hunks">{patch.hunks.map(this.renderHunk)}</ul> : <p>Loading content...</p>}
+                <ul className={`hunks ${this.state.diffType}`}>{renderedLines}</ul>
+                <div className="horizontal">
+                    {this.state.viewPort.start >= PAGE_SIZE && <button onClick={() => this.setState({viewPort: {
+                        ...this.state.viewPort,
+                        start: this.state.viewPort.start - 1000,
+                        end: this.state.viewPort.end - 1000,
+                    }})}>Prev</button>}
+                    {this.state.viewPort.end < this.lines.length && <button onClick={() => this.setState({viewPort: {
+                        ...this.state.viewPort,
+                        start: this.state.viewPort.start + 1000,
+                        end: this.state.viewPort.end + 1000,
+                    }})}>Next</button>}
+                </div>
             </div>
         );
     }
