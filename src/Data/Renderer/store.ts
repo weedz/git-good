@@ -26,7 +26,7 @@ export type StoreType = {
     }
     dialogWindow: null | DialogWindow
     selectedBranch: {branch?: string, history?: boolean}
-    diffPaneSrc: string
+    diffPaneSrc: string | null
     viewChanges: null
     comparePatches: PatchObj[]
     commitMsg: {

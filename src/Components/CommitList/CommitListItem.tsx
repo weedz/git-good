@@ -22,7 +22,7 @@ function selectCommit(c: Link<string>) {
 
 export default function CommitListItem({commit, graph}: Props) {
     const commitLink = (
-        <Link selectAction={selectCommit} activeClassName="selected" linkData={commit.sha} onContextMenu={showCommitMenu}>
+        <Link selectAction={selectCommit} linkData={commit.sha} onContextMenu={showCommitMenu}>
             <span className="msg">{commit.message.substring(0, commit.message.indexOf("\n")>>>0 || 60)}</span>
         </Link>
     ) as unknown as Link;
@@ -42,7 +42,7 @@ export default function CommitListItem({commit, graph}: Props) {
                             } else if (ref.name.startsWith("refs/tags/")) {
                                 menu = showTagMenu;
                             }
-                            return <li><Link type="branches" onContextMenu={menu} selectTarget={GlobalLinks.branches[ref.name]} style={{backgroundColor: HeadColors[graph[commit.sha].colorId].background}} data-ref={ref.name}>{ref.normalizedName}</Link></li>
+                            return <li><Link type="branches" onContextMenu={menu} selectAction={_ => setState({diffPaneSrc: null})} selectTarget={GlobalLinks.branches[ref.name]} style={{backgroundColor: HeadColors[graph[commit.sha].colorId].background}} data-ref={ref.name}>{ref.normalizedName}</Link></li>
                         })}
                     </ul>
                 }

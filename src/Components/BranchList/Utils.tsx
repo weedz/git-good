@@ -57,7 +57,7 @@ export function branchTree(branches: BranchTree, contextMenuCb?: (event: any) =>
     if (branches.items) {
         for (const branch of branches.items) {
             const link = (
-                <Link selectAction={selectAction} onDblClick={dblClickHandle} onContextMenu={contextMenuCb} activeClassName="selected" data-ref={branch.ref.name} linkData={branch.ref.name}>
+                <Link selectAction={selectAction} onDblClick={dblClickHandle} onContextMenu={contextMenuCb} data-ref={branch.ref.name} linkData={branch.ref.name}>
                     {branch.name}&nbsp;{BranchAheadBehind(branch.ref)}
                 </Link>
             ) as unknown as Link;

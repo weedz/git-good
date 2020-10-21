@@ -3,7 +3,7 @@ import { LinkTypes } from "src/Data/Renderer/store";
 import { Links } from "./LinkContainer";
 
 const selectedLinks: {
-    [key in LinkTypes]: Link | null
+    [key in LinkTypes]: Link<any> | null
 } = {
     commits: null,
     branches: null,
@@ -11,7 +11,6 @@ const selectedLinks: {
 }
 
 type Props<T> = {
-    activeClassName?: string
     selectTarget?: Link
     selectAction?: (arg: Link<T>) => void
     linkData?: T
@@ -43,18 +42,22 @@ export default class Link<T = never> extends Component<Props<T>> {
         // nothing to see here.
         // @ts-ignore
         selectedLinks[this.type] = this.props?.selectTarget?.__c as Link || this;
+
         const selectedLink = selectedLinks[this.type];
         if (selectedLink && selectedLink !== prevLink) {
-            if ("selectAction" in selectedLink.props) {
+            this.props.selectAction && this.props.selectAction(this);
+
+            if (selectedLink !== this) {
                 selectedLink.props.selectAction && selectedLink.props.selectAction(selectedLink);
             }
+
             selectedLink.ref.current?.scrollIntoView({
                 block: "nearest"
             });
             selectedLink.setState({});
         }
 
-        if (prevLink) {
+        if (prevLink && prevLink !== selectedLink) {
             prevLink.setState({});
         }
     }
@@ -66,7 +69,7 @@ export default class Link<T = never> extends Component<Props<T>> {
     render() {
         let classNames = this.props.className || "";
         if (selectedLinks[this.type] === this) {
-            classNames += ` ${this.props.activeClassName}`;
+            classNames += " selected";
         }
 
         const link = <a ref={this.ref} className={classNames} href="#" onClick={this.onSelect} {...this.props}>{this.props.children}</a>;

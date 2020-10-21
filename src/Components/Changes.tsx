@@ -34,7 +34,7 @@ export default class Changes extends Component {
                     {Store.repo?.status?.merging && <li><span>Merging</span></li>}
                     {Store.repo?.status?.rebasing && <li><span>Rebasing</span></li>}
                     {Store.repo?.status?.reverting && <li><span>Reverting</span></li>}
-                    <li><Link selectAction={() => setState({viewChanges: null})} activeClassName="selected">Changes ({changes})</Link></li>
+                    <li><Link type="commits" selectAction={() => setState({viewChanges: null})}>Changes ({changes})</Link></li>
                 </ul>
             </div>
         );

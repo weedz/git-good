@@ -73,8 +73,8 @@ export default class BranchList extends Component<{}, State> {
                         <Links.Provider value="branches">
                             <h4>Refs</h4>
                             <ul className="block-list">
-                                <li><Link selectAction={_ => setState({selectedBranch: {history: true}})} activeClassName="selected">History</Link></li>
-                                <li><Link selectAction={_ => setState({selectedBranch: {branch: "HEAD"}})} onContextMenu={showHeadMenu} activeClassName="selected">HEAD{headRef}</Link></li>
+                                <li><Link selectAction={_ => setState({selectedBranch: {history: true}})}>History</Link></li>
+                                <li><Link selectAction={_ => setState({selectedBranch: {branch: "HEAD"}})} onContextMenu={showHeadMenu}>HEAD{headRef}</Link></li>
                             </ul>
                             <hr />
                             {branches &&

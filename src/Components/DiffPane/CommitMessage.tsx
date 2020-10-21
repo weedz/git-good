@@ -12,8 +12,8 @@ export default function CommitMessage(props: {commit: CommitObj}) {
                 Store.heads[props.commit.sha] && (
                     <ul>
                         {Store.heads[props.commit.sha].map(ref => <li>
-                            <Link selectAction={_ => setState({selectedBranch: {branch: ref.name}})} selectTarget={GlobalLinks.branches[ref.name]}>{ref.normalizedName}</Link>
-                            {ref.remote && <span>:<Link selectAction={_ => setState({selectedBranch: {branch: ref.remote}})} selectTarget={GlobalLinks.branches[ref.remote]}>{normalizeRemoteName(ref.remote)}</Link></span>}
+                            <Link type="branches" selectAction={_ => setState({diffPaneSrc: null})} selectTarget={GlobalLinks.branches[ref.name]}>{ref.normalizedName}</Link>
+                            {ref.remote && <span>:<Link type="branches" selectAction={_ => setState({diffPaneSrc: null})} selectTarget={GlobalLinks.branches[ref.remote]}>{normalizeRemoteName(ref.remote)}</Link></span>}
                         </li>)}
                     </ul>
                 )
@@ -21,7 +21,7 @@ export default function CommitMessage(props: {commit: CommitObj}) {
             <p>
                 <span>Parents:</span>
                 <ul className="parent-list">
-                    {props.commit.parents.map(parent => <li><Link selectTarget={GlobalLinks.commits[parent.sha]}>{parent.sha.substring(0,7)}</Link></li>)}
+                    {props.commit.parents.map(parent => <li><Link type="commits" selectTarget={GlobalLinks.commits[parent.sha]}>{parent.sha.substring(0,7)}</Link></li>)}
                 </ul>
             </p>
             <p className="date">Date: {new Date(props.commit.date * 1000).toLocaleString()}</p>

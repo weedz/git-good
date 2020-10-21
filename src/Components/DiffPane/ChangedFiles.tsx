@@ -84,7 +84,7 @@ export default class ChangedFiles extends Component<Props, {fileFilter?: string}
         }
         return (
             <li className="sub-tree" key={patch.actualFile.path}>
-                <Link activeClassName="selected" linkData={patch} selectAction={this.openFile}>
+                <Link linkData={patch} selectAction={this.openFile}>
                     <span className={typeCss}>{getType(patch.status)}</span>&nbsp;
                     <span>{patch.actualFile.path}</span>
                 </Link>
