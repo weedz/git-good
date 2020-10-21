@@ -15,28 +15,46 @@
 }
 #file-diff > ul.hunks {
     overflow-y: auto;
+    display: grid;
 }
-#file-diff > ul.hunks li {
-    overflow-x: auto;
+ul.hunks.inline {
+    grid-template-columns: repeat(2, fit-content(20px)) 14px auto;
+}
+ul.hunks.side-by-side {
+    grid-template-columns: fit-content(20px) 14px 1fr fit-content(20px) 14px 1fr;
+}
+.hunks > .diff-line {
+    display: contents
 }
 #file-diff > ul li > table {
     width: 100%;
     border-top: 1px solid var(--border-color);
     border-bottom: 1px solid var(--border-color);
 }
-
 .diff-header {
+    display: block;
+}
+.hunks.inline .diff-header {
+    grid-column: 1 / span 4;
+}
+.hunks.side-by-side .diff-header {
+    grid-column: 1 / span 6;
+}
+.diff-header > p {
     color: teal;
 }
 .diff-line:empty {
     content: "&nbsp;";
 }
-.diff-line.new,
-.diff-line .new {
+.diff-line td {
+    padding: 1px;
+}
+.diff-line .new,
+.diff-line.new > * {
     background-color: darkgreen;
 }
-.diff-line.old,
-.diff-line .old {
+.diff-line .old,
+.diff-line.old > * {
     background-color: darkred;
 }
 .diff-line-content {
@@ -48,15 +66,13 @@
     white-space: pre-wrap;
     word-break: break-all;
 }
-#file-diff.parallel .diff-line-content {
-    width: 45%;
-}
 
 #file-diff .diff-line .diff-type,
 #file-diff .diff-line .diff-line-number {
     user-select: none;
-    width: 1px;
     vertical-align: top;
+    padding-left: 3px;
+    padding-right: 3px;
 }
 .diff-line:hover .diff-line-number {
     background-color: cadetblue;
