@@ -25,6 +25,10 @@
   overflow: hidden;
 }
 
+.short > a:not(.selected):hover {
+  background-color: #333;
+}
+
 .short .msg {
   overflow: hidden;
   text-overflow: ellipsis;
@@ -87,6 +91,11 @@
 }
 .graph-indicator {
   border-radius: 9px;
+  margin: auto;
+}
+.graph-indicator.small {
+  height: 9px;
+  width: 9px
 }
 .graph-container,
 .graph-indicator {

@@ -3,10 +3,12 @@
 }
 #diff-pane {
     width: 325px;
-    overflow: auto;
+    display: flex;
+    flex-direction: column;
 }
 .diff-view {
     overflow: auto;
+    flex: 1;
 }
 .diff-view > li {
     white-space: nowrap;
@@ -44,6 +46,9 @@
 }
 
 .changed-files {
+    overflow: auto;
+    display: flex;
+    flex-direction: column;
     flex: 1;
 }
 .changed-files .file-modified {

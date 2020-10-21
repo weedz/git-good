@@ -10,7 +10,6 @@ type ButtonAction = {
     click: h.JSX.MouseEventHandler<HTMLButtonElement>
 }
 type Props = {
-    className?: string
     commit?: CommitObj
     workDir?: true
     compare?: true
@@ -99,12 +98,9 @@ export default class ChangedFiles extends Component<Props, {fileFilter?: string}
         const patches = fileFilter ? this.props.patches.filter(patch => patch.actualFile.path.toLocaleLowerCase().includes(fileFilter)) : this.props.patches;
 
         const files = patches.slice(0, 1000).map(this.renderPatch);
-        const className = ["changed-files"];
-        if (this.props.className) {
-            className.push(this.props.className);
-        }
+
         return (
-            <div className={className.join(" ")}>
+            <div className="changed-files">
                 <input type="text" onKeyUp={this.filterFiles} placeholder="Search file..." value={this.state.fileFilter} />
                 <ul className="file-types">
                     {this.fileTypes.modified > 0 && <li className="file-modified">{this.fileTypes.modified} modified</li>}
@@ -113,7 +109,7 @@ export default class ChangedFiles extends Component<Props, {fileFilter?: string}
                     {this.fileTypes.renamed > 0 && <li className="file-renamed">{this.fileTypes.renamed} renamed</li>}
                 </ul>
                 <Links.Provider value="files">
-                    <ul className="diff-view block-list">
+                    <ul className="diff-view block-list inset">
                         {files}
                     </ul>
                 </Links.Provider>

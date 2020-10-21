@@ -76,10 +76,6 @@ a {
 .tree-list .open > ul.tree-list {
   display: block;
 }
-li .tree-list {
-  margin-left: 11px;
-}
-
 
 .selected,
 .selected * {
@@ -102,6 +98,9 @@ li .tree-list {
 
 ul.block-list > li > a {
   display: block;
+}
+ul.block-list > li > a:not(.selected):hover {
+  background-color: #333;
 }
 
 .disabled {

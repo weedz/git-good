@@ -41,14 +41,14 @@ function selectAction(c: Link<string>) {
     setState({selectedBranch: {branch: c.props.linkData}})
 }
 
-export function branchTree(branches: BranchTree, contextMenuCb?: (event: any) => void, dblClickHandle?: (event: any) => void) {
+export function branchTree(branches: BranchTree, contextMenuCb?: (event: any) => void, dblClickHandle?: (event: any) => void, indent: number = 1) {
     const items = [];
     if (branches.subtree) {
         for (const item of Object.keys(branches.subtree)) {
-            const children = branchTree(branches.subtree[item], contextMenuCb, dblClickHandle);
+            const children = branchTree(branches.subtree[item], contextMenuCb, dblClickHandle, indent + 1);
             items.push(
                 <li className="sub-tree" key={item}>
-                    <a href="#" onClick={toggleTreeItem}>{item}</a>
+                    <a style={{textIndent: `${indent}em`}} href="#" onClick={toggleTreeItem}>{item}</a>
                     {children}
                 </li>
             );
@@ -57,7 +57,7 @@ export function branchTree(branches: BranchTree, contextMenuCb?: (event: any) =>
     if (branches.items) {
         for (const branch of branches.items) {
             const link = (
-                <Link selectAction={selectAction} onDblClick={dblClickHandle} onContextMenu={contextMenuCb} data-ref={branch.ref.name} linkData={branch.ref.name}>
+                <Link style={{textIndent: `${indent}em`}} selectAction={selectAction} onDblClick={dblClickHandle} onContextMenu={contextMenuCb} data-ref={branch.ref.name} linkData={branch.ref.name}>
                     {branch.name}&nbsp;{BranchAheadBehind(branch.ref)}
                 </Link>
             ) as unknown as Link;
@@ -79,10 +79,10 @@ export function listRemotes(branches: BranchTree, originContextMenuCb: (event: a
     }
     const items = [];
     for (const item of Object.keys(branches.subtree)) {
-        const children = branchTree(branches.subtree[item], contextMenuCb);
+        const children = branchTree(branches.subtree[item], contextMenuCb, undefined, 2);
         items.push(
             <li className="sub-tree">
-                <a onContextMenu={originContextMenuCb} href="#" onClick={toggleTreeItem}>{item}</a>
+                <a style={{textIndent: "1em"}} onContextMenu={originContextMenuCb} href="#" onClick={toggleTreeItem}>{item}</a>
                 {children}
             </li>
         );

@@ -66,36 +66,31 @@ export default class BranchList extends Component<{}, State> {
         return (
             <Fragment>
                 <div id="branch-pane" className={`pane${Store.locks[Locks.BRANCH_LIST] ? " disabled" : ""}`}>
-                    <div style={{
-                        display: "inline-block",
-                        minWidth: "100%",
-                    }}>
-                        <Links.Provider value="branches">
-                            <h4>Refs</h4>
-                            <ul className="block-list">
-                                <li><Link selectAction={_ => setState({selectedBranch: {history: true}})}>History</Link></li>
-                                <li><Link selectAction={_ => setState({selectedBranch: {branch: "HEAD"}})} onContextMenu={showHeadMenu}>HEAD{headRef}</Link></li>
-                            </ul>
+                    <Links.Provider value="branches">
+                        <h4>Refs</h4>
+                        <ul className="block-list">
+                            <li><Link selectAction={_ => setState({selectedBranch: {history: true}})}>History</Link></li>
+                            <li><Link selectAction={_ => setState({selectedBranch: {branch: "HEAD"}})} onContextMenu={showHeadMenu}>HEAD{headRef}</Link></li>
+                        </ul>
+                        <hr />
+                        {branches &&
+                        <ul className="tree-list block-list">
+                            <li className="sub-tree">
+                                <a href="#" onClick={toggleTreeItem}>Local</a>
+                                {branchTree(branches.local, showLocalMenu, (e:any) => checkoutBranch(e.currentTarget.dataset.ref))}
+                            </li>
                             <hr />
-                            {branches &&
-                            <ul className="tree-list block-list">
-                                <li className="sub-tree">
-                                    <a href="#" onClick={toggleTreeItem}>Local</a>
-                                    {branchTree(branches.local, showLocalMenu, (e:any) => checkoutBranch(e.currentTarget.dataset.ref))}
-                                </li>
-                                <hr />
-                                <li className="sub-tree">
-                                    <a href="#" onClick={toggleTreeItem}>Remote</a>
-                                    {listRemotes(branches.remote, showOriginMenu, showRemoteMenu)}
-                                </li>
-                                <hr />
-                                <li className="sub-tree">
-                                    <a href="#" onClick={toggleTreeItem}>Tags</a>
-                                    {branchTree(branches.tags, showTagMenu)}
-                                </li>
-                            </ul>}
-                        </Links.Provider>
-                    </div>
+                            <li className="sub-tree">
+                                <a href="#" onClick={toggleTreeItem}>Remote</a>
+                                {listRemotes(branches.remote, showOriginMenu, showRemoteMenu)}
+                            </li>
+                            <hr />
+                            <li className="sub-tree">
+                                <a href="#" onClick={toggleTreeItem}>Tags</a>
+                                {branchTree(branches.tags, showTagMenu)}
+                            </li>
+                        </ul>}
+                    </Links.Provider>
                 </div>
                 <div className="pane">
                     <input type="text" placeholder="Filter..." onKeyUp={this.filter} />
