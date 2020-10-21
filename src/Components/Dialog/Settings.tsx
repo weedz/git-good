@@ -38,7 +38,7 @@ export class Settings extends Component<SettingsProps, State> {
             }}>
                 <h2>Settings</h2>
                 <div className="pane">
-                    <h4>Auth type</h4>
+                    <h3>Auth type</h3>
                     <div>
                         <input id="ssh" type="radio" name="auth-type" value="ssh" onChange={this.setAuth} />
                         <label for="ssh">SSH</label>
@@ -79,7 +79,13 @@ export class Settings extends Component<SettingsProps, State> {
                     </div>
                 </div>
                 <div className="pane">
-                    <h4>Git credentials</h4>
+                    <h3>Git credentials</h3>
+                    <div>
+                        <h4>Profiles</h4>
+                        <select>
+                            <option>Linus Björklund</option>
+                        </select>
+                    </div>
                     <div>
                         <label for="git-email">Email:</label>
                         <input type="text" id="git-email" name="email" onKeyUp={e => this.setState({gitEmail: e.currentTarget.value})} />
@@ -90,7 +96,7 @@ export class Settings extends Component<SettingsProps, State> {
                     </div>
                 </div>
                 <div className="pane">
-                    <h4>Terminal</h4>
+                    <h3>Terminal</h3>
                     <div>
                         <label for="terminal-app">Terminal application:</label>
                         <select>
