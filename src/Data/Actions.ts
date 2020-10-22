@@ -204,6 +204,13 @@ export type CommitObj = {
     committer: AuthorObj
 };
 
+export enum RefType {
+    LOCAL,
+    TAG,
+    REMOTE,
+    NOTE,
+}
+
 export type BranchObj = {
     name: string
     headSHA: string
@@ -213,6 +220,7 @@ export type BranchObj = {
         behind: number
     }
     remote?: string
+    type: RefType
 };
 
 export type BranchesObj = {

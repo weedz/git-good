@@ -1,23 +1,12 @@
 import { h } from "preact";
 import { CommitObj } from "src/Data/Actions";
-import { GlobalLinks, setState, Store } from "src/Data/Renderer/store";
-import { normalizeRemoteName } from "src/Data/Branch";
+import { GlobalLinks } from "src/Data/Renderer/store";
 import Link from "../Link";
 
 export default function CommitMessage(props: {commit: CommitObj}) {
     return (
         <div>
             <h4>{props.commit.sha}</h4>
-            {
-                Store.heads[props.commit.sha] && (
-                    <ul>
-                        {Store.heads[props.commit.sha].map(ref => <li>
-                            <Link type="branches" selectAction={_ => setState({diffPaneSrc: null})} selectTarget={GlobalLinks.branches[ref.name]}>{ref.normalizedName}</Link>
-                            {ref.remote && <span>:<Link type="branches" selectAction={_ => setState({diffPaneSrc: null})} selectTarget={GlobalLinks.branches[ref.remote]}>{normalizeRemoteName(ref.remote)}</Link></span>}
-                        </li>)}
-                    </ul>
-                )
-            }
             <p>
                 <span>Parents:</span>
                 <ul className="parent-list">

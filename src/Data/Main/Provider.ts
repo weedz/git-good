@@ -2,7 +2,7 @@ import * as path from "path";
 import { promises as fs } from "fs";
 import { Repository, Revwalk, Commit, Diff, ConvenientPatch, ConvenientHunk, DiffLine, Object, Branch, Graph, Index, Reset, Checkout, DiffFindOptions, Blame, Cred, Reference, Oid, Signature } from "nodegit";
 import { IpcMainEvent } from "electron/main";
-import { IpcAction, BranchObj, BranchesObj, LineObj, HunkObj, PatchObj, CommitObj, IpcActionParams, IpcActionReturn, IpcActionReturnError } from "../Actions";
+import { IpcAction, BranchObj, BranchesObj, LineObj, HunkObj, PatchObj, CommitObj, IpcActionParams, IpcActionReturn, IpcActionReturnError, RefType } from "../Actions";
 import { normalizeLocalName, normalizeRemoteName, normalizeTagName } from "../Branch";
 import { dialog } from "electron";
 
@@ -218,7 +218,8 @@ export async function getBranches(repo: Repository) {
             const refObj: BranchObj = {
                 name: ref.name(),
                 headSHA: headCommit.id().tostrS(),
-                normalizedName: ""
+                normalizedName: "",
+                type: RefType.LOCAL,
             };
 
             if (ref.isBranch()) {
@@ -235,11 +236,13 @@ export async function getBranches(repo: Repository) {
                 local.push(refObj);
             } else if (ref.isRemote()) {
                 refObj.normalizedName = normalizeRemoteName(refObj.name);
+                refObj.type = RefType.REMOTE;
                 remote.push(refObj);
             } else if (ref.isTag()) {
                 try {
                     await repo.getTagByName(refObj.name);
                     refObj.normalizedName = normalizeTagName(refObj.name);
+                    refObj.type = RefType.TAG;
                     tags.push(refObj);
                 } catch (err) {
                     // invalid tag?

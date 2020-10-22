@@ -1,5 +1,5 @@
 import { h } from "preact";
-import { LoadCommitReturn } from "src/Data/Actions";
+import { LoadCommitReturn, RefType } from "src/Data/Actions";
 import { GlobalLinks, setState, Store } from "src/Data/Renderer/store";
 import { showLocalMenu, showRemoteMenu, showTagMenu } from "../BranchList/Menu";
 import Link from "../Link";
@@ -35,11 +35,11 @@ export default function CommitListItem({commit, graph}: Props) {
                     <ul className="commit-refs">
                         {Store.heads[commit.sha].map(ref => {
                             let menu;
-                            if (ref.name.startsWith("refs/heads/")) {
+                            if (ref.type === RefType.LOCAL) {
                                 menu = showLocalMenu;
-                            } else if (ref.name.startsWith("refs/remotes/")) {
+                            } else if (ref.type === RefType.REMOTE) {
                                 menu = showRemoteMenu;
-                            } else if (ref.name.startsWith("refs/tags/")) {
+                            } else if (ref.type === RefType.TAG) {
                                 menu = showTagMenu;
                             }
                             return <li><Link type="branches" onContextMenu={menu} selectAction={_ => setState({diffPaneSrc: null})} selectTarget={GlobalLinks.branches[ref.name]} style={{backgroundColor: HeadColors[graph[commit.sha].colorId].background}} data-ref={ref.name}>{ref.normalizedName}</Link></li>
