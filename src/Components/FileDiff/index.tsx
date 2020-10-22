@@ -93,10 +93,10 @@ export default class FileDiff extends Component<{}, State> {
             <tr className="diff-line">
                 <td onMouseDown={this.selectLeft} className={`left diff-line-number${oldType}`}>{oldLineNo}</td>
                 <td onMouseDown={this.selectLeft} className={`left diff-type${oldType}`}>{oldLineNo && line.type}</td>
-                <td onMouseDown={this.selectLeft} className={`left diff-line-content${oldType}`}>{!type || oldLineNo && line.content}</td>
+                <td onMouseDown={this.selectLeft} className={`left diff-line-content${oldType}`}>{!type || oldLineNo ? line.content : null}</td>
                 <td onMouseDown={this.selectRight} className={`right diff-line-number${newType}`}>{newLineNo}</td>
                 <td onMouseDown={this.selectRight} className={`right diff-type${newType}`}>{newLineNo && newLine.type}</td>
-                <td onMouseDown={this.selectRight} className={`right diff-line-content${newType}`}>{!type || newLineNo && newLine.content}</td>
+                <td onMouseDown={this.selectRight} className={`right diff-line-content${newType}`}>{!type || newLineNo ? newLine.content : null}</td>
             </tr>
         );
     }
