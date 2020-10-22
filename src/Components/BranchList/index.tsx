@@ -70,7 +70,7 @@ export default class BranchList extends Component<{}, State> {
                         <h4>Refs</h4>
                         <ul className="block-list">
                             <li><Link selectAction={_ => setState({selectedBranch: {history: true}})}>History</Link></li>
-                            <li><Link selectAction={_ => setState({selectedBranch: {branch: "HEAD"}})} onContextMenu={showHeadMenu}>HEAD{headRef}</Link></li>
+                            {Store.branches.head && <li><Link selectAction={_ => setState({selectedBranch: {branch: "HEAD"}})} onContextMenu={showHeadMenu} data-ref={Store.branches.head.name}>HEAD{headRef}</Link></li>}
                         </ul>
                         <hr />
                         {branches &&
