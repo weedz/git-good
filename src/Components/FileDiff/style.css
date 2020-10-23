@@ -42,6 +42,8 @@ ul.hunks.side-by-side {
 }
 .diff-header > p {
     color: teal;
+    margin-bottom: 0;
+    border-bottom: 1px solid teal;
 }
 .diff-line:empty {
     content: "&nbsp;";
