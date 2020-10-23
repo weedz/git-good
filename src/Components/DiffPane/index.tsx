@@ -6,10 +6,10 @@ import { PatchObj } from "src/Data/Actions";
 import Compare from "src/Views/Compare";
 
 type State = {
-    view: any
+    view: h.JSX.Element | null
 }
 
-export default class DiffPane extends Component<{}, State> {
+export default class DiffPane extends Component<unknown, State> {
     componentWillMount() {
         subscribe(this.loadCommitFromStore, "diffPaneSrc");
         subscribe(this.viewChanges, "viewChanges");

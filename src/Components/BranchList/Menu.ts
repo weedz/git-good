@@ -1,4 +1,5 @@
 import { remote } from "electron";
+import { h } from "preact";
 import { pullHead } from "src/Data/Renderer";
 import { BranchFromType, openDialog_BranchFrom, openDialog_SetUpstream } from "src/Data/Renderer/Dialogs";
 import { contextMenuState, checkoutBranch, deleteBranch, push, deleteRemoteBranch } from "src/Data/Renderer/store";
@@ -8,7 +9,7 @@ const { Menu, MenuItem } = remote;
 const setUpstreamMenuItem = new MenuItem({
     label: 'Set upstream...',
     click() {
-        const local = contextMenuState.data.dataset.ref;
+        const local = contextMenuState.data.ref;
         openDialog_SetUpstream(local);
     }
 })
@@ -26,7 +27,7 @@ const newBranch = new MenuItem({
     label: 'Create new branch...',
     click() {
         console.log("Create new branch");
-        const sha = contextMenuState.data.dataset.ref;
+        const sha = contextMenuState.data.ref;
         openDialog_BranchFrom(sha, BranchFromType.REF);
     }
 });
@@ -36,7 +37,7 @@ remoteMenu.append(newBranch);
 remoteMenu.append(new MenuItem({
     label: 'Delete...',
     async click() {
-        const refName = contextMenuState.data.dataset.ref;
+        const refName = contextMenuState.data.ref;
         const result = await remote.dialog.showMessageBox({
             message: `Delete branch ${refName}?`,
             type: "question",
@@ -65,14 +66,14 @@ const localMenu = new Menu();
 localMenu.append(new MenuItem({
     label: 'Checkout...',
     click() {
-        checkoutBranch(contextMenuState.data.dataset.ref);
+        checkoutBranch(contextMenuState.data.ref);
     }
 }));
 localMenu.append(newBranch);
 localMenu.append(new MenuItem({
     label: 'Delete...',
     async click() {
-        const refName = contextMenuState.data.dataset.ref;
+        const refName = contextMenuState.data.ref;
         const result = await remote.dialog.showMessageBox({
             message: `Delete branch ${refName}?`,
             type: "question",
@@ -108,7 +109,7 @@ const headMenu = new Menu();
 headMenu.append(new MenuItem({
     label: 'Push...',
     click() {
-        push("origin", contextMenuState.data.dataset.ref);
+        push("origin", contextMenuState.data.ref);
     }
 }));
 headMenu.append(new MenuItem({
@@ -122,37 +123,37 @@ headMenu.append(setUpstreamMenuItem);
 const tagMenu = new Menu();
 tagMenu.append(newBranch);
 
-export function showOriginMenu(e: any) {
+export function showOriginMenu(e: h.JSX.TargetedMouseEvent<HTMLAnchorElement>) {
     e.preventDefault();
-    contextMenuState.data = e.currentTarget;
+    contextMenuState.data = e.currentTarget.dataset as {[name: string]: string};
     originMenu.popup({
         window: remote.getCurrentWindow()
     });
 }
-export function showRemoteMenu(e: any) {
+export function showRemoteMenu(e: h.JSX.TargetedMouseEvent<HTMLAnchorElement>) {
     e.preventDefault();
-    contextMenuState.data = e.currentTarget;
+    contextMenuState.data = e.currentTarget.dataset as {[name: string]: string};
     remoteMenu.popup({
         window: remote.getCurrentWindow()
     });
 }
-export function showLocalMenu(e: any) {
+export function showLocalMenu(e: h.JSX.TargetedMouseEvent<HTMLAnchorElement>) {
     e.preventDefault();
-    contextMenuState.data = e.currentTarget;
+    contextMenuState.data = e.currentTarget.dataset as {[name: string]: string};
     localMenu.popup({
         window: remote.getCurrentWindow()
     });
 }
-export function showHeadMenu(e: any) {
+export function showHeadMenu(e: h.JSX.TargetedMouseEvent<HTMLAnchorElement>) {
     e.preventDefault();
-    contextMenuState.data = e.currentTarget;
+    contextMenuState.data = e.currentTarget.dataset as {[name: string]: string};
     headMenu.popup({
         window: remote.getCurrentWindow()
     });
 }
-export function showTagMenu(e: any) {
+export function showTagMenu(e: h.JSX.TargetedMouseEvent<HTMLAnchorElement>) {
     e.preventDefault();
-    contextMenuState.data = e.currentTarget;
+    contextMenuState.data = e.currentTarget.dataset as {[name: string]: string};
     tagMenu.popup({
         window: remote.getCurrentWindow()
     });

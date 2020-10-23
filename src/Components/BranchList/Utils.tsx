@@ -14,7 +14,7 @@ export type BranchTree = {
 };
 
 export function BranchAheadBehind(ref: BranchObj) {
-    let aheadbehind = [];
+    const aheadbehind = [];
     if (ref.status) {
         if (ref.status.ahead) {
             aheadbehind.push(<span>{ref.status.ahead}&uarr;</span>);
@@ -26,13 +26,15 @@ export function BranchAheadBehind(ref: BranchObj) {
     return aheadbehind;
 }
 
-export function toggleTreeItem(e: any) {
+export function toggleTreeItem(e: h.JSX.TargetedMouseEvent<HTMLAnchorElement>) {
     e.preventDefault();
-    const parent = e.target.parentNode;
-    if (parent.classList.contains("open")) {
-        parent.classList.remove("open");
-    } else {
-        parent.classList.add("open");
+    const parent = e.currentTarget.parentElement;
+    if (parent) {
+        if (parent.classList.contains("open")) {
+            parent.classList.remove("open");
+        } else {
+            parent.classList.add("open");
+        }
     }
     return false;
 }
@@ -41,7 +43,7 @@ function selectAction(c: Link<string>) {
     setState({selectedBranch: {branch: c.props.linkData}})
 }
 
-export function branchTree(branches: BranchTree, contextMenuCb?: (event: any) => void, dblClickHandle?: (event: any) => void, indent: number = 1) {
+export function branchTree(branches: BranchTree, contextMenuCb?: (event: h.JSX.TargetedMouseEvent<HTMLAnchorElement>) => void, dblClickHandle?: (event: h.JSX.TargetedMouseEvent<HTMLAnchorElement>) => void, indent = 1) {
     const items = [];
     if (branches.subtree) {
         for (const item of Object.keys(branches.subtree)) {
@@ -73,7 +75,7 @@ export function branchTree(branches: BranchTree, contextMenuCb?: (event: any) =>
         </ul>
     );
 }
-export function listRemotes(branches: BranchTree, originContextMenuCb: (event: any) => void, contextMenuCb: (event: any) => void) {
+export function listRemotes(branches: BranchTree, originContextMenuCb: (event: h.JSX.TargetedMouseEvent<HTMLAnchorElement>) => void, contextMenuCb: (event: h.JSX.TargetedMouseEvent<HTMLAnchorElement>) => void) {
     if (!branches.subtree) {
         return;
     }
@@ -95,7 +97,7 @@ export function listRemotes(branches: BranchTree, originContextMenuCb: (event: a
 }
 
 export function transformToBranchTree(branches: BranchObj[]) {
-    let root: BranchTree = {};
+    const root: BranchTree = {};
     for (const branch of branches.sort((a,b) => a.normalizedName.localeCompare(b.normalizedName))) {
         const paths = branch.normalizedName.split("/");
         const name = paths.pop() as string;

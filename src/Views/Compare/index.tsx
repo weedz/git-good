@@ -1,14 +1,16 @@
-import { h, Component } from "preact";
+import { h } from "preact";
 
 import ChangedFiles from "src/Components/DiffPane/ChangedFiles";
 import { PatchObj } from "src/Data/Actions";
 
-export default class Compare extends Component<{patches: PatchObj[]}> {
-    render() {
-        return (
-            <div id="diff-pane" className="pane">
-                <ChangedFiles patches={this.props.patches} compare />
-            </div>
-        );
-    }
+type Props = {
+    patches: PatchObj[]
+};
+
+export default function Compare(props: Props) {
+    return (
+        <div id="diff-pane" className="pane">
+            <ChangedFiles patches={props.patches} compare />
+        </div>
+    );
 }

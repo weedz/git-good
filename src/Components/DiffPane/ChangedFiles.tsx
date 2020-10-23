@@ -58,10 +58,10 @@ export default class ChangedFiles extends Component<Props, {fileFilter?: string}
             });
         }
     }
-    filterFiles = (e: any) => {
+    filterFiles = (e: h.JSX.TargetedKeyboardEvent<HTMLInputElement>) => {
         this.resetCounters();
         this.setState({
-            fileFilter: e.target.value.toLocaleLowerCase()
+            fileFilter: e.currentTarget.value.toLocaleLowerCase()
         });
     }
     renderPatch = (patch: PatchObj) => {

@@ -1,16 +1,16 @@
 import { join } from "path";
-import { app, BrowserWindow, ipcMain, Menu, dialog, shell } from "electron";
+import { app, BrowserWindow, ipcMain, Menu, dialog, shell, MenuItemConstructorOptions } from "electron";
 import { spawn } from "child_process";
 
 import * as NodeGit from "nodegit";
-import { Repository, Commit, Branch, Rebase } from "nodegit";
 
 import * as provider from "./Data/Main/Provider";
 import { IpcAction, IpcActionParams } from "./Data/Actions";
 import { sendEvent } from "./Data/Main/WindowEvents";
+import { TransferProgress } from "types/nodegit";
 
 const isMac = process.platform === "darwin";
-const isLinux = process.platform === "linux";
+// const isLinux = process.platform === "linux";
 const isWindows = process.platform === "win32";
 
 let win: BrowserWindow;
@@ -191,19 +191,14 @@ const menuTemplate = [
                     await repo.fetchAll({
                         callbacks: {
                             credentials: provider.authenticate,
-                            transferProgress: (stats: NodeGit.TransferProgress, remote: string) => {
+                            transferProgress: (stats: TransferProgress, remote: string) => {
                                 sendEvent(win.webContents, "fetch-status", {
-                                    // @ts-ignore
+                                    remote,
                                     receivedObjects: stats.receivedObjects(),
-                                    // @ts-ignore
                                     totalObjects: stats.totalObjects(),
-                                    // @ts-ignore
                                     indexedDeltas: stats.indexedDeltas(),
-                                    // @ts-ignore
                                     totalDeltas: stats.totalDeltas(),
-                                    // @ts-ignore
                                     indexedObjects: stats.indexedObjects(),
-                                    // @ts-ignore
                                     receivedBytes: stats.receivedBytes(),
                                 });
                             },
@@ -274,23 +269,24 @@ const menuTemplate = [
             }
         ]
     }
-];
-// @ts-ignore
+] as Array<MenuItemConstructorOptions>;
+
 const menu = Menu.buildFromTemplate(menuTemplate);
 Menu.setApplicationMenu(menu);
 
 
-let repo: Repository;
+let repo: NodeGit.Repository;
 
 type EventArgs = {
     action: IpcAction
+    /* eslint-disable @typescript-eslint/no-explicit-any */
     data: any
 };
 
 const eventMap = {
     [IpcAction.LOAD_BRANCHES]: provider.getBranches,
     [IpcAction.LOAD_COMMIT]: provider.loadCommit,
-    [IpcAction.LOAD_COMMITS]: async function *(repo: Repository, params: IpcActionParams[IpcAction.LOAD_COMMITS]) {
+    async *[IpcAction.LOAD_COMMITS](repo: NodeGit.Repository, params: IpcActionParams[IpcAction.LOAD_COMMITS]) {
         const arg = await initGetComits(repo, params);
         if (!arg) {
             yield {commits: [], branch: "", cursor: params.cursor};
@@ -301,52 +297,50 @@ const eventMap = {
         }
     },
     [IpcAction.LOAD_PATCHES_WITHOUT_HUNKS]: provider.getCommitPatches,
-    [IpcAction.LOAD_HUNKS]: async (_: Repository, arg: IpcActionParams[IpcAction.LOAD_HUNKS]) => {
+    [IpcAction.LOAD_HUNKS]: async (_: NodeGit.Repository, arg: IpcActionParams[IpcAction.LOAD_HUNKS]) => {
         return {
             path: arg.path,
             hunks: await loadHunks(arg)
         };
     },
-    [IpcAction.CHECKOUT_BRANCH]: provider.changeBranch,
+    [IpcAction.CHECKOUT_BRANCH]: provider.checkoutBranch,
     [IpcAction.REFRESH_WORKDIR]: provider.refreshWorkDir,
     [IpcAction.GET_CHANGES]: provider.loadChanges,
     [IpcAction.STAGE_FILE]: provider.stageFile,
     [IpcAction.UNSTAGE_FILE]: provider.unstageFile,
     [IpcAction.DISCARD_FILE]: provider.discardChanges,
     [IpcAction.PULL]: provider.pull,
-    [IpcAction.CREATE_BRANCH]: async (repo: Repository, data: IpcActionParams[IpcAction.CREATE_BRANCH]) => {
+    [IpcAction.CREATE_BRANCH]: async (repo: NodeGit.Repository, data: IpcActionParams[IpcAction.CREATE_BRANCH]) => {
         return await repo.createBranch(data.name, data.sha) !== null
     },
-    [IpcAction.CREATE_BRANCH_FROM_REF]: async (repo: Repository, data: IpcActionParams[IpcAction.CREATE_BRANCH_FROM_REF]) => {
+    [IpcAction.CREATE_BRANCH_FROM_REF]: async (repo: NodeGit.Repository, data: IpcActionParams[IpcAction.CREATE_BRANCH_FROM_REF]) => {
         const ref = await repo.getReference(data.ref);
-        const sha = ref.isTag() ? (await ref.peel(NodeGit.Object.TYPE.COMMIT)) as unknown as Commit : await repo.getReferenceCommit(data.ref);
+        const sha = ref.isTag() ? (await ref.peel(NodeGit.Object.TYPE.COMMIT)) as unknown as NodeGit.Commit : await repo.getReferenceCommit(data.ref);
         return await repo.createBranch(data.name, sha) !== null;
     },
-    [IpcAction.DELETE_REF]: async (repo: Repository, data: IpcActionParams[IpcAction.DELETE_REF]) => {
+    [IpcAction.DELETE_REF]: async (repo: NodeGit.Repository, data: IpcActionParams[IpcAction.DELETE_REF]) => {
         const ref = await repo.getReference(data.name);
-        const res = Branch.delete(ref);
+        const res = NodeGit.Branch.delete(ref);
         return !res;
     },
     [IpcAction.DELETE_REMOTE_REF]: provider.deleteRemoteRef,
     [IpcAction.FIND_FILE]: provider.findFile,
     [IpcAction.ABORT_REBASE]: abortRebase,
     [IpcAction.CONTINUE_REBASE]: continueRebase,
-    [IpcAction.OPEN_COMPARE_REVISIONS]: async (repo: Repository, data: IpcActionParams[IpcAction.OPEN_COMPARE_REVISIONS]) => {
+    [IpcAction.OPEN_COMPARE_REVISIONS]: async (repo: NodeGit.Repository, data: IpcActionParams[IpcAction.OPEN_COMPARE_REVISIONS]) => {
         if (await provider.compareRevisions(repo, data)) {
             return await provider.compareRevisionsPatches();
-        } else {
-            return {error: "revisions not found"};
         }
+        return {error: "revisions not found"};
     },
     [IpcAction.BLAME_FILE]: provider.blameFile,
-    [IpcAction.PUSH]: async (repo: Repository, data: IpcActionParams[IpcAction.PUSH]) => {
+    [IpcAction.PUSH]: async (repo: NodeGit.Repository, data: IpcActionParams[IpcAction.PUSH]) => {
         const result = await provider.push(repo, data);
         return !result;
     },
-    [IpcAction.SET_UPSTREAM]: async (repo: Repository, data: IpcActionParams[IpcAction.SET_UPSTREAM]) => {
+    [IpcAction.SET_UPSTREAM]: async (repo: NodeGit.Repository, data: IpcActionParams[IpcAction.SET_UPSTREAM]) => {
         const result = await provider.setUpstream(repo, data.local, data.remote);
         return !result;
-
     },
     [IpcAction.COMMIT]: provider.commit,
     [IpcAction.REMOTES]: provider.remotes,
@@ -357,17 +351,18 @@ ipcMain.on("asynchronous-message", async (event, arg: EventArgs) => {
     const action = arg.action;
     const lock = provider.actionLock[action];
     if (lock && !lock.interuptable) {
-        provider.eventReplyError(event, action, "action pending");
+        provider.eventReply(event, action, {error: "action pending"});
         return;
     }
 
     provider.actionLock[action] = {interuptable: false};
 
     if (action === IpcAction.OPEN_REPO) {
-        if (arg.data) {
-            const opened = await openRepo(arg.data);
+        const path = arg.data as IpcActionParams[typeof action];
+        if (path) {
+            const opened = await openRepo(path);
             provider.eventReply(event, action, {
-                path: arg.data,
+                path,
                 opened,
                 status: opened ? repoStatus() : null,
             });
@@ -377,22 +372,26 @@ ipcMain.on("asynchronous-message", async (event, arg: EventArgs) => {
     } else if (repo) {
         // TODO: fix proper type to detect AsyncIterator-stuff
         if (action === IpcAction.LOAD_COMMITS) {
-            for await (const data of eventMap[action](repo, arg.data)) {
-                provider.eventReply(event, action, data);
+            const data = arg.data as IpcActionParams[typeof action];
+            for await (const result of eventMap[action](repo, data)) {
+                provider.eventReply(event, action, result);
             }
         } else {
+            // const data = arg.data as IpcActionParams[typeof action];
             provider.eventReply(event, action, await eventMap[action](repo, arg.data));
         }
     }
 });
 
-async function abortRebase(repo: Repository) {
-    const rebase = await Rebase.open(repo);
+async function abortRebase(repo: NodeGit.Repository) {
+    const rebase = await NodeGit.Rebase.open(repo);
+    console.log(rebase);
     // rebase.abort();
     return repoStatus();
 }
-async function continueRebase(repo: Repository) {
-    const rebase = await Rebase.open(repo);
+async function continueRebase(repo: NodeGit.Repository) {
+    const rebase = await NodeGit.Rebase.open(repo);
+    console.log(rebase);
     // const rebaseAction = await rebase.next();
     // console.dir(rebaseAction);
     return repoStatus();
@@ -414,7 +413,7 @@ async function openRepoDialog() {
 async function openRepo(repoPath: string) {
     let opened = true;
     try {
-        repo = await Repository.open(repoPath);
+        repo = await NodeGit.Repository.open(repoPath);
     } catch (e) {
         opened = false;
     }
@@ -431,14 +430,14 @@ function repoStatus() {
     };
 }
 
-async function initGetComits(repo: Repository, params: IpcActionParams[IpcAction.LOAD_COMMITS]) {
-    let branch: string = "HEAD";
+async function initGetComits(repo: NodeGit.Repository, params: IpcActionParams[IpcAction.LOAD_COMMITS]) {
+    let branch = "HEAD";
     let revwalkStart: "refs/*" | NodeGit.Oid;
     if ("history" in params) {
         branch = "history";
         revwalkStart = "refs/*";
     } else {
-        let start: Commit;
+        let start: NodeGit.Commit;
         if (params.cursor) {
             const lastCommit = await repo.getCommit(params.cursor);
             if (!lastCommit.parentcount()) {
@@ -475,7 +474,6 @@ function loadHunks(params: IpcActionParams[IpcAction.LOAD_HUNKS]) {
         return provider.getHunks(params.sha, params.path);
     } else if ("compare" in params) {
         return provider.hunksFromCompare(params.path);
-    } else {
-        return provider.getWorkdirHunks(params.path);
     }
+    return provider.getWorkdirHunks(params.path);
 }

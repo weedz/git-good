@@ -1,6 +1,6 @@
 import { h, Fragment, Component } from "preact";
 import { StoreType, subscribe, unsubscribe } from "src/Data/Renderer/store";
-import { DialogProps, DialogTypes } from "./types";
+import { DialogTypes } from "./types";
 import { NewBranch, RenameBranch } from "./Branch";
 import { SetUpstream } from "./SetUpstream";
 import { Compare } from "./Compare";
@@ -8,7 +8,7 @@ import { Compare } from "./Compare";
 import "./style.css";
 import { Blame } from "./Blame";
 
-const dialogTypes: {[type in DialogTypes]: (arg: DialogProps[type]) => h.JSX.Element} = {
+const dialogTypes = {
     [DialogTypes.NEW_BRANCH]: NewBranch,
     [DialogTypes.RENAME_BRANCH]: RenameBranch,
     [DialogTypes.COMPARE]: Compare,
@@ -19,7 +19,7 @@ const dialogTypes: {[type in DialogTypes]: (arg: DialogProps[type]) => h.JSX.Ele
 type State = {
     view: h.JSX.Element | null
 };
-export default class Dialog extends Component<{}, State> {
+export default class Dialog extends Component<unknown, State> {
     componentWillMount() {
         subscribe(this.updateDialog, "dialogWindow");
     }
@@ -28,15 +28,17 @@ export default class Dialog extends Component<{}, State> {
     }
     updateDialog = (dialogWindow: StoreType["dialogWindow"]) => {
         if (dialogWindow) {
-            const Dialog = dialogTypes[dialogWindow.type];
+            const DialogWindow = dialogTypes[dialogWindow.type];
+            const props = dialogWindow.props;
 
             const view = <Fragment>
-                <div className="dialog-window-backdrop"></div>
+                <div className="dialog-window-backdrop" />
                 <div className="dialog-window-container">
                     <div className="dialog-window">
                         {
+                        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
                         // @ts-ignore, type guarded by Store.openDialogWindow. TODO: get better at types and fix this..
-                        <Dialog {...dialogWindow.props} />
+                        <DialogWindow {...props} />
                         }
                     </div>
                 </div>

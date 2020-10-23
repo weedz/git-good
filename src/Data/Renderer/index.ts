@@ -12,7 +12,9 @@ function repoOpened(result: IpcActionReturn[IpcAction.OPEN_REPO] | IpcActionRetu
     clearLock(Locks.MAIN);
     if ("error" in result) {
         console.warn(result);
-    } else if (result.opened) {
+        return;
+    }
+    if (result.opened) {
         localStorage.setItem("recent-repo", result.path);
         loadBranches();
         refreshWorkdir();
@@ -95,9 +97,9 @@ function branchesLoaded(branches: BranchesObj) {
         heads
     });
 }
-function updateCurrentBranch(result: IpcActionReturn[IpcAction.CHECKOUT_BRANCH]) {
+function updateCurrentBranch(result: IpcActionReturn[IpcAction.CHECKOUT_BRANCH] | IpcActionReturnError) {
     clearLock(Locks.MAIN);
-    if (result && Store.branches) {
+    if (result && !("error" in result) && Store.branches) {
         const branches = Store.branches;
         branches.head = result;
         setState({
@@ -117,7 +119,7 @@ function handleCompareRevisions(data: IpcActionReturn[IpcAction.OPEN_COMPARE_REV
     }
 }
 
-function handleBlameFile(data: IpcActionReturn[IpcAction.BLAME_FILE] | IpcActionReturnError) {
+function handleBlameFile(data: IpcActionReturn[IpcAction.BLAME_FILE]) {
     console.log("blame", data);
 }
 

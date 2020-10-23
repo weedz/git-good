@@ -4,12 +4,13 @@ import { registerHandler, sendAsyncMessage, unregisterHandler } from "src/Data/R
 
 type State = {
     filter: undefined | string
-    fileFilter: undefined | string
+    fileFilter: undefined | string
     fileResults: string[]
     showFiles: undefined | boolean
 };
 
-export default class FileFilter extends Component<{filterByFile: any}, State> {
+export default class FileFilter extends Component<{filterByFile: (file: string | undefined) => void}, State> {
+    // eslint-disable-next-line no-undef
     findFileTimeout?: NodeJS.Timeout;
 
     componentWillMount() {
@@ -27,22 +28,22 @@ export default class FileFilter extends Component<{filterByFile: any}, State> {
         });
     }
 
-    filterByFile = (event: any) => {
+    filterByFile = (event: h.JSX.TargetedMouseEvent<HTMLElement>) => {
         this.setState({showFiles: false})
-        const file = event ? event.target.dataset.path : undefined;
+        const file = event ? event.currentTarget.dataset.path : undefined;
         this.props.filterByFile(file);
     }
     
-    findFiles = (e: any) => {
+    findFiles = (e: h.JSX.TargetedKeyboardEvent<HTMLInputElement>) => {
         this.findFileTimeout && clearTimeout(this.findFileTimeout);
         
-        if (e.target.value) {
+        if (e.currentTarget.value) {
             this.findFileTimeout = setTimeout(() => {
-                sendAsyncMessage(IpcAction.FIND_FILE, e.target.value);
+                sendAsyncMessage(IpcAction.FIND_FILE, e.currentTarget.value);
             }, 250);
             this.setState({
                 showFiles: true,
-                fileFilter: e.target.value,
+                fileFilter: e.currentTarget.value,
             });
         } else {
             this.setState({

@@ -10,7 +10,7 @@ const PAGE_SIZE = 1000;
 type State = {
     diffType: "inline" | "side-by-side"
     viewType: "file" | "diff"
-    sideSelected: "left" | "right" | null
+    sideSelected: "left" | "right" | null
     wrapLine: boolean
     viewPort: {
         start: number
@@ -20,7 +20,7 @@ type State = {
 
 function compactLines(lines: LineObj[]) {
     const parsedLines = [];
-    let oldLines: any[] = [];
+    let oldLines: Array<LineObj & {newContent?: LineObj}> = [];
 
     for (const line of lines)
     {
@@ -30,7 +30,9 @@ function compactLines(lines: LineObj[]) {
         }
         else if (line.type === "+" && oldLines.length > 0) {
             const oldLine = oldLines.shift();
-            oldLine.newContent = line;
+            if (oldLine) {
+                oldLine.newContent = line;
+            }
         } else {
             oldLines = [];
             parsedLines.push(line);
@@ -40,7 +42,7 @@ function compactLines(lines: LineObj[]) {
     return parsedLines;
 }
 
-export default class FileDiff extends Component<{}, State> {
+export default class FileDiff extends Component<unknown, State> {
     lines: h.JSX.Element[] = [];
 
     constructor() {
@@ -100,7 +102,7 @@ export default class FileDiff extends Component<{}, State> {
         );
     }
     
-    renderLineSideBySide = (line: any) => {
+    renderLineSideBySide = (line: LineObj & {newContent?: LineObj}) => {
         const newLine = line.newContent || line;
 
         const oldLineNo = line.oldLineno !== -1 && line.oldLineno;
@@ -173,7 +175,7 @@ export default class FileDiff extends Component<{}, State> {
                 </ul>
                 <label>
                     <span>Wrap line</span>
-                    <input checked={this.state.wrapLine} type="checkbox" onClick={(e) => this.setState({wrapLine: (e.target as unknown as HTMLInputElement).checked})}></input>
+                    <input checked={this.state.wrapLine} type="checkbox" onClick={(e) => this.setState({wrapLine: (e.target as unknown as HTMLInputElement).checked})} />
                 </label>
                 <ul className={`hunks ${this.state.diffType}`}>{renderedLines}</ul>
                 <div className="horizontal">
