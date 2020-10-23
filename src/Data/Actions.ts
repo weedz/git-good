@@ -10,8 +10,8 @@ export enum IpcAction {
     GET_CHANGES,
     STAGE_FILE,
     UNSTAGE_FILE,
-    COMMIT,
     DISCARD_FILE,
+    COMMIT,
     PULL,
     PUSH,
     SET_UPSTREAM,
@@ -25,11 +25,11 @@ export enum IpcAction {
     OPEN_COMPARE_REVISIONS,
     BLAME_FILE,
     REMOTES,
-};
+}
 
 export type IpcActionParams = {
-    [IpcAction.LOAD_BRANCHES]: never
     [IpcAction.LOAD_COMMITS]: LoadCommitsParam
+    [IpcAction.LOAD_BRANCHES]: never
     [IpcAction.OPEN_REPO]: string | null
     [IpcAction.LOAD_COMMIT]: string | null
     [IpcAction.LOAD_PATCHES_WITHOUT_HUNKS]: string
@@ -57,15 +57,15 @@ export type IpcActionParams = {
         }
     }
     [IpcAction.PULL]: never
-    [IpcAction.SET_UPSTREAM]: {
-        local: string
-        remote: string | null
-    }
     [IpcAction.PUSH]: {
         force?: boolean
         remote: string
         localBranch: string
         remoteBranch?: string
+    }
+    [IpcAction.SET_UPSTREAM]: {
+        local: string
+        remote: string | null
     }
     [IpcAction.CREATE_BRANCH]: {
         sha: string
@@ -90,8 +90,8 @@ export type IpcActionParams = {
 };
 
 export type IpcActionReturn = {
-    [IpcAction.LOAD_BRANCHES]: BranchesObj
     [IpcAction.LOAD_COMMITS]: LoadCommitsReturn
+    [IpcAction.LOAD_BRANCHES]: BranchesObj
     [IpcAction.OPEN_REPO]: {
         opened: boolean
         path: string
@@ -127,16 +127,13 @@ export type IpcActionReturn = {
     [IpcAction.ABORT_REBASE]: RepoStatus
     [IpcAction.CONTINUE_REBASE]: RepoStatus
     [IpcAction.OPEN_COMPARE_REVISIONS]: PatchObj[]
-    [IpcAction.BLAME_FILE]: any
+    [IpcAction.BLAME_FILE]: unknown
     [IpcAction.REMOTES]: string[]
 };
 
 export type IpcActionReturnError = {
     error: string
 };
-
-export enum IpcEvent {};
-export type IpcEventParams = {};
 
 export type RepoStatus = {
     merging: boolean
@@ -231,10 +228,10 @@ export type BranchesObj = {
 };
 interface LoadCommitsParamSha {
     sha: string
-};
+}
 interface LoadCommitsParamBranch {
     branch: string
-};
+}
 type LoadCommitsParam = {
     /** SHA of last fetched commit */
     cursor?: string
@@ -260,4 +257,4 @@ type LoadCommitsReturn = {
 export enum Locks {
     MAIN,
     BRANCH_LIST,
-};
+}

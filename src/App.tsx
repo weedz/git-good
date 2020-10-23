@@ -12,7 +12,7 @@ import NewTab from "./Views/NewTab";
 
 
 export default class App extends Component {
-    openRecent: boolean = true;
+    openRecent = true;
     componentWillMount() {
         subscribe(this.update, "repo");
         subscribe(this.checkLocks, "locks");

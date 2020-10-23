@@ -9,11 +9,15 @@ import { BranchAheadBehind, toggleTreeItem, branchTree, listRemotes, getBranchTr
 import Link from "../Link";
 import { Links } from "../LinkContainer";
 
+function triggerCheckoutBranch(e: h.JSX.TargetedMouseEvent<HTMLAnchorElement>) {
+    e.currentTarget.dataset.ref && checkoutBranch(e.currentTarget.dataset.ref);
+}
+
 type State = {
     filter: string
 }
 
-export default class BranchList extends Component<{}, State> {
+export default class BranchList extends Component<unknown, State> {
     componentWillMount() {
         subscribe(this.checkLocks, "locks");
         subscribe(this.update, "branches");
@@ -32,9 +36,9 @@ export default class BranchList extends Component<{}, State> {
         }
     }
 
-    filter = (e: any) => {
-        e.target.value !== this.state.filter && this.setState({
-            filter: e.target.value.toLocaleLowerCase()
+    filter = (e: h.JSX.TargetedKeyboardEvent<HTMLInputElement>) => {
+        e.currentTarget.value !== this.state.filter && this.setState({
+            filter: e.currentTarget.value.toLocaleLowerCase()
         });
     }
 
@@ -52,7 +56,7 @@ export default class BranchList extends Component<{}, State> {
                 : Store.branches
         );
 
-        let headRef = [];
+        const headRef = [];
         if (Store.branches.head) {
             headRef.push(<span>&nbsp;({normalizeLocalName(Store.branches.head.name)})</span>);
             if (Store.heads[Store.branches.head.headSHA]) {
@@ -77,7 +81,7 @@ export default class BranchList extends Component<{}, State> {
                         <ul className="tree-list block-list">
                             <li className="sub-tree">
                                 <a href="#" onClick={toggleTreeItem}>Local</a>
-                                {branchTree(branches.local, showLocalMenu, (e:any) => checkoutBranch(e.currentTarget.dataset.ref))}
+                                {branchTree(branches.local, showLocalMenu, triggerCheckoutBranch)}
                             </li>
                             <hr />
                             <li className="sub-tree">

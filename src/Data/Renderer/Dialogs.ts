@@ -40,7 +40,7 @@ export function openDialog_CompareRevisions() {
 export enum BranchFromType {
     REF,
     COMMIT,
-};
+}
 
 export function openDialog_BranchFrom(sha: string, type: BranchFromType) {
     openDialogWindow(DialogTypes.NEW_BRANCH, {

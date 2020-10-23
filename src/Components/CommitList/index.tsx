@@ -12,14 +12,14 @@ import { Links } from "../LinkContainer";
 type State = {
     commits: IpcActionReturn[IpcAction.LOAD_COMMITS]["commits"]
     filter: undefined | string
-    fileFilter: undefined | string
+    fileFilter: undefined | string
     fileResults: string[]
 };
 
 const pageSize = 200;
 const historyLimit = 1000;
 
-export default class CommitList extends Component<{}, State> {
+export default class CommitList extends Component<unknown, State> {
     graph: {
         [sha: string]: {
             descendants: LoadCommitReturn[]
@@ -27,7 +27,7 @@ export default class CommitList extends Component<{}, State> {
         }
     } = {};
     cursor: IpcActionReturn[IpcAction.LOAD_COMMITS]["cursor"];
-    color: number = 0;
+    color = 0;
 
     constructor() {
         super();
@@ -136,12 +136,12 @@ export default class CommitList extends Component<{}, State> {
         }
         this.handleCommits(result);
     }
-    filter = (e: any) => {
-        e.target.value !== this.state.filter && this.setState({
-            filter: e.target.value.toLocaleLowerCase()
+    filter = (e: h.JSX.TargetedKeyboardEvent<HTMLInputElement>) => {
+        e.currentTarget.value !== this.state.filter && this.setState({
+            filter: e.currentTarget.value.toLocaleLowerCase()
         });
     }
-    filterByFile = (file: string) => {
+    filterByFile = (file: string | undefined) => {
         this.setState({
             fileFilter: file,
         }, this.handleProps);

@@ -64,16 +64,19 @@ export const GlobalLinks: {
  };
 export const Store = store as Readonly<StoreType>
 
-export const contextMenuState: {data: any} = {
-    data: null
+export const contextMenuState: {data: {[name: string]: string}} = {
+    data: {}
 };
 
 type KeyListeners = "repo" | "branches" | "heads" | "currentFile" | "locks" | "dialogWindow" | "selectedBranch" | "diffPaneSrc" | "viewChanges" | "comparePatches" | "commitMsg";
 
-const listeners: Function[] = [];
-const keyListeners: Pick<{
-    [key in keyof StoreType]: Function[]
-}, KeyListeners> = {
+type StoreListener = (arg: Partial<StoreType>) => void;
+type PartialStoreListener<T extends KeyListeners> = (arg: StoreType[T]) => void;
+
+const listeners: StoreListener[] = [];
+const keyListeners: {
+    [key in KeyListeners]: PartialStoreListener<KeyListeners>[]
+} = {
     repo: [],
     branches: [],
     heads: [],
@@ -87,8 +90,10 @@ const keyListeners: Pick<{
     commitMsg: [],
 };
 
-export function subscribe<T extends KeyListeners>(cb: (arg: StoreType[T]) => void, key: T): typeof unsubscribe;
-export function subscribe(cb: (arg: StoreType) => void): typeof unsubscribe;
+export function subscribe<T extends KeyListeners>(cb: PartialStoreListener<T>, key: T): typeof unsubscribe;
+// eslint-disable-next-line no-redeclare
+export function subscribe(cb: StoreListener): typeof unsubscribe;
+// eslint-disable-next-line no-redeclare, @typescript-eslint/no-explicit-any
 export function subscribe(cb: (arg?: any) => void, key?: KeyListeners) {
     if (key) {
         keyListeners[key].push(cb);
@@ -98,7 +103,9 @@ export function subscribe(cb: (arg?: any) => void, key?: KeyListeners) {
     return () => unsubscribe(cb, key);
 }
 
-export function unsubscribe(cb: Function, key?: KeyListeners) {
+export function unsubscribe<T extends KeyListeners>(cb: PartialStoreListener<T>, key?: T): void;
+// eslint-disable-next-line no-redeclare, ,@typescript-eslint/no-explicit-any
+export function unsubscribe(cb: (arg?: any) => void, key?: KeyListeners): void {
     if (key) {
         // x>>>0 casts x to a 32-bit unsigned int, -1 becomes 4294967295
         keyListeners[key].splice(keyListeners[key].indexOf(cb)>>>0, 1);
@@ -107,19 +114,27 @@ export function unsubscribe(cb: Function, key?: KeyListeners) {
     }
 }
 
+function triggerKeyListeners(newState: Pick<StoreType, KeyListeners>) {
+    for (const key in newState) {
+        if (key in keyListeners) {
+            for (const listener of keyListeners[key as KeyListeners]) {
+                listener(newState[key as KeyListeners]);
+            }
+        }
+    }
+}
+
 export function setState(newState: Partial<StoreType>) {
     Object.assign(store, newState);
     for (const listener of listeners) {
         listener(newState);
     }
-    for (const key of Object.keys(newState).filter(key => key in keyListeners) as Array<KeyListeners>) {
-        for (const listener of keyListeners[key]) {
-            listener(newState[key]);
-        }
-    }
+    triggerKeyListeners(newState as Pick<StoreType, KeyListeners>);
 }
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 function setStateDeep(paths: any[], data: any) {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     let obj = store as any;
     for (const path of paths.slice(0, paths.length - 1)) {
         obj = obj[path];
@@ -129,6 +144,7 @@ function setStateDeep(paths: any[], data: any) {
     const newState = { [key]: data };
 
     Object.assign(obj[key], newState);
+    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
     // @ts-ignore
     for (const listener of keyListeners[paths[0]]) {
         listener(newState);
@@ -183,7 +199,7 @@ export function continueRebase() {
     sendAsyncMessage(IpcAction.CONTINUE_REBASE);
 }
 
-export function setLock(lock: keyof StoreType["locks"], event?:any) {
+export function setLock(lock: keyof StoreType["locks"]) {
     const locks = store.locks;
     locks[lock] = true;
     setStateDeep(["locks", lock], locks[lock]);

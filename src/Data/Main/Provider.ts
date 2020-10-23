@@ -1,31 +1,20 @@
 import * as path from "path";
 import { promises as fs } from "fs";
 import { Repository, Revwalk, Commit, Diff, ConvenientPatch, ConvenientHunk, DiffLine, Object, Branch, Graph, Index, Reset, Checkout, DiffFindOptions, Blame, Cred, Reference, Oid, Signature } from "nodegit";
-import { IpcMainEvent } from "electron/main";
 import { IpcAction, BranchObj, BranchesObj, LineObj, HunkObj, PatchObj, CommitObj, IpcActionParams, IpcActionReturn, IpcActionReturnError, RefType } from "../Actions";
 import { normalizeLocalName, normalizeRemoteName, normalizeTagName } from "../Branch";
-import { dialog } from "electron";
+import { dialog, IpcMainEvent } from "electron";
 
-export let actionLock: {
+export const actionLock: {
     [key in IpcAction]?: {
         interuptable: false
     };
 } = {};
 
-export function eventReply<T extends IpcAction>(event: Electron.IpcMainEvent, action: T, data: IpcActionReturn[T] | IpcActionReturnError) {
+export function eventReply<T extends IpcAction>(event: IpcMainEvent, action: T, data: IpcActionReturn[T] | IpcActionReturnError) {
     if (action in actionLock) {
         delete actionLock[action];
     }
-    event.reply("asynchronous-reply", {
-        action,
-        data
-    });
-}
-
-export function eventReplyError<T extends IpcAction>(event: Electron.IpcMainEvent, action: T, error: string) {
-    const data: IpcActionReturnError = {
-        error
-    };
     event.reply("asynchronous-reply", {
         action,
         data
@@ -53,7 +42,7 @@ function compileHistoryCommit(commit: Commit) {
     };
 }
 
-export async function *getCommits(repo: Repository, branch: string, start: "refs/*" | Oid, file?: string, num: number = 1000) {
+export async function *getCommits(repo: Repository, branch: string, start: "refs/*" | Oid, file?: string, num = 1000) {
     const revwalk = repo.createRevWalk();
     revwalk.sorting(Revwalk.SORT.TOPOLOGICAL | Revwalk.SORT.TIME);
 
@@ -146,7 +135,7 @@ export async function push(repo: Repository, data: IpcActionParams[IpcAction.PUS
     // undocumented, https://github.com/nodegit/nodegit/issues/1270#issuecomment-293742772
     const force = data.force ? "+" : "";
 
-    let pushResult: number = 1;
+    let pushResult = 1;
     try {
         pushResult = await remote.push(
             [`${force}${data.localBranch}:${data.remoteBranch}`],
@@ -173,6 +162,7 @@ export async function setUpstream(repo: Repository, local: string, remoteRefName
             await Reference.create(repo, `refs/remotes/${remoteRefName}`, (await reference.peel(Object.TYPE.COMMIT)).id() as unknown as Oid, 0, "");
         }
     }
+    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
     // @ts-ignore, https://www.nodegit.org/api/branch/#setUpstream (pass NULL to unset)
     const result = await Branch.setUpstream(reference, remoteRefName);
 
@@ -347,7 +337,7 @@ export async function stageFile(repo: Repository, filePath: string) {
 }
 export async function unstageFile(repo: Repository, path: string) {
     const head = await repo.getHeadCommit();
-    const result = await Reset.default(repo, head, path);
+    await Reset.default(repo, head, path);
     index = await repo.refreshIndex();
 
     return 0;
@@ -434,8 +424,8 @@ function handleLine(line: DiffLine): LineObj {
         type,
         offset: line.contentOffset(),
         length: line.contentLen(),
-        oldLineno: oldLineno,
-        newLineno: newLineno,
+        oldLineno,
+        newLineno,
         content: line.rawContent().trimRight()
     };
 }
@@ -520,6 +510,7 @@ export async function getCommitPatches(_: Repository, sha: string) {
         );
     }
     else {
+        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
         // @ts-ignore, from nodegit source.
         diffs = [await tree.diffWithOptions(null)];
     }
@@ -626,7 +617,7 @@ export async function commitWithDiff(repo: Repository, sha: string) {
     return commit;
 }
 
-export async function changeBranch(repo: Repository, branch: string) {
+export async function checkoutBranch(repo: Repository, branch: string) {
     try {
         await repo.checkoutBranch(branch);
         const head = await repo.head();
@@ -638,7 +629,9 @@ export async function changeBranch(repo: Repository, branch: string) {
         };
     } catch(err) {
         console.error(err);
-        return false;
+        return {
+            error: err.message
+        };
     }
 }
 
@@ -679,7 +672,7 @@ type Auth = {
 };
 
 // TODO: Make this configurable. global- and per reposotiry
-let auth: Auth = {
+const auth: Auth = {
     type: "userpass",
     username: "personal-access-token",
     password: "x-oauth-basic"

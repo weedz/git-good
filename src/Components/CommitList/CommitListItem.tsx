@@ -48,7 +48,7 @@ export default function CommitListItem({commit, graph}: Props) {
                 }
             </div>
             <div className="graph-container">
-                <span className={commit.parents.length > 1 ? "graph-indicator small" : "graph-indicator"} style={{backgroundColor: HeadColors[graph[commit.sha].colorId].color}}></span>
+                <span className={commit.parents.length > 1 ? "graph-indicator small" : "graph-indicator"} style={{backgroundColor: HeadColors[graph[commit.sha].colorId].color}} />
                 {graph[commit.sha].descendants.length > 0 &&
                 <ul className="commit-graph">
                     {graph[commit.sha].descendants.map(child => <li><Link selectTarget={GlobalLinks.commits[child.sha]} style={{color: HeadColors[graph[child.sha].colorId].color}}>{child.sha.substring(0,7)}</Link></li>)}

@@ -10,7 +10,7 @@ export enum DELTA {
     TYPECHANGE = 8,
     UNREADABLE = 9,
     CONFLICTED = 10,
-};
+}
 
 export function getType(status: number) {
     let type = "";

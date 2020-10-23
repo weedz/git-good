@@ -24,6 +24,7 @@ export type WindowArguments = {
     "push-head": void
     "begin-compare-revisions": void
     "fetch-status": {
+        remote: string
         totalDeltas: number
         indexedDeltas: number
         receivedObjects: number

@@ -15,7 +15,7 @@ type State = {
     commitMsg: StoreType["commitMsg"]
 };
 
-export default class WorkingArea extends Component<{}, State> {
+export default class WorkingArea extends Component<unknown, State> {
     constructor() {
         super();
 
@@ -65,15 +65,15 @@ export default class WorkingArea extends Component<{}, State> {
     refresh = () => {
         sendAsyncMessage(IpcAction.REFRESH_WORKDIR);
     }
-    stageFile = (e: any) => {
+    stageFile = (e: h.JSX.TargetedEvent<HTMLButtonElement, MouseEvent>) => {
         const path = e.currentTarget.dataset.path;
         sendAsyncMessage(IpcAction.STAGE_FILE, path);
     }
-    unstageFile = (e: any) => {
+    unstageFile = (e: h.JSX.TargetedEvent<HTMLButtonElement, MouseEvent>) => {
         const path = e.currentTarget.dataset.path;
         sendAsyncMessage(IpcAction.UNSTAGE_FILE, path);
     }
-    discard = async (e: any) => {
+    discard = async (e: h.JSX.TargetedEvent<HTMLButtonElement, MouseEvent>) => {
         const path = e.currentTarget.dataset.path;
 
         const result = await remote.dialog.showMessageBox({
@@ -86,8 +86,8 @@ export default class WorkingArea extends Component<{}, State> {
             sendAsyncMessage(IpcAction.DISCARD_FILE, path);
         }
     }
-    setAmend = (e: any) => {
-        const target = e.target as h.JSX.HTMLAttributes<HTMLInputElement>;
+    setAmend = (e: h.JSX.TargetedEvent<HTMLInputElement, MouseEvent>) => {
+        const target = e.currentTarget;
         if (target.checked !== this.state.amend) {
             const amend = target.checked;
             const newState: Partial<State> = {
@@ -147,12 +147,12 @@ export default class WorkingArea extends Component<{}, State> {
                 <div>
                     <h4>Commit</h4>
                     <form className="inset">
-                        <input type="text" name="summary" placeholder="Summary" value={this.state.commitMsg.summary} onKeyUp={(e:any) => {
-                            this.updateMessage({summary: e.target.value});
+                        <input type="text" name="summary" placeholder="Summary" value={this.state.commitMsg.summary} onKeyUp={(e: h.JSX.TargetedEvent<HTMLInputElement, KeyboardEvent>) => {
+                            this.updateMessage({summary: e.currentTarget.value});
                         }} />
                         <br />
-                        <textarea name="msg" onKeyUp={(e:any) => {
-                            this.updateMessage({body: e.target.value});
+                        <textarea name="msg" onKeyUp={(e: h.JSX.TargetedEvent<HTMLTextAreaElement, KeyboardEvent>) => {
+                            this.updateMessage({body: e.currentTarget.value});
                         }} value={this.state.commitMsg.body} />
                         <br />
                         {commitButton}

@@ -1,6 +1,5 @@
 import { ipcRenderer, remote } from "electron";
-import { IpcRendererEvent } from "electron/main";
-import { IpcAction, IpcActionParams, IpcActionReturn } from "../Actions";
+import { IpcAction, IpcActionParams, IpcActionReturn, IpcActionReturnError } from "../Actions";
 import { WindowArguments, WindowEvents } from "../WindowEventTypes";
 
 function attach() {
@@ -14,12 +13,14 @@ export function addWindowEventListener<T extends WindowEvents>(event: T, cb: (ar
 
 export function sendAsyncMessage<T extends IpcAction>(action: T, data: IpcActionParams[T] | void) {
     ipcRenderer.send("asynchronous-message", {
-        "action": action,
+        action,
         data
     });
 }
 
-const handlers: {[key in IpcAction]: Function[]} = {
+type HandlerCallback = (arg: IpcActionReturn[IpcAction]) => void;
+
+const handlers: {[T in IpcAction]: HandlerCallback[]} = {
     [IpcAction.LOAD_COMMITS]: [],
     [IpcAction.LOAD_BRANCHES]: [],
     [IpcAction.OPEN_REPO]: [],
@@ -48,18 +49,14 @@ const handlers: {[key in IpcAction]: Function[]} = {
     [IpcAction.REMOTES]: [],
 };
 export function registerHandler<T extends IpcAction>(action: T, cb: (arg: IpcActionReturn[T]) => void) {
-    handlers[action].push(cb);
+    handlers[action].push(cb as HandlerCallback);
 }
-export function unregisterHandler(action: IpcAction, cb: Function) {
-    handlers[action].splice(handlers[action].indexOf(cb)>>>0, 1);
+export function unregisterHandler<T extends IpcAction>(action: T, cb: (arg: IpcActionReturn[T]) => void) {
+    handlers[action].splice(handlers[action].indexOf(cb as HandlerCallback)>>>0, 1);
 }
-function handleEvent(_: IpcRendererEvent, payload: {action: IpcAction, data: any}) {
-    if (payload.data.error) {
+function handleEvent<T extends IpcAction>(_: unknown, payload: {action: T, data: IpcActionReturn[T] | IpcActionReturnError}) {
+    if ("error" in payload.data) {
         remote.dialog.showErrorBox(`Error ${IpcAction[payload.action]}`, payload.data.error);
-    }
-    if (!handlers[payload.action]) {
-        console.warn(`Missing handler for action "${payload.action}"`);
-        return;
     }
     for (const handler of handlers[payload.action]) {
         handler(payload.data);

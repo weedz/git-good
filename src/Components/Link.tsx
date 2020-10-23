@@ -3,7 +3,7 @@ import { LinkTypes } from "src/Data/Renderer/store";
 import { Links } from "./LinkContainer";
 
 const selectedLinks: {
-    [key in LinkTypes]: Link<any> | null
+    [key in LinkTypes]: Link<unknown> | null
 } = {
     commits: null,
     branches: null,
@@ -15,7 +15,7 @@ type Props<T> = {
     selectAction?: (arg: Link<T>) => void
     linkData?: T
     type?: LinkTypes
-} & preact.JSX.HTMLAttributes<HTMLAnchorElement>
+} & h.JSX.HTMLAttributes<HTMLAnchorElement>
 
 export function unselectLink(type: LinkTypes) {
     const prevLink = selectedLinks[type];
@@ -40,6 +40,7 @@ export default class Link<T = never> extends Component<Props<T>> {
         const prevLink = selectedLinks[this.type];
 
         // nothing to see here.
+        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
         // @ts-ignore
         selectedLinks[this.type] = this.props?.selectTarget?.__c as Link || this;
 
