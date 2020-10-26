@@ -135,9 +135,9 @@ function handleNewCommit() {
     });
 }
 
-function handleRemotes(remotes: IpcActionReturn[IpcAction.REMOTES]) {
+function handleRemotes(data: IpcActionReturn[IpcAction.REMOTES]) {
     setState({
-        remotes
+        remotes: data.result
     });
 }
 

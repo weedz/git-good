@@ -21,7 +21,8 @@ export default class FileFilter extends Component<{filterByFile: (file: string |
         this.findFileTimeout && clearTimeout(this.findFileTimeout);
     }
 
-    handleFindFile = (files: IpcActionReturn[IpcAction.FIND_FILE]) => {
+    handleFindFile = (data: IpcActionReturn[IpcAction.FIND_FILE]) => {
+        const files = data.result;
         this.setState({
             fileResults: files,
             showFiles: files.length > 0,

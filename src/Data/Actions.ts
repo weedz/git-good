@@ -112,23 +112,23 @@ export type IpcActionReturn = {
         staged: PatchObj[]
         unstaged: PatchObj[]
     }
-    [IpcAction.STAGE_FILE]: number
-    [IpcAction.UNSTAGE_FILE]: number
-    [IpcAction.DISCARD_FILE]: number
-    [IpcAction.COMMIT]: boolean
-    [IpcAction.PULL]: boolean
-    [IpcAction.PUSH]: boolean
-    [IpcAction.SET_UPSTREAM]: boolean
-    [IpcAction.CREATE_BRANCH]: boolean
-    [IpcAction.CREATE_BRANCH_FROM_REF]: boolean
-    [IpcAction.DELETE_REF]: boolean
-    [IpcAction.DELETE_REMOTE_REF]: boolean
-    [IpcAction.FIND_FILE]: string[]
+    [IpcAction.STAGE_FILE]: {result: number}
+    [IpcAction.UNSTAGE_FILE]: {result: number}
+    [IpcAction.DISCARD_FILE]: {result: number}
+    [IpcAction.COMMIT]: {result: boolean}
+    [IpcAction.PULL]: {result: boolean}
+    [IpcAction.PUSH]: {result: boolean}
+    [IpcAction.SET_UPSTREAM]: {result: boolean}
+    [IpcAction.CREATE_BRANCH]: {result: boolean}
+    [IpcAction.CREATE_BRANCH_FROM_REF]: {result: boolean}
+    [IpcAction.DELETE_REF]: {result: boolean}
+    [IpcAction.DELETE_REMOTE_REF]: {result: boolean}
+    [IpcAction.FIND_FILE]: {result: string[]}
     [IpcAction.ABORT_REBASE]: RepoStatus
     [IpcAction.CONTINUE_REBASE]: RepoStatus
     [IpcAction.OPEN_COMPARE_REVISIONS]: PatchObj[]
     [IpcAction.BLAME_FILE]: unknown
-    [IpcAction.REMOTES]: string[]
+    [IpcAction.REMOTES]: {result: string[]}
 };
 
 export type IpcActionReturnError = {

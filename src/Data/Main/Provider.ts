@@ -102,11 +102,11 @@ async function *walkTheRev(revwalk: Revwalk, num: number) {
     }
 }
 
-export async function pull(repo: Repository) {
+export async function pull(repo: Repository): Promise<IpcActionReturn[IpcAction.PULL]> {
     const head = await repo.head();
     const upstream = await Branch.upstream(head);
     const result = await repo.mergeBranches(head, upstream);
-    return !!result;
+    return {result: !!result};
 }
 
 export async function push(repo: Repository, data: IpcActionParams[IpcAction.PUSH]) {
@@ -169,7 +169,7 @@ export async function setUpstream(repo: Repository, local: string, remoteRefName
     return result;
 }
 
-export async function deleteRemoteRef(repo: Repository, refName: string) {
+export async function deleteRemoteRef(repo: Repository, refName: string): Promise<IpcActionReturn[IpcAction.DELETE_REMOTE_REF]> {
     const ref = await repo.getReference(refName);
 
     if (ref.isRemote()) {
@@ -191,11 +191,11 @@ export async function deleteRemoteRef(repo: Repository, refName: string) {
         }
         ref.delete();
     }
-    return false;
+    return {result: false};
 }
 
 // {local: Branch[], remote: Branch[], tags: Branch[]}
-export async function getBranches(repo: Repository) {
+export async function getBranches(repo: Repository): Promise<IpcActionReturn[IpcAction.LOAD_BRANCHES]> {
     const refs = await repo.getReferences();
 
     const local: BranchesObj["local"] = [];
@@ -252,35 +252,36 @@ export async function getBranches(repo: Repository) {
             name: head.name(),
             headSHA: headCommit.id().tostrS(),
             normalizedName: head.name(),
+            type: RefType.LOCAL
         }
     };
 }
 
-export async function remotes(repo: Repository) {
+export async function remotes(repo: Repository): Promise<IpcActionReturn[IpcAction.REMOTES]> {
     const remotes = await repo.getRemotes();
-    return remotes.map(remote => remote.name());
+    return {result: remotes.map(remote => remote.name())};
 }
 
-export async function findFile(repo: Repository, file: string) {
+export async function findFile(repo: Repository, file: string): Promise<IpcActionReturn[IpcAction.FIND_FILE]> {
     index = await repo.refreshIndex();
 
-    const results: string[] = [];
+    const result: string[] = [];
 
     const entries = index.entries();
 
     for (const entry of entries) {
         if (entry.path.toLocaleLowerCase().includes(file.toLocaleLowerCase())) {
-            results.push(entry.path);
-            if (results.length >= 100) {
+            result.push(entry.path);
+            if (result.length >= 100) {
                 break;
             }
         }
     }
 
-    return results;
+    return {result};
 }
 
-export async function commit(repo: Repository, params: IpcActionParams[IpcAction.COMMIT]) {
+export async function commit(repo: Repository, params: IpcActionParams[IpcAction.COMMIT]): Promise<IpcActionReturn[IpcAction.COMMIT]> {
     // TODO: get from settings
     const committer = Signature.now("Linus Björklund", "weedzcokie@gmail.com");
 
@@ -299,10 +300,10 @@ export async function commit(repo: Repository, params: IpcActionParams[IpcAction
         newCommit = await repo.createCommit("HEAD", committer, committer, message, oid, [parent]);
     }
 
-    return !!newCommit;
+    return {result: !!newCommit};
 }
 
-export async function refreshWorkDir(repo: Repository) {
+export async function refreshWorkDir(repo: Repository): Promise<IpcActionReturn[IpcAction.REFRESH_WORKDIR]> {
     index = await repo.refreshIndex();
 
     const changes = await Promise.all([getStagedPatches(repo), getUnstagedPatches(repo)]);
@@ -318,7 +319,7 @@ export async function refreshWorkDir(repo: Repository) {
     };
 }
 
-export async function stageFile(repo: Repository, filePath: string) {
+export async function stageFile(repo: Repository, filePath: string): Promise<IpcActionReturn[IpcAction.STAGE_FILE]> {
     index = await repo.refreshIndex();
     const status = index.getByPath(filePath);
 
@@ -333,16 +334,16 @@ export async function stageFile(repo: Repository, filePath: string) {
     if (!result) {
         await index.write();
     }
-    return 0;
+    return {result: 0};
 }
-export async function unstageFile(repo: Repository, path: string) {
+export async function unstageFile(repo: Repository, path: string): Promise<IpcActionReturn[IpcAction.UNSTAGE_FILE]> {
     const head = await repo.getHeadCommit();
     await Reset.default(repo, head, path);
     index = await repo.refreshIndex();
 
-    return 0;
+    return {result: 0};
 }
-export async function discardChanges(repo: Repository, filePath: string) {
+export async function discardChanges(repo: Repository, filePath: string): Promise<IpcActionReturn[IpcAction.DISCARD_FILE]> {
     if (!index.getByPath(filePath)) {
         // file not found in index (untracked), delete?
         const result = await dialog.showMessageBox({
@@ -354,7 +355,7 @@ export async function discardChanges(repo: Repository, filePath: string) {
         if (result.response === 0) {
             await fs.unlink(path.join(repo.workdir(), filePath));
         }
-        return 0;
+        return {result: 0};
     }
     try {
         const head = await repo.getHeadCommit();
@@ -364,7 +365,7 @@ export async function discardChanges(repo: Repository, filePath: string) {
         console.error(err)
     }
 
-    return 0;
+    return {result: 0};
 }
 
 async function getStagedPatches(repo: Repository) {
@@ -388,7 +389,7 @@ async function getUnstagedPatches(repo: Repository) {
     return stagedDiff.patches();
 }
 
-export async function loadChanges() {
+export async function loadChanges(): Promise<IpcActionReturn[IpcAction.GET_CHANGES]> {
     workDirIndexPathMap = {};
 
     const staged = workDirIndexCache.stagedPatches.map(convPatch => {
@@ -491,7 +492,7 @@ async function handleDiff(diff: Diff, patches: {[path: string]: ConvenientPatch}
     });
 }
 
-export async function getCommitPatches(_: Repository, sha: string) {
+export async function getCommitPatches(_: Repository, sha: string): Promise<IpcActionReturn[IpcAction.LOAD_PATCHES_WITHOUT_HUNKS]> {
     const commit = commitObjectCache[sha].commit;
     
     // TODO: fix this. Merge commits are a bit messy without this.
@@ -568,7 +569,7 @@ export async function compareRevisionsPatches() {
     return patches.flat();
 }
 
-export async function loadCommit(repo: Repository, sha?: string) {
+export async function loadCommit(repo: Repository, sha?: string): Promise<IpcActionReturn[IpcAction.LOAD_COMMIT]> {
     let commit;
     if (sha) {
         commit = await commitWithDiff(repo, sha);
@@ -617,7 +618,7 @@ export async function commitWithDiff(repo: Repository, sha: string) {
     return commit;
 }
 
-export async function checkoutBranch(repo: Repository, branch: string) {
+export async function checkoutBranch(repo: Repository, branch: string): Promise<IpcActionReturn[IpcAction.CHECKOUT_BRANCH] | IpcActionReturnError> {
     try {
         await repo.checkoutBranch(branch);
         const head = await repo.head();
@@ -626,6 +627,7 @@ export async function checkoutBranch(repo: Repository, branch: string) {
             name: head.name(),
             headSHA: headCommit.id().tostrS(),
             normalizedName: head.name(),
+            type: RefType.LOCAL
         };
     } catch(err) {
         console.error(err);
@@ -635,7 +637,7 @@ export async function checkoutBranch(repo: Repository, branch: string) {
     }
 }
 
-export async function blameFile(repo: Repository, filePath: string) {
+export async function blameFile(repo: Repository, filePath: string): Promise<IpcActionReturn[IpcAction.BLAME_FILE]> {
     try {
         const blame = await Blame.file(repo, filePath);
 
