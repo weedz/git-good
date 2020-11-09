@@ -2,7 +2,7 @@ import { BranchesObj, BranchObj, IpcAction, IpcActionReturn, IpcActionReturnErro
 import { WindowArguments } from "../WindowEventTypes";
 import { openDialog_BlameFile, openDialog_CompareRevisions } from "./Dialogs";
 import { addWindowEventListener, registerHandler, sendAsyncMessage } from "./IPC";
-import { Store, clearLock, setLock, setState, StoreType, GlobalLinks } from "./store";
+import { Store, clearLock, setLock, setState, StoreType, GlobalLinks, push } from "./store";
 
 function refreshWorkdir() {
     sendAsyncMessage(IpcAction.REFRESH_WORKDIR);
@@ -52,7 +52,7 @@ export function pullHead() {
     sendAsyncMessage(IpcAction.PULL);
 }
 function pushHead() {
-    sendAsyncMessage(IpcAction.PUSH);
+    push("origin", "HEAD");
 }
 
 function setStatus(status: RepoStatus) {

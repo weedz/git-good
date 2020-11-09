@@ -1,6 +1,6 @@
 import * as path from "path";
 import { promises as fs } from "fs";
-import { Repository, Revwalk, Commit, Diff, ConvenientPatch, ConvenientHunk, DiffLine, Object, Branch, Graph, Index, Reset, Checkout, DiffFindOptions, Blame, Cred, Reference, Oid, Signature } from "nodegit";
+import { Repository, Revwalk, Commit, Diff, ConvenientPatch, ConvenientHunk, DiffLine, Object, Branch, Graph, Index, Reset, Checkout, DiffFindOptions, Blame, Cred, Reference, Oid, Signature, Merge } from "nodegit";
 import { IpcAction, BranchObj, BranchesObj, LineObj, HunkObj, PatchObj, CommitObj, IpcActionParams, IpcActionReturn, IpcActionReturnError, RefType } from "../Actions";
 import { normalizeLocalName, normalizeRemoteName, normalizeTagName } from "../Branch";
 import { dialog, IpcMainEvent } from "electron";
@@ -105,7 +105,7 @@ async function *walkTheRev(revwalk: Revwalk, num: number) {
 export async function pull(repo: Repository): Promise<IpcActionReturn[IpcAction.PULL]> {
     const head = await repo.head();
     const upstream = await Branch.upstream(head);
-    const result = await repo.mergeBranches(head, upstream);
+    const result = await repo.mergeBranches(head, upstream, undefined, Merge.PREFERENCE.FASTFORWARD_ONLY);
     return {result: !!result};
 }
 
