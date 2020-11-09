@@ -9,6 +9,7 @@ import { AddRemote } from "./AddRemote";
 
 import "./style.css";
 import { Blame } from "./Blame";
+import { Settings } from "./Settings";
 
 const dialogTypes = {
     [DialogTypes.NEW_BRANCH]: NewBranch,
@@ -18,6 +19,7 @@ const dialogTypes = {
     [DialogTypes.BLAME]: Blame,
     [DialogTypes.EDIT_REMOTE]: EditRemote,
     [DialogTypes.ADD_REMOTE]: AddRemote,
+    [DialogTypes.SETTINGS]: Settings,
 };
 
 type State = {
@@ -33,13 +35,11 @@ export default class Dialog extends StoreComponent<unknown, State> {
                 const view = <Fragment>
                     <div className="dialog-window-backdrop" />
                     <div className="dialog-window-container">
-                        <div className="dialog-window">
-                            {
-                            // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-                            // @ts-ignore, type guarded by Store.openDialogWindow. TODO: get better at types and fix this..
-                            <DialogWindow {...props} />
-                            }
-                        </div>
+                        {
+                        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+                        // @ts-ignore, type guarded by Store.openDialogWindow. TODO: get better at types and fix this..
+                        <DialogWindow {...props} />
+                        }
                     </div>
                 </Fragment>;
                 this.setState({view});

@@ -765,9 +765,10 @@ export async function blameFile(repo: Repository, filePath: string): Promise<Ipc
 
 type Auth = {
     type: "ssh"
+    agent: boolean
 } | {
-    type: "userpass",
-    username: string,
+    type: "userpass"
+    username: string
     password: string
 };
 
