@@ -39,12 +39,13 @@ export default class FileFilter extends Component<{filterByFile: (file: string |
         this.findFileTimeout && clearTimeout(this.findFileTimeout);
         
         if (e.currentTarget.value) {
+            const value = e.currentTarget.value;
             this.findFileTimeout = setTimeout(() => {
-                sendAsyncMessage(IpcAction.FIND_FILE, e.currentTarget.value);
+                sendAsyncMessage(IpcAction.FIND_FILE, value);
             }, 250);
             this.setState({
                 showFiles: true,
-                fileFilter: e.currentTarget.value,
+                fileFilter: value,
             });
         } else {
             this.setState({
