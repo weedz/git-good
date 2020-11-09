@@ -1,6 +1,6 @@
 import { BranchObj, IpcAction, IpcActionReturn, Locks, RepoStatus } from "../Actions";
 import { WindowArguments } from "../WindowEventTypes";
-import { openDialog_BlameFile, openDialog_CompareRevisions } from "./Dialogs";
+import { openDialog_BlameFile, openDialog_CompareRevisions, openDialog_Settings } from "./Dialogs";
 import { addWindowEventListener, registerHandler, ipcSendMessage } from "./IPC";
 import { Store, clearLock, setLock, updateStore, StoreType, GlobalLinks } from "./store";
 
@@ -42,7 +42,7 @@ function loadRemotes() {
 }
 
 function openSettings() {
-    console.log("open settings");
+    openDialog_Settings();
 }
 
 export function pullHead() {

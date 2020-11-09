@@ -6,6 +6,7 @@ export enum DialogTypes {
     BLAME,
     EDIT_REMOTE,
     ADD_REMOTE,
+    SETTINGS,
 }
 
 export type DialogProps = {
@@ -16,6 +17,7 @@ export type DialogProps = {
     [DialogTypes.BLAME]: BranchProps
     [DialogTypes.EDIT_REMOTE]: RemoteProps
     [DialogTypes.ADD_REMOTE]: Omit<RemoteProps, "data">
+    [DialogTypes.SETTINGS]: SettingsProps
 }
 
 export type CompareProps = {
@@ -57,3 +59,8 @@ export type SetUpstreamProps = {
     confirmCb: (remote: string, upstream: string) => void
     cancelCb: () => void
 };
+
+export type SettingsProps = {
+    confirmCb: (settings: unknown) => void
+    cancelCb: () => void
+}
