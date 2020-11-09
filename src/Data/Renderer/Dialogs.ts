@@ -1,6 +1,6 @@
 import { DialogTypes } from "src/Components/Dialog/types";
 import { IpcAction } from "../Actions";
-import { normalizeLocalName } from "../Branch";
+import { normalizeLocalName, normalizeRemoteNameWithoutOrigin, normalizeTagName } from "../Branch";
 import { sendAsyncMessage } from "./IPC";
 import { closeDialogWindow, createBranchFromSha, createBranchFromRef, openDialogWindow, blameFile, setUpstream } from "./store";
 
@@ -43,7 +43,18 @@ export enum BranchFromType {
 }
 
 export function openDialog_BranchFrom(sha: string, type: BranchFromType) {
+    let defaultValue;
+    if (sha.startsWith("refs/")) {
+        if (sha.startsWith("refs/heads/")) {
+            defaultValue = normalizeLocalName(sha);
+        } else if (sha.startsWith("refs/remotes/")) {
+            defaultValue = normalizeRemoteNameWithoutOrigin(sha);
+        } else if (sha.startsWith("refs/tags")) {
+            defaultValue = normalizeTagName(sha);
+        }
+    }
     openDialogWindow(DialogTypes.NEW_BRANCH, {
+        defaultValue,
         cancelCb() {
             closeDialogWindow();
         },
