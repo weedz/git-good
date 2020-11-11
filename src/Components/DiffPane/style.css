@@ -29,6 +29,10 @@
     display: initial;
 }
 
+#diff-pane .msg {
+    max-height: 150px;
+    overflow: auto;
+}
 #diff-pane .msg pre {
     margin-top: 3px;
     margin-bottom: 3px;
