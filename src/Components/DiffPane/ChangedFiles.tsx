@@ -101,7 +101,7 @@ export default class ChangedFiles extends Component<Props, {fileFilter?: string}
 
         return (
             <div className="changed-files">
-                <input type="text" onKeyUp={this.filterFiles} placeholder="Search file..." value={this.state.fileFilter} />
+                {files.length > 0 && <input type="text" onKeyUp={this.filterFiles} placeholder="Search file..." value={this.state.fileFilter} />}
                 <ul className="file-types">
                     {this.fileTypes.modified > 0 && <li className="file-modified">{this.fileTypes.modified} modified</li>}
                     {this.fileTypes.added > 0 && <li className="file-added">{this.fileTypes.added} added</li>}
