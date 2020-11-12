@@ -15,4 +15,12 @@
     user-select: none;
     display: flex;
     flex-direction: column;
+    min-height: 150px;
+}
+
+#commit-msg {
+    width: 100%;
+    resize: vertical;
+    max-height: calc(100vh - 410px);
+    min-height: 50px;
 }
