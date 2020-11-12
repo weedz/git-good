@@ -11,6 +11,7 @@ type State = {
     sshPrivateKey?: string
     sshPublicKey?: string
     sshAgent?: boolean
+    useGPG: boolean
 }
 
 async function selectFile(cb: (data: string) => void) {
@@ -93,6 +94,31 @@ export class Settings extends Component<SettingsProps, State> {
                     <div>
                         <label for="git-name">Name:</label>
                         <input type="text" id="git-name" name="name" onKeyUp={e => this.setState({gitName: e.currentTarget.value})} />
+                    </div>
+                    <div>
+                        <h4>GPG</h4>
+                        <div>
+                            <label for="use-gpg">Use gpg:</label>
+                            <input type="checkbox" id="use-gpg" name="use-gpg" onChange={e => this.setState({useGPG: e.currentTarget.checked})} />
+                        </div>
+                        {this.state.useGPG &&
+                            <div>
+                                <div>
+                                    <label for="gpg-id">GPG key:</label>
+                                    <select>
+                                        <option>GPG 1...</option>
+                                    </select>
+                                </div>
+                                <div>
+                                    <label for="gpg-commit">Sign commits by default:</label>
+                                    <input type="checkbox" id="gpg-commit" name="gpg-commit" />
+                                </div>
+                                <div>
+                                    <label for="gpg-tags">Sign tags by default:</label>
+                                    <input type="checkbox" id="gpg-tags" name="gpg-tags" />
+                                </div>
+                            </div>
+                        }
                     </div>
                 </div>
                 <div className="pane">
