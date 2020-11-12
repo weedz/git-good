@@ -36,6 +36,7 @@ export class Settings extends Component<SettingsProps, State> {
         }}>
             <form onSubmit={e => {
                 e.preventDefault();
+                this.props.confirmCb(this.state);
             }}>
                 <h2>Settings</h2>
                 <div className="pane">
@@ -130,7 +131,7 @@ export class Settings extends Component<SettingsProps, State> {
                         </select>
                     </div>
                 </div>
-                <button type="button" onClick={() => this.props.confirmCb(this.state)}>Save</button>
+                <button type="submit">Save</button>
                 <button type="button" onClick={this.props.cancelCb}>Close</button>
             </form>
         </div>;
