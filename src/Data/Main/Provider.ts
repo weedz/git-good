@@ -31,7 +31,7 @@ export function authenticate(url: string, username: string) {
 
 function compileHistoryCommit(commit: Commit) {
     return {
-        parents: commit.parents().map(oid => oid.tostrS()),
+        parents: commit.parents && commit.parents().map(oid => oid.tostrS()),
         sha: commit.sha(),
         message: commit.message(),
         date: commit.date().getTime(),
