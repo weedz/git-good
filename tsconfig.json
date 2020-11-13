@@ -1,10 +1,10 @@
 {
   "compilerOptions": {
     "module": "ESNext",
-    "target": "ES2019",
+    "target": "ESNext",
     "strict": true,
-    "jsx": "react",
-    "jsxFactory": "h",
+    "jsx": "react-jsx",
+    "jsxImportSource": "preact",
     "sourceMap": true,
     "baseUrl": ".",
     "moduleResolution": "node",
