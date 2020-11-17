@@ -25,6 +25,13 @@ export function unselectLink(type: LinkTypes) {
     }
 }
 
+export function triggerAction(type: LinkTypes) {
+    const link = selectedLinks[type];
+    if (link) {
+        link.triggerAction(true);
+    }
+}
+
 export default class Link<T = never> extends Component<Props<T>> {
     ref = createRef<HTMLAnchorElement>();
     type!: LinkTypes;
@@ -36,7 +43,11 @@ export default class Link<T = never> extends Component<Props<T>> {
         }
     }
 
-    onSelect = () => {
+    onClick = () => {
+        this.triggerAction();
+    }
+
+    triggerAction(alwaysTrigger = false) {
         const prevLink = selectedLinks[this.type];
 
         // nothing to see here.
@@ -45,7 +56,7 @@ export default class Link<T = never> extends Component<Props<T>> {
         selectedLinks[this.type] = this.props?.selectTarget?.__c as Link || this;
 
         const selectedLink = selectedLinks[this.type];
-        if (selectedLink && selectedLink !== prevLink) {
+        if (selectedLink && (alwaysTrigger || selectedLink !== prevLink)) {
             this.props.selectAction && this.props.selectAction(this);
 
             if (selectedLink !== this) {
@@ -55,7 +66,10 @@ export default class Link<T = never> extends Component<Props<T>> {
             selectedLink.ref.current?.scrollIntoView({
                 block: "nearest"
             });
-            selectedLink.setState({});
+
+            if (!alwaysTrigger) {
+                selectedLink.setState({});
+            }
         }
 
         if (prevLink && prevLink !== selectedLink) {
@@ -73,7 +87,7 @@ export default class Link<T = never> extends Component<Props<T>> {
             classNames += " selected";
         }
 
-        const link = <a ref={this.ref} className={classNames} href="#" onClick={this.onSelect} {...this.props}>{this.props.children}</a>;
+        const link = <a ref={this.ref} className={classNames} href="#" onClick={this.onClick} {...this.props}>{this.props.children}</a>;
 
         if (!this.type) {
             return <Links.Consumer>

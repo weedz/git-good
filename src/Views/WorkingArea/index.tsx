@@ -6,6 +6,7 @@ import { registerHandler, unregisterHandler, sendAsyncMessage } from "src/Data/R
 import ChangedFiles from "src/Components/DiffPane/ChangedFiles";
 import { remote } from "electron";
 import { commit, setState, Store, StoreType, subscribe, unsubscribe } from "src/Data/Renderer/store";
+import { triggerAction } from "src/Components/Link";
 
 type State = {
     unstaged?: PatchObj[]
@@ -60,6 +61,10 @@ export default class WorkingArea extends Component<unknown, State> {
         this.setState({
             staged: data.staged,
             unstaged: data.unstaged,
+        }, () => {
+            if (Store.currentFile) {
+                triggerAction("files");
+            }
         });
     }
     refresh = () => {
