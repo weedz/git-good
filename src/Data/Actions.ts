@@ -25,6 +25,7 @@ export enum IpcAction {
     OPEN_COMPARE_REVISIONS,
     BLAME_FILE,
     REMOTES,
+    RESOLVE_CONFLICT,
 }
 
 export type IpcActionParams = {
@@ -87,6 +88,7 @@ export type IpcActionParams = {
     [IpcAction.OPEN_COMPARE_REVISIONS]: {from: string, to: string}
     [IpcAction.BLAME_FILE]: string
     [IpcAction.REMOTES]: never
+    [IpcAction.RESOLVE_CONFLICT]: {path: string}
 };
 
 export type IpcActionReturn = {
@@ -129,6 +131,7 @@ export type IpcActionReturn = {
     [IpcAction.OPEN_COMPARE_REVISIONS]: PatchObj[]
     [IpcAction.BLAME_FILE]: unknown
     [IpcAction.REMOTES]: {result: string[]}
+    [IpcAction.RESOLVE_CONFLICT]: boolean
 };
 
 export type IpcActionReturnError = {

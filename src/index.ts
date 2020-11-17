@@ -344,6 +344,7 @@ const eventMap = {
     },
     [IpcAction.COMMIT]: provider.commit,
     [IpcAction.REMOTES]: provider.remotes,
+    [IpcAction.RESOLVE_CONFLICT]: async (repo: NodeGit.Repository, {path}: IpcActionParams[IpcAction.RESOLVE_CONFLICT]) => provider.resolveConflict(path),
 }
 
 // arg.data is typeguarded by sendAsyncMessage in IPC.ts

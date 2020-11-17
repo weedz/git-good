@@ -461,6 +461,14 @@ async function loadHunks(patch: ConvenientPatch) {
     return Promise.all(hunks.map(handleHunk));
 }
 
+export async function resolveConflict(path: string) {
+    // TODO: Promise<number>. seems to return undefined, not 0 on success
+    const result = await index.conflictRemove(path || "");
+    await index.addByPath(path);
+    await index.write();
+    return !result;
+}
+
 function handlePatch(patch: ConvenientPatch): PatchObj {
     const patchNewFile = patch.newFile();
     const patchOldFile = patch.oldFile();

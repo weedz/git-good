@@ -47,6 +47,7 @@ const handlers: {[T in IpcAction]: HandlerCallback[]} = {
     [IpcAction.OPEN_COMPARE_REVISIONS]: [],
     [IpcAction.BLAME_FILE]: [],
     [IpcAction.REMOTES]: [],
+    [IpcAction.RESOLVE_CONFLICT]: [],
 };
 export function registerHandler<T extends IpcAction>(action: T, cb: (arg: IpcActionReturn[T]) => void) {
     handlers[action].push(cb as HandlerCallback);

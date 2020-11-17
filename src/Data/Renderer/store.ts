@@ -156,6 +156,10 @@ export function openRepo(repoPath: IpcActionParams[IpcAction.OPEN_REPO]) {
     sendAsyncMessage(IpcAction.OPEN_REPO, repoPath);
 }
 
+export function resolveConflict(path: string) {
+    sendAsyncMessage(IpcAction.RESOLVE_CONFLICT, {path});
+}
+
 export function checkoutBranch(branch: string) {
     setLock(Locks.MAIN);
     sendAsyncMessage(IpcAction.CHECKOUT_BRANCH, branch);
