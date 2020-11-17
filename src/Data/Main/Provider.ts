@@ -265,20 +265,25 @@ export async function remotes(repo: Repository): Promise<IpcActionReturn[IpcActi
 export async function findFile(repo: Repository, file: string): Promise<IpcActionReturn[IpcAction.FIND_FILE]> {
     index = await repo.refreshIndex();
 
-    const result: string[] = [];
+    const set = new Set<string>();
 
-    const entries = index.entries();
+    let count = 0;
 
-    for (const entry of entries) {
+    for (const entry of index.entries()) {
         if (entry.path.toLocaleLowerCase().includes(file.toLocaleLowerCase())) {
-            result.push(entry.path);
-            if (result.length >= 100) {
+            if (!set.has(entry.path)) {
+                set.add(entry.path);
+                count++;
+            }
+            if (count >= 99) {
                 break;
             }
         }
     }
 
-    return {result};
+    return {
+        result: Array.from(set.values())
+    };
 }
 
 export async function commit(repo: Repository, params: IpcActionParams[IpcAction.COMMIT]): Promise<IpcActionReturn[IpcAction.COMMIT]> {

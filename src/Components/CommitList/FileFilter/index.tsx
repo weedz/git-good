@@ -2,6 +2,8 @@ import { h, Component, Fragment } from "preact";
 import { IpcAction, IpcActionReturn } from "src/Data/Actions";
 import { registerHandler, sendAsyncMessage, unregisterHandler } from "src/Data/Renderer/IPC";
 
+import "./style.css";
+
 type State = {
     filter: undefined | string
     fileFilter: undefined | string
@@ -59,11 +61,8 @@ export default class FileFilter extends Component<{filterByFile: (file: string |
             <Fragment>
                 <input type="text" onClick={() => this.state.fileResults?.length > 0 && this.setState({showFiles: true})} onKeyUp={this.findFiles} placeholder="File/path..." />
                 {this.state.fileFilter && <button onClick={this.filterByFile}>Reset</button>}
-                {this.state.showFiles && this.state.fileResults?.length &&
-                    <ul style={{
-                        maxHeight: "100px",
-                        overflow: "auto",
-                    }}>
+                {this.state.showFiles && !!this.state.fileResults?.length &&
+                    <ul id="file-filter-list">
                         {this.state.fileResults.map(file => <li onClick={this.filterByFile} data-path={file}>{file}</li>)}
                     </ul>
                 }

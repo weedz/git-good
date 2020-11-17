@@ -1,0 +1,12 @@
+#file-filter-list {
+    max-height: 100px;
+    overflow: auto;
+    border-bottom: 1px solid #fff;
+    margin-bottom: 7px;
+}
+#file-filter-list > li {
+    cursor: pointer;
+}
+#file-filter-list > li:hover {
+    background-color: #333;
+}
