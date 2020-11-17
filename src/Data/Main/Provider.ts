@@ -324,7 +324,7 @@ export async function refreshWorkDir(repo: Repository): Promise<IpcActionReturn[
     };
 }
 
-export async function stageFile(repo: Repository, filePath: string): Promise<IpcActionReturn[IpcAction.STAGE_FILE]> {
+export async function stageFile(repo: Repository, filePath: string, event: IpcMainEvent): Promise<IpcActionReturn[IpcAction.STAGE_FILE]> {
     index = await repo.refreshIndex();
     const status = index.getByPath(filePath);
 
@@ -339,16 +339,21 @@ export async function stageFile(repo: Repository, filePath: string): Promise<Ipc
     if (!result) {
         await index.write();
     }
+
+    eventReply(event, IpcAction.REFRESH_WORKDIR, await refreshWorkDir(repo));
+
     return {result: 0};
 }
-export async function unstageFile(repo: Repository, path: string): Promise<IpcActionReturn[IpcAction.UNSTAGE_FILE]> {
+export async function unstageFile(repo: Repository, path: string, event: IpcMainEvent): Promise<IpcActionReturn[IpcAction.UNSTAGE_FILE]> {
     const head = await repo.getHeadCommit();
     await Reset.default(repo, head, path);
     index = await repo.refreshIndex();
 
+    eventReply(event, IpcAction.REFRESH_WORKDIR, await refreshWorkDir(repo));
+
     return {result: 0};
 }
-export async function discardChanges(repo: Repository, filePath: string): Promise<IpcActionReturn[IpcAction.DISCARD_FILE]> {
+export async function discardChanges(repo: Repository, filePath: string, event: IpcMainEvent): Promise<IpcActionReturn[IpcAction.DISCARD_FILE]> {
     if (!index.getByPath(filePath)) {
         // file not found in index (untracked), delete?
         const result = await dialog.showMessageBox({
@@ -360,6 +365,7 @@ export async function discardChanges(repo: Repository, filePath: string): Promis
         if (result.response === 0) {
             await fs.unlink(path.join(repo.workdir(), filePath));
         }
+        eventReply(event, IpcAction.REFRESH_WORKDIR, await refreshWorkDir(repo));
         return {result: 0};
     }
     try {
@@ -370,6 +376,7 @@ export async function discardChanges(repo: Repository, filePath: string): Promis
         console.error(err)
     }
 
+    eventReply(event, IpcAction.REFRESH_WORKDIR, await refreshWorkDir(repo));
     return {result: 0};
 }
 
@@ -582,7 +589,7 @@ export async function compareRevisionsPatches() {
     return patches.flat();
 }
 
-export async function loadCommit(repo: Repository, sha?: string): Promise<IpcActionReturn[IpcAction.LOAD_COMMIT]> {
+export async function loadCommit(repo: Repository, sha: string | null): Promise<IpcActionReturn[IpcAction.LOAD_COMMIT]> {
     let commit;
     if (sha) {
         commit = await commitWithDiff(repo, sha);

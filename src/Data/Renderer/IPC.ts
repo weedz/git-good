@@ -56,10 +56,16 @@ export function unregisterHandler<T extends IpcAction>(action: T, cb: (arg: IpcA
     handlers[action].splice(handlers[action].indexOf(cb as HandlerCallback)>>>0, 1);
 }
 function handleEvent<T extends IpcAction>(_: unknown, payload: {action: T, data: IpcActionReturn[T] | IpcActionReturnError}) {
-    if ("error" in payload.data) {
-        remote.dialog.showErrorBox(`Error ${IpcAction[payload.action]}`, payload.data.error);
-    }
-    for (const handler of handlers[payload.action]) {
-        handler(payload.data);
+    try {
+        if ("error" in payload.data) {
+            remote.dialog.showErrorBox(`Error ${IpcAction[payload.action]}`, payload.data.error);
+        }
+        for (const handler of handlers[payload.action]) {
+            handler(payload.data);
+        }
+    } catch (e) {
+        console.error(e);
+        console.log(payload, IpcAction[payload.action]);
+        remote.dialog.showErrorBox(`Error ${IpcAction[payload.action]}`, "Unknown error. Check devtools...");
     }
 }

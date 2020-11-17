@@ -30,7 +30,7 @@ export enum IpcAction {
 
 export type IpcActionParams = {
     [IpcAction.LOAD_COMMITS]: LoadCommitsParam
-    [IpcAction.LOAD_BRANCHES]: never
+    [IpcAction.LOAD_BRANCHES]: null
     [IpcAction.OPEN_REPO]: string | null
     [IpcAction.LOAD_COMMIT]: string | null
     [IpcAction.LOAD_PATCHES_WITHOUT_HUNKS]: string
@@ -45,8 +45,8 @@ export type IpcActionParams = {
         path: string
     }
     [IpcAction.CHECKOUT_BRANCH]: string
-    [IpcAction.REFRESH_WORKDIR]: never
-    [IpcAction.GET_CHANGES]: never
+    [IpcAction.REFRESH_WORKDIR]: null
+    [IpcAction.GET_CHANGES]: null
     [IpcAction.STAGE_FILE]: string
     [IpcAction.UNSTAGE_FILE]: string
     [IpcAction.DISCARD_FILE]: string
@@ -57,7 +57,7 @@ export type IpcActionParams = {
             body: string
         }
     }
-    [IpcAction.PULL]: never
+    [IpcAction.PULL]: null
     [IpcAction.PUSH]: {
         force?: boolean
         remote: string
@@ -83,11 +83,11 @@ export type IpcActionParams = {
     }
     [IpcAction.DELETE_REMOTE_REF]: string
     [IpcAction.FIND_FILE]: string
-    [IpcAction.ABORT_REBASE]: never
-    [IpcAction.CONTINUE_REBASE]: never
+    [IpcAction.ABORT_REBASE]: null
+    [IpcAction.CONTINUE_REBASE]: null
     [IpcAction.OPEN_COMPARE_REVISIONS]: {from: string, to: string}
     [IpcAction.BLAME_FILE]: string
-    [IpcAction.REMOTES]: never
+    [IpcAction.REMOTES]: null
     [IpcAction.RESOLVE_CONFLICT]: {path: string}
 };
 

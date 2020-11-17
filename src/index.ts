@@ -1,5 +1,5 @@
 import { join } from "path";
-import { app, BrowserWindow, ipcMain, Menu, dialog, shell, MenuItemConstructorOptions } from "electron";
+import { app, BrowserWindow, ipcMain, Menu, dialog, shell, MenuItemConstructorOptions, IpcMainEvent } from "electron";
 import { spawn } from "child_process";
 
 import * as NodeGit from "nodegit";
@@ -283,10 +283,23 @@ type EventArgs = {
     data: any
 };
 
-const eventMap = {
+const eventMap: {
+    [A in IpcAction]: (repo: NodeGit.Repository, args: any /*IpcActionParams[A]*/, event: IpcMainEvent) => any /*Promise<IpcActionReturn[A]> | AsyncGenerator<IpcActionReturn[A]>*/
+} = {
+    [IpcAction.OPEN_REPO]: async (_: NodeGit.Repository, path: IpcActionParams[IpcAction.OPEN_REPO]) => {
+        if (path) {
+            const opened = await openRepo(path);
+            return {
+                path,
+                opened,
+                status: opened ? repoStatus() : null,
+            }
+        }
+        return await openRepoDialog();
+    },
     [IpcAction.LOAD_BRANCHES]: provider.getBranches,
     [IpcAction.LOAD_COMMIT]: provider.loadCommit,
-    async *[IpcAction.LOAD_COMMITS](repo: NodeGit.Repository, params: IpcActionParams[IpcAction.LOAD_COMMITS]): AsyncGenerator<IpcActionReturn[IpcAction.LOAD_COMMITS]> {
+    async *[IpcAction.LOAD_COMMITS](repo, params: IpcActionParams[IpcAction.LOAD_COMMITS]): AsyncGenerator<IpcActionReturn[IpcAction.LOAD_COMMITS]> {
         const arg = await initGetComits(repo, params);
         if (!arg) {
             yield {commits: [], branch: "", cursor: params.cursor};
@@ -297,7 +310,7 @@ const eventMap = {
         }
     },
     [IpcAction.LOAD_PATCHES_WITHOUT_HUNKS]: provider.getCommitPatches,
-    [IpcAction.LOAD_HUNKS]: async (_: NodeGit.Repository, arg: IpcActionParams[IpcAction.LOAD_HUNKS]): Promise<IpcActionReturn[IpcAction.LOAD_HUNKS]> => {
+    [IpcAction.LOAD_HUNKS]: async (_, arg: IpcActionParams[IpcAction.LOAD_HUNKS]): Promise<IpcActionReturn[IpcAction.LOAD_HUNKS]> => {
         return {
             path: arg.path,
             hunks: await loadHunks(arg)
@@ -310,15 +323,15 @@ const eventMap = {
     [IpcAction.UNSTAGE_FILE]: provider.unstageFile,
     [IpcAction.DISCARD_FILE]: provider.discardChanges,
     [IpcAction.PULL]: provider.pull,
-    [IpcAction.CREATE_BRANCH]: async (repo: NodeGit.Repository, data: IpcActionParams[IpcAction.CREATE_BRANCH]): Promise<IpcActionReturn[IpcAction.CREATE_BRANCH]> => {
+    [IpcAction.CREATE_BRANCH]: async (repo, data: IpcActionParams[IpcAction.CREATE_BRANCH]): Promise<IpcActionReturn[IpcAction.CREATE_BRANCH]> => {
         return {result: await repo.createBranch(data.name, data.sha) !== null}
     },
-    [IpcAction.CREATE_BRANCH_FROM_REF]: async (repo: NodeGit.Repository, data: IpcActionParams[IpcAction.CREATE_BRANCH_FROM_REF]): Promise<IpcActionReturn[IpcAction.CREATE_BRANCH_FROM_REF]> => {
+    [IpcAction.CREATE_BRANCH_FROM_REF]: async (repo, data: IpcActionParams[IpcAction.CREATE_BRANCH_FROM_REF]): Promise<IpcActionReturn[IpcAction.CREATE_BRANCH_FROM_REF]> => {
         const ref = await repo.getReference(data.ref);
         const sha = ref.isTag() ? (await ref.peel(NodeGit.Object.TYPE.COMMIT)) as unknown as NodeGit.Commit : await repo.getReferenceCommit(data.ref);
         return {result: await repo.createBranch(data.name, sha) !== null};
     },
-    [IpcAction.DELETE_REF]: async (repo: NodeGit.Repository, data: IpcActionParams[IpcAction.DELETE_REF]): Promise<IpcActionReturn[IpcAction.DELETE_REF]> => {
+    [IpcAction.DELETE_REF]: async (repo, data: IpcActionParams[IpcAction.DELETE_REF]): Promise<IpcActionReturn[IpcAction.DELETE_REF]> => {
         const ref = await repo.getReference(data.name);
         const res = NodeGit.Branch.delete(ref);
         return {result: !res};
@@ -327,24 +340,28 @@ const eventMap = {
     [IpcAction.FIND_FILE]: provider.findFile,
     [IpcAction.ABORT_REBASE]: abortRebase,
     [IpcAction.CONTINUE_REBASE]: continueRebase,
-    [IpcAction.OPEN_COMPARE_REVISIONS]: async (repo: NodeGit.Repository, data: IpcActionParams[IpcAction.OPEN_COMPARE_REVISIONS]): Promise<IpcActionReturn[IpcAction.OPEN_COMPARE_REVISIONS] | IpcActionReturnError> => {
+    [IpcAction.OPEN_COMPARE_REVISIONS]: async (repo, data: IpcActionParams[IpcAction.OPEN_COMPARE_REVISIONS]): Promise<IpcActionReturn[IpcAction.OPEN_COMPARE_REVISIONS] | IpcActionReturnError> => {
         if (await provider.compareRevisions(repo, data)) {
             return provider.compareRevisionsPatches();
         }
         return {error: "revisions not found"};
     },
     [IpcAction.BLAME_FILE]: provider.blameFile,
-    [IpcAction.PUSH]: async (repo: NodeGit.Repository, data: IpcActionParams[IpcAction.PUSH]): Promise<IpcActionReturn[IpcAction.PUSH]> => {
+    [IpcAction.PUSH]: async (repo, data: IpcActionParams[IpcAction.PUSH]): Promise<IpcActionReturn[IpcAction.PUSH]> => {
         const result = await provider.push(repo, data);
         return {result: !result};
     },
-    [IpcAction.SET_UPSTREAM]: async (repo: NodeGit.Repository, data: IpcActionParams[IpcAction.SET_UPSTREAM]): Promise<IpcActionReturn[IpcAction.SET_UPSTREAM]> => {
+    [IpcAction.SET_UPSTREAM]: async (repo, data: IpcActionParams[IpcAction.SET_UPSTREAM]): Promise<IpcActionReturn[IpcAction.SET_UPSTREAM]> => {
         const result = await provider.setUpstream(repo, data.local, data.remote);
         return {result: !result};
     },
     [IpcAction.COMMIT]: provider.commit,
     [IpcAction.REMOTES]: provider.remotes,
-    [IpcAction.RESOLVE_CONFLICT]: async (repo: NodeGit.Repository, {path}: IpcActionParams[IpcAction.RESOLVE_CONFLICT]) => provider.resolveConflict(path),
+    [IpcAction.RESOLVE_CONFLICT]: async (repo, {path}: IpcActionParams[IpcAction.RESOLVE_CONFLICT], event) => {
+        const result = await provider.resolveConflict(path);
+        provider.eventReply(event, IpcAction.REFRESH_WORKDIR, eventMap[IpcAction.REFRESH_WORKDIR](repo, null, event));
+        return result;
+    },
 }
 
 // arg.data is typeguarded by sendAsyncMessage in IPC.ts
@@ -358,29 +375,13 @@ ipcMain.on("asynchronous-message", async (event, arg: EventArgs) => {
 
     provider.actionLock[action] = {interuptable: false};
 
-    if (action === IpcAction.OPEN_REPO) {
-        const path = arg.data as IpcActionParams[typeof action];
-        if (path) {
-            const opened = await openRepo(path);
-            provider.eventReply(event, action, {
-                path,
-                opened,
-                status: opened ? repoStatus() : null,
-            });
-        } else {
-            provider.eventReply(event, action, await openRepoDialog());
+    // TODO: fix proper type to detect AsyncIterator-stuff
+    if (action === IpcAction.LOAD_COMMITS) {
+        for await (const result of eventMap[action](repo, arg.data, event)) {
+            provider.eventReply(event, action, result);
         }
-    } else if (repo) {
-        // TODO: fix proper type to detect AsyncIterator-stuff
-        if (action === IpcAction.LOAD_COMMITS) {
-            const data = arg.data as IpcActionParams[typeof action];
-            for await (const result of eventMap[action](repo, data)) {
-                provider.eventReply(event, action, result);
-            }
-        } else {
-            // const data = arg.data as IpcActionParams[typeof action];
-            provider.eventReply(event, action, await eventMap[action](repo, arg.data));
-        }
+    } else {
+        provider.eventReply(event, action, await eventMap[action](repo, arg.data, event));
     }
 });
 

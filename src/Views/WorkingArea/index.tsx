@@ -27,11 +27,9 @@ export default class WorkingArea extends Component<unknown, State> {
     componentWillMount() {
         registerHandler(IpcAction.REFRESH_WORKDIR, this.getChanges);
         registerHandler(IpcAction.GET_CHANGES, this.update);
-        registerHandler(IpcAction.STAGE_FILE, this.refresh);
-        registerHandler(IpcAction.UNSTAGE_FILE, this.refresh);
-        registerHandler(IpcAction.DISCARD_FILE, this.refresh);
         registerHandler(IpcAction.LOAD_COMMIT, this.setHead);
-        sendAsyncMessage(IpcAction.LOAD_COMMIT, null);
+
+        sendAsyncMessage(IpcAction.LOAD_COMMIT);
 
         subscribe(this.setCommitMsg, "commitMsg");
         this.getChanges();
@@ -39,9 +37,6 @@ export default class WorkingArea extends Component<unknown, State> {
     componentWillUnmount() {
         unregisterHandler(IpcAction.REFRESH_WORKDIR, this.getChanges);
         unregisterHandler(IpcAction.GET_CHANGES, this.update);
-        unregisterHandler(IpcAction.STAGE_FILE, this.refresh);
-        unregisterHandler(IpcAction.UNSTAGE_FILE, this.refresh);
-        unregisterHandler(IpcAction.DISCARD_FILE, this.refresh);
         unregisterHandler(IpcAction.LOAD_COMMIT, this.setHead);
 
         unsubscribe(this.setCommitMsg, "commitMsg");
@@ -66,9 +61,6 @@ export default class WorkingArea extends Component<unknown, State> {
                 triggerAction("files");
             }
         });
-    }
-    refresh = () => {
-        sendAsyncMessage(IpcAction.REFRESH_WORKDIR);
     }
     stageFile = (e: h.JSX.TargetedEvent<HTMLButtonElement, MouseEvent>) => {
         const path = e.currentTarget.dataset.path;
