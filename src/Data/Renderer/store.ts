@@ -90,11 +90,11 @@ const keyListeners: {
     commitMsg: [],
 };
 
-export function subscribe<T extends KeyListeners>(cb: PartialStoreListener<T>, key: T): typeof unsubscribe;
+export function subscribe<T extends KeyListeners>(cb: PartialStoreListener<T>, key: T): () => void;
 // eslint-disable-next-line no-redeclare
-export function subscribe(cb: StoreListener): typeof unsubscribe;
+export function subscribe(cb: StoreListener): () => void;
 // eslint-disable-next-line no-redeclare, @typescript-eslint/no-explicit-any
-export function subscribe(cb: (arg?: any) => void, key?: KeyListeners) {
+export function subscribe(cb: (arg: any) => void, key?: KeyListeners) {
     if (key) {
         keyListeners[key].push(cb);
     } else {

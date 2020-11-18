@@ -1,7 +1,7 @@
 import { h, Component } from "preact";
 import { registerHandler, unregisterHandler } from "src/Data/Renderer/IPC";
 import { IpcAction, IpcActionReturn } from "src/Data/Actions";
-import { setState, Store } from "../Data/Renderer/store";
+import { setState, Store, subscribe } from "../Data/Renderer/store";
 import Link from "./Link";
 
 export default class Changes extends Component {
@@ -12,10 +12,14 @@ export default class Changes extends Component {
         },
     };
     componentWillMount() {
+        subscribe(this.repoChanged, "repo");
         registerHandler(IpcAction.REFRESH_WORKDIR, this.updateIndex);
     }
     componentWillUnmount() {
         unregisterHandler(IpcAction.REFRESH_WORKDIR, this.updateIndex);
+    }
+    repoChanged = () => {
+        this.setState({});
     }
     updateIndex = (changes: IpcActionReturn[IpcAction.REFRESH_WORKDIR]) => {
         if (!("error" in changes)) {
