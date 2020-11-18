@@ -131,7 +131,7 @@ export type IpcActionReturn = {
     [IpcAction.OPEN_COMPARE_REVISIONS]: PatchObj[]
     [IpcAction.BLAME_FILE]: unknown
     [IpcAction.REMOTES]: {result: string[]}
-    [IpcAction.RESOLVE_CONFLICT]: boolean
+    [IpcAction.RESOLVE_CONFLICT]: {result: boolean}
 };
 
 export type IpcActionReturnError = {

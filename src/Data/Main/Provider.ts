@@ -473,7 +473,7 @@ export async function resolveConflict(path: string) {
     const result = await index.conflictRemove(path || "");
     await index.addByPath(path);
     await index.write();
-    return !result;
+    return result;
 }
 
 function handlePatch(patch: ConvenientPatch): PatchObj {
@@ -638,7 +638,7 @@ export async function commitWithDiff(repo: Repository, sha: string) {
     return commit;
 }
 
-export async function checkoutBranch(repo: Repository, branch: string): Promise<IpcActionReturn[IpcAction.CHECKOUT_BRANCH] | IpcActionReturnError> {
+export async function checkoutBranch(repo: Repository, branch: string) {
     try {
         await repo.checkoutBranch(branch);
         const head = await repo.head();

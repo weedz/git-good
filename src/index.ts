@@ -279,12 +279,14 @@ let repo: NodeGit.Repository;
 
 type EventArgs = {
     action: IpcAction
-    /* eslint-disable @typescript-eslint/no-explicit-any */
-    data: any
+    data: IpcActionParams[IpcAction]
 };
 
+type AsyncGeneratorEventCallback<A extends IpcAction> = (repo: NodeGit.Repository, args: IpcActionParams[A], event: IpcMainEvent) => AsyncGenerator<IpcActionReturn[A] | IpcActionReturnError>;
+type PromiseEventCallback<A extends IpcAction> = (repo: NodeGit.Repository, args: IpcActionParams[A], event: IpcMainEvent) => Promise<IpcActionReturn[A] | IpcActionReturnError>;
+
 const eventMap: {
-    [A in IpcAction]: (repo: NodeGit.Repository, args: any /*IpcActionParams[A]*/, event: IpcMainEvent) => any /*Promise<IpcActionReturn[A]> | AsyncGenerator<IpcActionReturn[A]>*/
+    [A in IpcAction]: AsyncGeneratorEventCallback<A> | PromiseEventCallback<A>
 } = {
     [IpcAction.OPEN_REPO]: async (_: NodeGit.Repository, path: IpcActionParams[IpcAction.OPEN_REPO]) => {
         if (path) {
@@ -340,7 +342,7 @@ const eventMap: {
     [IpcAction.FIND_FILE]: provider.findFile,
     [IpcAction.ABORT_REBASE]: abortRebase,
     [IpcAction.CONTINUE_REBASE]: continueRebase,
-    [IpcAction.OPEN_COMPARE_REVISIONS]: async (repo, data: IpcActionParams[IpcAction.OPEN_COMPARE_REVISIONS]): Promise<IpcActionReturn[IpcAction.OPEN_COMPARE_REVISIONS] | IpcActionReturnError> => {
+    [IpcAction.OPEN_COMPARE_REVISIONS]: async (repo, data: IpcActionParams[IpcAction.OPEN_COMPARE_REVISIONS]) => {
         if (await provider.compareRevisions(repo, data)) {
             return provider.compareRevisionsPatches();
         }
@@ -359,12 +361,12 @@ const eventMap: {
     [IpcAction.REMOTES]: provider.remotes,
     [IpcAction.RESOLVE_CONFLICT]: async (repo, {path}: IpcActionParams[IpcAction.RESOLVE_CONFLICT], event) => {
         const result = await provider.resolveConflict(path);
-        provider.eventReply(event, IpcAction.REFRESH_WORKDIR, eventMap[IpcAction.REFRESH_WORKDIR](repo, null, event));
-        return result;
+        const refreshCallback = eventMap[IpcAction.REFRESH_WORKDIR] as PromiseEventCallback<IpcAction.REFRESH_WORKDIR>;
+        provider.eventReply(event, IpcAction.REFRESH_WORKDIR, await refreshCallback(repo, null, event));
+        return {result: !result};
     },
 }
 
-// arg.data is typeguarded by sendAsyncMessage in IPC.ts
 ipcMain.on("asynchronous-message", async (event, arg: EventArgs) => {
     const action = arg.action;
     const lock = provider.actionLock[action];
@@ -377,11 +379,15 @@ ipcMain.on("asynchronous-message", async (event, arg: EventArgs) => {
 
     // TODO: fix proper type to detect AsyncIterator-stuff
     if (action === IpcAction.LOAD_COMMITS) {
-        for await (const result of eventMap[action](repo, arg.data, event)) {
+        const callback = eventMap[action] as AsyncGeneratorEventCallback<typeof action>;
+        const data = arg.data as IpcActionParams[typeof action];
+        for await (const result of callback(repo, data, event)) {
             provider.eventReply(event, action, result);
         }
     } else {
-        provider.eventReply(event, action, await eventMap[action](repo, arg.data, event));
+        const callback = eventMap[action] as PromiseEventCallback<typeof action>;
+        const data = arg.data as IpcActionParams[typeof action];
+        provider.eventReply(event, action, await callback(repo, data, event));
     }
 });
 
