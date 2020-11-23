@@ -13,23 +13,18 @@ export enum DELTA {
 }
 
 export function getType(status: number) {
-    let type = "";
     switch (status) {
         case DELTA.ADDED:
-            type = "A";
-            break;
+            return "A";
         case DELTA.DELETED:
-            type = "D";
-            break;
+            return "D";
         case DELTA.MODIFIED:
-            type = "M";
-            break;
+            return "M";
         case DELTA.RENAMED:
-            type = "R";
-            break;
+            return "R";
         case DELTA.UNTRACKED:
-            type = "U";
-            break;
+            return "U";
+        case DELTA.CONFLICTED:
+            return "C";
     }
-    return type;
 }

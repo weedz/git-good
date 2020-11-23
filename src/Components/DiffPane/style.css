@@ -55,17 +55,20 @@
     flex-direction: column;
     flex: 1;
 }
-.changed-files .file-modified {
+.changed-files .file-modified .status {
     color: yellowgreen;
 }
-.changed-files .file-deleted {
+.changed-files .file-deleted .status {
     color: red;
 }
-.changed-files .file-added {
+.changed-files .file-added .status {
     color: green;
 }
-.changed-files .file-renamed {
+.changed-files .file-renamed .status {
     color: blue;
+}
+.changed-files .file-conflicted {
+    background-color: orange;
 }
 .changed-files .file-types {
     list-style: none;

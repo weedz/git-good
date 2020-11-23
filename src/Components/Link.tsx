@@ -82,12 +82,23 @@ export default class Link<T = never> extends Component<Props<T>> {
         }
     }
     render() {
-        let classNames = this.props.className || "";
+        const props = {...this.props};
+        delete props.linkData;
+        delete props.selectAction;
+        delete props.selectTarget;
+        delete props.type;
+
+        const classNames: string[] = [];
+
+        if (props.className) {
+            classNames.push(props.className);
+            delete props.className;
+        }
         if (selectedLinks[this.type] === this) {
-            classNames += " selected";
+            classNames.push("selected");
         }
 
-        const link = <a ref={this.ref} className={classNames} href="#" onClick={this.onClick} {...this.props}>{this.props.children}</a>;
+        const link = <a ref={this.ref} className={classNames.join(" ")} href="#" onClick={this.onClick} {...props}>{props.children}</a>;
 
         if (!this.type) {
             return <Links.Consumer>

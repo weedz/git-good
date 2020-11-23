@@ -81,6 +81,7 @@ export default class ChangedFiles extends Component<Props, {fileFilter?: string}
             this.fileTypes.renamed++;
             typeCss = "file-renamed";
         } else if (patch.status === DELTA.UNTRACKED) {
+            typeCss = "file-conflicted";
             this.fileTypes.added++;
         }
         if (patch.status === DELTA.CONFLICTED) {
@@ -98,8 +99,8 @@ export default class ChangedFiles extends Component<Props, {fileFilter?: string}
         }
         return (
             <li onContextMenu={showFileMenu} className="sub-tree" key={patch.actualFile.path} data-path={patch.actualFile.path}>
-                <Link linkData={patch} selectAction={this.openFile}>
-                    <span className={typeCss}>{getType(patch.status)}</span>&nbsp;
+                <Link className={typeCss} linkData={patch} selectAction={this.openFile}>
+                    <span className="status">{getType(patch.status)}</span>&nbsp;
                     <span>{patch.actualFile.path}</span>
                 </Link>
                 <div className="action-group">
