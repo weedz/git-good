@@ -58,7 +58,7 @@ export default class FileDiff extends Component<unknown, State> {
             }
         };
     }
-    componentWillMount() {
+    componentDidMount() {
         subscribe(this.renderHunks, "currentFile");
     }
     componentWillUnmount() {

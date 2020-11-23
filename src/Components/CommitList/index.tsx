@@ -39,7 +39,7 @@ export default class CommitList extends Component<unknown, State> {
         };
     }
 
-    componentWillMount() {
+    componentDidMount() {
         subscribe(this.checkLocks, "locks");
         subscribe(this.handleProps, "selectedBranch");
         registerHandler(IpcAction.LOAD_COMMITS, this.commitsLoaded);

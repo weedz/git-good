@@ -11,7 +11,7 @@ export default class Changes extends Component {
             unstaged: 0,
         },
     };
-    componentWillMount() {
+    componentDidMount() {
         subscribe(this.repoChanged, "repo");
         registerHandler(IpcAction.REFRESH_WORKDIR, this.updateIndex);
     }

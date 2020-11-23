@@ -10,7 +10,7 @@ type State = {
 }
 
 export default class DiffPane extends Component<unknown, State> {
-    componentWillMount() {
+    componentDidMount() {
         subscribe(this.loadCommitFromStore, "diffPaneSrc");
         subscribe(this.viewChanges, "viewChanges");
         subscribe(this.viewCompareResults, "comparePatches");

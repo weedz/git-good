@@ -13,7 +13,7 @@ import NewTab from "./Views/NewTab";
 
 export default class App extends Component {
     openRecent = true;
-    componentWillMount() {
+    componentDidMount() {
         subscribe(this.update, "repo");
         subscribe(this.checkLocks, "locks");
         subscribe(this.updateDialogWindow, "dialogWindow");

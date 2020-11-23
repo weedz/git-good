@@ -18,7 +18,7 @@ type State = {
 }
 
 export default class BranchList extends Component<unknown, State> {
-    componentWillMount() {
+    componentDidMount() {
         subscribe(this.checkLocks, "locks");
         subscribe(this.update, "branches");
     }

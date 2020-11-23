@@ -29,7 +29,7 @@ export default class Commit extends Component<Props, State> {
             sendAsyncMessage(IpcAction.LOAD_COMMIT, props.sha);
         }
     }
-    componentWillMount() {
+    componentDidMount() {
         this.resetView();
         sendAsyncMessage(IpcAction.LOAD_COMMIT, this.props.sha);
         

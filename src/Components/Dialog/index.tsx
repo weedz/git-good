@@ -20,7 +20,7 @@ type State = {
     view: h.JSX.Element | null
 };
 export default class Dialog extends Component<unknown, State> {
-    componentWillMount() {
+    componentDidMount() {
         subscribe(this.updateDialog, "dialogWindow");
     }
     componentWillUnmount() {

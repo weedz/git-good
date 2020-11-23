@@ -24,7 +24,7 @@ export default class WorkingArea extends Component<unknown, State> {
             commitMsg: Store.commitMsg,
         }
     }
-    componentWillMount() {
+    componentDidMount() {
         registerHandler(IpcAction.REFRESH_WORKDIR, this.getChanges);
         registerHandler(IpcAction.GET_CHANGES, this.update);
         registerHandler(IpcAction.LOAD_COMMIT, this.setHead);

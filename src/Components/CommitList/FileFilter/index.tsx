@@ -15,7 +15,7 @@ export default class FileFilter extends Component<{filterByFile: (file: string |
     // eslint-disable-next-line no-undef
     findFileTimeout?: NodeJS.Timeout;
 
-    componentWillMount() {
+    componentDidMount() {
         registerHandler(IpcAction.FIND_FILE, this.handleFindFile);
     }
     componentWillUnmount() {
