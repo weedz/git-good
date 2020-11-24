@@ -1,8 +1,9 @@
 import { remote } from "electron";
 import { h } from "preact";
+import { RefType } from "src/Data/Actions";
 import { pullHead } from "src/Data/Renderer";
 import { BranchFromType, openDialog_BranchFrom, openDialog_SetUpstream } from "src/Data/Renderer/Dialogs";
-import { contextMenuState, checkoutBranch, deleteBranch, push, deleteRemoteBranch } from "src/Data/Renderer/store";
+import { contextMenuState, checkoutBranch, deleteBranch, deleteRemoteBranch, Store, push } from "src/Data/Renderer/store";
 
 const { Menu, MenuItem } = remote;
 
@@ -107,15 +108,39 @@ localMenu.append(setUpstreamMenuItem);
 
 const headMenu = new Menu();
 headMenu.append(new MenuItem({
-    label: 'Push...',
-    click() {
-        push("origin", contextMenuState.data.ref);
-    }
-}));
-headMenu.append(new MenuItem({
     label: 'Pull...',
     click() {
         pullHead();
+    }
+}));
+headMenu.append(new MenuItem({
+    label: 'Push...',
+    async click() {
+        const ref = contextMenuState.data.ref;
+        const headSHA = Store.branches?.head?.headSHA;
+        if (!headSHA) {
+            return remote.dialog.showErrorBox("Invalid reference", ref);
+        }
+
+        const head = Store.heads[headSHA].filter(head => head.type === RefType.LOCAL)[0];
+        if (!head.remote) {
+            return remote.dialog.showErrorBox("Missing remote.", ref);
+        }
+
+        if (head.status?.behind) {
+            const result = await remote.dialog.showMessageBox({
+                title: "Force push?",
+                message: `'${ref}' is behind the remote '${head.remote}'. Force push?`,
+                type: "question",
+                buttons: ["Yes", "No"],
+                cancelId: 1,
+            });
+            if (result.response === 0) {
+                push("origin", ref, undefined, true);
+            }
+        } else {
+            push("origin", ref);
+        }
     }
 }));
 headMenu.append(setUpstreamMenuItem);
