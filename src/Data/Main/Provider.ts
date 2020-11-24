@@ -286,9 +286,15 @@ export async function findFile(repo: Repository, file: string): Promise<IpcActio
     };
 }
 
-export async function commit(repo: Repository, params: IpcActionParams[IpcAction.COMMIT]): Promise<IpcActionReturn[IpcAction.COMMIT]> {
+export async function commit(repo: Repository, params: IpcActionParams[IpcAction.COMMIT]) {
     // TODO: get from settings
     const committer = Signature.now("Linus Björklund", "weedzcokie@gmail.com");
+
+    if (!committer.email()) {
+        return {
+            error: "No git credentials provided."
+        };
+    }
 
     const parent = await repo.getHeadCommit();
 
