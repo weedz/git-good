@@ -204,7 +204,9 @@ const menuTemplate = [
                             },
                         },
                     });
-                    sendEvent(win.webContents, "repo-fetch-all");
+                    sendEvent(win.webContents, "fetch-status", {
+                        done: true
+                    });
                 }
             },
             {

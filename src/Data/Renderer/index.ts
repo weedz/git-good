@@ -149,7 +149,6 @@ function handlePullHead() {
 }
 
 addWindowEventListener("repo-opened", repoOpened);
-addWindowEventListener("repo-fetch-all", loadBranches);
 addWindowEventListener("refresh-workdir", refreshWorkdir);
 addWindowEventListener("open-settings", openSettings);
 addWindowEventListener("app-lock-ui", setLock);
@@ -159,7 +158,10 @@ addWindowEventListener("push-head", pushHead);
 addWindowEventListener("begin-compare-revisions", openDialog_CompareRevisions);
 addWindowEventListener("begin-blame-file", openDialog_BlameFile);
 addWindowEventListener("fetch-status", (stats: WindowArguments["fetch-status"]) => {
-    if (stats.receivedObjects == stats.totalObjects) {
+    if ("done" in stats) {
+        console.log("Fetch all: done");
+        loadBranches();
+    } else if (stats.receivedObjects == stats.totalObjects) {
         console.log(`Resolving deltas ${stats.indexedDeltas}/${stats.totalDeltas}`);
     } else if (stats.totalObjects > 0) {
         console.log(`Received ${stats.receivedObjects}/${stats.totalObjects} objects (${stats.indexedObjects}) in ${stats.receivedBytes} bytes`);

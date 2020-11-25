@@ -2,7 +2,6 @@ import { Locks, IpcActionReturn, IpcAction } from "./Actions";
 
 export type WindowEvents =
     "repo-opened" |
-    "repo-fetch-all" |
     "fetch-status" |
     "refresh-workdir" |
     "open-settings" |
@@ -15,7 +14,6 @@ export type WindowEvents =
 
 export type WindowArguments = {
     "repo-opened": IpcActionReturn[IpcAction.OPEN_REPO]
-    "repo-fetch-all": void
     "refresh-workdir": void
     "open-settings": void
     "app-lock-ui": Locks
@@ -23,7 +21,7 @@ export type WindowArguments = {
     "pull-head": void
     "push-head": void
     "begin-compare-revisions": void
-    "fetch-status": {
+    "fetch-status": {done: true} | {
         remote: string
         totalDeltas: number
         indexedDeltas: number
