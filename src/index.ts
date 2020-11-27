@@ -189,6 +189,7 @@ const menuTemplate = [
                 label: 'Fetch all',
                 async click() {
                     await repo.fetchAll({
+                        prune: 1,
                         callbacks: {
                             credentials: provider.authenticate,
                             transferProgress: (stats: TransferProgress, remote: string) => {
