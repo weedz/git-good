@@ -83,6 +83,7 @@ export default class CommitList extends Component<unknown, State> {
             };
         }
         if (this.state.fileFilter) {
+            options.num = 5000;
             options.file = this.state.fileFilter;
         }
 

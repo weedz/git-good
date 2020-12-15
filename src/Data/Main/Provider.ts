@@ -42,6 +42,10 @@ function compileHistoryCommit(commit: Commit) {
     };
 }
 
+const commitFilters = {
+    default: (_: Commit, ..._args: unknown[]) => true,
+}
+
 export async function *getCommits(repo: Repository, branch: string, start: "refs/*" | Oid, file?: string, num = 1000) {
     const revwalk = repo.createRevWalk();
     revwalk.sorting(Revwalk.SORT.TOPOLOGICAL | Revwalk.SORT.TIME);
@@ -60,8 +64,7 @@ export async function *getCommits(repo: Repository, branch: string, start: "refs
             commits: commits.map(historyEntry => compileHistoryCommit(historyEntry.commit))
         };
     } else {
-        // TODO: more filters..
-        const filter = async (_: Commit) => true;
+        const filter = commitFilters.default;
         let cursorCommit: Commit | null = null;
 
         const history: Commit[] = [];
@@ -69,6 +72,8 @@ export async function *getCommits(repo: Repository, branch: string, start: "refs
             const commit = await Commit.lookup(repo, oid);
             if (await filter(commit)) {
                 history.push(commit);
+            } else {
+                cursorCommit = commit;
             }
             if (history.length >= 100) {
                 cursorCommit = history[history.length - 1];
