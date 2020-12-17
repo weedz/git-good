@@ -337,11 +337,13 @@ export async function refreshWorkDir(repo: Repository): Promise<IpcActionReturn[
 
 export async function stageFile(repo: Repository, filePath: string, event: IpcMainEvent): Promise<IpcActionReturn[IpcAction.STAGE_FILE]> {
     index = await repo.refreshIndex();
-    const status = index.getByPath(filePath);
 
     let result;
+
     try {
-        await fs.access(path.join(repo.workdir(), status.path));
+        // if fs.access throws the file does not exist on the filesystem
+        // and needs to be removed from the index
+        await fs.access(path.join(repo.workdir(), filePath));
         result = await index.addByPath(filePath);
     } catch(err) {
         result = await index.removeByPath(filePath);

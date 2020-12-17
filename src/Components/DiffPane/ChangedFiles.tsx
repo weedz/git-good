@@ -81,10 +81,11 @@ export default class ChangedFiles extends Component<Props, {fileFilter?: string}
             this.fileTypes.renamed++;
             typeCss = "file-renamed";
         } else if (patch.status === DELTA.UNTRACKED) {
-            typeCss = "file-conflicted";
+            typeCss = "file-untracked";
             this.fileTypes.added++;
         }
         if (patch.status === DELTA.CONFLICTED) {
+            typeCss = "file-conflicted";
             actions = [
                 {
                     click: (e) => {
