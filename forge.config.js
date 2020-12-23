@@ -14,25 +14,27 @@ module.exports = {
             "forge.config.js",
             ".eslintrc.json",
             ".gitignore",
-            "node_modules/nodegit/(vendor|include)"
+            "node_modules/nodegit/(vendor|include)",
+            "/types",
         ]
     },
     makers: [
         {
             name: "@electron-forge/maker-squirrel",
-            confi: {
+            config: {
                 name: "git_good"
             }
         },
         {
-            name: "@electron-forge/maker-zip",
-            platforms: [
-                "darwin"
-            ]
+            name: "@electron-forge/maker-zip"
         },
         {
             name: "@electron-forge/maker-deb",
-            config: {}
+            config: {
+                options: {
+                    homepage: "https://github.com/weedz/git-good"
+                }
+            }
         }
     ]
 }
