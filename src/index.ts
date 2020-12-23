@@ -188,6 +188,9 @@ const menuTemplate = [
             {
                 label: 'Fetch all',
                 async click() {
+                    if (!repo) {
+                        return dialog.showErrorBox(`Error`, "Not in a repository");
+                    }
                     await repo.fetchAll({
                         prune: 1,
                         callbacks: {
@@ -379,6 +382,11 @@ ipcMain.on("asynchronous-message", async (event, arg: EventArgs) => {
     }
 
     provider.actionLock[action] = {interuptable: false};
+
+    if (action !== IpcAction.OPEN_REPO && !repo) {
+        provider.eventReply(event, action, {error: "Not in a repository"});
+        return;
+    }
 
     // TODO: fix proper type to detect AsyncIterator-stuff
     if (action === IpcAction.LOAD_COMMITS) {

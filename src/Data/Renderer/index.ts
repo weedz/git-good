@@ -123,7 +123,10 @@ function handleBlameFile(data: IpcActionReturn[IpcAction.BLAME_FILE]) {
     console.log("blame", data);
 }
 
-function handlePushResult(_: IpcActionReturn[IpcAction.PUSH]) {
+function handlePushResult(res: IpcActionReturn[IpcAction.PUSH] | IpcActionReturnError) {
+    if ("error" in res) {
+        return;
+    }
     loadBranches();
 }
 
@@ -141,7 +144,10 @@ function handleRemotes(data: IpcActionReturn[IpcAction.REMOTES]) {
     });
 }
 
-function handlePullHead() {
+function handlePullHead(res: IpcActionReturn[IpcAction.PULL] | IpcActionReturnError) {
+    if ("error" in res) {
+        return;
+    }
     loadBranches();
     setState({
         selectedBranch: Store.selectedBranch
