@@ -106,7 +106,7 @@ const menuTemplate = [
                                 cwd: repo.workdir()
                             });
                         } else {
-                            process = spawn("gnome-terminal", {
+                            process = spawn("x-terminal-emulator", {
                                 cwd: repo.workdir()
                             });
                         }
