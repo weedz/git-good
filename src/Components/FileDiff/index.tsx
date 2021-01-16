@@ -1,4 +1,5 @@
-import { h, Component } from "preact";
+import { h } from "preact";
+import { PureComponent } from "preact/compat";
 import { HunkObj, LineObj } from "src/Data/Actions";
 import { Store, unsubscribe, subscribe, closeFile, blameFile } from "src/Data/Renderer/store";
 import { DELTA } from "src/Data/Utils";
@@ -42,7 +43,7 @@ function compactLines(lines: LineObj[]) {
     return parsedLines;
 }
 
-export default class FileDiff extends Component<unknown, State> {
+export default class FileDiff extends PureComponent<unknown, State> {
     lines: h.JSX.Element[] = [];
 
     constructor() {

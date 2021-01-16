@@ -1,10 +1,11 @@
-import { h, Component } from "preact";
+import { h } from "preact";
 import { registerHandler, unregisterHandler } from "src/Data/Renderer/IPC";
 import { IpcAction, IpcActionReturn } from "src/Data/Actions";
 import { setState, Store, subscribe } from "../Data/Renderer/store";
 import Link from "./Link";
+import { PureComponent } from "preact/compat";
 
-export default class Changes extends Component {
+export default class Changes extends PureComponent {
     state = {
         changes: {
             staged: 0,

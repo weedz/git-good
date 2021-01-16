@@ -1,8 +1,8 @@
-import { h, Component, Fragment } from "preact";
-
+import { h, Fragment } from "preact";
+import { PureComponent } from "preact/compat";
 import "./style.css";
 import { normalizeLocalName } from "../../Data/Branch";
-import { Locks } from "../../Data/Actions";
+import { BranchesObj, Locks } from "../../Data/Actions";
 import { subscribe, Store, unsubscribe, checkoutBranch, setState, StoreType } from "../../Data/Renderer/store";
 import { showHeadMenu, showLocalMenu, showOriginMenu, showRemoteMenu, showTagMenu } from "./Menu";
 import { BranchAheadBehind, toggleTreeItem, branchTree, listRemotes, getBranchTree, filterBranches } from "./Utils";
@@ -15,9 +15,11 @@ function triggerCheckoutBranch(e: h.JSX.TargetedMouseEvent<HTMLAnchorElement>) {
 
 type State = {
     filter: string
+    branches: StoreType["branches"]
+    lock: boolean
 }
 
-export default class BranchList extends Component<unknown, State> {
+export default class BranchList extends PureComponent<unknown, State> {
     componentDidMount() {
         subscribe(this.checkLocks, "locks");
         subscribe(this.update, "branches");
@@ -26,13 +28,13 @@ export default class BranchList extends Component<unknown, State> {
         unsubscribe(this.checkLocks, "locks");
         unsubscribe(this.update, "branches");
     }
-    update = () => {
-        this.setState({});
+    update = (branches: BranchesObj | null) => {
+        this.setState({branches});
     }
 
     checkLocks = (locks: StoreType["locks"]) => {
         if (Locks.BRANCH_LIST in locks) {
-            this.setState({});
+            this.setState({lock: locks[Locks.BRANCH_LIST]});
         }
     }
 
@@ -43,24 +45,24 @@ export default class BranchList extends Component<unknown, State> {
     }
 
     render() {
-        if (!Store.branches) {
+        if (!this.state.branches) {
             return <p>Loading...</p>
         }
 
         const branches = getBranchTree(
             this.state.filter
                 ? filterBranches(
-                    Store.branches,
+                    this.state.branches,
                     (value) => value.normalizedName.toLocaleLowerCase().includes(this.state.filter)
                 )
-                : Store.branches
+                : this.state.branches
         );
 
         const headRef = [];
-        if (Store.branches.head) {
-            headRef.push(<span>&nbsp;({normalizeLocalName(Store.branches.head.name)})</span>);
-            if (Store.heads[Store.branches.head.headSHA]) {
-                const aheadBehind = BranchAheadBehind(Store.heads[Store.branches.head.headSHA][0]);
+        if (this.state.branches.head) {
+            headRef.push(<span>&nbsp;({normalizeLocalName(this.state.branches.head.name)})</span>);
+            if (Store.heads[this.state.branches.head.headSHA]) {
+                const aheadBehind = BranchAheadBehind(Store.heads[this.state.branches.head.headSHA][0]);
                 if (aheadBehind.length > 0) {
                     headRef.push(<span>&nbsp;{aheadBehind}</span>);
                 }
@@ -69,12 +71,12 @@ export default class BranchList extends Component<unknown, State> {
 
         return (
             <Fragment>
-                <div id="branch-pane" className={`pane${Store.locks[Locks.BRANCH_LIST] ? " disabled" : ""}`}>
+                <div id="branch-pane" className={`pane${this.state.lock ? " disabled" : ""}`}>
                     <Links.Provider value="branches">
                         <h4>Refs</h4>
                         <ul className="block-list">
                             <li><Link selectAction={_ => setState({selectedBranch: {history: true}})}>History</Link></li>
-                            {Store.branches.head && <li><Link selectAction={_ => setState({selectedBranch: {branch: "HEAD"}})} onContextMenu={showHeadMenu} data-ref={Store.branches.head.name}>HEAD{headRef}</Link></li>}
+                            {this.state.branches.head && <li><Link selectAction={_ => setState({selectedBranch: {branch: "HEAD"}})} onContextMenu={showHeadMenu} data-ref={this.state.branches.head.name}>HEAD{headRef}</Link></li>}
                         </ul>
                         <hr />
                         {branches &&

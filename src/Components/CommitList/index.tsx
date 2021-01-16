@@ -1,4 +1,5 @@
-import { h, Component } from "preact";
+import { h } from "preact";
+import { PureComponent } from "preact/compat";
 import { sendAsyncMessage, unregisterHandler, registerHandler } from "src/Data/Renderer/IPC";
 import { IpcAction, IpcActionReturn, IpcActionReturnError, LoadCommitReturn, IpcActionParams, Locks } from "src/Data/Actions";
 import { clearLock, GlobalLinks, setLock, Store, StoreType, subscribe, unsubscribe } from "src/Data/Renderer/store";
@@ -19,7 +20,7 @@ type State = {
 const pageSize = 200;
 const historyLimit = 1000;
 
-export default class CommitList extends Component<unknown, State> {
+export default class CommitList extends PureComponent<unknown, State> {
     graph: {
         [sha: string]: {
             descendants: LoadCommitReturn[]

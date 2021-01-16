@@ -1,4 +1,5 @@
-import { h, Component } from "preact";
+import { h } from "preact";
+import { PureComponent } from "preact/compat";
 import { StoreType, subscribe, unsubscribe } from "src/Data/Renderer/store";
 import Commit from "src/Components/DiffPane/Commit";
 import WorkingArea from "src/Views/WorkingArea";
@@ -9,7 +10,7 @@ type State = {
     view: h.JSX.Element | null
 }
 
-export default class DiffPane extends Component<unknown, State> {
+export default class DiffPane extends PureComponent<unknown, State> {
     componentDidMount() {
         subscribe(this.loadCommitFromStore, "diffPaneSrc");
         subscribe(this.viewChanges, "viewChanges");
