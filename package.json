@@ -4,28 +4,23 @@
   "description": "Git good",
   "main": "dist/index.js",
   "scripts": {
+    "postinstall": "electron-builder install-app-deps",
     "start": "NODE_OPTIONS=\"--unhandled-rejections=strict\" electron .",
-    "start:forge": "electron-forge start",
-    "package": "electron-forge package",
-    "make": "electron-forge make",
-    "publish": "electron-forge publish",
+    "dist": "electron-builder",
     "build": "rm -r dist; rollup -c && cp -R static/* dist/",
     "build:watch": "mkdir dist; cp -R static/* dist/ && rollup -c -w",
     "lint": "eslint --ext .ts,.tsx ."
   },
   "keywords": [],
-  "author": "Linus Björklund <weedzcokie@gmail.com>",
+  "author": {
+    "name": "Linus Björklund",
+    "email": "weedzcokie@gmail.com"
+  },
   "files": [
     "dist"
   ],
   "license": "GPL-3.0-or-later",
   "devDependencies": {
-    "@electron-forge/cli": "^6.0.0-beta.53",
-    "@electron-forge/maker-deb": "^6.0.0-beta.53",
-    "@electron-forge/maker-rpm": "^6.0.0-beta.53",
-    "@electron-forge/maker-squirrel": "^6.0.0-beta.53",
-    "@electron-forge/maker-zip": "^6.0.0-beta.53",
-    "@electron-forge/plugin-auto-unpack-natives": "^6.0.0-beta.53",
     "@rollup/plugin-node-resolve": "^11.0.0",
     "@rollup/plugin-typescript": "^8.0.0",
     "@types/node": "^14.14.7",
@@ -33,6 +28,7 @@
     "@typescript-eslint/eslint-plugin": "^4.5.0",
     "@typescript-eslint/parser": "^4.5.0",
     "electron": "^11.1.1",
+    "electron-builder": "^22.9.1",
     "eslint": "^7.12.0",
     "eslint-config-preact": "^1.1.2",
     "eslint-plugin-import": "^2.22.1",
@@ -45,6 +41,18 @@
   },
   "dependencies": {
     "nodegit": "^0.27.0"
+  },
+  "build": {
+    "directories": {
+      "output": "out"
+    },
+    "linux": {
+      "category": "Development",
+      "target": [
+        "AppImage",
+        "deb"
+      ]
+    }
   },
   "repository": {
     "type": "git",
