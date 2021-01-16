@@ -13,6 +13,7 @@ jobs:
     steps:
       - name: Check out Git repository
         uses: actions/checkout@v1
+        run: apt-get install libssh-dev libkrb5-dev
 
       - name: Install Node.js, NPM and Yarn
         uses: actions/setup-node@v1
