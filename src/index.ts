@@ -332,12 +332,29 @@ const eventMap: {
     [IpcAction.DISCARD_FILE]: provider.discardChanges,
     [IpcAction.PULL]: provider.pull,
     [IpcAction.CREATE_BRANCH]: async (repo, data: IpcActionParams[IpcAction.CREATE_BRANCH]): Promise<IpcActionReturn[IpcAction.CREATE_BRANCH]> => {
-        return {result: await repo.createBranch(data.name, data.sha) !== null}
+        let res;
+        try {
+            res = await repo.createBranch(data.name, data.sha);
+        } catch (err) {
+            dialog.showErrorBox("Could not create branch", err.toString());
+        }
+        return {
+            result: res !== null
+        }
     },
     [IpcAction.CREATE_BRANCH_FROM_REF]: async (repo, data: IpcActionParams[IpcAction.CREATE_BRANCH_FROM_REF]): Promise<IpcActionReturn[IpcAction.CREATE_BRANCH_FROM_REF]> => {
         const ref = await repo.getReference(data.ref);
         const sha = ref.isTag() ? (await ref.peel(NodeGit.Object.TYPE.COMMIT)) as unknown as NodeGit.Commit : await repo.getReferenceCommit(data.ref);
-        return {result: await repo.createBranch(data.name, sha) !== null};
+        
+        let res;
+        try {
+            res = await repo.createBranch(data.name, sha);
+        } catch (err) {
+            dialog.showErrorBox("Could not create branch", err.toString());
+        }
+        return {
+            result: res !== null
+        };
     },
     [IpcAction.DELETE_REF]: async (repo, data: IpcActionParams[IpcAction.DELETE_REF]): Promise<IpcActionReturn[IpcAction.DELETE_REF]> => {
         const ref = await repo.getReference(data.name);
