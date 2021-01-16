@@ -1,6 +1,6 @@
 import { h } from "preact";
 import { LoadCommitReturn, RefType } from "src/Data/Actions";
-import { GlobalLinks, setState, Store } from "src/Data/Renderer/store";
+import { GlobalLinks, updateStore, Store } from "src/Data/Renderer/store";
 import { showLocalMenu, showRemoteMenu, showTagMenu } from "../BranchList/Menu";
 import Link from "../Link";
 import HeadColors from "./HeadColors";
@@ -17,7 +17,7 @@ type Props = {
 };
 
 function selectCommit(c: Link<string>) {
-    setState({diffPaneSrc: c.props.linkData});
+    updateStore({diffPaneSrc: c.props.linkData});
 }
 
 export default function CommitListItem({commit, graph}: Props) {
@@ -42,7 +42,7 @@ export default function CommitListItem({commit, graph}: Props) {
                             } else if (ref.type === RefType.TAG) {
                                 menu = showTagMenu;
                             }
-                            return <li><Link type="branches" onContextMenu={menu} selectAction={_ => setState({diffPaneSrc: null})} selectTarget={GlobalLinks.branches[ref.name]} style={{backgroundColor: HeadColors[graph[commit.sha].colorId].background}} data-ref={ref.name}>{ref.normalizedName}</Link></li>
+                            return <li><Link type="branches" onContextMenu={menu} selectAction={_ => updateStore({diffPaneSrc: null})} selectTarget={GlobalLinks.branches[ref.name]} style={{backgroundColor: HeadColors[graph[commit.sha].colorId].background}} data-ref={ref.name}>{ref.normalizedName}</Link></li>
                         })}
                     </ul>
                 }

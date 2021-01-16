@@ -3,7 +3,7 @@ import { PureComponent } from "preact/compat";
 import "./style.css";
 import { normalizeLocalName } from "../../Data/Branch";
 import { BranchesObj, Locks } from "../../Data/Actions";
-import { subscribe, Store, unsubscribe, checkoutBranch, setState, StoreType } from "../../Data/Renderer/store";
+import { subscribe, Store, unsubscribe, checkoutBranch, updateStore, StoreType } from "../../Data/Renderer/store";
 import { showHeadMenu, showLocalMenu, showOriginMenu, showRemoteMenu, showTagMenu } from "./Menu";
 import { BranchAheadBehind, toggleTreeItem, branchTree, listRemotes, getBranchTree, filterBranches } from "./Utils";
 import Link from "../Link";
@@ -75,8 +75,8 @@ export default class BranchList extends PureComponent<unknown, State> {
                     <Links.Provider value="branches">
                         <h4>Refs</h4>
                         <ul className="block-list">
-                            <li><Link selectAction={_ => setState({selectedBranch: {history: true}})}>History</Link></li>
-                            {this.state.branches.head && <li><Link selectAction={_ => setState({selectedBranch: {branch: "HEAD"}})} onContextMenu={showHeadMenu} data-ref={this.state.branches.head.name}>HEAD{headRef}</Link></li>}
+                            <li><Link selectAction={_ => updateStore({selectedBranch: {history: true}})}>History</Link></li>
+                            {this.state.branches.head && <li><Link selectAction={_ => updateStore({selectedBranch: {branch: "HEAD"}})} onContextMenu={showHeadMenu} data-ref={this.state.branches.head.name}>HEAD{headRef}</Link></li>}
                         </ul>
                         <hr />
                         {branches &&

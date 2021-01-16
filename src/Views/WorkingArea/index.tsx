@@ -5,7 +5,7 @@ import { CommitObj, IpcAction, IpcActionReturn, PatchObj } from "src/Data/Action
 import { registerHandler, unregisterHandler, sendAsyncMessage } from "src/Data/Renderer/IPC";
 import ChangedFiles from "src/Components/DiffPane/ChangedFiles";
 import { remote } from "electron";
-import { commit, setState, Store, StoreType, subscribe, unsubscribe } from "src/Data/Renderer/store";
+import { commit, updateStore, Store, StoreType, subscribe, unsubscribe } from "src/Data/Renderer/store";
 import { triggerAction } from "src/Components/Link";
 
 type State = {
@@ -100,7 +100,7 @@ export default class WorkingArea extends Component<unknown, State> {
     }
     commit = (e: h.JSX.TargetedEvent<HTMLInputElement, MouseEvent>) => {
         e.preventDefault();
-        setState({
+        updateStore({
             commitMsg: {
                 body: "",
                 summary: ""
@@ -120,7 +120,7 @@ export default class WorkingArea extends Component<unknown, State> {
         if (this.state.amend) {
             this.setState({commitMsg});
         } else {
-            setState({commitMsg});
+            updateStore({commitMsg});
         }
     }
     render() {

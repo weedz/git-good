@@ -1,6 +1,6 @@
 import { h } from "preact";
 import { BranchObj, BranchesObj } from "src/Data/Actions";
-import { GlobalLinks, setState } from "src/Data/Renderer/store";
+import { GlobalLinks, updateStore } from "src/Data/Renderer/store";
 import Link from "../Link";
 
 export type BranchTree = {
@@ -40,7 +40,7 @@ export function toggleTreeItem(e: h.JSX.TargetedMouseEvent<HTMLAnchorElement>) {
 }
 
 function selectAction(c: Link<string>) {
-    setState({selectedBranch: {branch: c.props.linkData}})
+    updateStore({selectedBranch: {branch: c.props.linkData}})
 }
 
 export function branchTree(branches: BranchTree, contextMenuCb?: (event: h.JSX.TargetedMouseEvent<HTMLAnchorElement>) => void, dblClickHandle?: (event: h.JSX.TargetedMouseEvent<HTMLAnchorElement>) => void, indent = 1) {

@@ -114,26 +114,26 @@ export function unsubscribe(cb: (arg?: any) => void, key?: KeyListeners): void {
     }
 }
 
-function triggerKeyListeners(newState: Pick<StoreType, KeyListeners>) {
-    for (const key in newState) {
+function triggerKeyListeners(newStore: Pick<StoreType, KeyListeners>) {
+    for (const key in newStore) {
         if (key in keyListeners) {
             for (const listener of keyListeners[key as KeyListeners]) {
-                listener(newState[key as KeyListeners]);
+                listener(newStore[key as KeyListeners]);
             }
         }
     }
 }
 
-export function setState(newState: Partial<StoreType>) {
-    Object.assign(store, newState);
+export function updateStore(newStore: Partial<StoreType>) {
+    Object.assign(store, newStore);
     for (const listener of listeners) {
-        listener(newState);
+        listener(newStore);
     }
-    triggerKeyListeners(newState as Pick<StoreType, KeyListeners>);
+    triggerKeyListeners(newStore as Pick<StoreType, KeyListeners>);
 }
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-function setStateDeep(paths: any[], data: any) {
+function setStoreDeep(paths: Array<string | number>, data: any) {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     let obj = store as any;
     for (const path of paths.slice(0, paths.length - 1)) {
@@ -141,13 +141,13 @@ function setStateDeep(paths: any[], data: any) {
     }
 
     const key = paths[paths.length - 1];
-    const newState = { [key]: data };
+    const newStore = { [key]: data };
 
-    Object.assign(obj[key], newState);
+    Object.assign(obj[key], newStore);
     // eslint-disable-next-line @typescript-eslint/ban-ts-comment
     // @ts-ignore
     for (const listener of keyListeners[paths[0]]) {
-        listener(newState);
+        listener(newStore);
     }
 }
 
@@ -166,7 +166,7 @@ export function checkoutBranch(branch: string) {
 }
 
 export function openFile(params: ({sha: string} | {workDir: true} | {compare: true}) & {patch: PatchObj}) {
-    setState({
+    updateStore({
         currentFile: {
             patch: params.patch
         }
@@ -191,7 +191,7 @@ export function openFile(params: ({sha: string} | {workDir: true} | {compare: tr
     }
 }
 export function closeFile() {
-    setState({
+    updateStore({
         currentFile: null
     });
     unselectLink("files");
@@ -206,12 +206,12 @@ export function continueRebase() {
 export function setLock(lock: keyof StoreType["locks"]) {
     const locks = store.locks;
     locks[lock] = true;
-    setStateDeep(["locks", lock], locks[lock]);
+    setStoreDeep(["locks", lock], locks[lock]);
 }
 export function clearLock(lock: keyof StoreType["locks"]) {
     const locks = store.locks;
     locks[lock] = false;
-    setStateDeep(["locks", lock], locks[lock]);
+    setStoreDeep(["locks", lock], locks[lock]);
 }
 
 export function createBranchFromSha(sha: string, name: string) {
@@ -262,7 +262,7 @@ export function commit(params: IpcActionParams[IpcAction.COMMIT]) {
 }
 
 export function openDialogWindow<T extends DialogTypes>(type: T, props: DialogProps[T]) {
-    setState({
+    updateStore({
         dialogWindow: {
             type,
             props
@@ -270,7 +270,7 @@ export function openDialogWindow<T extends DialogTypes>(type: T, props: DialogPr
     });
 }
 export function closeDialogWindow() {
-    setState({
+    updateStore({
         dialogWindow: null
     });
 }

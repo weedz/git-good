@@ -2,7 +2,7 @@ import { BranchesObj, BranchObj, IpcAction, IpcActionReturn, IpcActionReturnErro
 import { WindowArguments } from "../WindowEventTypes";
 import { openDialog_BlameFile, openDialog_CompareRevisions } from "./Dialogs";
 import { addWindowEventListener, registerHandler, sendAsyncMessage } from "./IPC";
-import { Store, clearLock, setLock, setState, StoreType, GlobalLinks, push } from "./store";
+import { Store, clearLock, setLock, updateStore, StoreType, GlobalLinks, push } from "./store";
 
 function refreshWorkdir() {
     sendAsyncMessage(IpcAction.REFRESH_WORKDIR);
@@ -19,7 +19,7 @@ function repoOpened(result: IpcActionReturn[IpcAction.OPEN_REPO] | IpcActionRetu
         loadBranches();
         refreshWorkdir();
         loadRemotes();
-        setState({
+        updateStore({
             repo: {
                 path: result.path,
                 status: result.status
@@ -29,7 +29,7 @@ function repoOpened(result: IpcActionReturn[IpcAction.OPEN_REPO] | IpcActionRetu
             },
         });
     } else {
-        setState({
+        updateStore({
             repo: null
         });
     }
@@ -59,7 +59,7 @@ function setStatus(status: RepoStatus) {
     const repo = Store.repo;
     if (repo) {
         repo.status = status;
-        setState({
+        updateStore({
             repo
         });
     }
@@ -69,7 +69,7 @@ function loadHunks(data: IpcActionReturn[IpcAction.LOAD_HUNKS]) {
     if (Store.currentFile && data.hunks) {
         const currentFile = Store.currentFile;
         currentFile.patch.hunks = data.hunks;
-        setState({
+        updateStore({
             currentFile
         });
     }
@@ -92,7 +92,7 @@ function branchesLoaded(branches: BranchesObj) {
     mapHeads(heads, branches.local);
     mapHeads(heads, branches.remote);
     mapHeads(heads, branches.tags);
-    setState({
+    updateStore({
         branches,
         heads
     });
@@ -102,7 +102,7 @@ function updateCurrentBranch(result: IpcActionReturn[IpcAction.CHECKOUT_BRANCH] 
     if (result && !("error" in result) && Store.branches) {
         const branches = Store.branches;
         branches.head = result;
-        setState({
+        updateStore({
             branches
         });
     }
@@ -112,7 +112,7 @@ function handleCompareRevisions(data: IpcActionReturn[IpcAction.OPEN_COMPARE_REV
     if ("error" in data) {
         console.warn(data.error);
     } else {
-        setState({
+        updateStore({
             comparePatches: data,
             // selectedBranch: undefined,
         });
@@ -133,13 +133,13 @@ function handlePushResult(res: IpcActionReturn[IpcAction.PUSH] | IpcActionReturn
 function handleNewCommit() {
     refreshWorkdir();
     loadBranches();
-    setState({
+    updateStore({
         selectedBranch: Store.selectedBranch
     });
 }
 
 function handleRemotes(data: IpcActionReturn[IpcAction.REMOTES]) {
-    setState({
+    updateStore({
         remotes: data.result
     });
 }
@@ -149,7 +149,7 @@ function handlePullHead(res: IpcActionReturn[IpcAction.PULL] | IpcActionReturnEr
         return;
     }
     loadBranches();
-    setState({
+    updateStore({
         selectedBranch: Store.selectedBranch
     });
 }
