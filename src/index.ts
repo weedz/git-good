@@ -435,10 +435,14 @@ async function continueRebase(repo: NodeGit.Repository): Promise<IpcActionReturn
 
 async function openRepoDialog() {
     const res = await dialog.showOpenDialog({
-        properties: ["openDirectory"]
+        properties: ["openDirectory"],
+        title: "Select a repository"
     });
 
     const opened = !res.canceled && await openRepo(res.filePaths[0]);
+    if (!res.canceled && !opened) {
+        dialog.showErrorBox("No repository", `'${res.filePaths[0]}' does not contain a git repository`);
+    }
     return {
         path: res.filePaths[0],
         opened,
