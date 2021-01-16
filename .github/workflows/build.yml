@@ -8,7 +8,8 @@ jobs:
 
     strategy:
       matrix:
-        os: [macos-latest, ubuntu-latest, windows-latest]
+        # os: [macos-latest, ubuntu-latest, windows-latest]
+        os: [ubuntu-latest]
 
     steps:
       - name: Check out Git repository
@@ -20,7 +21,7 @@ jobs:
           node-version: 14
 
       - name: Install build dependencies
-        run: apt-get install libssh-dev libkrb5-dev
+        run: sudo apt-get install libssh-dev libkrb5-dev
 
       - name: Build/release Electron app
         uses: samuelmeuli/action-electron-builder@v1
