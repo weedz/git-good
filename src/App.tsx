@@ -16,17 +16,12 @@ export default class App extends Component {
     componentDidMount() {
         subscribe(this.update, "repo");
         subscribe(this.checkLocks, "locks");
-        subscribe(this.updateDialogWindow, "dialogWindow");
         const path = process.argv[0];
         openRepo(path);
     }
     componentWillUnmount() {
         unsubscribe(this.update, "repo");
         unsubscribe(this.checkLocks, "locks");
-        unsubscribe(this.updateDialogWindow, "dialogWindow");
-    }
-    updateDialogWindow = (_: StoreType["dialogWindow"]) => {
-        this.setState({});
     }
     update = (repo: StoreType["repo"]) => {
         if (repo) {
