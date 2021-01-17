@@ -35,6 +35,8 @@ jobs:
       - name: Install node dependencies
         run: npm ci
       - name: Build
+        env:
+          GH_TOKEN: ${{ secrets.github_token }}
         run: npm run build && npm run dist
 
       - name: Publish
