@@ -10,7 +10,7 @@
     "publish": "electron-builder --publish always",
     "build": "rm -r dist; rollup -c && cp -R static/* dist/",
     "build:watch": "mkdir dist; cp -R static/* dist/ && rollup -c -w",
-    "lint": "eslint --ext .ts,.tsx ."
+    "lint": "eslint ."
   },
   "keywords": [],
   "author": {
