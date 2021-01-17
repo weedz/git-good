@@ -13,15 +13,17 @@ jobs:
 
     steps:
       - name: Check out Git repository
-        uses: actions/checkout@v1
+        uses: actions/checkout@v2
+
+      - name: Install build dependencies
+        run: sudo apt-get install libssh-dev libkrb5-dev
 
       - name: Install Node.js, NPM and Yarn
         uses: actions/setup-node@v1
         with:
-          node-version: 14
-
-      - name: Install build dependencies
-        run: sudo apt-get install libssh-dev libkrb5-dev
+          node-version: 15
+      # - name: Install node dependencies
+      #   run: npm ci
 
       - name: Build/release Electron app
         uses: samuelmeuli/action-electron-builder@v1

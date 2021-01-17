@@ -4,9 +4,9 @@
   "description": "Git good",
   "main": "dist/index.js",
   "scripts": {
-    "postinstall": "electron-builder install-app-deps",
+    "postinstall": "JOBS=max electron-builder install-app-deps",
     "start": "NODE_OPTIONS=\"--unhandled-rejections=strict\" electron .",
-    "dist": "electron-builder",
+    "dist": "JOBS=max electron-builder",
     "build": "rm -r dist; rollup -c && cp -R static/* dist/",
     "build:watch": "mkdir dist; cp -R static/* dist/ && rollup -c -w",
     "lint": "eslint --ext .ts,.tsx ."
