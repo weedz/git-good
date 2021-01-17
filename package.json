@@ -7,6 +7,7 @@
     "postinstall": "JOBS=max electron-builder install-app-deps",
     "start": "NODE_OPTIONS=\"--unhandled-rejections=strict\" electron .",
     "dist": "JOBS=max electron-builder",
+    "publish": "JOBS=max electron-builder --publish always",
     "build": "rm -r dist; rollup -c && cp -R static/* dist/",
     "build:watch": "mkdir dist; cp -R static/* dist/ && rollup -c -w",
     "lint": "eslint --ext .ts,.tsx ."
