@@ -36,6 +36,6 @@ to bundle javascript-files and move assets to the `dist/` directory.
 
 Now run
 ```bash
-$ npm run start:forge
+$ npm run dist
 ```
-to have `electron-forge` compile all the native dependencies etc. The app should launch in a few moments.
+to compile all the native dependencies etc. You can run this with `CC="ccache gcc" JOBS=max npm run dist` (omit `CC="ccache gcc"` if you don't have `ccache` installed) to speed up compile time.
