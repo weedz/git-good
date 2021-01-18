@@ -1,4 +1,4 @@
-import { Component, createRef, h } from "preact";
+import { createRef, h } from "preact";
 import { PureComponent } from "preact/compat";
 import { LinkTypes } from "src/Data/Renderer/store";
 import { Links } from "./LinkContainer";
