@@ -13,7 +13,7 @@ export type StoreType = {
         path: string
         status: null | RepoStatus
     }
-    branches: null | BranchesObj
+    branches: BranchesObj
     remotes: string[]
     heads: {
         [key: string]: BranchObj[]
@@ -37,7 +37,11 @@ export type StoreType = {
 
 const store: StoreType = {
     repo: null,
-    branches: null,
+    branches: {
+        remote: [],
+        local: [],
+        tags: []
+    },
     remotes: [],
     heads: {},
     currentFile: null,

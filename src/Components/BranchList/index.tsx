@@ -5,7 +5,7 @@ import { normalizeLocalName } from "../../Data/Branch";
 import { BranchesObj, BranchObj, Locks } from "../../Data/Actions";
 import { subscribe, Store, unsubscribe, checkoutBranch, updateStore, StoreType } from "../../Data/Renderer/store";
 import { showHeadMenu, showLocalMenu, showOriginMenu, showRemoteMenu, showTagMenu } from "./Menu";
-import { BranchAheadBehind, toggleTreeItem, branchTree, listRemotes, getBranchTree, filterBranches } from "./Utils";
+import { branchesAheadBehind, toggleTreeItem, getBranchTree, filterBranches, RenderBranchTree, RenderRemotes } from "./Utils";
 import Link from "../Link";
 import { Links } from "../LinkContainer";
 
@@ -13,11 +13,29 @@ function triggerCheckoutBranch(e: h.JSX.TargetedMouseEvent<HTMLAnchorElement>) {
     e.currentTarget.dataset.ref && checkoutBranch(e.currentTarget.dataset.ref);
 }
 
+function selectHistory() {
+    updateStore({selectedBranch: {history: true}});
+}
+function selectHead() {
+    updateStore({selectedBranch: {branch: "HEAD"}})
+}
+
 type State = {
     filter: string
-    branches: StoreType["branches"]
+    branches: ReturnType<typeof getBranchTree>;
     head: BranchObj | undefined
     lock: boolean
+}
+
+function branchesToTree(branches: BranchesObj, filter: string | null) {
+    return getBranchTree(
+        filter
+            ? filterBranches(
+                branches,
+                (value) => value.normalizedName.toLocaleLowerCase().includes(filter)
+            )
+            : branches
+    );
 }
 
 export default class BranchList extends PureComponent<unknown, State> {
@@ -29,9 +47,9 @@ export default class BranchList extends PureComponent<unknown, State> {
         unsubscribe(this.checkLocks, "locks");
         unsubscribe(this.update, "branches");
     }
-    update = (branches: BranchesObj | null) => {
+    update = (branches: BranchesObj) => {
         this.setState({
-            branches,
+            branches: branchesToTree(branches, this.state.filter),
             head: branches?.head
         });
     }
@@ -43,9 +61,13 @@ export default class BranchList extends PureComponent<unknown, State> {
     }
 
     filter = (e: h.JSX.TargetedKeyboardEvent<HTMLInputElement>) => {
-        e.currentTarget.value !== this.state.filter && this.setState({
-            filter: e.currentTarget.value.toLocaleLowerCase()
-        });
+        if (e.currentTarget.value !== this.state.filter) {
+            const filterValue = e.currentTarget.value.toLocaleLowerCase();
+            this.setState({
+                branches: branchesToTree(Store.branches, filterValue),
+                filter: filterValue
+            });
+        }
     }
 
     render() {
@@ -53,20 +75,11 @@ export default class BranchList extends PureComponent<unknown, State> {
             return <p>Loading...</p>
         }
 
-        const branches = getBranchTree(
-            this.state.filter
-                ? filterBranches(
-                    this.state.branches,
-                    (value) => value.normalizedName.toLocaleLowerCase().includes(this.state.filter)
-                )
-                : this.state.branches
-        );
-
         const headRef = [];
-        if (this.state.branches.head) {
-            headRef.push(<span>&nbsp;({normalizeLocalName(this.state.branches.head.name)})</span>);
-            if (Store.heads[this.state.branches.head.headSHA]) {
-                const aheadBehind = BranchAheadBehind(Store.heads[this.state.branches.head.headSHA][0]);
+        if (this.state.head) {
+            headRef.push(<span>&nbsp;({normalizeLocalName(this.state.head.name)})</span>);
+            if (Store.heads[this.state.head.headSHA]) {
+                const aheadBehind = branchesAheadBehind(Store.heads[this.state.head.headSHA][0]);
                 if (aheadBehind.length > 0) {
                     headRef.push(<span>&nbsp;{aheadBehind}</span>);
                 }
@@ -79,25 +92,25 @@ export default class BranchList extends PureComponent<unknown, State> {
                     <Links.Provider value="branches">
                         <h4>Refs</h4>
                         <ul className="block-list">
-                            <li><Link selectAction={_ => updateStore({selectedBranch: {history: true}})}>History</Link></li>
-                            {this.state.branches.head && <li><Link selectAction={_ => updateStore({selectedBranch: {branch: "HEAD"}})} onContextMenu={showHeadMenu} data-ref={this.state.branches.head.name}>HEAD{headRef}</Link></li>}
+                            <li><Link selectAction={selectHistory}>History</Link></li>
+                            {this.state.head && <li><Link selectAction={selectHead} onContextMenu={showHeadMenu} linkData={this.state.head.name} data-ref={this.state.head.name}>HEAD{headRef}</Link></li>}
                         </ul>
                         <hr />
-                        {branches &&
+                        {this.state.branches &&
                         <ul className="tree-list block-list">
                             <li className="sub-tree">
                                 <a href="#" onClick={toggleTreeItem}>Local</a>
-                                {branchTree(branches.local, showLocalMenu, triggerCheckoutBranch)}
+                                <RenderBranchTree branches={this.state.branches.local} contextMenu={showLocalMenu} dblClick={triggerCheckoutBranch} indent={1} />
                             </li>
                             <hr />
                             <li className="sub-tree">
                                 <a href="#" onClick={toggleTreeItem}>Remote</a>
-                                {listRemotes(branches.remote, showOriginMenu, showRemoteMenu)}
+                                <RenderRemotes branches={this.state.branches.remote} originContextMenu={showOriginMenu} contextMenu={showRemoteMenu} />
                             </li>
                             <hr />
                             <li className="sub-tree">
                                 <a href="#" onClick={toggleTreeItem}>Tags</a>
-                                {branchTree(branches.tags, showTagMenu)}
+                                <RenderBranchTree branches={this.state.branches.tags} contextMenu={showTagMenu} indent={1} />
                             </li>
                         </ul>}
                     </Links.Provider>

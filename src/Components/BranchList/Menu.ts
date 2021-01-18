@@ -117,7 +117,7 @@ headMenu.append(new MenuItem({
     label: 'Push...',
     async click() {
         const ref = contextMenuState.data.ref;
-        const headSHA = Store.branches?.head?.headSHA;
+        const headSHA = Store.branches.head?.headSHA;
         if (!headSHA) {
             return remote.dialog.showErrorBox("Invalid reference", ref);
         }

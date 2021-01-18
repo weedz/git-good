@@ -99,11 +99,10 @@ function branchesLoaded(branches: BranchesObj) {
 }
 function updateCurrentBranch(result: IpcActionReturn[IpcAction.CHECKOUT_BRANCH] | IpcActionReturnError) {
     clearLock(Locks.MAIN);
-    if (result && !("error" in result) && Store.branches) {
-        const branches = Store.branches;
-        branches.head = result;
+    if (result && !("error" in result)) {
+        Store.branches.head = result;
         updateStore({
-            branches
+            branches: Store.branches
         });
     }
 }

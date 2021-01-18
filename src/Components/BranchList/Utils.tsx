@@ -13,7 +13,7 @@ export type BranchTree = {
     }>
 };
 
-export function BranchAheadBehind(ref: BranchObj) {
+export function branchesAheadBehind(ref: BranchObj) {
     const aheadbehind = [];
     if (ref.status) {
         if (ref.status.ahead) {
@@ -43,24 +43,28 @@ function selectAction(c: Link<string>) {
     updateStore({selectedBranch: {branch: c.props.linkData}})
 }
 
-export function branchTree(branches: BranchTree, contextMenuCb?: (event: h.JSX.TargetedMouseEvent<HTMLAnchorElement>) => void, dblClickHandle?: (event: h.JSX.TargetedMouseEvent<HTMLAnchorElement>) => void, indent = 1) {
+export function RenderBranchTree(props: {
+    branches: BranchTree
+    contextMenu?: (event: h.JSX.TargetedMouseEvent<HTMLAnchorElement>) => void
+    dblClick?: (event: h.JSX.TargetedMouseEvent<HTMLAnchorElement>) => void
+    indent: number
+}) {
     const items = [];
-    if (branches.subtree) {
-        for (const item of Object.keys(branches.subtree)) {
-            const children = branchTree(branches.subtree[item], contextMenuCb, dblClickHandle, indent + 1);
+    if (props.branches.subtree) {
+        for (const item of Object.keys(props.branches.subtree)) {
             items.push(
                 <li className="sub-tree" key={item}>
-                    <a style={{textIndent: `${indent}em`}} href="#" onClick={toggleTreeItem}>{item}</a>
-                    {children}
+                    <a style={{textIndent: `${props.indent}em`}} href="#" onClick={toggleTreeItem}>{item}</a>
+                    <RenderBranchTree branches={props.branches.subtree[item]} contextMenu={props.contextMenu} dblClick={props.dblClick} indent={props.indent + 1} />
                 </li>
             );
         }
     }
-    if (branches.items) {
-        for (const branch of branches.items) {
+    if (props.branches.items) {
+        for (const branch of props.branches.items) {
             const link = (
-                <Link style={{textIndent: `${indent}em`}} selectAction={selectAction} onDblClick={dblClickHandle} onContextMenu={contextMenuCb} data-ref={branch.ref.name} linkData={branch.ref.name}>
-                    {branch.name}&nbsp;{BranchAheadBehind(branch.ref)}
+                <Link style={{textIndent: `${props.indent}em`}} selectAction={selectAction} onDblClick={props.dblClick} onContextMenu={props.contextMenu} data-ref={branch.ref.name} linkData={branch.ref.name}>
+                    {branch.name}&nbsp;{branchesAheadBehind(branch.ref)}
                 </Link>
             ) as unknown as Link;
             GlobalLinks.branches[branch.ref.name] = link;
@@ -75,17 +79,21 @@ export function branchTree(branches: BranchTree, contextMenuCb?: (event: h.JSX.T
         </ul>
     );
 }
-export function listRemotes(branches: BranchTree, originContextMenuCb: (event: h.JSX.TargetedMouseEvent<HTMLAnchorElement>) => void, contextMenuCb: (event: h.JSX.TargetedMouseEvent<HTMLAnchorElement>) => void) {
-    if (!branches.subtree) {
-        return;
+
+export function RenderRemotes(props: {
+    branches: BranchTree
+    originContextMenu: (event: h.JSX.TargetedMouseEvent<HTMLAnchorElement>) => void
+    contextMenu: (event: h.JSX.TargetedMouseEvent<HTMLAnchorElement>) => void
+}) {
+    if (!props.branches.subtree) {
+        return null;
     }
     const items = [];
-    for (const item of Object.keys(branches.subtree)) {
-        const children = branchTree(branches.subtree[item], contextMenuCb, undefined, 2);
+    for (const item of Object.keys(props.branches.subtree)) {
         items.push(
             <li className="sub-tree">
-                <a style={{textIndent: "1em"}} onContextMenu={originContextMenuCb} href="#" onClick={toggleTreeItem}>{item}</a>
-                {children}
+                <a style={{textIndent: "1em"}} onContextMenu={props.originContextMenu} href="#" onClick={toggleTreeItem}>{item}</a>
+                <RenderBranchTree branches={props.branches.subtree[item]} contextMenu={props.contextMenu} indent={2} />
             </li>
         );
     }
