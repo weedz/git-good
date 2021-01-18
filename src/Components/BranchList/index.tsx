@@ -2,7 +2,7 @@ import { h, Fragment } from "preact";
 import { PureComponent } from "preact/compat";
 import "./style.css";
 import { normalizeLocalName } from "../../Data/Branch";
-import { BranchesObj, Locks } from "../../Data/Actions";
+import { BranchesObj, BranchObj, Locks } from "../../Data/Actions";
 import { subscribe, Store, unsubscribe, checkoutBranch, updateStore, StoreType } from "../../Data/Renderer/store";
 import { showHeadMenu, showLocalMenu, showOriginMenu, showRemoteMenu, showTagMenu } from "./Menu";
 import { BranchAheadBehind, toggleTreeItem, branchTree, listRemotes, getBranchTree, filterBranches } from "./Utils";
@@ -16,6 +16,7 @@ function triggerCheckoutBranch(e: h.JSX.TargetedMouseEvent<HTMLAnchorElement>) {
 type State = {
     filter: string
     branches: StoreType["branches"]
+    head: BranchObj | undefined
     lock: boolean
 }
 
@@ -29,7 +30,10 @@ export default class BranchList extends PureComponent<unknown, State> {
         unsubscribe(this.update, "branches");
     }
     update = (branches: BranchesObj | null) => {
-        this.setState({branches});
+        this.setState({
+            branches,
+            head: branches?.head
+        });
     }
 
     checkLocks = (locks: StoreType["locks"]) => {
