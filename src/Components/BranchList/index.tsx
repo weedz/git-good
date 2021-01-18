@@ -42,15 +42,21 @@ export default class BranchList extends PureComponent<unknown, State> {
     componentDidMount() {
         subscribe(this.checkLocks, "locks");
         subscribe(this.update, "branches");
+        subscribe(this.updateHead, "head");
     }
     componentWillUnmount() {
         unsubscribe(this.checkLocks, "locks");
         unsubscribe(this.update, "branches");
+        unsubscribe(this.updateHead, "head");
     }
     update = (branches: BranchesObj) => {
         this.setState({
             branches: branchesToTree(branches, this.state.filter),
-            head: branches?.head
+        });
+    }
+    updateHead = (head: BranchObj | undefined) => {
+        this.setState({
+            head
         });
     }
 

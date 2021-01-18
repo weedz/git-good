@@ -1,4 +1,5 @@
 import { Component, createRef, h } from "preact";
+import { PureComponent } from "preact/compat";
 import { LinkTypes } from "src/Data/Renderer/store";
 import { Links } from "./LinkContainer";
 
@@ -17,9 +18,6 @@ type Props<T> = {
     type?: LinkTypes
 } & h.JSX.HTMLAttributes<HTMLAnchorElement>
 
-type State = {
-    selected: boolean
-}
 
 export function unselectLink(type: LinkTypes) {
     const prevLink = selectedLinks[type];
@@ -36,7 +34,7 @@ export function triggerAction(type: LinkTypes) {
     }
 }
 
-export default class Link<T = never> extends Component<Props<T>, State> {
+export default class Link<T = never> extends PureComponent<Props<T>, {selected: boolean}> {
     ref = createRef<HTMLAnchorElement>();
     type!: LinkTypes;
 
@@ -80,9 +78,6 @@ export default class Link<T = never> extends Component<Props<T>, State> {
             prevLink.setState({selected: false});
         }
     }
-    shouldComponentUpdate(nextProps: Props<T>, nextState: State) {
-        return nextProps.selectAction !== this.props.selectAction || nextProps.linkData !== this.props.linkData || nextState.selected !== this.state.selected;
-    }
     componentWillUnmount() {
         if (selectedLinks[this.type] === this) {
             selectedLinks[this.type] = null;
@@ -101,7 +96,7 @@ export default class Link<T = never> extends Component<Props<T>, State> {
             classNames.push(props.className);
             delete props.className;
         }
-        if (this.state.selected) {
+        if (selectedLinks[this.type] === this) {
             classNames.push("selected");
         }
 

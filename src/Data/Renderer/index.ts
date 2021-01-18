@@ -1,4 +1,4 @@
-import { BranchesObj, BranchObj, IpcAction, IpcActionReturn, IpcActionReturnError, Locks, RepoStatus } from "../Actions";
+import { BranchObj, IpcAction, IpcActionReturn, IpcActionReturnError, Locks, RepoStatus } from "../Actions";
 import { WindowArguments } from "../WindowEventTypes";
 import { openDialog_BlameFile, openDialog_CompareRevisions } from "./Dialogs";
 import { addWindowEventListener, registerHandler, sendAsyncMessage } from "./IPC";
@@ -83,26 +83,26 @@ function mapHeads(heads: StoreType["heads"], refs: BranchObj[]) {
         heads[ref.headSHA].push(ref);
     }
 }
-function branchesLoaded(branches: BranchesObj) {
+function branchesLoaded(result: IpcActionReturn[IpcAction.LOAD_BRANCHES]) {
     clearLock(Locks.BRANCH_LIST);
     const heads: StoreType["heads"] = {};
 
     GlobalLinks.branches = {};
 
-    mapHeads(heads, branches.local);
-    mapHeads(heads, branches.remote);
-    mapHeads(heads, branches.tags);
+    mapHeads(heads, result.local);
+    mapHeads(heads, result.remote);
+    mapHeads(heads, result.tags);
     updateStore({
-        branches,
+        branches: result,
+        head: result.head,
         heads
     });
 }
 function updateCurrentBranch(result: IpcActionReturn[IpcAction.CHECKOUT_BRANCH] | IpcActionReturnError) {
     clearLock(Locks.MAIN);
     if (result && !("error" in result)) {
-        Store.branches.head = result;
         updateStore({
-            branches: Store.branches
+            head: result
         });
     }
 }

@@ -93,7 +93,7 @@ export type IpcActionParams = {
 
 export type IpcActionReturn = {
     [IpcAction.LOAD_COMMITS]: LoadCommitsReturn
-    [IpcAction.LOAD_BRANCHES]: BranchesObj
+    [IpcAction.LOAD_BRANCHES]: BranchesObj & {head: BranchObj}
     [IpcAction.OPEN_REPO]: {
         opened: boolean
         path: string
@@ -227,7 +227,6 @@ export type BranchesObj = {
     remote: BranchObj[]
     local: BranchObj[]
     tags: BranchObj[]
-    head?: BranchObj
 };
 interface LoadCommitsParamSha {
     sha: string

@@ -14,6 +14,7 @@ export type StoreType = {
         status: null | RepoStatus
     }
     branches: BranchesObj
+    head?: BranchObj
     remotes: string[]
     heads: {
         [key: string]: BranchObj[]
@@ -42,6 +43,7 @@ const store: StoreType = {
         local: [],
         tags: []
     },
+    head: undefined,
     remotes: [],
     heads: {},
     currentFile: null,
@@ -72,7 +74,7 @@ export const contextMenuState: {data: {[name: string]: string}} = {
     data: {}
 };
 
-type KeyListeners = "repo" | "branches" | "heads" | "currentFile" | "locks" | "dialogWindow" | "selectedBranch" | "diffPaneSrc" | "viewChanges" | "comparePatches" | "commitMsg";
+type KeyListeners = "repo" | "branches" | "head" | "heads" | "currentFile" | "locks" | "dialogWindow" | "selectedBranch" | "diffPaneSrc" | "viewChanges" | "comparePatches" | "commitMsg";
 
 type StoreListener = (arg: Partial<StoreType>) => void;
 type PartialStoreListener<T extends KeyListeners> = (arg: StoreType[T]) => void;
@@ -83,6 +85,7 @@ const keyListeners: {
 } = {
     repo: [],
     branches: [],
+    head: [],
     heads: [],
     currentFile: [],
     locks: [],
