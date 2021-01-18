@@ -1,7 +1,7 @@
 {
   "compilerOptions": {
     "module": "ESNext",
-    "target": "ES2019",
+    "target": "ESNext",
     "strict": true,
     "jsx": "react",
     "jsxFactory": "h",
@@ -12,7 +12,8 @@
     "typeRoots": [
       "./types",
       "./node_modules/@types"
-    ]
+    ],
+    "useDefineForClassFields": true
   },
   "include": [
     "src/"
