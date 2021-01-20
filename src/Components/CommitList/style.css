@@ -27,7 +27,7 @@
 }
 
 .short > a:not(.selected):hover {
-  background-color: #333;
+  background-color: #1c2122;
 }
 
 .short .msg {

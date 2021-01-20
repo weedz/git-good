@@ -7,7 +7,7 @@ body {
   margin: 0;
   padding: 0;
   background-color: #000;
-  color: #fff;
+  color: #ddd;
   font-family: "JetBrains Mono NL", monospace;
   font-size: 13px;
 }
@@ -21,7 +21,18 @@ ul {
 }
 a {
   text-decoration: none;
-  color: #fff;
+  color: #ddd;
+}
+input[type="text"],
+textarea {
+  background-color: #222;
+  border: 1px solid #444;
+  padding: 3px;
+  color: #ddd;
+}
+input[type="text"]:focus,
+textarea:focus {
+  outline: none;
 }
 
 #main-window {
@@ -39,12 +50,12 @@ a {
   flex-direction: row;
 }
 .pane {
-  border: 1px solid #fff;
+  border: 1px solid #999;
   margin: 3px;
   padding: 4px;
 }
 .pane.active {
-  border: 2px solid #fff;
+  border: 2px solid #999;
   padding: 3px;
   margin: 3px;
 }
@@ -72,8 +83,8 @@ a {
 
 .selected,
 .selected * {
-  color: #000;
-  background-color: #fff;
+  color: #eee;
+  background-color: #3b4749
 }
 
 .diff-line-marking {
@@ -93,7 +104,7 @@ ul.block-list > li > a {
   display: block;
 }
 ul.block-list > li > a:not(.selected):hover {
-  background-color: #333;
+  background-color: #1c2122;
 }
 
 .disabled {

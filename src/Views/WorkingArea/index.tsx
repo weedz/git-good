@@ -143,8 +143,8 @@ export default class WorkingArea extends Component<unknown, State> {
                 </div>
                 <div>
                     <h4>Commit</h4>
-                    <form className="inset">
-                        <input type="text" name="summary" placeholder="Summary" value={this.state.commitMsg.summary} onKeyUp={(e: h.JSX.TargetedEvent<HTMLInputElement, KeyboardEvent>) => {
+                    <form>
+                        <input type="text" style={{width: "100%"}} name="summary" placeholder="Summary" value={this.state.commitMsg.summary} onKeyUp={(e: h.JSX.TargetedEvent<HTMLInputElement, KeyboardEvent>) => {
                             this.updateMessage({summary: e.currentTarget.value});
                         }} />
                         <br />
