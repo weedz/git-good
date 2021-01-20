@@ -2,7 +2,7 @@
     position: fixed;
     left: 0;
     z-index: 1;
-    height: calc(100vh - 6px);
+    height: calc(100% - 6px);
     /* TODO: fix layout.. */
     width: calc(100vw - 325px - 12px);
     background-color: #000;
@@ -16,6 +16,7 @@
 #file-diff > ul.hunks {
     overflow-y: auto;
     display: grid;
+    will-change: transform;
 }
 ul.hunks.inline {
     grid-template-columns: repeat(2, fit-content(20px)) 14px auto;

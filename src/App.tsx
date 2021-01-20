@@ -47,15 +47,15 @@ export default class App extends Component {
             );
         }
         return (
-                <div id="main-window" className={Store.locks[Locks.MAIN] ? "disabled" : ""}>
-                    <Dialog />
-                    <div id="left-pane">
-                        <Changes />
-                        <BranchList />
-                    </div>
-                    <FileDiff />
-                    <Main />
+            <div id="main-window" className={Store.locks[Locks.MAIN] ? "disabled" : ""}>
+                <Dialog />
+                <div id="left-pane">
+                    <Changes />
+                    <BranchList />
                 </div>
+                <FileDiff />
+                <Main />
+            </div>
         );
     }
 }

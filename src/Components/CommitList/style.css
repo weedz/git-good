@@ -7,6 +7,7 @@
 #commits-container {
   flex-grow: 1;
   overflow: auto;
+  will-change: transform;
 }
 #commits-pane > #commits-container > ul {
   user-select: none;
@@ -77,14 +78,10 @@
   padding-left: 3px;
   padding-right: 3px;
 }
-.commit-graph > li {
-  display: none;
-}
 
 .graph-container {
   overflow: hidden;
   position: relative;
-
   margin: 2px;
   flex: none;
   display: flex;
@@ -103,6 +100,10 @@
   height: 16px;
 }
 
+.graph-container .commit-graph {
+  display: none;
+}
+
 .graph-container:hover {
   overflow: visible;
   z-index: 9999;
@@ -114,7 +115,5 @@
   left: 0;
   border: 1px solid #777;
   padding: 3px;
-}
-.graph-container:hover .commit-graph > li {
   display: block;
 }

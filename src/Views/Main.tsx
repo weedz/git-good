@@ -6,7 +6,6 @@ export default function Main() {
     return (
         <div style={{
             display: "flex",
-            height: "100vh",
             width: "calc(100vw - 200px)",
             overflowY: "auto",
         }}>
