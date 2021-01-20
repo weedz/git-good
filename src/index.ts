@@ -488,9 +488,8 @@ async function initGetComits(repo: NodeGit.Repository, params: IpcActionParams[I
         else if ("branch" in params) {
             branch = params.branch;
             if (params.branch.includes("refs/tags")) {
-                const tag = await repo.getTagByName(params.branch);
-                const target = tag.targetId();
-                start = await repo.getCommit(target.tostrS());
+                const ref = await repo.getReference(params.branch);
+                start = await ref.peel(NodeGit.Object.TYPE.COMMIT) as unknown as NodeGit.Commit;
             } else {
                 start = await repo.getReferenceCommit(params.branch);
             }

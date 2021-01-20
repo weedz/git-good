@@ -234,14 +234,9 @@ export async function getBranches(repo: Repository): Promise<IpcActionReturn[Ipc
                 refObj.type = RefType.REMOTE;
                 remote.push(refObj);
             } else if (ref.isTag()) {
-                try {
-                    await repo.getTagByName(refObj.name);
-                    refObj.normalizedName = normalizeTagName(refObj.name);
-                    refObj.type = RefType.TAG;
-                    tags.push(refObj);
-                } catch (err) {
-                    // invalid tag?
-                }
+                refObj.normalizedName = normalizeTagName(refObj.name);
+                refObj.type = RefType.TAG;
+                tags.push(refObj);
             }
         })
     );
