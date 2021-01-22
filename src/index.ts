@@ -1,5 +1,5 @@
 import { join } from "path";
-import { app, BrowserWindow, ipcMain, Menu, dialog, shell, MenuItemConstructorOptions, IpcMainEvent } from "electron";
+import { app, BrowserWindow, ipcMain, Menu, dialog, shell, MenuItemConstructorOptions, IpcMainEvent, screen } from "electron";
 import { spawn } from "child_process";
 
 import * as NodeGit from "nodegit";
@@ -15,12 +15,21 @@ const isWindows = process.platform === "win32";
 
 let win: BrowserWindow;
 const createWindow = () => {
+    const cursorPosition = screen.getCursorScreenPoint();
+    const activeDisplay = screen.getDisplayNearestPoint(cursorPosition);
+
+    const initialWindowWidth = 1024;
+    const initialWindowHeight = 600;
+
+
     // Create the browser window.
     win = new BrowserWindow({
-        height: 600,
-        width: 1024,
-        minHeight: 600,
-        minWidth: 1024,
+        x: activeDisplay.bounds.x + activeDisplay.size.width / 2 - initialWindowWidth / 2,
+        y: activeDisplay.bounds.y + activeDisplay.size.height / 2 - initialWindowHeight / 2,
+        height: initialWindowHeight,
+        width: initialWindowWidth,
+        minHeight: initialWindowHeight,
+        minWidth: initialWindowWidth,
         webPreferences: {
             nodeIntegration: true,
             enableRemoteModule: true,
