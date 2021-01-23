@@ -58,18 +58,12 @@
 .commit-refs > li:first-child {
   display: block;
 }
-.commit-refs-container:hover .commit-refs {
-  position: absolute;
-  overflow: visible;
-  left: 0;
-}
 .commit-refs-container:hover .commit-refs > li {
   background-color: rgb(0, 0, 0);
   display: block;
 }
 .commit-refs-container:hover .commit-refs > li:hover {
   background-color: rgb(51, 51, 51);
-  display: block;
 }
 .commit-refs-container .commit-refs > li > a {
   height: 20px;
