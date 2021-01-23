@@ -142,6 +142,11 @@ export default class WorkingArea extends StoreComponent<unknown, State> {
         let commitButton;
         if (this.state.amend) {
             commitButton = <input type="submit" name="amend" value="Amend" onClick={this.commit} disabled={!this.state.commitMsg.summary.length} />
+        } else if (Store.repo?.status?.rebasing) {
+            commitButton = <input type="submit" name="amend" value="Continue rebase" onClick={(e) => {
+                e.preventDefault();
+                console.log("continue rebase");
+            }} />
         } else {
             commitButton = <input type="submit" name="commit" value="Commit" onClick={this.commit} disabled={!this.state.staged?.length || !this.state.commitMsg.summary.length} />
         }

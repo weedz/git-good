@@ -1,8 +1,8 @@
-import * as path from "path";
+import { join } from "path";
 import { promises as fs } from "fs";
 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
 // @ts-ignore, missing declations for Credential
-import { Credential, Repository, Revwalk, Commit, Diff, ConvenientPatch, ConvenientHunk, DiffLine, Object, Branch, Graph, Index, Reset, Checkout, DiffFindOptions, Reference, Oid, Signature, Merge, Remote, DiffOptions } from "nodegit";
+import { Credential, Repository, Revwalk, Commit, Diff, ConvenientPatch, ConvenientHunk, DiffLine, Object, Branch, Graph, Index, Reset, Checkout, DiffFindOptions, Reference, Oid, Signature, Merge, Remote, DiffOptions, IndexEntry } from "nodegit";
 import { IpcAction, BranchObj, LineObj, HunkObj, PatchObj, CommitObj, IpcActionParams, IpcActionReturn, RefType } from "../Actions";
 import { normalizeLocalName, normalizeRemoteName, normalizeRemoteNameWithoutRemote, normalizeTagName, remoteName } from "../Branch";
 import { dialog, IpcMainEvent } from "electron";
@@ -38,6 +38,16 @@ export function authenticate(username: string, auth: Auth) {
         return Credential.userpassPlaintextNew(auth.username, auth.password);
     }
 }
+
+export async function openRepo(repoPath: string) {
+    try {
+        repo = await Repository.open(repoPath);
+    } catch (e) {
+        return false;
+    }
+    return repo;
+}
+
 type HistoryCommit = {
     parents: string[]
     sha: string,
@@ -489,7 +499,7 @@ export async function stageFile(repo: Repository, filePath: string): Promise<Ipc
     try {
         // if fs.access throws the file does not exist on the filesystem
         // and needs to be removed from the index
-        await fs.access(path.join(repo.workdir(), filePath));
+        await fs.access(join(repo.workdir(), filePath));
         result = await index.addByPath(filePath);
     } catch (err) {
         result = await index.removeByPath(filePath);
@@ -518,7 +528,7 @@ export async function discardChanges(repo: Repository, filePath: string): Promis
             cancelId: 1,
         });
         if (result.response === 0) {
-            await fs.unlink(path.join(repo.workdir(), filePath));
+            await fs.unlink(join(repo.workdir(), filePath));
         }
         return 0;
     }
@@ -579,7 +589,7 @@ export async function loadChanges(): Promise<IpcActionReturn[IpcAction.GET_CHANG
 }
 export async function getWorkdirHunks(path: string, type: "staged" | "unstaged") {
     const patch = workDirIndexPathMap[type][path];
-    return loadHunks(patch);
+    return loadHunks(patch, path);
 }
 
 function handleLine(line: DiffLine): LineObj {
@@ -613,16 +623,20 @@ async function handleHunk(hunk: ConvenientHunk): Promise<HunkObj> {
 export async function getHunks(repo: Repository, sha: string, path: string): Promise<false | HunkObj[]> {
     const patch = commitObjectCache[sha]?.patches[path];
     if (patch) {
-        return loadHunks(patch);
+        return loadHunks(patch, path);
     }
     return false;
 }
 export async function hunksFromCompare(path: string): Promise<false | HunkObj[]> {
-    return loadHunks(compareObjCache.patches[path]);
+    return loadHunks(compareObjCache.patches[path], path);
 }
-async function loadHunks(patch: ConvenientPatch) {
+async function loadHunks(patch: ConvenientPatch, path?: string) {
     if (!patch) {
         return false;
+    }
+
+    if (patch.isConflicted() && path) {
+        return loadConflictedPatch(path);
     }
 
     const hunks = await patch.hunks();
@@ -686,10 +700,99 @@ export async function diff_file_at_commit(repo: Repository, file: string, sha: s
     return patchObj;
 }
 
-export async function resolveConflict(path: string) {
+async function loadConflictedPatch(path: string): Promise<HunkObj[]> {
+    const conflictEntry = await index.conflictGet(path || "") as unknown as {ancestor_out: IndexEntry, our_out: IndexEntry | null, their_out: IndexEntry | null};
+
+    if (!conflictEntry.their_out) {
+        return [{
+            header: "Their file deleted!, ('our' is refering to the branch we are rebasing onto. 'their' is the branch we are rebasing from)",
+            lines: [],
+        }];
+    }
+
+    if (!conflictEntry.our_out) {
+        return [{
+            header: "Our file deleted!, ('our' is refering to the branch we are rebasing onto. 'their' is the branch we are rebasing from)",
+            lines: [],
+        }];
+    }
+    
+    // const ancestor = await repo.getBlob(conflictEntry.ancestor_out.id);
+    // const theirs = await repo.getBlob(conflictEntry.their_out.id);
+    // const ours = await repo.getBlob(conflictEntry.our_out.id);
+
+    // console.log(theirs.content().toString());
+
+    // TODO: Parse conflicted file in index, eg. readfile(path)?
+
+
+    return [{
+        header: "",
+        lines: [
+            {
+                type: "",
+                newLineno: 1,
+                oldLineno: 1,
+                content: ""
+            }
+        ]
+    }]
+}
+
+export async function resolveConflict(repo: Repository, path: string) {
+    const conflictEntry = await index.conflictGet(path || "") as unknown as {ancestor_out: IndexEntry, our_out: IndexEntry | null, their_out: IndexEntry | null};
+
+    if (!conflictEntry.our_out) {
+        const res = await dialog.showMessageBox({
+            message: `"Our" file deleted. 'Yes' to stage the existing file, 'No' to stage a "delete"?`,
+            type: "question",
+            buttons: ["Yes", "No", "Cancel"],
+            cancelId: 2,
+        });
+        if (res.response === 2) {
+            return 0;
+        }
+        if (res.response === 0) {
+            await index.addByPath(path);
+        } else {
+            await fs.unlink(join(repo.workdir(), path));
+        }
+    } else if (!conflictEntry.their_out) {
+        const res = await dialog.showMessageBox({
+            message: `"Their" file deleted. 'Yes' to stage a "delete", 'No' to stage the existing file?`,
+            type: "question",
+            buttons: ["Yes", "No", "Cancel"],
+            cancelId: 2,
+        });
+        if (res.response === 2) {
+            return 0;
+        }
+        if (res.response === 0) {
+            await fs.unlink(join(repo.workdir(), path));
+        } else {
+            await index.addByPath(path);
+        }
+    } else {
+        if ((await fs.stat(join(repo.workdir(), path))).size < 1 * 1024 * 1024) {
+            const content = await fs.readFile(join(repo.workdir(), path));
+            if (content.includes("\n<<<<<<<") || content.includes("\n>>>>>>>")) {
+                const res = await dialog.showMessageBox({
+                    message: `The file seems to still contain conflict markers. Stage anyway?`,
+                    type: "question",
+                    buttons: ["Yes", "No"],
+                    cancelId: 1,
+                });
+                if (res.response !== 0) {
+                    return 0;
+                }
+            }
+        }
+
+        await index.addByPath(path);
+    }
+
     // TODO: Promise<number>. seems to return undefined, not 0 on success
     const result = await index.conflictRemove(path || "");
-    await index.addByPath(path);
     await index.write();
     return result;
 }
@@ -889,3 +992,5 @@ let workDirIndexPathMap: {
     unstaged: { [path: string]: ConvenientPatch },
 }
 let index: Index;
+
+let repo: Repository;

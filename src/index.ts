@@ -375,10 +375,13 @@ const eventMap: {
 } = {
     [IpcAction.OPEN_REPO]: async (_, path) => {
         if (path) {
-            const opened = await openRepo(path);
+            const opened = await provider.openRepo(path);
+            if (opened) {
+                repo = opened;
+            }
             return {
                 path,
-                opened,
+                opened: !!opened,
                 status: opened ? repoStatus() : null,
             }
         }
@@ -502,8 +505,8 @@ const eventMap: {
         return await provider.commit(repo, data, Signature.now(selectedGitProfile.gitName, selectedGitProfile.gitEmail));
     },
     [IpcAction.REMOTES]: provider.remotes,
-    [IpcAction.RESOLVE_CONFLICT]: async (_, {path}) => {
-        const result = await provider.resolveConflict(path);
+    [IpcAction.RESOLVE_CONFLICT]: async (repo, {path}) => {
+        const result = await provider.resolveConflict(repo, path);
         sendEvent(win.webContents, "refresh-workdir", null);
         return !result;
     },
@@ -677,26 +680,15 @@ async function openRepoDialog() {
         title: "Select a repository"
     });
 
-    const opened = !res.canceled && await openRepo(res.filePaths[0]);
+    const opened = !res.canceled && await provider.openRepo(res.filePaths[0]);
     if (!res.canceled && !opened) {
         dialog.showErrorBox("No repository", `'${res.filePaths[0]}' does not contain a git repository`);
     }
     return {
         path: res.filePaths[0],
-        opened,
+        opened: !!opened,
         status: opened ? repoStatus() : null,
     };
-}
-
-async function openRepo(repoPath: string) {
-    let opened = true;
-    try {
-        repo = await Repository.open(repoPath);
-    } catch (e) {
-        console.error(e);
-        opened = false;
-    }
-    return opened;
 }
 
 function repoStatus() {
