@@ -13,32 +13,29 @@
 #file-diff h1 {
     overflow-wrap: anywhere;
 }
-#file-diff > ul.hunks {
+#file-diff > .hunks {
     overflow-y: auto;
-    display: grid;
     will-change: transform;
 }
-ul.hunks.inline {
+/* #file-diff > .hunks > ul {
+    display: grid;
+}
+.hunks.inline > ul {
     grid-template-columns: repeat(2, fit-content(20px)) 14px auto;
 }
-ul.hunks.side-by-side {
+.hunks.side-by-side > ul {
     grid-template-columns: fit-content(20px) 14px 1fr fit-content(20px) 14px 1fr;
-}
-.hunks > .diff-line {
+} */
+/* .hunks > ul > .diff-line {
     display: contents
-}
-#file-diff > ul li > table {
-    width: 100%;
-    border-top: 1px solid var(--border-color);
-    border-bottom: 1px solid var(--border-color);
-}
+} */
 .diff-header {
     display: block;
 }
-.hunks.inline .diff-header {
+.hunks.inline > ul > .diff-header {
     grid-column: 1 / span 4;
 }
-.hunks.side-by-side .diff-header {
+.hunks.side-by-side > ul > .diff-header {
     grid-column: 1 / span 6;
 }
 .diff-header > p {
