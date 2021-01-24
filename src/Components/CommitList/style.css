@@ -17,6 +17,7 @@
   flex-direction: row;
   white-space: nowrap;
   align-items: stretch;
+  width: 100%;
 }
 .short .date {
   display: none;

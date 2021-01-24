@@ -6,9 +6,9 @@ import { clearLock, GlobalLinks, setLock, Store, StoreType, subscribe, unsubscri
 
 import "./style.css";
 import FileFilter from "./FileFilter";
-import CommitListItem from "./CommitListItem";
 import HeadColors from "./HeadColors";
 import { Links } from "../LinkContainer";
+import CommitContainer from "./CommitContainer";
 
 type State = {
     commits: IpcActionReturn[IpcAction.LOAD_COMMITS]["commits"]
@@ -168,14 +168,10 @@ export default class CommitList extends PureComponent<unknown, State> {
                     <input type="text" value={this.state.filter} onKeyUp={this.filter} placeholder="sha,message" />
                     <FileFilter filterByFile={this.filterByFile} />
                 </div>
-                <div id="commits-container">
-                    <Links.Provider value="commits">
-                        <ul>
-                            {this.state.commits.length ? this.filterCommits().map((commit) => <CommitListItem key={commit.sha} graph={this.graph} commit={commit} />) : "No commits yet?"}
-                        </ul>
-                    </Links.Provider>
+                <Links.Provider value="commits">
+                    {this.state.commits.length ? <CommitContainer commits={this.filterCommits()} graph={this.graph} /> : "No commits yet?"}
                     {!Store.selectedBranch.history && <button onClick={() => this.loadMoreCommits()} disabled={!!Store.locks[Locks.BRANCH_LIST]}>Load more...</button>}
-                </div>
+                </Links.Provider>
             </div>
         );
     }
