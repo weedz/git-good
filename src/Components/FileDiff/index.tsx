@@ -2,6 +2,7 @@ import { h } from "preact";
 import { HunkObj, LineObj } from "src/Data/Actions";
 import { Store, closeFile, blameFile, PureStoreComponent } from "src/Data/Renderer/store";
 import { DELTA } from "src/Data/Utils";
+import HunksContainer from "./HunksContainer";
 
 import "./style.css";
 
@@ -43,7 +44,12 @@ function compactLines(lines: LineObj[]) {
 }
 
 export default class FileDiff extends PureStoreComponent<unknown, State> {
-    lines: h.JSX.Element[] = [];
+    // lines: h.JSX.Element[] = [];
+    lines: {
+        type: string
+        content: string
+        line?: LineObj
+    }[] = [];
 
     constructor() {
         super();
@@ -51,7 +57,7 @@ export default class FileDiff extends PureStoreComponent<unknown, State> {
             viewType: "diff",
             diffType: "inline",
             sideSelected: null,
-            wrapLine: true,
+            wrapLine: false,
             viewPort: {
                 start: 0,
                 end: PAGE_SIZE,
@@ -77,26 +83,36 @@ export default class FileDiff extends PureStoreComponent<unknown, State> {
 
     renderHunk = (hunk: HunkObj) => {
         let lines = [
-            <li className="diff-header">
-                <p>{hunk.header}</p>
-            </li>
+            {
+                type: "header",
+                content: hunk.header
+            }
+            // <li className="diff-header">
+            //     <p>{hunk.header}</p>
+            // </li>
         ];
         if (hunk.lines) {
-            lines = lines.concat(this.state.diffType === "side-by-side" ? compactLines(hunk.lines).map(this.renderLineSideBySide) : hunk.lines.map(this.renderLine));
+            lines = lines.concat(hunk.lines.map(this.renderLine));
+            // lines = lines.concat(this.state.diffType === "side-by-side" ? compactLines(hunk.lines).map(this.renderLineSideBySide) : hunk.lines.map(this.renderLine));
         }
 
         return lines;
     }
     
     renderLine = (line: LineObj) => {
-        return (
-            <li className={line.type && `diff-line ${line.type === "+" ? "new" : "old"}` || "diff-line"}>
-                <span className="diff-line-number">{line.oldLineno !== -1 && line.oldLineno}</span>
-                <span className="diff-line-number">{line.newLineno !== -1 && line.newLineno}</span>
-                <span className="diff-type">{line.type}</span>
-                <span className="diff-line-content">{line.content}</span>
-            </li>
-        );
+        return {
+            type: "line",
+            content: line.content,
+            line
+        }
+        // return (
+        //     <li className={line.type && `diff-line ${line.type === "+" ? "new" : "old"}` || "diff-line"}>
+        //         <span className="diff-line-number">{line.oldLineno !== -1 && line.oldLineno}</span>
+        //         <span className="diff-line-number">{line.newLineno !== -1 && line.newLineno}</span>
+        //         <span className="diff-type">{line.type}</span>
+        //         <span className="diff-line-content">{line.content}</span>
+        //     </li>
+        // );
     }
     
     renderLineSideBySide = (line: LineObj & {newContent?: LineObj}) => {
@@ -149,8 +165,6 @@ export default class FileDiff extends PureStoreComponent<unknown, State> {
             classes.push("parallel");
         }
 
-        const renderedLines = this.lines.slice(this.state.viewPort.start, this.state.viewPort.end) || [<p>Loading content...</p>];
-
         return (
             <div id="file-diff" className={`pane ${classes.join(" ")}`}>
                 <a href="#" onClick={closeFile}>Close</a>
@@ -174,19 +188,7 @@ export default class FileDiff extends PureStoreComponent<unknown, State> {
                     <span>Wrap line</span>
                     <input checked={this.state.wrapLine} type="checkbox" onClick={(e) => this.setState({wrapLine: (e.target as unknown as HTMLInputElement).checked})} />
                 </label>
-                <ul className={`hunks ${this.state.diffType}`}>{renderedLines}</ul>
-                <div className="horizontal">
-                    {this.state.viewPort.start >= PAGE_SIZE && <button onClick={() => this.setState({viewPort: {
-                        ...this.state.viewPort,
-                        start: this.state.viewPort.start - 1000,
-                        end: this.state.viewPort.end - 1000,
-                    }})}>Prev</button>}
-                    {this.state.viewPort.end < this.lines.length && <button onClick={() => this.setState({viewPort: {
-                        ...this.state.viewPort,
-                        start: this.state.viewPort.start + 1000,
-                        end: this.state.viewPort.end + 1000,
-                    }})}>Next</button>}
-                </div>
+                <HunksContainer lines={this.lines} />
             </div>
         );
     }
