@@ -6,51 +6,43 @@ import HunksContainer from "./HunksContainer";
 
 import "./style.css";
 
-const PAGE_SIZE = 1000;
-
 type State = {
     diffType: "inline" | "side-by-side"
     viewType: "file" | "diff"
     sideSelected: "left" | "right" | null
     wrapLine: boolean
-    viewPort: {
-        start: number
-        end: number
-    }
-}
-
-function compactLines(lines: LineObj[]) {
-    const parsedLines = [];
-    let oldLines: Array<LineObj & {newContent?: LineObj}> = [];
-
-    for (const line of lines)
-    {
-        if (line.type === "-") {
-            oldLines.push(line);
-            parsedLines.push(line);
-        }
-        else if (line.type === "+" && oldLines.length > 0) {
-            const oldLine = oldLines.shift();
-            if (oldLine) {
-                oldLine.newContent = line;
-            }
-        } else {
-            oldLines = [];
-            parsedLines.push(line);
-        }
-    }
-
-    return parsedLines;
-}
-
-export default class FileDiff extends PureStoreComponent<unknown, State> {
-    // lines: h.JSX.Element[] = [];
     lines: Array<{
         type: string
         content: string
         line?: LineObj
-    }> = [];
+    }>
+}
 
+// function compactLines(lines: LineObj[]) {
+//     const parsedLines = [];
+//     let oldLines: Array<LineObj & {newContent?: LineObj}> = [];
+
+//     for (const line of lines)
+//     {
+//         if (line.type === "-") {
+//             oldLines.push(line);
+//             parsedLines.push(line);
+//         }
+//         else if (line.type === "+" && oldLines.length > 0) {
+//             const oldLine = oldLines.shift();
+//             if (oldLine) {
+//                 oldLine.newContent = line;
+//             }
+//         } else {
+//             oldLines = [];
+//             parsedLines.push(line);
+//         }
+//     }
+
+//     return parsedLines;
+// }
+
+export default class FileDiff extends PureStoreComponent<unknown, State> {
     constructor() {
         super();
         this.state = {
@@ -58,10 +50,7 @@ export default class FileDiff extends PureStoreComponent<unknown, State> {
             diffType: "inline",
             sideSelected: null,
             wrapLine: false,
-            viewPort: {
-                start: 0,
-                end: PAGE_SIZE,
-            }
+            lines: []
         };
     }
     componentDidMount() {
@@ -70,19 +59,14 @@ export default class FileDiff extends PureStoreComponent<unknown, State> {
 
     renderHunks = () => {
         const patch = Store.currentFile?.patch;
-        if (patch) {
-            this.lines = patch.hunks ? patch.hunks.map(this.renderHunk).flat() : [];
-        }
         this.setState({
-            viewPort: {
-                start: 0,
-                end: PAGE_SIZE,
-            }
+            lines: patch?.hunks ? patch.hunks.map(this.renderHunk).flat() : []
         });
     }
 
     renderHunk = (hunk: HunkObj) => {
-        let lines = [{type:"",content:""},
+        let lines = [
+            { type:"",content:"" },
             {
                 type: "header",
                 content: hunk.header
@@ -103,38 +87,38 @@ export default class FileDiff extends PureStoreComponent<unknown, State> {
         }
     }
     
-    renderLineSideBySide = (line: LineObj & {newContent?: LineObj}) => {
-        const newLine = line.newContent || line;
+    // renderLineSideBySide = (line: LineObj & {newContent?: LineObj}) => {
+    //     const newLine = line.newContent || line;
 
-        const oldLineNo = line.oldLineno !== -1 && line.oldLineno;
-        const newLineNo = newLine.newLineno !== -1 && newLine.newLineno;
-        const type = !!line.type;
-        const oldType = type && oldLineNo ? " old" : "";
-        const newType = type && newLineNo ? " new" : "";
-        return (
-            <li className="diff-line">
-                <span onMouseDown={this.selectLeft} className={`left diff-line-number${oldType}`}>{oldLineNo}</span>
-                <span onMouseDown={this.selectLeft} className={`left diff-type${oldType}`}>{oldLineNo && line.type}</span>
-                <span onMouseDown={this.selectLeft} className={`left diff-line-content${oldType}`}>{!type || oldLineNo ? line.content : null}</span>
-                <span onMouseDown={this.selectRight} className={`right diff-line-number${newType}`}>{newLineNo}</span>
-                <span onMouseDown={this.selectRight} className={`right diff-type${newType}`}>{newLineNo && newLine.type}</span>
-                <span onMouseDown={this.selectRight} className={`right diff-line-content${newType}`}>{!type || newLineNo ? newLine.content : null}</span>
-            </li>
-        );
-    }
+    //     const oldLineNo = line.oldLineno !== -1 && line.oldLineno;
+    //     const newLineNo = newLine.newLineno !== -1 && newLine.newLineno;
+    //     const type = !!line.type;
+    //     const oldType = type && oldLineNo ? " old" : "";
+    //     const newType = type && newLineNo ? " new" : "";
+    //     return (
+    //         <li className="diff-line">
+    //             <span onMouseDown={this.selectLeft} className={`left diff-line-number${oldType}`}>{oldLineNo}</span>
+    //             <span onMouseDown={this.selectLeft} className={`left diff-type${oldType}`}>{oldLineNo && line.type}</span>
+    //             <span onMouseDown={this.selectLeft} className={`left diff-line-content${oldType}`}>{!type || oldLineNo ? line.content : null}</span>
+    //             <span onMouseDown={this.selectRight} className={`right diff-line-number${newType}`}>{newLineNo}</span>
+    //             <span onMouseDown={this.selectRight} className={`right diff-type${newType}`}>{newLineNo && newLine.type}</span>
+    //             <span onMouseDown={this.selectRight} className={`right diff-line-content${newType}`}>{!type || newLineNo ? newLine.content : null}</span>
+    //         </li>
+    //     );
+    // }
 
-    selectLeft = () => {
-        if (this.state.sideSelected !== "left") {
-            window.getSelection()?.removeAllRanges();
-            this.setState({sideSelected: "left"});
-        }
-    }
-    selectRight = () => {
-        if (this.state.sideSelected !== "right") {
-            window.getSelection()?.removeAllRanges();
-            this.setState({sideSelected: "right"});
-        }
-    }
+    // selectLeft = () => {
+    //     if (this.state.sideSelected !== "left") {
+    //         window.getSelection()?.removeAllRanges();
+    //         this.setState({sideSelected: "left"});
+    //     }
+    // }
+    // selectRight = () => {
+    //     if (this.state.sideSelected !== "right") {
+    //         window.getSelection()?.removeAllRanges();
+    //         this.setState({sideSelected: "right"});
+    //     }
+    // }
 
     render() {
         if (!Store.currentFile) {
@@ -176,7 +160,7 @@ export default class FileDiff extends PureStoreComponent<unknown, State> {
                     <span>Wrap line</span>
                     <input checked={this.state.wrapLine} type="checkbox" onClick={(e) => this.setState({wrapLine: (e.target as unknown as HTMLInputElement).checked})} />
                 </label>
-                <HunksContainer lines={this.lines} />
+                <HunksContainer lines={this.state.lines} />
             </div>
         );
     }

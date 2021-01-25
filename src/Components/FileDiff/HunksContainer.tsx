@@ -1,73 +1,102 @@
-import { h, createRef } from "preact";
-import { PureComponent } from "preact/compat";
+import { h, createRef, Component } from "preact";
 import { LineObj } from "src/Data/Actions";
 
+type Lines = Array<{
+    type: string
+    content: string
+    line?: LineObj
+}>
+
 type Props = {
-    lines: Array<{
-        type: string
-        content: string
-        line?: LineObj
-    }>
+    lines: Lines
 }
 type State = {
     startRenderAt: number
+    itemsToRender: number
+    totalHeight: number
 }
 
 const ITEM_HEIGHT = 17;
 
-export default class HunksContainer extends PureComponent<Props, State> {
+export default class HunksContainer extends Component<Props, State> {
     state = {
-        startRenderAt: 0
+        startRenderAt: 0,
+        itemsToRender: 0,
+        totalHeight: 0,
     }
+    observer: ResizeObserver | null = null;
     containerRef = createRef<HTMLDivElement>();
+    constructor(props: Props) {
+        super(props);
+
+        this.setState({
+            totalHeight: ITEM_HEIGHT * props.lines.length,
+        });
+    }
     componentDidMount() {
         if (this.containerRef.current) {
             this.containerRef.current.onscroll = this.scrollHandler;
+            this.observer = new ResizeObserver(entries => {
+                for (const entry of entries) {
+                    const cr = entry.contentRect;
+                    this.setState({
+                        itemsToRender: Math.ceil(cr.height / ITEM_HEIGHT) + 1
+                    });
+                }
+            });
+            this.observer.observe(this.containerRef.current);
         }
     }
     componentWillUnmount() {
         if (this.containerRef.current) {
             this.containerRef.current.onscroll = null;
         }
+        if (this.observer) {
+            this.observer.disconnect();
+        }
+    }
+    componentWillReceiveProps(nextProps: Props) {
+        this.setState({
+            totalHeight: ITEM_HEIGHT * nextProps.lines.length,
+        });
     }
     scrollHandler = (_: Event) => {
         if (this.containerRef.current) {
             const startCommit = Math.floor(this.containerRef?.current.scrollTop / ITEM_HEIGHT);
-            this.setState({
-                startRenderAt: startCommit
-            });
+            if (startCommit !== this.state.startRenderAt) {
+                this.setState({
+                    startRenderAt: startCommit
+                });
+            }
         }
     }
     render() {
-        const itemsToRender = Math.ceil(window.innerHeight / ITEM_HEIGHT) + 1;
-
-        const totalHeight = ITEM_HEIGHT * this.props.lines.length;
-
         const lines: h.JSX.Element[] = [];
 
         const type: h.JSX.Element[] = [];
         const oldGlyphs: h.JSX.Element[] = [];
         const newGlyphs: h.JSX.Element[] = [];
 
-        this.props.lines.slice(this.state.startRenderAt, this.state.startRenderAt + itemsToRender).map((line,idx) => {
-            const top = (this.state.startRenderAt + idx) * ITEM_HEIGHT;
+        this.props.lines.slice(this.state.startRenderAt, this.state.startRenderAt + this.state.itemsToRender).map((line,idx) => {
+            const key = this.state.startRenderAt + idx;
+            const top = key * ITEM_HEIGHT;
             if (line.type === "header") {
                 lines.push(
-                    <li className="header" style={{position: "absolute", top: `${top}px`, height: `${ITEM_HEIGHT}px`, width: "100%"}}>
+                    <li key={key} className="header" style={{position: "absolute", top: `${top}px`, height: `${ITEM_HEIGHT}px`, width: "100%"}}>
                         <div>{line.content}</div>
                     </li>
                 );
-                type.push(<li />);
-                newGlyphs.push(<li />);
-                oldGlyphs.push(<li />);
+                type.push(<li key={key} />);
+                newGlyphs.push(<li key={key} />);
+                oldGlyphs.push(<li key={key} />);
             } else if (line.line) {
                 lines.push(
-                    <li style={{position: "absolute", top: `${top}px`, height: `${ITEM_HEIGHT}px`, width: "100%"}} className={line.line.type && `diff-line ${line.line.type === "+" ? "new" : "old"}` || "diff-line"}>
+                    <li key={key} style={{position: "absolute", top: `${top}px`, height: `${ITEM_HEIGHT}px`, minWidth: "100%"}} className={line.line.type && `diff-line ${line.line.type === "+" ? "new" : "old"}` || "diff-line"}>
                         <div className="diff-line-content">{line.content}</div>
                     </li>
                 );
                 type.push(
-                    <li style={{
+                    <li key={key} style={{
                         position: "absolute",
                         top: `${top}px`,
                         height: `${ITEM_HEIGHT}px`
@@ -76,28 +105,28 @@ export default class HunksContainer extends PureComponent<Props, State> {
                     </li>
                 );
                 if (line.line.oldLineno !== -1) {
-                    oldGlyphs.push(<li style={{
+                    oldGlyphs.push(<li key={key} style={{
                         position: "absolute",
                         top: `${top}px`,
                         height: `${ITEM_HEIGHT}px`
                     }}><span className="diff-line-number">{line.line.oldLineno}</span></li>);
                 } else {
-                    oldGlyphs.push(<li />);
+                    oldGlyphs.push(<li key={key} />);
                 }
                 if (line.line.newLineno !== -1) {
-                    newGlyphs.push(<li style={{
+                    newGlyphs.push(<li key={key} style={{
                         position: "absolute",
                         top: `${top}px`,
                         height: `${ITEM_HEIGHT}px`
                     }}><span className="diff-line-number">{line.line.newLineno}</span></li>);
                 } else {
-                    newGlyphs.push(<li />);
+                    newGlyphs.push(<li key={key} />);
                 }
             } else {
-                lines.push(<li />);
-                type.push(<li />);
-                newGlyphs.push(<li />);
-                oldGlyphs.push(<li />);
+                lines.push(<li key={key} />);
+                type.push(<li key={key} />);
+                newGlyphs.push(<li key={key} />);
+                oldGlyphs.push(<li key={key} />);
             }
         });
 
@@ -107,28 +136,28 @@ export default class HunksContainer extends PureComponent<Props, State> {
             }}>
                 <ul style={{
                     position: "relative",
-                    height: `${totalHeight}px`,
+                    height: `${this.state.totalHeight}px`,
                     width: "40px"
                 }}>
                     {oldGlyphs}
                 </ul>
                 <ul style={{
                     position: "relative",
-                    height: `${totalHeight}px`,
+                    height: `${this.state.totalHeight}px`,
                     width: "40px"
                 }}>
                     {newGlyphs}
                 </ul>
                 <ul style={{
                     position: "relative",
-                    height: `${totalHeight}px`,
+                    height: `${this.state.totalHeight}px`,
                     width: "10px"
                 }}>
                     {type}
                 </ul>
                 <ul style={{
                     position: "relative",
-                    height: `${totalHeight}px`,
+                    height: `${this.state.totalHeight}px`,
                     flex: "1",
                 }}>
                     {lines}
