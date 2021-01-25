@@ -3,11 +3,11 @@ import { PureComponent } from "preact/compat";
 import { LineObj } from "src/Data/Actions";
 
 type Props = {
-    lines: {
+    lines: Array<{
         type: string
         content: string
         line?: LineObj
-    }[]
+    }>
 }
 type State = {
     startRenderAt: number
@@ -39,34 +39,99 @@ export default class HunksContainer extends PureComponent<Props, State> {
         }
     }
     render() {
-        const itemsToRender = Math.ceil((this.containerRef.current?.clientHeight || window.innerHeight) / ITEM_HEIGHT) + 1;
+        const itemsToRender = Math.ceil(window.innerHeight / ITEM_HEIGHT) + 1;
 
+        const totalHeight = ITEM_HEIGHT * this.props.lines.length;
 
-        console.log(this.containerRef.current?.clientHeight, this.state.startRenderAt, itemsToRender);
+        const lines: h.JSX.Element[] = [];
+
+        const type: h.JSX.Element[] = [];
+        const oldGlyphs: h.JSX.Element[] = [];
+        const newGlyphs: h.JSX.Element[] = [];
+
+        this.props.lines.slice(this.state.startRenderAt, this.state.startRenderAt + itemsToRender).map((line,idx) => {
+            const top = (this.state.startRenderAt + idx) * ITEM_HEIGHT;
+            if (line.type === "header") {
+                lines.push(
+                    <li className="header" style={{position: "absolute", top: `${top}px`, height: `${ITEM_HEIGHT}px`, width: "100%"}}>
+                        <div>{line.content}</div>
+                    </li>
+                );
+                type.push(<li />);
+                newGlyphs.push(<li />);
+                oldGlyphs.push(<li />);
+            } else if (line.line) {
+                lines.push(
+                    <li style={{position: "absolute", top: `${top}px`, height: `${ITEM_HEIGHT}px`, width: "100%"}} className={line.line.type && `diff-line ${line.line.type === "+" ? "new" : "old"}` || "diff-line"}>
+                        <div className="diff-line-content">{line.content}</div>
+                    </li>
+                );
+                type.push(
+                    <li style={{
+                        position: "absolute",
+                        top: `${top}px`,
+                        height: `${ITEM_HEIGHT}px`
+                    }}>
+                        <span className="diff-type">{line.line.type}</span>
+                    </li>
+                );
+                if (line.line.oldLineno !== -1) {
+                    oldGlyphs.push(<li style={{
+                        position: "absolute",
+                        top: `${top}px`,
+                        height: `${ITEM_HEIGHT}px`
+                    }}><span className="diff-line-number">{line.line.oldLineno}</span></li>);
+                } else {
+                    oldGlyphs.push(<li />);
+                }
+                if (line.line.newLineno !== -1) {
+                    newGlyphs.push(<li style={{
+                        position: "absolute",
+                        top: `${top}px`,
+                        height: `${ITEM_HEIGHT}px`
+                    }}><span className="diff-line-number">{line.line.newLineno}</span></li>);
+                } else {
+                    newGlyphs.push(<li />);
+                }
+            } else {
+                lines.push(<li />);
+                type.push(<li />);
+                newGlyphs.push(<li />);
+                oldGlyphs.push(<li />);
+            }
+        });
 
         return (
-            <div ref={this.containerRef} className="hunks inline">
+            <div ref={this.containerRef} className="hunks inline" style={{
+                display: "flex"
+            }}>
                 <ul style={{
                     position: "relative",
-                    height: `${ITEM_HEIGHT * this.props.lines.length}px`
+                    height: `${totalHeight}px`,
+                    width: "40px"
                 }}>
-                    {this.props.lines.slice(this.state.startRenderAt, this.state.startRenderAt + itemsToRender).map((line,idx) => {
-                        console.log(idx * ITEM_HEIGHT);
-                        if (line.type === "header") {
-                            return <li className="header" style={{position: "absolute", top: `${(this.state.startRenderAt + idx) * ITEM_HEIGHT}px`, height: `${ITEM_HEIGHT}px`}}>
-                                <span>{line.content}</span>
-                            </li>
-                        } else if (line.line) {
-                            return (
-                                <li style={{position: "absolute", top: `${(this.state.startRenderAt + idx) * ITEM_HEIGHT}px`, height: `${ITEM_HEIGHT}px`}} className={line.type && `diff-line ${line.line.type === "+" ? "new" : "old"}` || "diff-line"}>
-                                    <span className="diff-line-number">{line.line.oldLineno !== -1 && line.line.oldLineno}</span>
-                                    <span className="diff-line-number">{line.line.newLineno !== -1 && line.line.newLineno}</span>
-                                    <span className="diff-type">{line.line.type}</span>
-                                    <span className="diff-line-content">{line.content}</span>
-                                </li>
-                            );
-                        }
-                    })}
+                    {oldGlyphs}
+                </ul>
+                <ul style={{
+                    position: "relative",
+                    height: `${totalHeight}px`,
+                    width: "40px"
+                }}>
+                    {newGlyphs}
+                </ul>
+                <ul style={{
+                    position: "relative",
+                    height: `${totalHeight}px`,
+                    width: "10px"
+                }}>
+                    {type}
+                </ul>
+                <ul style={{
+                    position: "relative",
+                    height: `${totalHeight}px`,
+                    flex: "1",
+                }}>
+                    {lines}
                 </ul>
             </div>
         );
