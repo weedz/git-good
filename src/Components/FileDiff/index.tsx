@@ -45,11 +45,11 @@ function compactLines(lines: LineObj[]) {
 
 export default class FileDiff extends PureStoreComponent<unknown, State> {
     // lines: h.JSX.Element[] = [];
-    lines: {
+    lines: Array<{
         type: string
         content: string
         line?: LineObj
-    }[] = [];
+    }> = [];
 
     constructor() {
         super();
@@ -82,18 +82,14 @@ export default class FileDiff extends PureStoreComponent<unknown, State> {
     }
 
     renderHunk = (hunk: HunkObj) => {
-        let lines = [
+        let lines = [{type:"",content:""},
             {
                 type: "header",
                 content: hunk.header
             }
-            // <li className="diff-header">
-            //     <p>{hunk.header}</p>
-            // </li>
         ];
         if (hunk.lines) {
             lines = lines.concat(hunk.lines.map(this.renderLine));
-            // lines = lines.concat(this.state.diffType === "side-by-side" ? compactLines(hunk.lines).map(this.renderLineSideBySide) : hunk.lines.map(this.renderLine));
         }
 
         return lines;
@@ -105,14 +101,6 @@ export default class FileDiff extends PureStoreComponent<unknown, State> {
             content: line.content,
             line
         }
-        // return (
-        //     <li className={line.type && `diff-line ${line.type === "+" ? "new" : "old"}` || "diff-line"}>
-        //         <span className="diff-line-number">{line.oldLineno !== -1 && line.oldLineno}</span>
-        //         <span className="diff-line-number">{line.newLineno !== -1 && line.newLineno}</span>
-        //         <span className="diff-type">{line.type}</span>
-        //         <span className="diff-line-content">{line.content}</span>
-        //     </li>
-        // );
     }
     
     renderLineSideBySide = (line: LineObj & {newContent?: LineObj}) => {
