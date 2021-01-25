@@ -1,5 +1,4 @@
-import { h, createRef } from "preact";
-import { PureComponent } from "preact/compat";
+import { h, createRef, Component } from "preact";
 
 type Props<T> = {
     items: T[]
@@ -10,42 +9,64 @@ type Props<T> = {
 }
 type State = {
     startRenderAt: number
+    itemsToRender: number
+    totalHeight: number
 }
 
-export default class ScrollContainer<T> extends PureComponent<Props<T>, State> {
+export default class ScrollContainer<T> extends Component<Props<T>, State> {
     state = {
-        startRenderAt: 0
+        startRenderAt: 0,
+        itemsToRender: 0,
+        totalHeight: 0,
     }
     containerRef = createRef<HTMLDivElement>();
+    observer: ResizeObserver | null = null;
     componentDidMount() {
         if (this.containerRef.current) {
             this.containerRef.current.onscroll = this.scrollHandler;
+            this.observer = new ResizeObserver(entries => {
+                for (const entry of entries) {
+                    const cr = entry.contentRect;
+                    this.setState({
+                        itemsToRender: Math.ceil(cr.height / this.props.itemHeight) + 1
+                    });
+                }
+            });
+            this.observer.observe(this.containerRef.current);
         }
     }
     componentWillUnmount() {
         if (this.containerRef.current) {
             this.containerRef.current.onscroll = null;
         }
+        if (this.observer) {
+            this.observer.disconnect();
+        }
+    }
+    componentWillReceiveProps(nextProps: Props<T>) {
+        this.setState({
+            totalHeight: nextProps.itemHeight * nextProps.items.length
+        });
     }
     scrollHandler = (_: Event) => {
         if (this.containerRef.current) {
             const startCommit = Math.floor(this.containerRef?.current.scrollTop / this.props.itemHeight);
-            this.setState({
-                startRenderAt: startCommit
-            });
+            if (startCommit !== this.state.startRenderAt) {
+                this.setState({
+                    startRenderAt: startCommit
+                });
+            }
         }
     }
     render() {
-        const itemsToRender = Math.ceil((this.containerRef.current?.clientHeight || window.innerHeight) / this.props.itemHeight) + 1;
-
         return (
             <div ref={this.containerRef} id={this.props.containerId} className={this.props.className}>
                 <ul
                     style={{
                         position: "relative",
-                        height: `${this.props.itemHeight * this.props.items.length}px`
+                        height: `${this.state.totalHeight}px`
                 }}>
-                    {this.props.renderItems(this.props.items.slice(this.state.startRenderAt, this.state.startRenderAt + itemsToRender), this.state.startRenderAt)}
+                    {this.props.renderItems(this.props.items.slice(this.state.startRenderAt, this.state.startRenderAt + this.state.itemsToRender), this.state.startRenderAt)}
                 </ul>
             </div>
         );
