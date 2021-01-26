@@ -18,6 +18,10 @@ type State = {
     }>
 }
 
+// Current font and size might be closer to 7.80.
+// Could possibly be calculated "on the fly" somehow, but that is a problem for when we change font...
+const FONT_WIDTH = 7.85;
+
 // function compactLines(lines: LineObj[]) {
 //     const parsedLines = [];
 //     let oldLines: Array<LineObj & {newContent?: LineObj}> = [];
@@ -43,6 +47,7 @@ type State = {
 // }
 
 export default class FileDiff extends PureStoreComponent<unknown, State> {
+    longestLine = 0;
     constructor() {
         super();
         this.state = {
@@ -50,7 +55,7 @@ export default class FileDiff extends PureStoreComponent<unknown, State> {
             diffType: "inline",
             sideSelected: null,
             wrapLine: false,
-            lines: []
+            lines: [],
         };
     }
     componentDidMount() {
@@ -59,6 +64,7 @@ export default class FileDiff extends PureStoreComponent<unknown, State> {
 
     renderHunks = () => {
         const patch = Store.currentFile?.patch;
+        this.longestLine = 0;
         this.setState({
             lines: patch?.hunks ? patch.hunks.map(this.renderHunk).flat() : []
         });
@@ -80,6 +86,8 @@ export default class FileDiff extends PureStoreComponent<unknown, State> {
     }
     
     renderLine = (line: LineObj) => {
+        // calculate "longest line"
+        this.longestLine = Math.max(this.longestLine, line.content.replaceAll("\t", "    ").length);
         return {
             type: "line",
             content: line.content,
@@ -160,7 +168,7 @@ export default class FileDiff extends PureStoreComponent<unknown, State> {
                     <span>Wrap line</span>
                     <input checked={this.state.wrapLine} type="checkbox" onClick={(e) => this.setState({wrapLine: (e.target as unknown as HTMLInputElement).checked})} />
                 </label>
-                <HunksContainer lines={this.state.lines} />
+                <HunksContainer width={this.longestLine * FONT_WIDTH} lines={this.state.lines} />
             </div>
         );
     }

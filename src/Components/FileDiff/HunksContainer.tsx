@@ -9,6 +9,7 @@ type Lines = Array<{
 
 type Props = {
     lines: Lines
+    width: number
 }
 type State = {
     startRenderAt: number
@@ -82,7 +83,7 @@ export default class HunksContainer extends Component<Props, State> {
             const top = key * ITEM_HEIGHT;
             if (line.type === "header") {
                 lines.push(
-                    <li key={key} className="header" style={{position: "absolute", top: `${top}px`, height: `${ITEM_HEIGHT}px`, width: "100%"}}>
+                    <li key={key} className="header" style={{position: "absolute", top, height: ITEM_HEIGHT, width: "100%"}}>
                         <div>{line.content}</div>
                     </li>
                 );
@@ -91,15 +92,15 @@ export default class HunksContainer extends Component<Props, State> {
                 oldGlyphs.push(<li key={key} />);
             } else if (line.line) {
                 lines.push(
-                    <li key={key} style={{position: "absolute", top: `${top}px`, height: `${ITEM_HEIGHT}px`, minWidth: "100%"}} className={line.line.type && `diff-line ${line.line.type === "+" ? "new" : "old"}` || "diff-line"}>
+                    <li key={key} style={{position: "absolute", top, height: ITEM_HEIGHT, width: "100%"}} className={line.line.type && `diff-line ${line.line.type === "+" ? "new" : "old"}` || "diff-line"}>
                         <div className="diff-line-content">{line.content}</div>
                     </li>
                 );
                 type.push(
                     <li key={key} style={{
                         position: "absolute",
-                        top: `${top}px`,
-                        height: `${ITEM_HEIGHT}px`
+                        top,
+                        height: ITEM_HEIGHT
                     }}>
                         <span className="diff-type">{line.line.type}</span>
                     </li>
@@ -107,8 +108,8 @@ export default class HunksContainer extends Component<Props, State> {
                 if (line.line.oldLineno !== -1) {
                     oldGlyphs.push(<li key={key} style={{
                         position: "absolute",
-                        top: `${top}px`,
-                        height: `${ITEM_HEIGHT}px`
+                        top,
+                        height: ITEM_HEIGHT
                     }}><span className="diff-line-number">{line.line.oldLineno}</span></li>);
                 } else {
                     oldGlyphs.push(<li key={key} />);
@@ -116,8 +117,8 @@ export default class HunksContainer extends Component<Props, State> {
                 if (line.line.newLineno !== -1) {
                     newGlyphs.push(<li key={key} style={{
                         position: "absolute",
-                        top: `${top}px`,
-                        height: `${ITEM_HEIGHT}px`
+                        top,
+                        height: ITEM_HEIGHT
                     }}><span className="diff-line-number">{line.line.newLineno}</span></li>);
                 } else {
                     newGlyphs.push(<li key={key} />);
@@ -136,29 +137,31 @@ export default class HunksContainer extends Component<Props, State> {
             }}>
                 <ul style={{
                     position: "relative",
-                    height: `${this.state.totalHeight}px`,
-                    width: "40px"
+                    height: this.state.totalHeight,
+                    width: 40
                 }}>
                     {oldGlyphs}
                 </ul>
                 <ul style={{
                     position: "relative",
-                    height: `${this.state.totalHeight}px`,
-                    width: "40px"
+                    height: this.state.totalHeight,
+                    width: 40
                 }}>
                     {newGlyphs}
                 </ul>
                 <ul style={{
                     position: "relative",
-                    height: `${this.state.totalHeight}px`,
-                    width: "10px"
+                    height: this.state.totalHeight,
+                    width: 10
                 }}>
                     {type}
                 </ul>
                 <ul style={{
-                    position: "relative",
-                    height: `${this.state.totalHeight}px`,
-                    flex: "1",
+                    position: "absolute",
+                    left: 90,
+                    width: `max(calc(100% - 90px), ${this.props.width}px)`,
+                    height: this.state.totalHeight,
+                    flex: 1,
                 }}>
                     {lines}
                 </ul>
