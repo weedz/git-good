@@ -79,6 +79,14 @@ textarea:focus {
 }
 .tree-list .open > ul.tree-list {
   display: block;
+  flex-basis: 100%;
+}
+.sub-tree {
+  display: flex;
+  flex-wrap: wrap;
+}
+.sub-tree > a {
+  flex: 1;
 }
 
 .selected,
