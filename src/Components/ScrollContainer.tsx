@@ -14,7 +14,7 @@ type State = {
 }
 
 export default class ScrollContainer<T> extends Component<Props<T>, State> {
-    timeout!: NodeJS.Timeout;
+    timeout!: number;
     state = {
         startRenderAt: 0,
         itemsToRender: 0,
@@ -61,7 +61,7 @@ export default class ScrollContainer<T> extends Component<Props<T>, State> {
     }
     scrollHandler = (_: Event) => {
         clearTimeout(this.timeout);
-        this.timeout = setTimeout(this.checkScrollPosition, 30);
+        this.timeout = window.setTimeout(this.checkScrollPosition, 30);
     }
     render() {
         return (
