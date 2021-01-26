@@ -300,8 +300,12 @@ type EventArgs = {
 type AsyncGeneratorEventCallback<A extends IpcAction> = (repo: NodeGit.Repository, args: IpcActionParams[A], event: IpcMainEvent) => AsyncGenerator<IpcActionReturn[A] | IpcActionReturnError>;
 type PromiseEventCallback<A extends IpcAction> = (repo: NodeGit.Repository, args: IpcActionParams[A], event: IpcMainEvent) => Promise<IpcActionReturn[A] | IpcActionReturnError>;
 
+type AsyncGeneratorFunctions = IpcAction.LOAD_COMMITS;
+
 const eventMap: {
-    [A in IpcAction]: AsyncGeneratorEventCallback<A> | PromiseEventCallback<A>
+    [A in AsyncGeneratorFunctions]: AsyncGeneratorEventCallback<A>
+} & {
+    [A in Exclude<IpcAction, AsyncGeneratorFunctions>]: PromiseEventCallback<A>
 } = {
     [IpcAction.OPEN_REPO]: async (_: NodeGit.Repository, path: IpcActionParams[IpcAction.OPEN_REPO]) => {
         if (path) {
@@ -316,7 +320,7 @@ const eventMap: {
     },
     [IpcAction.LOAD_BRANCHES]: provider.getBranches,
     [IpcAction.LOAD_COMMIT]: provider.loadCommit,
-    async *[IpcAction.LOAD_COMMITS](repo, params: IpcActionParams[IpcAction.LOAD_COMMITS]): AsyncGenerator<IpcActionReturn[IpcAction.LOAD_COMMITS]> {
+    async *[IpcAction.LOAD_COMMITS](repo, params: IpcActionParams[IpcAction.LOAD_COMMITS]) {
         const arg = await initGetComits(repo, params);
         if (!arg) {
             yield {commits: [], branch: "", cursor: params.cursor};
@@ -327,7 +331,7 @@ const eventMap: {
         }
     },
     [IpcAction.LOAD_PATCHES_WITHOUT_HUNKS]: provider.getCommitPatches,
-    [IpcAction.LOAD_HUNKS]: async (_, arg: IpcActionParams[IpcAction.LOAD_HUNKS]): Promise<IpcActionReturn[IpcAction.LOAD_HUNKS]> => {
+    [IpcAction.LOAD_HUNKS]: async (_, arg: IpcActionParams[IpcAction.LOAD_HUNKS]) => {
         return {
             path: arg.path,
             hunks: await loadHunks(arg)
@@ -340,7 +344,7 @@ const eventMap: {
     [IpcAction.UNSTAGE_FILE]: provider.unstageFile,
     [IpcAction.DISCARD_FILE]: provider.discardChanges,
     [IpcAction.PULL]: provider.pull,
-    [IpcAction.CREATE_BRANCH]: async (repo, data: IpcActionParams[IpcAction.CREATE_BRANCH]): Promise<IpcActionReturn[IpcAction.CREATE_BRANCH]> => {
+    [IpcAction.CREATE_BRANCH]: async (repo, data: IpcActionParams[IpcAction.CREATE_BRANCH]) => {
         let res;
         try {
             res = await repo.createBranch(data.name, data.sha);
@@ -351,7 +355,7 @@ const eventMap: {
             result: res !== null
         }
     },
-    [IpcAction.CREATE_BRANCH_FROM_REF]: async (repo, data: IpcActionParams[IpcAction.CREATE_BRANCH_FROM_REF]): Promise<IpcActionReturn[IpcAction.CREATE_BRANCH_FROM_REF]> => {
+    [IpcAction.CREATE_BRANCH_FROM_REF]: async (repo, data: IpcActionParams[IpcAction.CREATE_BRANCH_FROM_REF]) => {
         const ref = await repo.getReference(data.ref);
         const sha = ref.isTag() ? (await ref.peel(NodeGit.Object.TYPE.COMMIT)) as unknown as NodeGit.Commit : await repo.getReferenceCommit(data.ref);
         
@@ -365,7 +369,7 @@ const eventMap: {
             result: res !== null
         };
     },
-    [IpcAction.DELETE_REF]: async (repo, data: IpcActionParams[IpcAction.DELETE_REF]): Promise<IpcActionReturn[IpcAction.DELETE_REF]> => {
+    [IpcAction.DELETE_REF]: async (repo, data: IpcActionParams[IpcAction.DELETE_REF]) => {
         const ref = await repo.getReference(data.name);
         const res = NodeGit.Branch.delete(ref);
         return {result: !res};
@@ -385,7 +389,7 @@ const eventMap: {
         const result = await provider.push(repo, data);
         return {result: !result};
     },
-    [IpcAction.SET_UPSTREAM]: async (repo, data: IpcActionParams[IpcAction.SET_UPSTREAM]): Promise<IpcActionReturn[IpcAction.SET_UPSTREAM]> => {
+    [IpcAction.SET_UPSTREAM]: async (repo, data: IpcActionParams[IpcAction.SET_UPSTREAM]) => {
         const result = await provider.setUpstream(repo, data.local, data.remote);
         return {result: !result};
     },
