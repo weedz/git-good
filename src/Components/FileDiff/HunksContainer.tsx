@@ -133,7 +133,8 @@ export default class HunksContainer extends Component<Props, State> {
 
         return (
             <div ref={this.containerRef} className="hunks inline" style={{
-                display: "flex"
+                display: "flex",
+                flex: 1
             }}>
                 <ul style={{
                     position: "relative",
