@@ -20,6 +20,7 @@ type State = {
 const ITEM_HEIGHT = 17;
 
 export default class HunksContainer extends Component<Props, State> {
+    timeout!: NodeJS.Timeout;
     state = {
         startRenderAt: 0,
         itemsToRender: 0,
@@ -61,15 +62,19 @@ export default class HunksContainer extends Component<Props, State> {
             totalHeight: ITEM_HEIGHT * nextProps.lines.length,
         });
     }
-    scrollHandler = (_: Event) => {
+    checkScrollPosition = () => {
         if (this.containerRef.current) {
-            const startCommit = Math.floor(this.containerRef?.current.scrollTop / ITEM_HEIGHT);
-            if (startCommit !== this.state.startRenderAt) {
+            const startLine = Math.floor(this.containerRef?.current.scrollTop / ITEM_HEIGHT);
+            if (startLine !== this.state.startRenderAt) {
                 this.setState({
-                    startRenderAt: startCommit
+                    startRenderAt: startLine
                 });
             }
         }
+    }
+    scrollHandler = (_: Event) => {
+        clearTimeout(this.timeout);
+        this.timeout = setTimeout(this.checkScrollPosition, 30);
     }
     render() {
         const lines: h.JSX.Element[] = [];
