@@ -20,7 +20,7 @@ type State = {
 const ITEM_HEIGHT = 17;
 
 export default class HunksContainer extends Component<Props, State> {
-    timeout!: NodeJS.Timeout;
+    timeout!: number;
     state = {
         startRenderAt: 0,
         itemsToRender: 0,
@@ -74,7 +74,7 @@ export default class HunksContainer extends Component<Props, State> {
     }
     scrollHandler = (_: Event) => {
         clearTimeout(this.timeout);
-        this.timeout = setTimeout(this.checkScrollPosition, 30);
+        this.timeout = window.setTimeout(this.checkScrollPosition, 30);
     }
     render() {
         const lines: h.JSX.Element[] = [];
@@ -97,7 +97,13 @@ export default class HunksContainer extends Component<Props, State> {
                 oldGlyphs.push(<li key={key} />);
             } else if (line.line) {
                 lines.push(
-                    <li key={key} style={{position: "absolute", top, height: ITEM_HEIGHT, width: "100%"}} className={line.line.type && `diff-line ${line.line.type === "+" ? "new" : "old"}` || "diff-line"}>
+                    <li key={key} style={{
+                        position: "absolute",
+                        top,
+                        height: ITEM_HEIGHT,
+                        width: "100%"
+                        }} className={line.line.type && `diff-line ${line.line.type === "+" ? "new" : "old"}` || "diff-line"}
+                    >
                         <div className="diff-line-content">{line.content}</div>
                     </li>
                 );
