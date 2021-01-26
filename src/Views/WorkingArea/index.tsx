@@ -135,11 +135,11 @@ export default class WorkingArea extends Component<unknown, State> {
             <div id="working-area" className="pane">
                 <div id="unstaged-changes">
                     <h4>Unstaged ({this.state.unstaged?.length})<button>Stage all</button></h4>
-                    {this.state.unstaged && <ChangedFiles patches={this.state.unstaged} workDir actions={[{label: "Stage", click: this.stageFile}, {label: "Discard", click: this.discard}]} />}
+                    {this.state.unstaged && <ChangedFiles patches={this.state.unstaged} workDir type="unstaged" actions={[{label: "Stage", click: this.stageFile}, {label: "Discard", click: this.discard}]} />}
                 </div>
                 <div id="staged-changes">
                     <h4>Staged ({this.state.staged?.length})<button>Unstage all</button></h4>
-                    {this.state.staged && <ChangedFiles patches={this.state.staged} workDir actions={[{label: "Unstage", click: this.unstageFile}]} />}
+                    {this.state.staged && <ChangedFiles patches={this.state.staged} workDir type="staged" actions={[{label: "Unstage", click: this.unstageFile}]} />}
                 </div>
                 <div>
                     <h4>Commit</h4>

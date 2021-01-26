@@ -10,10 +10,14 @@ type ButtonAction = {
     label: string
     click: h.JSX.MouseEventHandler<HTMLButtonElement>
 }
-type Props = {
-    commit?: CommitObj
-    workDir?: true
-    compare?: true
+type Props = ({
+    workDir: true
+    type: "staged" | "unstaged"
+} | {
+    commit: CommitObj
+} | {
+    compare: true
+}) & {
     patches: PatchObj[]
     actions?: ButtonAction[]
 }
@@ -41,12 +45,12 @@ export default class ChangedFiles extends Component<Props, {fileFilter?: string}
     openFile = (data: Link<PatchObj>) => {
         this.resetCounters();
         const patch = data.props.linkData as unknown as PatchObj;
-        if (this.props.commit) {
+        if ("commit" in this.props) {
             openFile({
                 sha: this.props.commit.sha,
                 patch,
             });
-        } else if (this.props.compare) {
+        } else if ("compare" in this.props) {
             openFile({
                 compare: true,
                 patch,
@@ -56,6 +60,7 @@ export default class ChangedFiles extends Component<Props, {fileFilter?: string}
             openFile({
                 workDir: this.props.workDir,
                 patch,
+                type: this.props.type
             });
         }
     }

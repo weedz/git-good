@@ -37,6 +37,7 @@ export type IpcActionParams = {
     [IpcAction.LOAD_HUNKS]: 
     ({
         workDir: boolean
+        type: "staged" | "unstaged"
     } | {
         sha: string
     } | {

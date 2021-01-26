@@ -172,7 +172,7 @@ export function checkoutBranch(branch: string) {
     sendAsyncMessage(IpcAction.CHECKOUT_BRANCH, branch);
 }
 
-export function openFile(params: ({sha: string} | {workDir: true} | {compare: true}) & {patch: PatchObj}) {
+export function openFile(params: ({sha: string} | {workDir: true, type: "staged" | "unstaged"} | {compare: true}) & {patch: PatchObj}) {
     updateStore({
         currentFile: {
             patch: params.patch
@@ -193,6 +193,7 @@ export function openFile(params: ({sha: string} | {workDir: true} | {compare: tr
             sendAsyncMessage(IpcAction.LOAD_HUNKS, {
                 workDir: true,
                 path: params.patch.actualFile.path,
+                type: params.type
             });
         }
     }

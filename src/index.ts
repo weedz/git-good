@@ -523,5 +523,5 @@ function loadHunks(params: IpcActionParams[IpcAction.LOAD_HUNKS]) {
     } else if ("compare" in params) {
         return provider.hunksFromCompare(params.path);
     }
-    return provider.getWorkdirHunks(params.path);
+    return provider.getWorkdirHunks(params.path, params.type);
 }

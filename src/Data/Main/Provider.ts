@@ -410,16 +410,19 @@ async function getUnstagedPatches(repo: Repository) {
 }
 
 export async function loadChanges(): Promise<IpcActionReturn[IpcAction.GET_CHANGES]> {
-    workDirIndexPathMap = {};
+    workDirIndexPathMap = {
+        staged: {},
+        unstaged: {},
+    };
 
     const staged = workDirIndexCache.stagedPatches.map(convPatch => {
         const patch = handlePatch(convPatch);
-        workDirIndexPathMap[patch.actualFile.path] = convPatch;
+        workDirIndexPathMap.staged[patch.actualFile.path] = convPatch;
         return patch;
     });
     const unstaged = workDirIndexCache.unstagedPatches.map(convPatch => {
         const patch = handlePatch(convPatch);
-        workDirIndexPathMap[patch.actualFile.path] = convPatch;
+        workDirIndexPathMap.unstaged[patch.actualFile.path] = convPatch;
         return patch;
     });
     return {
@@ -427,8 +430,8 @@ export async function loadChanges(): Promise<IpcActionReturn[IpcAction.GET_CHANG
         unstaged,
     };
 }
-export async function getWorkdirHunks(path: string) {
-    const patch = workDirIndexPathMap[path];
+export async function getWorkdirHunks(path: string, type: "staged" | "unstaged") {
+    const patch = workDirIndexPathMap[type][path];
     return loadHunks(patch);
 }
 
@@ -731,6 +734,7 @@ let workDirIndexCache: {
     stagedPatches: ConvenientPatch[]
 };
 let workDirIndexPathMap: {
-    [path: string]: ConvenientPatch
+    staged: { [path: string]: ConvenientPatch },
+    unstaged: { [path: string]: ConvenientPatch },
 }
 let index: Index;
