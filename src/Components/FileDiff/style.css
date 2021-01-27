@@ -28,12 +28,10 @@
 .diff-line td {
     padding: 1px;
 }
-.diff-line .new,
-.diff-line.new > * {
+.diff-line.new {
     background-color: darkgreen;
 }
-.diff-line .old,
-.diff-line.old > * {
+.diff-line.old {
     background-color: darkred;
 }
 .diff-line-content {
