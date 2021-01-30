@@ -6,7 +6,7 @@ type Props<T> = {
     itemHeight: number
     containerId?: string
     className?: string
-    renderItems: (items: T[], start: number) => Array<preact.JSX.Element>
+    renderItems: (items: T[], start: number) => Array<h.JSX.Element>
 }
 type State = {
     startRenderAt: number

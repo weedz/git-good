@@ -1,7 +1,9 @@
+import { Component } from "preact";
+import { PureComponent } from "preact/compat";
 import { DialogProps, DialogTypes } from "src/Components/Dialog/types";
 import Link, { unselectLink } from "src/Components/Link";
-import { IpcAction, BranchesObj, BranchObj, PatchObj, Locks, RepoStatus, IpcActionParams } from "../Actions";
-import { sendAsyncMessage } from "./IPC";
+import { IpcAction, BranchesObj, BranchObj, PatchObj, Locks, RepoStatus, IpcActionParams, IpcActionReturn } from "../Actions";
+import { registerHandler, sendAsyncMessage } from "./IPC";
 
 export type DialogWindow = {
     type: DialogTypes
@@ -74,69 +76,78 @@ export const contextMenuState: {data: {[name: string]: string}} = {
     data: {}
 };
 
-type KeyListeners = "repo" | "branches" | "head" | "heads" | "currentFile" | "locks" | "dialogWindow" | "selectedBranch" | "diffPaneSrc" | "viewChanges" | "comparePatches" | "commitMsg";
+type StoreKeys = keyof StoreType;
 
-type StoreListener = (arg: Partial<StoreType>) => void;
-type PartialStoreListener<T extends KeyListeners> = (arg: StoreType[T]) => void;
+type PartialStoreListener<T extends StoreKeys> = (arg: StoreType[T]) => void;
 
-const listeners: StoreListener[] = [];
-const keyListeners: {
-    [key in KeyListeners]: PartialStoreListener<KeyListeners>[]
+// FIXME: change to Map? faster to "unsubscribe"?
+const listeners: {
+    [K in StoreKeys]: PartialStoreListener<K>[]
 } = {
     repo: [],
     branches: [],
+    commitMsg: [],
+    comparePatches: [],
+    currentFile: [],
+    dialogWindow: [],
+    diffPaneSrc: [],
     head: [],
     heads: [],
-    currentFile: [],
     locks: [],
-    dialogWindow: [],
+    remotes: [],
     selectedBranch: [],
-    diffPaneSrc: [],
-    viewChanges: [],
-    comparePatches: [],
-    commitMsg: [],
+    viewChanges: []
 };
 
-export function subscribe<T extends KeyListeners>(cb: PartialStoreListener<T>, key: T): () => void;
-// eslint-disable-next-line no-redeclare
-export function subscribe(cb: StoreListener): () => void;
-// eslint-disable-next-line no-redeclare, @typescript-eslint/no-explicit-any
-export function subscribe(cb: (arg: any) => void, key?: KeyListeners) {
-    if (key) {
-        keyListeners[key].push(cb);
-    } else {
-        listeners.push(cb);
-    }
+function subscribe<T extends StoreKeys>(cb: PartialStoreListener<T>, key: T) {
+    listeners[key].push(cb as PartialStoreListener<StoreKeys>);
     return () => unsubscribe(cb, key);
 }
 
-export function unsubscribe<T extends KeyListeners>(cb: PartialStoreListener<T>, key?: T): void;
-// eslint-disable-next-line no-redeclare, ,@typescript-eslint/no-explicit-any
-export function unsubscribe(cb: (arg?: any) => void, key?: KeyListeners): void {
-    if (key) {
-        // x>>>0 casts x to a 32-bit unsigned int, -1 becomes 4294967295
-        keyListeners[key].splice(keyListeners[key].indexOf(cb)>>>0, 1);
-    } else {
-        listeners.splice(listeners.indexOf(cb)>>>0, 1);
+function unsubscribe<T extends StoreKeys>(cb: PartialStoreListener<T>, key: T) {
+    listeners[key].splice(listeners[key].indexOf(cb as PartialStoreListener<StoreKeys>)>>>0, 1);
+}
+
+export abstract class StoreComponent<P = unknown, S = unknown> extends Component<P, S> {
+    listeners: Array<() => void> = [];
+
+    listen<T extends StoreKeys>(key: T, cb: PartialStoreListener<T>) {
+        this.listeners.push(subscribe(cb, key));
+    }
+    registerHandler<T extends IpcAction>(action: T, cb: (arg: IpcActionReturn[T]) => void) {
+        this.listeners.push(registerHandler(action, cb));
+    }
+
+    componentWillUnmount() {
+        this.listeners.forEach(unsubscribe => unsubscribe());
+    }
+}
+export abstract class PureStoreComponent<P = unknown, S = unknown> extends PureComponent<P, S> {
+    listeners: Array<() => void> = [];
+
+    listen<T extends StoreKeys>(key: T, cb: PartialStoreListener<T>) {
+        this.listeners.push(subscribe(cb, key));
+    }
+    registerHandler<T extends IpcAction>(action: T, cb: (arg: IpcActionReturn[T]) => void) {
+        this.listeners.push(registerHandler(action, cb));
+    }
+
+    componentWillUnmount() {
+        this.listeners.forEach(unsubscribe => unsubscribe());
     }
 }
 
-function triggerKeyListeners(newStore: Pick<StoreType, KeyListeners>) {
-    for (const key in newStore) {
-        if (key in keyListeners) {
-            for (const listener of keyListeners[key as KeyListeners]) {
-                listener(newStore[key as KeyListeners]);
-            }
+function triggerKeyListeners(newStore: Partial<StoreType>) {
+    for (const key of Object.keys(newStore) as StoreKeys[]) {
+        for (const listener of listeners[key]) {
+            (listener as PartialStoreListener<StoreKeys>)(newStore[key]);
         }
     }
 }
 
 export function updateStore(newStore: Partial<StoreType>) {
     Object.assign(store, newStore);
-    for (const listener of listeners) {
-        listener(newStore);
-    }
-    triggerKeyListeners(newStore as Pick<StoreType, KeyListeners>);
+    triggerKeyListeners(newStore);
 }
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -153,10 +164,13 @@ function setStoreDeep(paths: Array<string | number>, data: any) {
     Object.assign(obj[key], newStore);
     // eslint-disable-next-line @typescript-eslint/ban-ts-comment
     // @ts-ignore
-    for (const listener of keyListeners[paths[0]]) {
+    for (const listener of listeners[paths[0]]) {
         listener(newStore);
     }
 }
+
+
+// TODO: Most of these functions should probably be in Renderer/IPC.ts or Renderer/index.ts
 
 export function openRepo(repoPath: IpcActionParams[IpcAction.OPEN_REPO]) {
     setLock(Locks.MAIN);

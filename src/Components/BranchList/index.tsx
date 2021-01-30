@@ -1,9 +1,8 @@
 import { h, Fragment } from "preact";
-import { PureComponent } from "preact/compat";
 import "./style.css";
 import { normalizeLocalName } from "../../Data/Branch";
 import { BranchesObj, BranchObj, Locks } from "../../Data/Actions";
-import { subscribe, Store, unsubscribe, checkoutBranch, updateStore, StoreType } from "../../Data/Renderer/store";
+import { Store, checkoutBranch, updateStore, PureStoreComponent } from "../../Data/Renderer/store";
 import { showHeadMenu, showLocalMenu, showOriginMenu, showRemoteMenu, showTagMenu } from "./Menu";
 import { branchesAheadBehind, toggleTreeItem, getBranchTree, filterBranches, RenderBranchTree, RenderRemotes } from "./Utils";
 import Link from "../Link";
@@ -38,32 +37,23 @@ function branchesToTree(branches: BranchesObj, filter: string | null) {
     );
 }
 
-export default class BranchList extends PureComponent<unknown, State> {
+export default class BranchList extends PureStoreComponent<unknown, State> {
     componentDidMount() {
-        subscribe(this.checkLocks, "locks");
-        subscribe(this.update, "branches");
-        subscribe(this.updateHead, "head");
-    }
-    componentWillUnmount() {
-        unsubscribe(this.checkLocks, "locks");
-        unsubscribe(this.update, "branches");
-        unsubscribe(this.updateHead, "head");
-    }
-    update = (branches: BranchesObj) => {
-        this.setState({
-            branches: branchesToTree(branches, this.state.filter),
+        this.listen("locks", (locks) => {
+            if (Locks.BRANCH_LIST in locks) {
+                this.setState({lock: locks[Locks.BRANCH_LIST]});
+            }
         });
-    }
-    updateHead = (head: BranchObj | undefined) => {
-        this.setState({
-            head
+        this.listen("branches", branches => {
+            this.setState({
+                branches: branchesToTree(branches, this.state.filter),
+            });
         });
-    }
-
-    checkLocks = (locks: StoreType["locks"]) => {
-        if (Locks.BRANCH_LIST in locks) {
-            this.setState({lock: locks[Locks.BRANCH_LIST]});
-        }
+        this.listen("head", head => {
+            this.setState({
+                head
+            });
+        });
     }
 
     filter = (e: h.JSX.TargetedKeyboardEvent<HTMLInputElement>) => {

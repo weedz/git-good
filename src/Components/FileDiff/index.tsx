@@ -1,7 +1,6 @@
 import { h } from "preact";
-import { PureComponent } from "preact/compat";
 import { HunkObj, LineObj } from "src/Data/Actions";
-import { Store, unsubscribe, subscribe, closeFile, blameFile } from "src/Data/Renderer/store";
+import { Store, closeFile, blameFile, PureStoreComponent } from "src/Data/Renderer/store";
 import { DELTA } from "src/Data/Utils";
 
 import "./style.css";
@@ -43,7 +42,7 @@ function compactLines(lines: LineObj[]) {
     return parsedLines;
 }
 
-export default class FileDiff extends PureComponent<unknown, State> {
+export default class FileDiff extends PureStoreComponent<unknown, State> {
     lines: h.JSX.Element[] = [];
 
     constructor() {
@@ -60,10 +59,7 @@ export default class FileDiff extends PureComponent<unknown, State> {
         };
     }
     componentDidMount() {
-        subscribe(this.renderHunks, "currentFile");
-    }
-    componentWillUnmount() {
-        unsubscribe(this.renderHunks, "currentFile");
+        this.listen("currentFile", this.renderHunks);
     }
 
     renderHunks = () => {

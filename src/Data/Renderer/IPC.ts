@@ -51,6 +51,7 @@ const handlers: {[T in IpcAction]: HandlerCallback[]} = {
 };
 export function registerHandler<T extends IpcAction>(action: T, cb: (arg: IpcActionReturn[T]) => void) {
     handlers[action].push(cb as HandlerCallback);
+    return () => unregisterHandler(action, cb);
 }
 export function unregisterHandler<T extends IpcAction>(action: T, cb: (arg: IpcActionReturn[T]) => void) {
     handlers[action].splice(handlers[action].indexOf(cb as HandlerCallback)>>>0, 1);

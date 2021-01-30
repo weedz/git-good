@@ -1,10 +1,11 @@
-import { h, Component } from "preact";
-import { registerHandler, unregisterHandler, sendAsyncMessage } from "src/Data/Renderer/IPC";
+import { h } from "preact";
+import { sendAsyncMessage } from "src/Data/Renderer/IPC";
 import { IpcAction, CommitObj, PatchObj, IpcActionReturn, IpcActionReturnError } from "src/Data/Actions";
 
 import "./style.css";
 import CommitMessage from "./CommitMessage";
 import ChangedFiles from "./ChangedFiles";
+import { StoreComponent } from "src/Data/Renderer/store";
 
 type State = {
     commit: null | CommitObj
@@ -15,7 +16,7 @@ type Props = {
     sha: string
 };
 
-export default class Commit extends Component<Props, State> {
+export default class Commit extends StoreComponent<Props, State> {
     resetView() {
         this.setState({
             commit: null,
@@ -33,12 +34,8 @@ export default class Commit extends Component<Props, State> {
         this.resetView();
         sendAsyncMessage(IpcAction.LOAD_COMMIT, this.props.sha);
         
-        registerHandler(IpcAction.LOAD_COMMIT, this.loadCommit);
-        registerHandler(IpcAction.LOAD_PATCHES_WITHOUT_HUNKS, this.handlePatch);
-    }
-    componentWillUnmount() {
-        unregisterHandler(IpcAction.LOAD_COMMIT, this.loadCommit);
-        unregisterHandler(IpcAction.LOAD_PATCHES_WITHOUT_HUNKS, this.handlePatch);
+        this.registerHandler(IpcAction.LOAD_COMMIT, this.loadCommit);
+        this.registerHandler(IpcAction.LOAD_PATCHES_WITHOUT_HUNKS, this.handlePatch);
     }
     loadCommit = (commit: IpcActionReturn[IpcAction.LOAD_COMMIT]) => {
         sendAsyncMessage(IpcAction.LOAD_PATCHES_WITHOUT_HUNKS, this.props.sha);

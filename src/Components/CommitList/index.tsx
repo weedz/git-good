@@ -1,8 +1,7 @@
 import { h } from "preact";
-import { PureComponent } from "preact/compat";
-import { sendAsyncMessage, unregisterHandler, registerHandler } from "src/Data/Renderer/IPC";
+import { sendAsyncMessage } from "src/Data/Renderer/IPC";
 import { IpcAction, IpcActionReturn, IpcActionReturnError, LoadCommitReturn, IpcActionParams, Locks } from "src/Data/Actions";
-import { clearLock, GlobalLinks, setLock, Store, StoreType, subscribe, unsubscribe } from "src/Data/Renderer/store";
+import { clearLock, GlobalLinks, PureStoreComponent, setLock, Store } from "src/Data/Renderer/store";
 
 import "./style.css";
 import FileFilter from "./FileFilter";
@@ -20,7 +19,7 @@ type State = {
 const pageSize = 200;
 const historyLimit = 1000;
 
-export default class CommitList extends PureComponent<unknown, State> {
+export default class CommitList extends PureStoreComponent<unknown, State> {
     graph: {
         [sha: string]: {
             descendants: LoadCommitReturn[]
@@ -41,20 +40,9 @@ export default class CommitList extends PureComponent<unknown, State> {
     }
 
     componentDidMount() {
-        subscribe(this.checkLocks, "locks");
-        subscribe(this.handleProps, "selectedBranch");
-        registerHandler(IpcAction.LOAD_COMMITS, this.commitsLoaded);
+        this.listen("selectedBranch", this.handleProps);
+        this.registerHandler(IpcAction.LOAD_COMMITS, this.commitsLoaded);
         this.getCommits();
-    }
-    componentWillUnmount() {
-        unsubscribe(this.checkLocks, "locks");
-        unsubscribe(this.handleProps, "selectedBranch");
-        unregisterHandler(IpcAction.LOAD_COMMITS, this.commitsLoaded);
-    }
-    checkLocks = (locks: StoreType["locks"]) => {
-        if (Locks.BRANCH_LIST in locks) {
-            this.setState({});
-        }
     }
     handleProps = () => {
         GlobalLinks.commits = {};

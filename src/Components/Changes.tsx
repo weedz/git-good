@@ -1,32 +1,26 @@
 import { h } from "preact";
-import { registerHandler, unregisterHandler } from "src/Data/Renderer/IPC";
 import { IpcAction, IpcActionReturn } from "src/Data/Actions";
-import { updateStore, Store, subscribe } from "../Data/Renderer/store";
+import { updateStore, Store, PureStoreComponent } from "../Data/Renderer/store";
 import Link from "./Link";
-import { PureComponent } from "preact/compat";
 
-export default class Changes extends PureComponent<unknown, {staged: number, unstaged: number}> {
+export default class Changes extends PureStoreComponent<unknown, {staged: number, unstaged: number, repoPath: string}> {
     state = {
         staged: 0,
         unstaged: 0,
+        repoPath: "",
     };
     componentDidMount() {
-        subscribe(this.repoChanged, "repo");
-        registerHandler(IpcAction.REFRESH_WORKDIR, this.updateIndex);
-    }
-    componentWillUnmount() {
-        unregisterHandler(IpcAction.REFRESH_WORKDIR, this.updateIndex);
-    }
-    repoChanged = () => {
-        this.setState({});
-    }
-    updateIndex = (changes: IpcActionReturn[IpcAction.REFRESH_WORKDIR]) => {
-        if (!("error" in changes)) {
-            this.setState({
-                staged: changes.staged,
-                unstaged: changes.unstaged
-            });
-        }
+        this.listen("repo", (repo) => {
+            this.setState({repoPath: repo?.path});
+        });
+        this.registerHandler(IpcAction.REFRESH_WORKDIR, (changes: IpcActionReturn[IpcAction.REFRESH_WORKDIR]) => {
+            if (!("error" in changes)) {
+                this.setState({
+                    staged: changes.staged,
+                    unstaged: changes.unstaged
+                });
+            }
+        });
     }
     render() {
         const changes = this.state.staged + this.state.unstaged;

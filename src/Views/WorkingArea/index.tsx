@@ -1,11 +1,11 @@
-import { h, Component } from "preact";
+import { h } from "preact";
 
 import "./style.css";
 import { CommitObj, IpcAction, IpcActionReturn, PatchObj } from "src/Data/Actions";
-import { registerHandler, unregisterHandler, sendAsyncMessage } from "src/Data/Renderer/IPC";
+import { sendAsyncMessage } from "src/Data/Renderer/IPC";
 import ChangedFiles from "src/Components/DiffPane/ChangedFiles";
 import { remote } from "electron";
-import { commit, updateStore, Store, StoreType, subscribe, unsubscribe } from "src/Data/Renderer/store";
+import { commit, updateStore, Store, StoreType, StoreComponent } from "src/Data/Renderer/store";
 import { triggerAction } from "src/Components/Link";
 
 type State = {
@@ -16,7 +16,7 @@ type State = {
     commitMsg: StoreType["commitMsg"]
 };
 
-export default class WorkingArea extends Component<unknown, State> {
+export default class WorkingArea extends StoreComponent<unknown, State> {
     constructor() {
         super();
 
@@ -25,24 +25,16 @@ export default class WorkingArea extends Component<unknown, State> {
         }
     }
     componentDidMount() {
-        registerHandler(IpcAction.REFRESH_WORKDIR, this.getChanges);
-        registerHandler(IpcAction.GET_CHANGES, this.update);
-        registerHandler(IpcAction.LOAD_COMMIT, this.setHead);
+        this.registerHandler(IpcAction.REFRESH_WORKDIR, this.getChanges);
+        this.registerHandler(IpcAction.GET_CHANGES, this.update);
+        this.registerHandler(IpcAction.LOAD_COMMIT, this.setHead);
 
         sendAsyncMessage(IpcAction.LOAD_COMMIT);
 
-        subscribe(this.setCommitMsg, "commitMsg");
+        this.listen("commitMsg", msg => {
+            this.setState({commitMsg: msg});
+        });
         this.getChanges();
-    }
-    componentWillUnmount() {
-        unregisterHandler(IpcAction.REFRESH_WORKDIR, this.getChanges);
-        unregisterHandler(IpcAction.GET_CHANGES, this.update);
-        unregisterHandler(IpcAction.LOAD_COMMIT, this.setHead);
-
-        unsubscribe(this.setCommitMsg, "commitMsg");
-    }
-    setCommitMsg = (msg: StoreType["commitMsg"]) => {
-        this.setState({commitMsg: msg});
     }
     setHead = (head: CommitObj) => {
         this.setState({

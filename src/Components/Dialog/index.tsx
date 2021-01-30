@@ -1,5 +1,5 @@
-import { h, Fragment, Component } from "preact";
-import { StoreType, subscribe, unsubscribe } from "src/Data/Renderer/store";
+import { h, Fragment } from "preact";
+import { StoreComponent } from "src/Data/Renderer/store";
 import { DialogTypes } from "./types";
 import { NewBranch, RenameBranch } from "./Branch";
 import { SetUpstream } from "./SetUpstream";
@@ -19,34 +19,30 @@ const dialogTypes = {
 type State = {
     view: h.JSX.Element | null
 };
-export default class Dialog extends Component<unknown, State> {
+export default class Dialog extends StoreComponent<unknown, State> {
     componentDidMount() {
-        subscribe(this.updateDialog, "dialogWindow");
-    }
-    componentWillUnmount() {
-        unsubscribe(this.updateDialog, "dialogWindow");
-    }
-    updateDialog = (dialogWindow: StoreType["dialogWindow"]) => {
-        if (dialogWindow) {
-            const DialogWindow = dialogTypes[dialogWindow.type];
-            const props = dialogWindow.props;
-
-            const view = <Fragment>
-                <div className="dialog-window-backdrop" />
-                <div className="dialog-window-container">
-                    <div className="dialog-window">
-                        {
-                        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-                        // @ts-ignore, type guarded by Store.openDialogWindow. TODO: get better at types and fix this..
-                        <DialogWindow {...props} />
-                        }
+        this.listen("dialogWindow", dialogWindow => {
+            if (dialogWindow) {
+                const DialogWindow = dialogTypes[dialogWindow.type];
+                const props = dialogWindow.props;
+    
+                const view = <Fragment>
+                    <div className="dialog-window-backdrop" />
+                    <div className="dialog-window-container">
+                        <div className="dialog-window">
+                            {
+                            // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+                            // @ts-ignore, type guarded by Store.openDialogWindow. TODO: get better at types and fix this..
+                            <DialogWindow {...props} />
+                            }
+                        </div>
                     </div>
-                </div>
-            </Fragment>;
-            this.setState({view});
-        } else {
-            this.setState({view: null});
-        }
+                </Fragment>;
+                this.setState({view});
+            } else {
+                this.setState({view: null});
+            }
+        });
     }
     render() {
         return this.state.view;

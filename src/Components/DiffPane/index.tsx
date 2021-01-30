@@ -1,42 +1,33 @@
 import { h } from "preact";
-import { PureComponent } from "preact/compat";
-import { StoreType, subscribe, unsubscribe } from "src/Data/Renderer/store";
+import { PureStoreComponent } from "src/Data/Renderer/store";
 import Commit from "src/Components/DiffPane/Commit";
 import WorkingArea from "src/Views/WorkingArea";
-import { PatchObj } from "src/Data/Actions";
 import Compare from "src/Views/Compare";
 
 type State = {
     view: h.JSX.Element | null
 }
 
-export default class DiffPane extends PureComponent<unknown, State> {
-    componentDidMount() {
-        subscribe(this.loadCommitFromStore, "diffPaneSrc");
-        subscribe(this.viewChanges, "viewChanges");
-        subscribe(this.viewCompareResults, "comparePatches");
-    }
-    componentWillUnmount() {
-        unsubscribe(this.loadCommitFromStore, "diffPaneSrc");
-        unsubscribe(this.viewChanges, "viewChanges");
-        unsubscribe(this.viewCompareResults, "comparePatches");
-    }
+// FIXME: this should be refactored so we don't have to listen on store changes..
 
-    loadCommitFromStore = (sha: StoreType["diffPaneSrc"]) => {
-        if (sha) {
-            const view = <Commit sha={sha} />;
+export default class DiffPane extends PureStoreComponent<unknown, State> {
+    componentDidMount() {
+        this.listen("diffPaneSrc", sha => {
+            if (sha) {
+                const view = <Commit sha={sha} />;
+                this.setState({view});
+            } else {
+                this.setState({view: null});
+            }
+        });
+        this.listen("viewChanges", () => {
+            const view = <WorkingArea />;
             this.setState({view});
-        } else {
-            this.setState({view: null});
-        }
-    }
-    viewChanges = () => {
-        const view = <WorkingArea />;
-        this.setState({view});
-    }
-    viewCompareResults = (comparePatches: PatchObj[]) => {
-        const view = <Compare patches={comparePatches} />
-        this.setState({view});
+        });
+        this.listen("comparePatches", comparePatches => {
+            const view = <Compare patches={comparePatches} />
+            this.setState({view});
+        });
     }
 
     render() {

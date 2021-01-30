@@ -1,6 +1,7 @@
-import { h, Component, Fragment } from "preact";
+import { h, Fragment } from "preact";
 import { IpcAction, IpcActionReturn } from "src/Data/Actions";
-import { registerHandler, sendAsyncMessage, unregisterHandler } from "src/Data/Renderer/IPC";
+import { sendAsyncMessage } from "src/Data/Renderer/IPC";
+import { StoreComponent } from "src/Data/Renderer/store";
 
 import "./style.css";
 
@@ -11,15 +12,15 @@ type State = {
     showFiles: undefined | boolean
 };
 
-export default class FileFilter extends Component<{filterByFile: (file: string | undefined) => void}, State> {
+export default class FileFilter extends StoreComponent<{filterByFile: (file: string | undefined) => void}, State> {
     // eslint-disable-next-line no-undef
     findFileTimeout?: NodeJS.Timeout;
 
     componentDidMount() {
-        registerHandler(IpcAction.FIND_FILE, this.handleFindFile);
+        this.registerHandler(IpcAction.FIND_FILE, this.handleFindFile);
     }
     componentWillUnmount() {
-        unregisterHandler(IpcAction.FIND_FILE, this.handleFindFile);
+        super.componentWillUnmount();
         this.findFileTimeout && clearTimeout(this.findFileTimeout);
     }
 
