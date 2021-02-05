@@ -50,6 +50,7 @@ export default class ScrollContainer<T> extends Component<Props<T>, State> {
         });
     }
     checkScrollPosition = () => {
+        this.timeout = 0;
         if (this.containerRef.current) {
             const startCommit = Math.floor(this.containerRef?.current.scrollTop / this.props.itemHeight);
             if (startCommit !== this.state.startRenderAt) {
@@ -60,8 +61,10 @@ export default class ScrollContainer<T> extends Component<Props<T>, State> {
         }
     }
     scrollHandler = (_: Event) => {
-        clearTimeout(this.timeout);
-        this.timeout = window.setTimeout(this.checkScrollPosition, 30);
+        if (!this.timeout) {
+            clearTimeout(this.timeout);
+            this.timeout = window.setTimeout(this.checkScrollPosition, 30);
+        }
     }
     render() {
         return (
