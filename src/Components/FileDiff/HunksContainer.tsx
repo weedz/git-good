@@ -63,6 +63,7 @@ export default class HunksContainer extends Component<Props, State> {
         });
     }
     checkScrollPosition = () => {
+        this.timeout = 0;
         if (this.containerRef.current) {
             const startLine = Math.floor(this.containerRef?.current.scrollTop / ITEM_HEIGHT);
             if (startLine !== this.state.startRenderAt) {
@@ -73,8 +74,10 @@ export default class HunksContainer extends Component<Props, State> {
         }
     }
     scrollHandler = (_: Event) => {
-        clearTimeout(this.timeout);
-        this.timeout = window.setTimeout(this.checkScrollPosition, 30);
+        if (!this.timeout) {
+            clearTimeout(this.timeout);
+            this.timeout = window.setTimeout(this.checkScrollPosition, 30);
+        }
     }
     render() {
         const lines: h.JSX.Element[] = [];
