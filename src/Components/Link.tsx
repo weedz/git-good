@@ -52,10 +52,7 @@ export default class Link<T = never> extends PureComponent<Props<T>, {selected: 
     triggerAction(alwaysTrigger = false) {
         const prevLink = selectedLinks[this.type];
 
-        // nothing to see here.
-        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-        // @ts-ignore
-        selectedLinks[this.type] = this.props?.selectTarget?.__c as Link || this;
+        selectedLinks[this.type] = this.props?.selectTarget as unknown as Link<unknown> || this;
 
         const selectedLink = selectedLinks[this.type];
         if (selectedLink && (alwaysTrigger || selectedLink !== prevLink)) {
