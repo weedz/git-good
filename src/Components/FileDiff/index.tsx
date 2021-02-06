@@ -168,7 +168,7 @@ export default class FileDiff extends PureStoreComponent<unknown, State> {
                     <span>Wrap line</span>
                     <input checked={this.state.wrapLine} type="checkbox" onClick={(e) => this.setState({wrapLine: (e.target as unknown as HTMLInputElement).checked})} />
                 </label>
-                <HunksContainer width={this.longestLine * FONT_WIDTH} lines={this.state.lines} />
+                <HunksContainer itemHeight={17} width={this.longestLine * FONT_WIDTH} items={this.state.lines} />
             </div>
         );
     }
