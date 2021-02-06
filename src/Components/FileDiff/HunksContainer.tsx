@@ -1,84 +1,16 @@
-import { h, createRef, Component } from "preact";
+import { h } from "preact";
 import { LineObj } from "src/Data/Actions";
+import ScrollListView from "../ScrollListView";
 
-type Lines = Array<{
+type Line = {
     type: string
     content: string
     line?: LineObj
-}>
-
-type Props = {
-    lines: Lines
-    width: number
-}
-type State = {
-    startRenderAt: number
-    itemsToRender: number
-    totalHeight: number
 }
 
 const ITEM_HEIGHT = 17;
 
-export default class HunksContainer extends Component<Props, State> {
-    timeout!: number;
-    state = {
-        startRenderAt: 0,
-        itemsToRender: 0,
-        totalHeight: 0,
-    }
-    observer: ResizeObserver | null = null;
-    containerRef = createRef<HTMLDivElement>();
-    constructor(props: Props) {
-        super(props);
-
-        this.setState({
-            totalHeight: ITEM_HEIGHT * props.lines.length,
-        });
-    }
-    componentDidMount() {
-        if (this.containerRef.current) {
-            this.containerRef.current.onscroll = this.scrollHandler;
-            this.observer = new ResizeObserver(entries => {
-                for (const entry of entries) {
-                    const cr = entry.contentRect;
-                    this.setState({
-                        itemsToRender: Math.ceil(cr.height / ITEM_HEIGHT) + 1
-                    });
-                }
-            });
-            this.observer.observe(this.containerRef.current);
-        }
-    }
-    componentWillUnmount() {
-        if (this.containerRef.current) {
-            this.containerRef.current.onscroll = null;
-        }
-        if (this.observer) {
-            this.observer.disconnect();
-        }
-    }
-    componentWillReceiveProps(nextProps: Props) {
-        this.setState({
-            totalHeight: ITEM_HEIGHT * nextProps.lines.length,
-        });
-    }
-    checkScrollPosition = () => {
-        this.timeout = 0;
-        if (this.containerRef.current) {
-            const startLine = Math.floor(this.containerRef?.current.scrollTop / ITEM_HEIGHT);
-            if (startLine !== this.state.startRenderAt) {
-                this.setState({
-                    startRenderAt: startLine
-                });
-            }
-        }
-    }
-    scrollHandler = (_: Event) => {
-        if (!this.timeout) {
-            clearTimeout(this.timeout);
-            this.timeout = window.setTimeout(this.checkScrollPosition, 30);
-        }
-    }
+export default class HunksContainer extends ScrollListView<Line, {width: number}> {
     render() {
         const lines: h.JSX.Element[] = [];
 
@@ -86,7 +18,7 @@ export default class HunksContainer extends Component<Props, State> {
         const oldGlyphs: h.JSX.Element[] = [];
         const newGlyphs: h.JSX.Element[] = [];
 
-        this.props.lines.slice(this.state.startRenderAt, this.state.startRenderAt + this.state.itemsToRender).map((line,idx) => {
+        this.props.items.slice(this.state.startRenderAt, this.state.startRenderAt + this.state.itemsToRender).map((line,idx) => {
             const key = this.state.startRenderAt + idx;
             const top = key * ITEM_HEIGHT;
             if (line.type === "header") {
