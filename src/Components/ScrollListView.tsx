@@ -20,6 +20,9 @@ export default abstract class ScrollListView<T, P = unknown> extends Component<P
     containerRef = createRef<HTMLDivElement>();
     observer: ResizeObserver | null = null;
     componentDidMount() {
+        if (this.props.items.length > 0 ) {
+            this.setHeight(this.props);
+        }
         if (this.containerRef.current) {
             this.containerRef.current.onscroll = this.scrollHandler;
             this.observer = new ResizeObserver(entries => {
@@ -41,10 +44,13 @@ export default abstract class ScrollListView<T, P = unknown> extends Component<P
             this.observer.disconnect();
         }
     }
-    componentWillReceiveProps(nextProps: Props<T>) {
+    setHeight(props: Props<T>) {
         this.setState({
-            totalHeight: nextProps.itemHeight * nextProps.items.length
+            totalHeight: props.itemHeight * props.items.length
         });
+    }
+    componentWillReceiveProps(nextProps: Props<T>) {
+        this.setHeight(nextProps);
     }
     checkScrollPosition = () => {
         this.timeout = 0;
