@@ -60,6 +60,9 @@ function handleEvent<T extends IpcAction>(_: unknown, payload: {action: T, data:
     try {
         if ("error" in payload.data) {
             remote.dialog.showErrorBox(`Error ${IpcAction[payload.action]}`, payload.data.error);
+            // FIXME: can we define some sort of error handler here?
+            console.warn(payload);
+            return;
         }
         for (const handler of handlers[payload.action]) {
             handler(payload.data);

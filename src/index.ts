@@ -418,6 +418,11 @@ ipcMain.on("asynchronous-message", async (event, arg: EventArgs) => {
         return;
     }
 
+    if (repo && repo.isEmpty()) {
+        // WIP: fix handling of empty repos.
+        return provider.eventReply(event, action, {error: "empty repo... FIXME"});
+    }
+
     // TODO: fix proper type to detect AsyncIterator-stuff
     if (action === IpcAction.LOAD_COMMITS) {
         const callback = eventMap[action] as AsyncGeneratorEventCallback<typeof action>;
@@ -475,6 +480,7 @@ async function openRepo(repoPath: string) {
 
 function repoStatus() {
     return {
+        empty: repo.isEmpty(),
         merging: repo.isMerging(),
         rebasing: repo.isRebasing(),
         reverting: repo.isReverting(),

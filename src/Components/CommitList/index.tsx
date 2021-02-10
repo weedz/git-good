@@ -119,11 +119,7 @@ export default class CommitList extends PureStoreComponent<unknown, State> {
             commits: this.state.commits.concat(fetched.commits)
         });
     }
-    commitsLoaded = (result: IpcActionReturn[IpcAction.LOAD_COMMITS] | IpcActionReturnError) => {
-        if ("error" in result) {
-            console.warn(result);
-            return;
-        }
+    commitsLoaded = (result: IpcActionReturn[IpcAction.LOAD_COMMITS]) => {
         this.handleCommits(result);
     }
     filter = (e: h.JSX.TargetedKeyboardEvent<HTMLInputElement>) => {

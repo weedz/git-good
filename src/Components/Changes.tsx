@@ -14,12 +14,10 @@ export default class Changes extends PureStoreComponent<unknown, {staged: number
             this.setState({repoPath: repo?.path});
         });
         this.registerHandler(IpcAction.REFRESH_WORKDIR, (changes: IpcActionReturn[IpcAction.REFRESH_WORKDIR]) => {
-            if (!("error" in changes)) {
-                this.setState({
-                    staged: changes.staged,
-                    unstaged: changes.unstaged
-                });
-            }
+            this.setState({
+                staged: changes.staged,
+                unstaged: changes.unstaged
+            });
         });
     }
     render() {

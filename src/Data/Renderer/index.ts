@@ -8,12 +8,9 @@ function refreshWorkdir() {
     sendAsyncMessage(IpcAction.REFRESH_WORKDIR);
 }
 
-function repoOpened(result: IpcActionReturn[IpcAction.OPEN_REPO] | IpcActionReturnError) {
+function repoOpened(result: IpcActionReturn[IpcAction.OPEN_REPO]) {
+    // FIXME: error handler??
     clearLock(Locks.MAIN);
-    if ("error" in result) {
-        console.warn(result);
-        return;
-    }
     if (result.opened) {
         localStorage.setItem("recent-repo", result.path);
         loadBranches();
@@ -98,34 +95,27 @@ function branchesLoaded(result: IpcActionReturn[IpcAction.LOAD_BRANCHES]) {
         heads
     });
 }
-function updateCurrentBranch(result: IpcActionReturn[IpcAction.CHECKOUT_BRANCH] | IpcActionReturnError) {
+function updateCurrentBranch(result: IpcActionReturn[IpcAction.CHECKOUT_BRANCH]) {
     clearLock(Locks.MAIN);
-    if (result && !("error" in result)) {
+    if (result) {
         updateStore({
             head: result
         });
     }
 }
 
-function handleCompareRevisions(data: IpcActionReturn[IpcAction.OPEN_COMPARE_REVISIONS] | IpcActionReturnError) {
-    if ("error" in data) {
-        console.warn(data.error);
-    } else {
-        updateStore({
-            comparePatches: data,
-            // selectedBranch: undefined,
-        });
-    }
+function handleCompareRevisions(data: IpcActionReturn[IpcAction.OPEN_COMPARE_REVISIONS]) {
+    updateStore({
+        comparePatches: data,
+        // selectedBranch: undefined,
+    });
 }
 
 function handleBlameFile(data: IpcActionReturn[IpcAction.BLAME_FILE]) {
     console.log("blame", data);
 }
 
-function handlePushResult(res: IpcActionReturn[IpcAction.PUSH] | IpcActionReturnError) {
-    if ("error" in res) {
-        return;
-    }
+function handlePushResult(_: IpcActionReturn[IpcAction.PUSH]) {
     loadBranches();
 }
 
@@ -143,10 +133,7 @@ function handleRemotes(data: IpcActionReturn[IpcAction.REMOTES]) {
     });
 }
 
-function handlePullHead(res: IpcActionReturn[IpcAction.PULL] | IpcActionReturnError) {
-    if ("error" in res) {
-        return;
-    }
+function handlePullHead(_res: IpcActionReturn[IpcAction.PULL]) {
     loadBranches();
     updateStore({
         selectedBranch: Store.selectedBranch

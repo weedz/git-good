@@ -43,11 +43,7 @@ export default class Commit extends StoreComponent<Props, State> {
             commit
         });
     }
-    handlePatch = (patches: IpcActionReturn[IpcAction.LOAD_PATCHES_WITHOUT_HUNKS] | IpcActionReturnError) => {
-        if ("error" in patches) {
-            console.warn(patches.error);
-            return;
-        }
+    handlePatch = (patches: IpcActionReturn[IpcAction.LOAD_PATCHES_WITHOUT_HUNKS]) => {
         this.setState({
             patches,
             loadingComplete: true,
