@@ -286,7 +286,7 @@ export async function findFile(repo: Repository, file: string): Promise<IpcActio
     };
 }
 
-export async function commit(repo: Repository, params: IpcActionParams[IpcAction.COMMIT]) {
+export async function commit(repo: Repository, params: IpcActionParams[IpcAction.COMMIT]): Promise<IpcActionReturn[IpcAction.COMMIT] | IpcActionReturnError> {
     // TODO: get from settings
     const committer = Signature.now("Linus Björklund", "weedzcokie@gmail.com");
 
@@ -302,16 +302,21 @@ export async function commit(repo: Repository, params: IpcActionParams[IpcAction
 
     const message = params.message.body ? `${params.message.summary}\n${params.message.body}` : params.message.summary;
 
-    let newCommit;
-
-    if (params.amend) {
-        const author = parent.author();
-        newCommit = await parent.amend("HEAD", author, committer, "utf8", message, oid);
-    } else {
-        newCommit = await repo.createCommit("HEAD", committer, committer, message, oid, [parent]);
+    try {
+        if (params.amend) {
+            const author = parent.author();
+            await parent.amend("HEAD", author, committer, "utf8", message, oid);
+        } else {
+            await repo.createCommit("HEAD", committer, committer, message, oid, [parent]);
+        }
+    } catch(err) {
+        console.warn("Failed to commit:", err);
+        return {
+            error: "Failed to commit."
+        };
     }
 
-    return {result: !!newCommit};
+    return loadCommit(repo, null);
 }
 
 export async function refreshWorkDir(repo: Repository): Promise<IpcActionReturn[IpcAction.REFRESH_WORKDIR]> {

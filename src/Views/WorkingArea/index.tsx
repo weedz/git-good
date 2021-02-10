@@ -28,6 +28,7 @@ export default class WorkingArea extends StoreComponent<unknown, State> {
         this.registerHandler(IpcAction.REFRESH_WORKDIR, this.getChanges);
         this.registerHandler(IpcAction.GET_CHANGES, this.update);
         this.registerHandler(IpcAction.LOAD_COMMIT, this.setHead);
+        this.registerHandler(IpcAction.COMMIT, this.setHead);
 
         sendAsyncMessage(IpcAction.LOAD_COMMIT);
 

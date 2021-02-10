@@ -118,7 +118,7 @@ export type IpcActionReturn = {
     [IpcAction.STAGE_FILE]: {result: number}
     [IpcAction.UNSTAGE_FILE]: {result: number}
     [IpcAction.DISCARD_FILE]: {result: number}
-    [IpcAction.COMMIT]: {result: boolean}
+    [IpcAction.COMMIT]: CommitObj
     [IpcAction.PULL]: {result: boolean}
     [IpcAction.PUSH]: {result: boolean}
     [IpcAction.SET_UPSTREAM]: {result: boolean}
