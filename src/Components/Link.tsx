@@ -11,12 +11,12 @@ const selectedLinks: {
     files: null
 }
 
-type Props<T> = {
+interface Props<T> extends h.JSX.HTMLAttributes<HTMLAnchorElement> {
     selectTarget?: Link
     selectAction?: (arg: Link<T>) => void
     linkData?: T
     type?: LinkTypes
-} & h.JSX.HTMLAttributes<HTMLAnchorElement>
+}
 
 
 export function unselectLink(type: LinkTypes) {
@@ -55,6 +55,10 @@ export default class Link<T = never> extends PureComponent<Props<T>, {selected: 
         selectedLinks[this.type] = this.props?.selectTarget as unknown as Link<unknown> || this;
 
         const selectedLink = selectedLinks[this.type];
+        if (prevLink && prevLink.ref && prevLink !== selectedLink) {
+            prevLink.setState({selected: false});
+        }
+
         if (selectedLink && (alwaysTrigger || selectedLink !== prevLink)) {
             this.props.selectAction && this.props.selectAction(this);
 
@@ -62,17 +66,15 @@ export default class Link<T = never> extends PureComponent<Props<T>, {selected: 
                 selectedLink.props.selectAction && selectedLink.props.selectAction(selectedLink);
             }
 
-            selectedLink.ref.current?.scrollIntoView({
-                block: "nearest"
-            });
-
-            if (!alwaysTrigger) {
-                selectedLink.setState({selected: true});
+            if (selectedLink.ref) {
+                selectedLink.ref.current?.scrollIntoView({
+                    block: "nearest"
+                });
+    
+                if (!alwaysTrigger) {
+                    selectedLink.setState({selected: true});
+                }
             }
-        }
-
-        if (prevLink && prevLink !== selectedLink) {
-            prevLink.setState({selected: false});
         }
     }
     componentWillUnmount() {
@@ -87,12 +89,9 @@ export default class Link<T = never> extends PureComponent<Props<T>, {selected: 
         delete props.selectTarget;
         delete props.type;
 
-        const classNames: string[] = [];
+        const classNames = props.className ? [props.className] : [];
+        delete props.className;
 
-        if (props.className) {
-            classNames.push(props.className);
-            delete props.className;
-        }
         if (selectedLinks[this.type] === this) {
             classNames.push("selected");
         }
