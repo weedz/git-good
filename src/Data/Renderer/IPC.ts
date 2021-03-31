@@ -41,6 +41,7 @@ const handlers: {[T in IpcAction]: HandlerCallback[]} = {
     [IpcAction.CREATE_BRANCH_FROM_REF]: [],
     [IpcAction.DELETE_REF]: [],
     [IpcAction.DELETE_REMOTE_REF]: [],
+    [IpcAction.RENAME_LOCAL_BRANCH]: [],
     [IpcAction.FIND_FILE]: [],
     [IpcAction.ABORT_REBASE]: [],
     [IpcAction.CONTINUE_REBASE]: [],

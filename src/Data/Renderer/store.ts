@@ -256,6 +256,13 @@ export function deleteBranch(name: string) {
         name
     });
 }
+export function renameLocalBranch(oldName: string, newName: string) {
+    setLock(Locks.BRANCH_LIST);
+    sendAsyncMessage(IpcAction.RENAME_LOCAL_BRANCH, {
+        ref: oldName,
+        name: newName
+    });
+}
 
 export function deleteRemoteBranch(name: string) {
     setLock(Locks.BRANCH_LIST);

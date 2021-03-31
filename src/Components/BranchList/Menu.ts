@@ -2,7 +2,7 @@ import { remote } from "electron";
 import { h } from "preact";
 import { RefType } from "src/Data/Actions";
 import { pullHead } from "src/Data/Renderer";
-import { BranchFromType, openDialog_BranchFrom, openDialog_SetUpstream } from "src/Data/Renderer/Dialogs";
+import { BranchFromType, openDialog_BranchFrom, openDialog_SetUpstream, openDialog_RenameRef, BranchType } from "src/Data/Renderer/Dialogs";
 import { contextMenuState, checkoutBranch, deleteBranch, deleteRemoteBranch, Store, push } from "src/Data/Renderer/store";
 
 const { Menu, MenuItem } = remote;
@@ -27,7 +27,6 @@ originMenu.append(new MenuItem({
 const newBranch = new MenuItem({
     label: 'Create new branch...',
     click() {
-        console.log("Create new branch");
         const sha = contextMenuState.data.ref;
         openDialog_BranchFrom(sha, BranchFromType.REF);
     }
@@ -89,7 +88,8 @@ localMenu.append(new MenuItem({
 localMenu.append(new MenuItem({
     label: 'Rename...',
     click() {
-        console.log("Rename");
+        const refName = contextMenuState.data.ref;
+        openDialog_RenameRef(refName, BranchType.LOCAL);
     }
 }));
 localMenu.append(new MenuItem({

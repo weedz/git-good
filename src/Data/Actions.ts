@@ -19,6 +19,7 @@ export enum IpcAction {
     CREATE_BRANCH_FROM_REF,
     DELETE_REF,
     DELETE_REMOTE_REF,
+    RENAME_LOCAL_BRANCH,
     FIND_FILE,
     ABORT_REBASE,
     CONTINUE_REBASE,
@@ -77,6 +78,10 @@ export type IpcActionParams = {
         ref: string
         name: string
     }
+    [IpcAction.RENAME_LOCAL_BRANCH]: {
+        ref: string
+        name: string
+    }
     [IpcAction.DELETE_REF]: {
         name: string
         force?: boolean
@@ -126,6 +131,7 @@ export type IpcActionReturn = {
     [IpcAction.CREATE_BRANCH_FROM_REF]: {result: boolean}
     [IpcAction.DELETE_REF]: {result: boolean}
     [IpcAction.DELETE_REMOTE_REF]: {result: boolean}
+    [IpcAction.RENAME_LOCAL_BRANCH]: {result: boolean}
     [IpcAction.FIND_FILE]: {result: string[]}
     [IpcAction.ABORT_REBASE]: RepoStatus
     [IpcAction.CONTINUE_REBASE]: RepoStatus

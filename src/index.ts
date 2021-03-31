@@ -369,6 +369,19 @@ const eventMap: {
             result: res !== null
         };
     },
+    // TODO: Should we allow renaming remote refs? Can we use the same call for remote refs?
+    [IpcAction.RENAME_LOCAL_BRANCH]: async (repo, data) => {
+        const ref = await repo.getReference(data.ref);
+        let renamedRef: NodeGit.Reference | null = null;
+
+        if (ref.isBranch() && !ref.isRemote()) {
+            // We only allow rename of a local branch (so the name should begin with "refs/heads/")
+            renamedRef = await ref.rename(`refs/heads/${data.name}`, 0, "renamed");
+        }
+        return {
+            result: !!renamedRef
+        }
+    },
     [IpcAction.DELETE_REF]: async (repo, data: IpcActionParams[IpcAction.DELETE_REF]) => {
         const ref = await repo.getReference(data.name);
         const res = NodeGit.Branch.delete(ref);

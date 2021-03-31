@@ -2,7 +2,7 @@ import { DialogTypes } from "src/Components/Dialog/types";
 import { IpcAction } from "../Actions";
 import { normalizeLocalName, normalizeRemoteNameWithoutOrigin, normalizeTagName } from "../Branch";
 import { sendAsyncMessage } from "./IPC";
-import { closeDialogWindow, createBranchFromSha, createBranchFromRef, openDialogWindow, blameFile, setUpstream } from "./store";
+import { closeDialogWindow, createBranchFromSha, createBranchFromRef, openDialogWindow, blameFile, setUpstream, renameLocalBranch } from "./store";
 
 export function openDialog_BlameFile() {
     openDialogWindow(DialogTypes.BLAME, {
@@ -65,6 +65,42 @@ export function openDialog_BranchFrom(sha: string, type: BranchFromType) {
                     createBranchFromSha(sha, branchName);
                 } else if (type === BranchFromType.REF) {
                     createBranchFromRef(sha, branchName);
+                }
+            }
+        }
+    });
+}
+
+export enum BranchType {
+    LOCAL,
+    REMOTE
+}
+
+export function openDialog_RenameRef(sha: string, type: BranchType) {
+    let currentName;
+    if (sha.startsWith("refs/")) {
+        if (sha.startsWith("refs/heads/")) {
+            currentName = normalizeLocalName(sha);
+        } else if (sha.startsWith("refs/remotes/")) {
+            currentName = normalizeRemoteNameWithoutOrigin(sha);
+        } else if (sha.startsWith("refs/tags")) {
+            currentName = normalizeTagName(sha);
+        }
+    }
+    openDialogWindow(DialogTypes.RENAME_BRANCH, {
+        defaultValue: currentName,
+        cancelCb() {
+            closeDialogWindow();
+        },
+        confirmCb(newName) {
+            closeDialogWindow();
+            if (newName) {
+                switch (type) {
+                    case BranchType.LOCAL:
+                        return renameLocalBranch(sha, newName);
+                    case BranchType.REMOTE:
+                        console.log("FIXME: rename remote refs");
+                        // return renameRemoteBranch(sha, newName);
                 }
             }
         }
