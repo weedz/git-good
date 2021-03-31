@@ -14,6 +14,7 @@ export default {
         "fs",
         "child_process",
         "electron",
+        "@electron/remote"
     ],
     input: ["src/renderer.tsx", "src/index.ts"],
     output: {

@@ -1,4 +1,5 @@
-import { ipcRenderer, remote } from "electron";
+import { ipcRenderer } from "electron";
+import { dialog } from "@electron/remote";
 import { IpcAction, IpcActionParams, IpcActionReturn, IpcActionReturnError } from "../Actions";
 import { WindowArguments, WindowEvents } from "../WindowEventTypes";
 
@@ -72,7 +73,7 @@ function handleEvent<T extends IpcAction>(_: unknown, payload: {action: T, data:
         // eslint-disable-next-line @typescript-eslint/ban-ts-comment
         // @ts-ignore, https://github.com/microsoft/TypeScript/issues/43210
         if ("error" in payload.data) {
-            remote.dialog.showErrorBox(`Error ${IpcAction[payload.action]}`, payload.data.error);
+            dialog.showErrorBox(`Error ${IpcAction[payload.action]}`, payload.data.error);
             // FIXME: can we define some sort of error handler here?
             console.warn(payload);
             return;
@@ -83,6 +84,6 @@ function handleEvent<T extends IpcAction>(_: unknown, payload: {action: T, data:
     } catch (e) {
         console.error(e);
         console.log(payload, IpcAction[payload.action]);
-        remote.dialog.showErrorBox(`Error ${IpcAction[payload.action]}`, "Unknown error. Check devtools...");
+        dialog.showErrorBox(`Error ${IpcAction[payload.action]}`, "Unknown error. Check devtools...");
     }
 }

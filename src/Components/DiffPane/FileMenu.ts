@@ -1,8 +1,7 @@
-import { remote, shell } from "electron";
+import { shell } from "electron";
+import { getCurrentWindow, Menu, MenuItem } from "@electron/remote";
 import { h } from "preact";
 import { blameFile, contextMenuState, Store } from "src/Data/Renderer/store";
-
-const { Menu, MenuItem } = remote;
 
 const fileMenu = new Menu();
 fileMenu.append(new MenuItem({
@@ -44,6 +43,6 @@ export function showFileMenu(e: h.JSX.TargetedMouseEvent<HTMLLIElement>) {
     e.preventDefault();
     contextMenuState.data = e.currentTarget.dataset as {[name: string]: string};
     fileMenu.popup({
-        window: remote.getCurrentWindow()
+        window: getCurrentWindow()
     });
 }

@@ -4,7 +4,7 @@ import "./style.css";
 import { CommitObj, IpcAction, IpcActionReturn, PatchObj } from "src/Data/Actions";
 import { sendAsyncMessage } from "src/Data/Renderer/IPC";
 import ChangedFiles from "src/Components/DiffPane/ChangedFiles";
-import { remote } from "electron";
+import { dialog } from "@electron/remote";
 import { commit, updateStore, Store, StoreType, StoreComponent } from "src/Data/Renderer/store";
 import { triggerAction } from "src/Components/Link";
 
@@ -66,7 +66,7 @@ export default class WorkingArea extends StoreComponent<unknown, State> {
     discard = async (e: h.JSX.TargetedEvent<HTMLButtonElement, MouseEvent>) => {
         const path = e.currentTarget.dataset.path;
 
-        const result = await remote.dialog.showMessageBox({
+        const result = await dialog.showMessageBox({
             message: `Discard changes to "${path}"?`,
             type: "question",
             buttons: ["Confirm", "Cancel"],

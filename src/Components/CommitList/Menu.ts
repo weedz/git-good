@@ -1,11 +1,9 @@
-import { remote } from "electron";
+import { getCurrentWindow, Menu, MenuItem } from "@electron/remote";
 import { h } from "preact";
 import { IpcAction } from "src/Data/Actions";
 import { BranchFromType, openDialog_BranchFrom } from "src/Data/Renderer/Dialogs";
 import { sendAsyncMessage } from "src/Data/Renderer/IPC";
 import { contextMenuState } from "src/Data/Renderer/store";
-
-const { Menu, MenuItem } = remote;
 
 const commitMenu = new Menu();
 commitMenu.append(new MenuItem({
@@ -60,6 +58,6 @@ export function showCommitMenu(e: h.JSX.TargetedMouseEvent<HTMLAnchorElement>) {
     e.preventDefault();
     contextMenuState.data = e.currentTarget.dataset as {[name: string]: string};
     commitMenu.popup({
-        window: remote.getCurrentWindow()
+        window: getCurrentWindow()
     });
 }

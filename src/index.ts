@@ -9,6 +9,13 @@ import { IpcAction, IpcActionParams, IpcActionReturn, IpcActionReturnError } fro
 import { sendEvent } from "./Data/Main/WindowEvents";
 import { TransferProgress } from "types/nodegit";
 
+// import { initialize } from "@electron/remote";
+// initialize();
+
+// eslint-disable-next-line @typescript-eslint/no-var-requires
+require('@electron/remote/main').initialize();
+
+
 const isMac = process.platform === "darwin";
 // const isLinux = process.platform === "linux";
 const isWindows = process.platform === "win32";
@@ -48,7 +55,17 @@ app.commandLine.appendSwitch('disable-smooth-scrolling');
 // This method will be called when Electron has finished
 // initialization and is ready to create browser windows.
 // Some APIs can only be used after this event occurs.
-app.on('ready', createWindow);
+app.whenReady().then(() => {
+    createWindow();
+
+    app.on('activate', () => {
+        // On OS X it's common to re-create a window in the app when the
+        // dock icon is clicked and there are no other windows open.
+        if (BrowserWindow.getAllWindows().length === 0) {
+            createWindow();
+        }
+    });
+});
 
 // Quit when all windows are closed.
 app.on('window-all-closed', () => {
@@ -59,13 +76,6 @@ app.on('window-all-closed', () => {
     }
 });
 
-app.on('activate', () => {
-    // On OS X it's common to re-create a window in the app when the
-    // dock icon is clicked and there are no other windows open.
-    if (BrowserWindow.getAllWindows().length === 0) {
-        createWindow();
-    }
-});
 
 const menuTemplate = [
     // { role: 'appMenu' }

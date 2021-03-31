@@ -1,12 +1,10 @@
-import { remote } from "electron";
+import { Menu, MenuItem, dialog, getCurrentWindow } from "@electron/remote";
 import { h } from "preact";
 import { RefType } from "src/Data/Actions";
 import { normalizeRemoteNameWithoutOrigin } from "src/Data/Branch";
 import { pullHead } from "src/Data/Renderer";
 import { BranchFromType, openDialog_BranchFrom, openDialog_SetUpstream, openDialog_RenameRef, BranchType } from "src/Data/Renderer/Dialogs";
 import { contextMenuState, checkoutBranch, deleteBranch, deleteRemoteBranch, Store, push } from "src/Data/Renderer/store";
-
-const { Menu, MenuItem } = remote;
 
 const setUpstreamMenuItem = new MenuItem({
     label: 'Set upstream...',
@@ -39,7 +37,7 @@ remoteMenu.append(new MenuItem({
     label: 'Delete...',
     async click() {
         const refName = contextMenuState.data.ref;
-        const result = await remote.dialog.showMessageBox({
+        const result = await dialog.showMessageBox({
             message: `Delete branch ${refName}?`,
             type: "question",
             buttons: ["Confirm", "Cancel"],
@@ -75,7 +73,7 @@ localMenu.append(new MenuItem({
     label: 'Delete...',
     async click() {
         const refName = contextMenuState.data.ref;
-        const result = await remote.dialog.showMessageBox({
+        const result = await dialog.showMessageBox({
             message: `Delete branch ${refName}?`,
             type: "question",
             buttons: ["Confirm", "Cancel"],
@@ -114,11 +112,11 @@ headMenu.append(new MenuItem({
         const ref = contextMenuState.data.ref;
         const headSHA = Store.head?.headSHA;
         if (!headSHA) {
-            return remote.dialog.showErrorBox("Invalid reference", ref);
+            return dialog.showErrorBox("Invalid reference", ref);
         }
         const head = Store.heads[headSHA].filter(head => head.type === RefType.LOCAL)[0];
         if (!head.remote) {
-            return remote.dialog.showErrorBox("Missing remote.", ref);
+            return dialog.showErrorBox("Missing remote.", ref);
         }
         pullHead();
     }
@@ -129,16 +127,16 @@ headMenu.append(new MenuItem({
         const ref = contextMenuState.data.ref;
         const headSHA = Store.head?.headSHA;
         if (!headSHA) {
-            return remote.dialog.showErrorBox("Invalid reference", ref);
+            return dialog.showErrorBox("Invalid reference", ref);
         }
 
         const head = Store.heads[headSHA].filter(head => head.type === RefType.LOCAL)[0];
         if (!head.remote) {
-            return remote.dialog.showErrorBox("Missing remote.", ref);
+            return dialog.showErrorBox("Missing remote.", ref);
         }
 
         if (head.status?.behind) {
-            const result = await remote.dialog.showMessageBox({
+            const result = await dialog.showMessageBox({
                 title: "Force push?",
                 message: `'${ref}' is behind the remote '${head.remote}'. Force push?`,
                 type: "question",
@@ -162,34 +160,34 @@ export function showOriginMenu(e: h.JSX.TargetedMouseEvent<HTMLAnchorElement>) {
     e.preventDefault();
     contextMenuState.data = e.currentTarget.dataset as {[name: string]: string};
     originMenu.popup({
-        window: remote.getCurrentWindow()
+        window: getCurrentWindow()
     });
 }
 export function showRemoteMenu(e: h.JSX.TargetedMouseEvent<HTMLAnchorElement>) {
     e.preventDefault();
     contextMenuState.data = e.currentTarget.dataset as {[name: string]: string};
     remoteMenu.popup({
-        window: remote.getCurrentWindow()
+        window: getCurrentWindow()
     });
 }
 export function showLocalMenu(e: h.JSX.TargetedMouseEvent<HTMLAnchorElement>) {
     e.preventDefault();
     contextMenuState.data = e.currentTarget.dataset as {[name: string]: string};
     localMenu.popup({
-        window: remote.getCurrentWindow()
+        window: getCurrentWindow()
     });
 }
 export function showHeadMenu(e: h.JSX.TargetedMouseEvent<HTMLAnchorElement>) {
     e.preventDefault();
     contextMenuState.data = e.currentTarget.dataset as {[name: string]: string};
     headMenu.popup({
-        window: remote.getCurrentWindow()
+        window: getCurrentWindow()
     });
 }
 export function showTagMenu(e: h.JSX.TargetedMouseEvent<HTMLAnchorElement>) {
     e.preventDefault();
     contextMenuState.data = e.currentTarget.dataset as {[name: string]: string};
     tagMenu.popup({
-        window: remote.getCurrentWindow()
+        window: getCurrentWindow()
     });
 }
