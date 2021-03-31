@@ -57,7 +57,7 @@ export async function *getCommits(repo: Repository, branch: string, start: "refs
     }
 
     if (file) {
-        const commits = await revwalk.fileHistoryWalk(file, num) as {commit: Commit, status: number, isMergeCommit: boolean}[];
+        const commits = await revwalk.fileHistoryWalk(file, num);
         yield {
             cursor: commits[commits.length - 1]?.commit.sha(),
             branch,

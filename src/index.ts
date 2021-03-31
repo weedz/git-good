@@ -2,7 +2,7 @@ import { join } from "path";
 import { app, BrowserWindow, ipcMain, Menu, dialog, shell, MenuItemConstructorOptions, IpcMainEvent, screen } from "electron";
 import { spawn } from "child_process";
 
-import * as NodeGit from "nodegit";
+import { Branch, Commit, Object, Oid, Rebase, Reference, Repository } from "nodegit";
 
 import * as provider from "./Data/Main/Provider";
 import { IpcAction, IpcActionParams, IpcActionReturn, IpcActionReturnError } from "./Data/Actions";
@@ -290,15 +290,15 @@ const menu = Menu.buildFromTemplate(menuTemplate);
 Menu.setApplicationMenu(menu);
 
 
-let repo: NodeGit.Repository;
+let repo: Repository;
 
 type EventArgs = {
     action: IpcAction
     data: IpcActionParams[IpcAction]
 };
 
-type AsyncGeneratorEventCallback<A extends IpcAction> = (repo: NodeGit.Repository, args: IpcActionParams[A], event: IpcMainEvent) => AsyncGenerator<IpcActionReturn[A] | IpcActionReturnError>;
-type PromiseEventCallback<A extends IpcAction> = (repo: NodeGit.Repository, args: IpcActionParams[A], event: IpcMainEvent) => Promise<IpcActionReturn[A] | IpcActionReturnError>;
+type AsyncGeneratorEventCallback<A extends IpcAction> = (repo: Repository, args: IpcActionParams[A], event: IpcMainEvent) => AsyncGenerator<IpcActionReturn[A] | IpcActionReturnError>;
+type PromiseEventCallback<A extends IpcAction> = (repo: Repository, args: IpcActionParams[A], event: IpcMainEvent) => Promise<IpcActionReturn[A] | IpcActionReturnError>;
 
 type AsyncGeneratorFunctions = IpcAction.LOAD_COMMITS;
 
@@ -307,7 +307,7 @@ const eventMap: {
 } & {
     [A in Exclude<IpcAction, AsyncGeneratorFunctions>]: PromiseEventCallback<A>
 } = {
-    [IpcAction.OPEN_REPO]: async (_: NodeGit.Repository, path: IpcActionParams[IpcAction.OPEN_REPO]) => {
+    [IpcAction.OPEN_REPO]: async (_: Repository, path: IpcActionParams[IpcAction.OPEN_REPO]) => {
         if (path) {
             const opened = await openRepo(path);
             return {
@@ -357,7 +357,7 @@ const eventMap: {
     },
     [IpcAction.CREATE_BRANCH_FROM_REF]: async (repo, data: IpcActionParams[IpcAction.CREATE_BRANCH_FROM_REF]) => {
         const ref = await repo.getReference(data.ref);
-        const sha = ref.isTag() ? (await ref.peel(NodeGit.Object.TYPE.COMMIT)) as unknown as NodeGit.Commit : await repo.getReferenceCommit(data.ref);
+        const sha = ref.isTag() ? (await ref.peel(Object.TYPE.COMMIT)) as unknown as Commit : await repo.getReferenceCommit(data.ref);
         
         let res;
         try {
@@ -372,7 +372,7 @@ const eventMap: {
     // TODO: Should we allow renaming remote refs? Can we use the same call for remote refs?
     [IpcAction.RENAME_LOCAL_BRANCH]: async (repo, data) => {
         const ref = await repo.getReference(data.ref);
-        let renamedRef: NodeGit.Reference | null = null;
+        let renamedRef: Reference | null = null;
 
         if (ref.isBranch() && !ref.isRemote()) {
             // We only allow rename of a local branch (so the name should begin with "refs/heads/")
@@ -384,7 +384,7 @@ const eventMap: {
     },
     [IpcAction.DELETE_REF]: async (repo, data: IpcActionParams[IpcAction.DELETE_REF]) => {
         const ref = await repo.getReference(data.name);
-        const res = NodeGit.Branch.delete(ref);
+        const res = Branch.delete(ref);
         return {result: !res};
     },
     [IpcAction.DELETE_REMOTE_REF]: provider.deleteRemoteRef,
@@ -450,14 +450,14 @@ ipcMain.on("asynchronous-message", async (event, arg: EventArgs) => {
     }
 });
 
-async function abortRebase(repo: NodeGit.Repository): Promise<IpcActionReturn[IpcAction.ABORT_REBASE]> {
-    const rebase = await NodeGit.Rebase.open(repo);
+async function abortRebase(repo: Repository): Promise<IpcActionReturn[IpcAction.ABORT_REBASE]> {
+    const rebase = await Rebase.open(repo);
     console.log(rebase);
     // rebase.abort();
     return repoStatus();
 }
-async function continueRebase(repo: NodeGit.Repository): Promise<IpcActionReturn[IpcAction.CONTINUE_REBASE]> {
-    const rebase = await NodeGit.Rebase.open(repo);
+async function continueRebase(repo: Repository): Promise<IpcActionReturn[IpcAction.CONTINUE_REBASE]> {
+    const rebase = await Rebase.open(repo);
     console.log(rebase);
     // const rebaseAction = await rebase.next();
     // console.dir(rebaseAction);
@@ -484,8 +484,9 @@ async function openRepoDialog() {
 async function openRepo(repoPath: string) {
     let opened = true;
     try {
-        repo = await NodeGit.Repository.open(repoPath);
+        repo = await Repository.open(repoPath);
     } catch (e) {
+        console.error(e);
         opened = false;
     }
     return opened;
@@ -502,14 +503,14 @@ function repoStatus() {
     };
 }
 
-async function initGetComits(repo: NodeGit.Repository, params: IpcActionParams[IpcAction.LOAD_COMMITS]) {
+async function initGetComits(repo: Repository, params: IpcActionParams[IpcAction.LOAD_COMMITS]) {
     let branch = "HEAD";
-    let revwalkStart: "refs/*" | NodeGit.Oid;
+    let revwalkStart: "refs/*" | Oid;
     if ("history" in params) {
         branch = "history";
         revwalkStart = "refs/*";
     } else {
-        let start: NodeGit.Commit;
+        let start: Commit;
         if (params.cursor) {
             const lastCommit = await repo.getCommit(params.cursor);
             if (!lastCommit.parentcount()) {
@@ -521,7 +522,7 @@ async function initGetComits(repo: NodeGit.Repository, params: IpcActionParams[I
             branch = params.branch;
             if (params.branch.includes("refs/tags")) {
                 const ref = await repo.getReference(params.branch);
-                start = await ref.peel(NodeGit.Object.TYPE.COMMIT) as unknown as NodeGit.Commit;
+                start = await ref.peel(Object.TYPE.COMMIT) as unknown as Commit;
             } else {
                 start = await repo.getReferenceCommit(params.branch);
             }

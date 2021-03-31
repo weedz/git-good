@@ -69,6 +69,8 @@ export function unregisterHandler<T extends IpcAction>(action: T, callbacks: ((a
 }
 function handleEvent<T extends IpcAction>(_: unknown, payload: {action: T, data: IpcActionReturn[T] | IpcActionReturnError}) {
     try {
+        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+        // @ts-ignore, https://github.com/microsoft/TypeScript/issues/43210
         if ("error" in payload.data) {
             remote.dialog.showErrorBox(`Error ${IpcAction[payload.action]}`, payload.data.error);
             // FIXME: can we define some sort of error handler here?
