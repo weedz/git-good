@@ -1,6 +1,6 @@
 import { h } from "preact";
 import { sendAsyncMessage } from "src/Data/Renderer/IPC";
-import { IpcAction, IpcActionReturn, IpcActionReturnError, LoadCommitReturn, IpcActionParams, Locks } from "src/Data/Actions";
+import { IpcAction, IpcActionReturn, LoadCommitReturn, IpcActionParams, Locks } from "src/Data/Actions";
 import { clearLock, GlobalLinks, PureStoreComponent, setLock, Store } from "src/Data/Renderer/store";
 
 import "./style.css";
@@ -14,6 +14,7 @@ type State = {
     filter: undefined | string
     fileFilter: undefined | string
     fileResults: string[]
+    loading: boolean
 };
 
 const pageSize = 200;
@@ -36,11 +37,13 @@ export default class CommitList extends PureStoreComponent<unknown, State> {
             fileFilter: undefined,
             filter: undefined,
             fileResults: [],
+            loading: false,
         };
     }
 
     componentDidMount() {
         this.listen("selectedBranch", this.handleProps);
+        this.listen("branches", this.handleProps);
         this.registerHandler(IpcAction.LOAD_COMMITS, this.commitsLoaded);
         this.getCommits();
     }
@@ -48,14 +51,19 @@ export default class CommitList extends PureStoreComponent<unknown, State> {
         GlobalLinks.commits = {};
         this.cursor = undefined;
         this.color = 0;
-        // TODO: fix this, no need to re-render all commits
-        this.setState({
-            commits: [],
-        }, this.getCommits);
+        this.getCommits();
     }
     getCommits = () => {
         this.graph = {};
-        this.loadMoreCommits();
+        if (!this.state.loading) {
+            this.setState({
+                // TODO: fix this, no need to re-render all commits
+                loading: true,
+                commits: [],
+            }, this.loadMoreCommits);
+        } else {
+            console.log("Already loading commits...");
+        }
     }
     loadMoreCommits = () => {
         setLock(Locks.BRANCH_LIST);
@@ -116,7 +124,8 @@ export default class CommitList extends PureStoreComponent<unknown, State> {
         }
 
         this.setState({
-            commits: this.state.commits.concat(fetched.commits)
+            commits: this.state.commits.concat(fetched.commits),
+            loading: false,
         });
     }
     commitsLoaded = (result: IpcActionReturn[IpcAction.LOAD_COMMITS]) => {
