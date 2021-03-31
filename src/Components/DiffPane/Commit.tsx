@@ -1,6 +1,6 @@
 import { h } from "preact";
 import { sendAsyncMessage } from "src/Data/Renderer/IPC";
-import { IpcAction, CommitObj, PatchObj, IpcActionReturn, IpcActionReturnError } from "src/Data/Actions";
+import { IpcAction, CommitObj, PatchObj, IpcActionReturn } from "src/Data/Actions";
 
 import "./style.css";
 import CommitMessage from "./CommitMessage";
