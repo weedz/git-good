@@ -89,7 +89,7 @@ export default class BranchList extends PureStoreComponent<unknown, State> {
                         <h4>Refs</h4>
                         <ul className="block-list">
                             <li><Link selectAction={selectHistory}>History</Link></li>
-                            {this.state.head && <li><Link selectAction={selectHead} onContextMenu={showHeadMenu} linkData={this.state.head.name} data-ref={this.state.head.name}>HEAD{headRef}</Link></li>}
+                            {this.state.head && <li><Link selectAction={selectHead} onContextMenu={showHeadMenu} linkData={this.state.head.name} data-ref={this.state.head.name} data-remote={this.state.head.remote}>HEAD{headRef}</Link></li>}
                         </ul>
                         <hr />
                         {this.state.branches &&

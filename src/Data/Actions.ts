@@ -64,7 +64,6 @@ export type IpcActionParams = {
         force?: boolean
         remote: string
         localBranch: string
-        remoteBranch?: string
     }
     [IpcAction.SET_UPSTREAM]: {
         local: string

@@ -2,7 +2,7 @@ import * as path from "path";
 import { promises as fs } from "fs";
 import { Repository, Revwalk, Commit, Diff, ConvenientPatch, ConvenientHunk, DiffLine, Object, Branch, Graph, Index, Reset, Checkout, DiffFindOptions, Blame, Cred, Reference, Oid, Signature, Merge } from "nodegit";
 import { IpcAction, BranchObj, BranchesObj, LineObj, HunkObj, PatchObj, CommitObj, IpcActionParams, IpcActionReturn, IpcActionReturnError, RefType } from "../Actions";
-import { normalizeLocalName, normalizeRemoteName, normalizeTagName } from "../Branch";
+import { normalizeLocalName, normalizeRemoteName, normalizeRemoteNameWithoutOrigin, normalizeTagName } from "../Branch";
 import { dialog, IpcMainEvent } from "electron";
 
 export const actionLock: {
@@ -116,7 +116,7 @@ export async function pull(repo: Repository): Promise<IpcActionReturn[IpcAction.
 
 export async function push(repo: Repository, data: IpcActionParams[IpcAction.PUSH]) {
     const remote = await repo.getRemote(data.remote);
-    let localRef;
+    let localRef: Reference;
 
     if (!data.localBranch) {
         localRef = await repo.head();
@@ -125,16 +125,16 @@ export async function push(repo: Repository, data: IpcActionParams[IpcAction.PUS
         localRef = await repo.getReference(data.localBranch);
     }
 
+    let remoteRefName: string;
+
     try {
         // throws if no upstream
-        await Branch.upstream(localRef);
+        const remoteRef = await Branch.upstream(localRef);
+        remoteRefName = normalizeRemoteNameWithoutOrigin(remoteRef.name());
+
     } catch (err) {
         console.log("push failed, invalid upstream");
         return 1;
-    }
-
-    if (!data.remoteBranch) {
-        data.remoteBranch = data.localBranch;
     }
 
     // undocumented, https://github.com/nodegit/nodegit/issues/1270#issuecomment-293742772
@@ -143,10 +143,15 @@ export async function push(repo: Repository, data: IpcActionParams[IpcAction.PUS
     let pushResult = 1;
     try {
         pushResult = await remote.push(
-            [`${force}${data.localBranch}:${data.remoteBranch}`],
+            [`${force}${data.localBranch}:refs/heads/${remoteRefName}`],
             {
                 callbacks: {
-                    credentials: authenticate
+                    credentials: authenticate,
+
+                    // FIXME: Can we use this to show "progress" when pushing?
+                    // transferProgress: (...args: any) => {
+                    //     console.log(args);
+                    // },
                 }
             }
         );
@@ -207,6 +212,7 @@ export async function getBranches(repo: Repository): Promise<IpcActionReturn[Ipc
     const remote: BranchObj[] = [];
     const tags: BranchObj[] = [];
 
+    // FIXME: Why do we get 2 references for "refs/remotes/origin/master"
     await Promise.all(
         refs.map(async (ref) => {
             const headCommit = await ref.peel(Object.TYPE.COMMIT);
@@ -243,6 +249,13 @@ export async function getBranches(repo: Repository): Promise<IpcActionReturn[Ipc
     
     const head = await repo.head();
     const headCommit = await head.peel(Object.TYPE.COMMIT);
+    let headUpstream: string | undefined;
+    try {
+        const upstream = await Branch.upstream(head);
+        headUpstream = upstream.name();
+    } catch(_) {
+        // no upstream for "head"
+    }
     
     return {
         local,
@@ -252,7 +265,8 @@ export async function getBranches(repo: Repository): Promise<IpcActionReturn[Ipc
             name: head.name(),
             headSHA: headCommit.id().tostrS(),
             normalizedName: head.name(),
-            type: RefType.LOCAL
+            type: RefType.LOCAL,
+            remote: headUpstream
         }
     };
 }

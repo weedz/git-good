@@ -107,18 +107,18 @@ export function openDialog_RenameRef(sha: string, type: BranchType) {
     });
 }
 
-export function openDialog_SetUpstream(local: string) {
+export function openDialog_SetUpstream(local: string, currentUpstream?: string) {
     openDialogWindow(DialogTypes.SET_UPSTREAM, {
         confirmCb(remote, upstream) {
             closeDialogWindow();
-            setUpstream(local, `${remote}/${upstream}`);
+            setUpstream(local, upstream ? `${remote}/${upstream}` : null);
         },
         cancelCb() {
             closeDialogWindow();
         },
         default: {
             remote: "origin",
-            branch: normalizeLocalName(local),
+            branch: currentUpstream || normalizeLocalName(local),
         }
     });
 }

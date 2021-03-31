@@ -1,6 +1,7 @@
 import { remote } from "electron";
 import { h } from "preact";
 import { RefType } from "src/Data/Actions";
+import { normalizeRemoteNameWithoutOrigin } from "src/Data/Branch";
 import { pullHead } from "src/Data/Renderer";
 import { BranchFromType, openDialog_BranchFrom, openDialog_SetUpstream, openDialog_RenameRef, BranchType } from "src/Data/Renderer/Dialogs";
 import { contextMenuState, checkoutBranch, deleteBranch, deleteRemoteBranch, Store, push } from "src/Data/Renderer/store";
@@ -11,7 +12,7 @@ const setUpstreamMenuItem = new MenuItem({
     label: 'Set upstream...',
     click() {
         const local = contextMenuState.data.ref;
-        openDialog_SetUpstream(local);
+        openDialog_SetUpstream(local, contextMenuState.data.remote && normalizeRemoteNameWithoutOrigin(contextMenuState.data.remote));
     }
 })
 
@@ -110,6 +111,15 @@ const headMenu = new Menu();
 headMenu.append(new MenuItem({
     label: 'Pull...',
     click() {
+        const ref = contextMenuState.data.ref;
+        const headSHA = Store.head?.headSHA;
+        if (!headSHA) {
+            return remote.dialog.showErrorBox("Invalid reference", ref);
+        }
+        const head = Store.heads[headSHA].filter(head => head.type === RefType.LOCAL)[0];
+        if (!head.remote) {
+            return remote.dialog.showErrorBox("Missing remote.", ref);
+        }
         pullHead();
     }
 }));
@@ -136,7 +146,7 @@ headMenu.append(new MenuItem({
                 cancelId: 1,
             });
             if (result.response === 0) {
-                push("origin", ref, undefined, true);
+                push("origin", ref, true);
             }
         } else {
             push("origin", ref);

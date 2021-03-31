@@ -269,17 +269,16 @@ export function deleteRemoteBranch(name: string) {
     sendAsyncMessage(IpcAction.DELETE_REMOTE_REF, name);
 }
 
-export function push(remote: string, localBranch: string, remoteBranch?: string, force?: boolean) {
+export function push(remote: string, localBranch: string, force?: boolean) {
     setLock(Locks.BRANCH_LIST);
     sendAsyncMessage(IpcAction.PUSH, {
         localBranch,
-        remoteBranch,
         remote,
         force
     });
 }
 
-export function setUpstream(local: string, remote: string) {
+export function setUpstream(local: string, remote: string | null) {
     sendAsyncMessage(IpcAction.SET_UPSTREAM, {
         local,
         remote: remote || null
