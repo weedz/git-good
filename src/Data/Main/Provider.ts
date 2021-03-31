@@ -1,6 +1,8 @@
 import * as path from "path";
 import { promises as fs } from "fs";
-import { Repository, Revwalk, Commit, Diff, ConvenientPatch, ConvenientHunk, DiffLine, Object, Branch, Graph, Index, Reset, Checkout, DiffFindOptions, Blame, Cred, Reference, Oid, Signature, Merge } from "nodegit";
+// eslint-disable-next-line @typescript-eslint/ban-ts-comment
+// @ts-ignore, missing declations for Credential
+import { Credential, Repository, Revwalk, Commit, Diff, ConvenientPatch, ConvenientHunk, DiffLine, Object, Branch, Graph, Index, Reset, Checkout, DiffFindOptions, Blame, Reference, Oid, Signature, Merge } from "nodegit";
 import { IpcAction, BranchObj, BranchesObj, LineObj, HunkObj, PatchObj, CommitObj, IpcActionParams, IpcActionReturn, IpcActionReturnError, RefType } from "../Actions";
 import { normalizeLocalName, normalizeRemoteName, normalizeRemoteNameWithoutOrigin, normalizeTagName } from "../Branch";
 import { dialog, IpcMainEvent } from "electron";
@@ -23,9 +25,9 @@ export function eventReply<T extends IpcAction>(event: IpcMainEvent, action: T, 
 
 export function authenticate(url: string, username: string) {
     if (auth.type === "ssh") {
-        return Cred.sshKeyFromAgent(username || "git");
+        return Credential.sshKeyFromAgent(username || "git");
     } else if (auth.type === "userpass") {
-        return Cred.userpassPlaintextNew(auth.username, auth.password);
+        return Credential.userpassPlaintextNew(auth.username, auth.password);
     }
 }
 
