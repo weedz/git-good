@@ -1,4 +1,4 @@
-import { BranchObj, IpcAction, IpcActionReturn, IpcActionReturnError, Locks, RepoStatus } from "../Actions";
+import { BranchObj, IpcAction, IpcActionReturn, Locks, RepoStatus } from "../Actions";
 import { WindowArguments } from "../WindowEventTypes";
 import { openDialog_BlameFile, openDialog_CompareRevisions } from "./Dialogs";
 import { addWindowEventListener, registerHandler, sendAsyncMessage } from "./IPC";

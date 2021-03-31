@@ -49,12 +49,22 @@ const handlers: {[T in IpcAction]: HandlerCallback[]} = {
     [IpcAction.REMOTES]: [],
     [IpcAction.RESOLVE_CONFLICT]: [],
 };
-export function registerHandler<T extends IpcAction>(action: T, cb: (arg: IpcActionReturn[T]) => void) {
-    handlers[action].push(cb as HandlerCallback);
-    return () => unregisterHandler(action, cb);
+export function registerHandler<T extends IpcAction>(action: T, callbacks: ((arg: IpcActionReturn[T]) => void) | (Array<(arg: IpcActionReturn[T]) => void>)) {
+    if (!Array.isArray(callbacks)) {
+        callbacks = [callbacks];
+    }
+    for (const cb of callbacks) {
+        handlers[action].push(cb as HandlerCallback);
+    }
+    return () => unregisterHandler(action, callbacks);
 }
-export function unregisterHandler<T extends IpcAction>(action: T, cb: (arg: IpcActionReturn[T]) => void) {
-    handlers[action].splice(handlers[action].indexOf(cb as HandlerCallback)>>>0, 1);
+export function unregisterHandler<T extends IpcAction>(action: T, callbacks: ((arg: IpcActionReturn[T]) => void) | (Array<(arg: IpcActionReturn[T]) => void>)) {
+    if (!Array.isArray(callbacks)) {
+        callbacks = [callbacks];
+    }
+    for (const cb of callbacks) {
+        handlers[action].splice(handlers[action].indexOf(cb as HandlerCallback)>>>0, 1);
+    }
 }
 function handleEvent<T extends IpcAction>(_: unknown, payload: {action: T, data: IpcActionReturn[T] | IpcActionReturnError}) {
     try {
