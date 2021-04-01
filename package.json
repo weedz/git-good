@@ -1,6 +1,6 @@
 {
   "name": "git-good",
-  "version": "0.0.8",
+  "version": "0.0.9",
   "description": "Git good",
   "main": "dist/index.js",
   "scripts": {
@@ -54,6 +54,9 @@
         "AppImage",
         "deb"
       ]
+    },
+    "mac": {
+      "category": "public.app-category.developer-tools"
     }
   },
   "repository": {
