@@ -188,10 +188,10 @@ export async function deleteRemoteRef(repo: Repository, refName: string): Promis
     if (ref.isRemote()) {
         refName = ref.name();
         const end = refName.indexOf("/", 14);
-        const remoteName = refName.substr(13, end - 13);
+        const remoteName = refName.substring(13, end);
         const remote = await repo.getRemote(remoteName);
 
-        const branchName = refName.substr(end + 1);
+        const branchName = refName.substring(end + 1);
 
         try {
             await remote.push([`:refs/heads/${branchName}`], {
@@ -634,8 +634,8 @@ export async function loadCommit(repo: Repository, sha: string | null): Promise<
     const committer = commit.committer();
 
     const msg = commit.message();
-    const msgSummary = msg.substr(0, msg.indexOf("\n")>>>0);
-    const msgBody = msg.substr(msgSummary.length).trimStart().trimEnd();
+    const msgSummary = msg.substring(0, msg.indexOf("\n")>>>0);
+    const msgBody = msg.substring(msgSummary.length).trim();
 
     return {
         parents: commit.parents().map(parent => ({sha: parent.tostrS()})),
