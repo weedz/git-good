@@ -1,10 +1,9 @@
 import { Menu, MenuItem, dialog, getCurrentWindow } from "@electron/remote";
 import { h } from "preact";
 import { RefType } from "src/Data/Actions";
-import { remoteName } from "src/Data/Branch";
-import { pullHead } from "src/Data/Renderer";
+import { pullHead, pushHead } from "src/Data/Renderer";
 import { BranchFromType, openDialog_BranchFrom, openDialog_SetUpstream, openDialog_RenameRef, BranchType } from "src/Data/Renderer/Dialogs";
-import { contextMenuState, checkoutBranch, deleteBranch, deleteRemoteBranch, Store, push } from "src/Data/Renderer/store";
+import { contextMenuState, checkoutBranch, deleteBranch, deleteRemoteBranch, Store } from "src/Data/Renderer/store";
 
 const setUpstreamMenuItem = new MenuItem({
     label: 'Set upstream...',
@@ -149,34 +148,8 @@ headMenu.append(new MenuItem({
 }));
 headMenu.append(new MenuItem({
     label: 'Push...',
-    async click() {
-        const ref = contextMenuState.data.ref;
-        const headSHA = Store.head?.headSHA;
-        if (!headSHA) {
-            return dialog.showErrorBox("Invalid reference", ref);
-        }
-
-        const head = Store.heads[headSHA].filter(head => head.type === RefType.LOCAL)[0];
-        if (!head.remote) {
-            return dialog.showErrorBox("Missing remote.", ref);
-        }
-
-        const remote = remoteName(head.remote);
-
-        if (head.status?.behind) {
-            const result = await dialog.showMessageBox({
-                title: "Force push?",
-                message: `'${ref}' is behind the remote '${head.remote}'. Force push?`,
-                type: "question",
-                buttons: ["Yes", "No"],
-                cancelId: 1,
-            });
-            if (result.response === 0) {
-                push(remote, ref, true);
-            }
-        } else {
-            push(remote, ref);
-        }
+    click() {
+        pushHead();
     }
 }));
 headMenu.append(setUpstreamMenuItem);

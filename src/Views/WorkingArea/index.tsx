@@ -30,7 +30,7 @@ export default class WorkingArea extends StoreComponent<unknown, State> {
         this.registerHandler(IpcAction.LOAD_COMMIT, this.setHead);
         this.registerHandler(IpcAction.COMMIT, this.setHead);
 
-        sendAsyncMessage(IpcAction.LOAD_COMMIT);
+        sendAsyncMessage(IpcAction.LOAD_COMMIT, null);
 
         this.listen("commitMsg", msg => {
             this.setState({commitMsg: msg});
@@ -43,7 +43,7 @@ export default class WorkingArea extends StoreComponent<unknown, State> {
         });
     }
     getChanges = () => {
-        sendAsyncMessage(IpcAction.GET_CHANGES);
+        sendAsyncMessage(IpcAction.GET_CHANGES, null);
     }
     update = (data: IpcActionReturn[IpcAction.GET_CHANGES]) => {
         this.setState({
@@ -57,14 +57,23 @@ export default class WorkingArea extends StoreComponent<unknown, State> {
     }
     stageFile = (e: h.JSX.TargetedEvent<HTMLButtonElement, MouseEvent>) => {
         const path = e.currentTarget.dataset.path;
+        if (!path) {
+            return;
+        }
         sendAsyncMessage(IpcAction.STAGE_FILE, path);
     }
     unstageFile = (e: h.JSX.TargetedEvent<HTMLButtonElement, MouseEvent>) => {
         const path = e.currentTarget.dataset.path;
+        if (!path) {
+            return;
+        }
         sendAsyncMessage(IpcAction.UNSTAGE_FILE, path);
     }
     discard = async (e: h.JSX.TargetedEvent<HTMLButtonElement, MouseEvent>) => {
         const path = e.currentTarget.dataset.path;
+        if (!path) {
+            return;
+        }
 
         const result = await dialog.showMessageBox({
             message: `Discard changes to "${path}"?`,

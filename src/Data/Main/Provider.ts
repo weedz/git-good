@@ -2,9 +2,9 @@ import * as path from "path";
 import { promises as fs } from "fs";
 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
 // @ts-ignore, missing declations for Credential
-import { Credential, Repository, Revwalk, Commit, Diff, ConvenientPatch, ConvenientHunk, DiffLine, Object, Branch, Graph, Index, Reset, Checkout, DiffFindOptions, Blame, Reference, Oid, Signature, Merge } from "nodegit";
+import { Credential, Repository, Revwalk, Commit, Diff, ConvenientPatch, ConvenientHunk, DiffLine, Object, Branch, Graph, Index, Reset, Checkout, DiffFindOptions, Blame, Reference, Oid, Signature, Merge, Remote } from "nodegit";
 import { IpcAction, BranchObj, LineObj, HunkObj, PatchObj, CommitObj, IpcActionParams, IpcActionReturn, IpcActionReturnError, RefType } from "../Actions";
-import { normalizeLocalName, normalizeRemoteName, normalizeRemoteNameWithoutRemote, normalizeTagName } from "../Branch";
+import { normalizeLocalName, normalizeRemoteName, normalizeRemoteNameWithoutRemote, normalizeTagName, remoteName } from "../Branch";
 import { dialog, IpcMainEvent } from "electron";
 
 export const actionLock: {
@@ -112,59 +112,95 @@ async function *walkTheRev(revwalk: Revwalk, num: number) {
 
 export async function pull(repo: Repository): Promise<IpcActionReturn[IpcAction.PULL]> {
     const head = await repo.head();
-    const upstream = await Branch.upstream(head);
+    let upstream: Reference;
+    try {
+        upstream = await Branch.upstream(head);
+    }
+    catch (err) {
+        // Missing remote/upstream
+        dialog.showErrorBox("Pull failed", "No upstream");
+        return {result: false};
+    }
     const result = await repo.mergeBranches(head, upstream, undefined, Merge.PREFERENCE.FASTFORWARD_ONLY);
     return {result: !!result};
 }
 
-export async function push(repo: Repository, data: IpcActionParams[IpcAction.PUSH]) {
-    const remote = await repo.getRemote(data.remote);
-    let localRef: Reference;
-
-    if (!data.localBranch) {
-        localRef = await repo.head();
-        data.localBranch = localRef.name();
-    } else {
-        localRef = await repo.getReference(data.localBranch);
+async function pushHead(repo: Repository) {
+    const head = await repo.head();
+    let upstream;
+    try {
+        upstream = await Branch.upstream(head);
+    }
+    catch(err) {
+        dialog.showErrorBox("Missing upstream", err.message);
+        return false;
     }
 
-    let remoteRefName: string;
+    const remote = await repo.getRemote(remoteName(upstream.name()));
+    const status = await Graph.aheadBehind(repo, head.target(), upstream.target()) as unknown as {ahead: number, behind: number};
 
+    if (status.behind) {
+        const result = await dialog.showMessageBox({
+            title: "Force push?",
+            message: `'${head.name()}' is behind the remote '${head.name()}'. Force push?`,
+            type: "question",
+            buttons: ["Yes", "No"],
+            cancelId: 1,
+        });
+        if (result.response === 0) {
+            return doPush(remote, head.name(), normalizeRemoteNameWithoutRemote(upstream.name()), true);
+        }
+    } else {
+        return doPush(remote, head.name(), normalizeRemoteNameWithoutRemote(upstream.name()));
+    }
+
+    return false;
+}
+
+export async function push(repo: Repository, data: IpcActionParams[IpcAction.PUSH]) {
+    if (!data) {
+        return pushHead(repo);
+    }
+
+    const localRef = await repo.getReference(data.localBranch);
+
+    let remoteRefName: string;
     try {
         // throws if no upstream
         const remoteRef = await Branch.upstream(localRef);
         remoteRefName = normalizeRemoteNameWithoutRemote(remoteRef.name());
-
     } catch (err) {
         dialog.showErrorBox("Push failed", `Invalid upstream: ${err.message}`);
         return false;
     }
 
-    // undocumented, https://github.com/nodegit/nodegit/issues/1270#issuecomment-293742772
-    const force = data.force ? "+" : "";
+    const remote = await repo.getRemote(data.remote);
+    return doPush(remote, data.localBranch, remoteRefName, data.force);
+}
 
+async function doPush(remote: Remote, localName: string, remoteName: string, forcePush = false) {
+    // undocumented, https://github.com/nodegit/nodegit/issues/1270#issuecomment-293742772
+    const force = forcePush ? "+" : "";
     try {
         // will return 0 on success
         const pushResult = await remote.push(
-            [`${force}${data.localBranch}:refs/heads/${remoteRefName}`],
+            [`${force}${localName}:refs/heads/${remoteName}`],
             {
                 callbacks: {
                     credentials: authenticate,
 
                     // FIXME: Can we use this to show "progress" when pushing?
-                    // transferProgress: (...args: any) => {
-                    //     console.log(args);
-                    // },
+                    // transferProgress: (...args: any) => void,
                 }
             }
         );
         return !pushResult;
     } catch (err) {
         // invalid authentication?
+        // FIXME: return error message instead of displaying error dialog here
         dialog.showErrorBox("Push failed", err.message);
     }
-
-    return true;
+    return false;
 }
 
 export async function setUpstream(repo: Repository, local: string, remoteRefName: string | null) {
@@ -201,7 +237,7 @@ export async function deleteRemoteRef(repo: Repository, refName: string): Promis
                 }
             });
         } catch (err) {
-            console.log("no remote ref found", err);
+            dialog.showErrorBox("No remote ref found", err.message);
         }
         ref.delete();
     }

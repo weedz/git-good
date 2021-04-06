@@ -12,7 +12,7 @@ export function addWindowEventListener<T extends WindowEvents>(event: T, cb: (ar
     ipcRenderer.on(event, (_, args) => cb(args, event));
 }
 
-export function sendAsyncMessage<T extends IpcAction>(action: T, data: IpcActionParams[T] | void) {
+export function sendAsyncMessage<T extends IpcAction>(action: T, data: IpcActionParams[T]) {
     ipcRenderer.send("asynchronous-message", {
         action,
         data
