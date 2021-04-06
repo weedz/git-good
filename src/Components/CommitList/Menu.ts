@@ -2,7 +2,7 @@ import { getCurrentWindow, Menu, MenuItem } from "@electron/remote";
 import { h } from "preact";
 import { IpcAction } from "src/Data/Actions";
 import { BranchFromType, openDialog_BranchFrom } from "src/Data/Renderer/Dialogs";
-import { sendAsyncMessage } from "src/Data/Renderer/IPC";
+import { ipcSendMessage } from "src/Data/Renderer/IPC";
 import { contextMenuState } from "src/Data/Renderer/store";
 
 const commitMenu = new Menu();
@@ -41,7 +41,7 @@ commitMenu.append(new MenuItem({
     label: 'Diff...',
     click() {
         console.log("Diff", contextMenuState.data.sha);
-        sendAsyncMessage(IpcAction.OPEN_COMPARE_REVISIONS, {
+        ipcSendMessage(IpcAction.OPEN_COMPARE_REVISIONS, {
             to: "HEAD",
             from: contextMenuState.data.sha
         });

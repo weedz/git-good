@@ -1,5 +1,5 @@
 import { h } from "preact";
-import { sendAsyncMessage } from "src/Data/Renderer/IPC";
+import { ipcSendMessage } from "src/Data/Renderer/IPC";
 import { IpcAction, IpcActionReturn, LoadCommitReturn, IpcActionParams, Locks } from "src/Data/Actions";
 import { clearLock, GlobalLinks, PureStoreComponent, setLock, Store } from "src/Data/Renderer/store";
 
@@ -84,7 +84,7 @@ export default class CommitList extends PureStoreComponent<unknown, State> {
             options.file = this.state.fileFilter;
         }
 
-        sendAsyncMessage(IpcAction.LOAD_COMMITS, {
+        ipcSendMessage(IpcAction.LOAD_COMMITS, {
             cursor: this.cursor,
             ...options
         });

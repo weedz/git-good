@@ -13,13 +13,14 @@ export const actionLock: {
     };
 } = {};
 
-export function eventReply<T extends IpcAction>(event: IpcMainEvent, action: T, data: IpcActionReturn[T] | IpcActionReturnError) {
+export function eventReply<T extends IpcAction>(event: IpcMainEvent, action: T, data: IpcActionReturn[T] | IpcActionReturnError, id?: string) {
     if (action in actionLock) {
         delete actionLock[action];
     }
     event.reply("asynchronous-reply", {
         action,
-        data
+        data,
+        id
     });
 }
 

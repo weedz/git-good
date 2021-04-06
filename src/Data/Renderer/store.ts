@@ -3,7 +3,7 @@ import { PureComponent } from "preact/compat";
 import { DialogProps, DialogTypes } from "src/Components/Dialog/types";
 import Link, { unselectLink } from "src/Components/Link";
 import { IpcAction, BranchesObj, BranchObj, PatchObj, Locks, RepoStatus, IpcActionParams, IpcActionReturn } from "../Actions";
-import { registerHandler, sendAsyncMessage } from "./IPC";
+import { registerHandler, ipcSendMessage } from "./IPC";
 
 export type DialogWindow = {
     type: DialogTypes
@@ -99,12 +99,12 @@ const listeners: {
     viewChanges: []
 };
 
-function subscribe<T extends StoreKeys>(cb: PartialStoreListener<T>, key: T) {
+function subscribe<T extends StoreKeys>(key: T, cb: PartialStoreListener<T>) {
     listeners[key].push(cb as PartialStoreListener<StoreKeys>);
-    return () => unsubscribe(cb, key);
+    return () => unsubscribe(key, cb);
 }
 
-function unsubscribe<T extends StoreKeys>(cb: PartialStoreListener<T>, key: T) {
+function unsubscribe<T extends StoreKeys>(key: T, cb: PartialStoreListener<T>) {
     listeners[key].splice(listeners[key].indexOf(cb as PartialStoreListener<StoreKeys>)>>>0, 1);
 }
 
@@ -112,21 +112,23 @@ export abstract class StoreComponent<P = unknown, S = unknown> extends Component
     listeners: Array<() => void> = [];
 
     listen<T extends StoreKeys>(key: T, cb: PartialStoreListener<T>) {
-        this.listeners.push(subscribe(cb, key));
+        this.listeners.push(subscribe(key, cb));
     }
     registerHandler<T extends IpcAction>(action: T, cb: (arg: IpcActionReturn[T]) => void) {
         this.listeners.push(registerHandler(action, cb));
     }
 
     componentWillUnmount() {
-        this.listeners.forEach(unsubscribe => unsubscribe());
+        for (const unsubscribe of this.listeners) {
+            unsubscribe();
+        }
     }
 }
 export abstract class PureStoreComponent<P = unknown, S = unknown> extends PureComponent<P, S> {
     listeners: Array<() => void> = [];
 
     listen<T extends StoreKeys>(key: T, cb: PartialStoreListener<T>) {
-        this.listeners.push(subscribe(cb, key));
+        this.listeners.push(subscribe(key, cb));
     }
     registerHandler<T extends IpcAction>(action: T, cb: (arg: IpcActionReturn[T]) => void) {
         this.listeners.push(registerHandler(action, cb));
@@ -174,16 +176,16 @@ function setStoreDeep(paths: Array<string | number>, data: any) {
 
 export function openRepo(repoPath: IpcActionParams[IpcAction.OPEN_REPO]) {
     setLock(Locks.MAIN);
-    sendAsyncMessage(IpcAction.OPEN_REPO, repoPath);
+    ipcSendMessage(IpcAction.OPEN_REPO, repoPath);
 }
 
 export function resolveConflict(path: string) {
-    sendAsyncMessage(IpcAction.RESOLVE_CONFLICT, {path});
+    ipcSendMessage(IpcAction.RESOLVE_CONFLICT, {path});
 }
 
 export function checkoutBranch(branch: string) {
     setLock(Locks.MAIN);
-    sendAsyncMessage(IpcAction.CHECKOUT_BRANCH, branch);
+    ipcSendMessage(IpcAction.CHECKOUT_BRANCH, branch);
 }
 
 export function openFile(params: ({sha: string} | {workDir: true, type: "staged" | "unstaged"} | {compare: true}) & {patch: PatchObj}) {
@@ -194,17 +196,17 @@ export function openFile(params: ({sha: string} | {workDir: true, type: "staged"
     });
     if (!params.patch.hunks) {
         if ("sha" in params) {
-            sendAsyncMessage(IpcAction.LOAD_HUNKS, {
+            ipcSendMessage(IpcAction.LOAD_HUNKS, {
                 sha: params.sha,
                 path: params.patch.actualFile.path,
             });
         } else if ("compare" in params) {
-            sendAsyncMessage(IpcAction.LOAD_HUNKS, {
+            ipcSendMessage(IpcAction.LOAD_HUNKS, {
                 compare: true,
                 path: params.patch.actualFile.path,
             });
         } else {
-            sendAsyncMessage(IpcAction.LOAD_HUNKS, {
+            ipcSendMessage(IpcAction.LOAD_HUNKS, {
                 workDir: true,
                 path: params.patch.actualFile.path,
                 type: params.type
@@ -219,10 +221,10 @@ export function closeFile() {
     unselectLink("files");
 }
 export function abortRebase() {
-    sendAsyncMessage(IpcAction.ABORT_REBASE, null);
+    ipcSendMessage(IpcAction.ABORT_REBASE, null);
 }
 export function continueRebase() {
-    sendAsyncMessage(IpcAction.CONTINUE_REBASE, null);
+    ipcSendMessage(IpcAction.CONTINUE_REBASE, null);
 }
 
 export function setLock(lock: keyof StoreType["locks"]) {
@@ -238,27 +240,27 @@ export function clearLock(lock: keyof StoreType["locks"]) {
 
 export function createBranchFromSha(sha: string, name: string) {
     setLock(Locks.BRANCH_LIST);
-    sendAsyncMessage(IpcAction.CREATE_BRANCH, {
+    ipcSendMessage(IpcAction.CREATE_BRANCH, {
         sha,
         name,
     });
 }
 export function createBranchFromRef(ref: string, name: string) {
     setLock(Locks.BRANCH_LIST);
-    sendAsyncMessage(IpcAction.CREATE_BRANCH_FROM_REF, {
+    ipcSendMessage(IpcAction.CREATE_BRANCH_FROM_REF, {
         ref,
         name,
     });
 }
 export function deleteBranch(name: string) {
     setLock(Locks.BRANCH_LIST);
-    sendAsyncMessage(IpcAction.DELETE_REF, {
+    ipcSendMessage(IpcAction.DELETE_REF, {
         name
     });
 }
 export function renameLocalBranch(oldName: string, newName: string) {
     setLock(Locks.BRANCH_LIST);
-    sendAsyncMessage(IpcAction.RENAME_LOCAL_BRANCH, {
+    ipcSendMessage(IpcAction.RENAME_LOCAL_BRANCH, {
         ref: oldName,
         name: newName
     });
@@ -266,12 +268,12 @@ export function renameLocalBranch(oldName: string, newName: string) {
 
 export function deleteRemoteBranch(name: string) {
     setLock(Locks.BRANCH_LIST);
-    sendAsyncMessage(IpcAction.DELETE_REMOTE_REF, name);
+    ipcSendMessage(IpcAction.DELETE_REMOTE_REF, name);
 }
 
 export function push(remote: string, localBranch: string, force?: boolean) {
     setLock(Locks.BRANCH_LIST);
-    sendAsyncMessage(IpcAction.PUSH, {
+    ipcSendMessage(IpcAction.PUSH, {
         localBranch,
         remote,
         force
@@ -279,14 +281,14 @@ export function push(remote: string, localBranch: string, force?: boolean) {
 }
 
 export function setUpstream(local: string, remote: string | null) {
-    sendAsyncMessage(IpcAction.SET_UPSTREAM, {
+    ipcSendMessage(IpcAction.SET_UPSTREAM, {
         local,
         remote: remote || null
     });
 }
 
 export function commit(params: IpcActionParams[IpcAction.COMMIT]) {
-    sendAsyncMessage(IpcAction.COMMIT, params);
+    ipcSendMessage(IpcAction.COMMIT, params);
 }
 
 export function openDialogWindow<T extends DialogTypes>(type: T, props: DialogProps[T]) {
@@ -304,5 +306,5 @@ export function closeDialogWindow() {
 }
 
 export function blameFile(file: string) {
-    sendAsyncMessage(IpcAction.BLAME_FILE, file);
+    ipcSendMessage(IpcAction.BLAME_FILE, file);
 }

@@ -309,6 +309,7 @@ let repo: Repository;
 type EventArgs = {
     action: IpcAction
     data: IpcActionParams[IpcAction]
+    id?: string
 };
 
 type AsyncGeneratorEventCallback<A extends IpcAction> = (repo: Repository, args: IpcActionParams[A], event: IpcMainEvent) => AsyncGenerator<IpcActionReturn[A] | IpcActionReturnError>;
@@ -434,20 +435,20 @@ ipcMain.on("asynchronous-message", async (event, arg: EventArgs) => {
     const action = arg.action;
     const lock = provider.actionLock[action];
     if (lock && !lock.interuptable) {
-        provider.eventReply(event, action, {error: "action pending"});
+        provider.eventReply(event, action, {error: "action pending"}, arg.id);
         return;
     }
 
     provider.actionLock[action] = {interuptable: false};
 
     if (action !== IpcAction.OPEN_REPO && !repo) {
-        provider.eventReply(event, action, {error: "Not in a repository"});
+        provider.eventReply(event, action, {error: "Not in a repository"}, arg.id);
         return;
     }
 
     if (repo && repo.isEmpty()) {
         // WIP: fix handling of empty repos.
-        return provider.eventReply(event, action, {error: "empty repo... FIXME"});
+        return provider.eventReply(event, action, {error: "empty repo... FIXME"}, arg.id);
     }
 
     // TODO: fix proper type to detect AsyncIterator-stuff
@@ -455,12 +456,12 @@ ipcMain.on("asynchronous-message", async (event, arg: EventArgs) => {
         const callback = eventMap[action] as AsyncGeneratorEventCallback<typeof action>;
         const data = arg.data as IpcActionParams[typeof action];
         for await (const result of callback(repo, data, event)) {
-            provider.eventReply(event, action, result);
+            provider.eventReply(event, action, result, arg.id);
         }
     } else {
         const callback = eventMap[action] as PromiseEventCallback<typeof action>;
         const data = arg.data as IpcActionParams[typeof action];
-        provider.eventReply(event, action, await callback(repo, data, event));
+        provider.eventReply(event, action, await callback(repo, data, event), arg.id);
     }
 });
 

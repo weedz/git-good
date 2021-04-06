@@ -1,7 +1,7 @@
 import { DialogTypes } from "src/Components/Dialog/types";
 import { IpcAction } from "../Actions";
 import { normalizeLocalName, normalizeRemoteNameWithoutRemote, normalizeTagName, remoteName } from "../Branch";
-import { sendAsyncMessage } from "./IPC";
+import { ipcSendMessage } from "./IPC";
 import { closeDialogWindow, createBranchFromSha, createBranchFromRef, openDialogWindow, blameFile, setUpstream, renameLocalBranch } from "./store";
 
 export function openDialog_BlameFile() {
@@ -25,7 +25,7 @@ export function openDialog_CompareRevisions() {
             closeDialogWindow();
             if (from && to)
             {
-                sendAsyncMessage(IpcAction.OPEN_COMPARE_REVISIONS, {
+                ipcSendMessage(IpcAction.OPEN_COMPARE_REVISIONS, {
                     from,
                     to
                 });

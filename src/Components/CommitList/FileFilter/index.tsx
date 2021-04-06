@@ -1,6 +1,6 @@
 import { h, Fragment } from "preact";
 import { IpcAction, IpcActionReturn } from "src/Data/Actions";
-import { sendAsyncMessage } from "src/Data/Renderer/IPC";
+import { ipcSendMessage } from "src/Data/Renderer/IPC";
 import { StoreComponent } from "src/Data/Renderer/store";
 
 import "./style.css";
@@ -44,7 +44,7 @@ export default class FileFilter extends StoreComponent<{filterByFile: (file: str
         if (e.currentTarget.value) {
             const value = e.currentTarget.value;
             this.findFileTimeout = setTimeout(() => {
-                sendAsyncMessage(IpcAction.FIND_FILE, value);
+                ipcSendMessage(IpcAction.FIND_FILE, value);
             }, 250);
             this.setState({
                 showFiles: true,

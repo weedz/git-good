@@ -1,11 +1,11 @@
 import { BranchObj, IpcAction, IpcActionReturn, Locks, RepoStatus } from "../Actions";
 import { WindowArguments } from "../WindowEventTypes";
 import { openDialog_BlameFile, openDialog_CompareRevisions } from "./Dialogs";
-import { addWindowEventListener, registerHandler, sendAsyncMessage } from "./IPC";
+import { addWindowEventListener, registerHandler, ipcSendMessage } from "./IPC";
 import { Store, clearLock, setLock, updateStore, StoreType, GlobalLinks } from "./store";
 
 function refreshWorkdir() {
-    sendAsyncMessage(IpcAction.REFRESH_WORKDIR, null);
+    ipcSendMessage(IpcAction.REFRESH_WORKDIR, null);
 }
 
 function repoOpened(result: IpcActionReturn[IpcAction.OPEN_REPO]) {
@@ -34,11 +34,11 @@ function repoOpened(result: IpcActionReturn[IpcAction.OPEN_REPO]) {
 
 function loadBranches() {
     setLock(Locks.BRANCH_LIST);
-    sendAsyncMessage(IpcAction.LOAD_BRANCHES, null);
+    ipcSendMessage(IpcAction.LOAD_BRANCHES, null);
 }
 
 function loadRemotes() {
-    sendAsyncMessage(IpcAction.REMOTES, null);
+    ipcSendMessage(IpcAction.REMOTES, null);
 }
 
 function openSettings() {
@@ -46,11 +46,11 @@ function openSettings() {
 }
 
 export function pullHead() {
-    sendAsyncMessage(IpcAction.PULL, null);
+    ipcSendMessage(IpcAction.PULL, null);
 }
 
 export function pushHead() {
-    sendAsyncMessage(IpcAction.PUSH, null);
+    ipcSendMessage(IpcAction.PUSH, null);
 }
 
 function setStatus(status: RepoStatus) {
