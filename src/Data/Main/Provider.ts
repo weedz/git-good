@@ -4,7 +4,7 @@ import { promises as fs } from "fs";
 // @ts-ignore, missing declations for Credential
 import { Credential, Repository, Revwalk, Commit, Diff, ConvenientPatch, ConvenientHunk, DiffLine, Object, Branch, Graph, Index, Reset, Checkout, DiffFindOptions, Blame, Reference, Oid, Signature, Merge } from "nodegit";
 import { IpcAction, BranchObj, LineObj, HunkObj, PatchObj, CommitObj, IpcActionParams, IpcActionReturn, IpcActionReturnError, RefType } from "../Actions";
-import { normalizeLocalName, normalizeRemoteName, normalizeRemoteNameWithoutOrigin, normalizeTagName } from "../Branch";
+import { normalizeLocalName, normalizeRemoteName, normalizeRemoteNameWithoutRemote, normalizeTagName } from "../Branch";
 import { dialog, IpcMainEvent } from "electron";
 
 export const actionLock: {
@@ -133,19 +133,19 @@ export async function push(repo: Repository, data: IpcActionParams[IpcAction.PUS
     try {
         // throws if no upstream
         const remoteRef = await Branch.upstream(localRef);
-        remoteRefName = normalizeRemoteNameWithoutOrigin(remoteRef.name());
+        remoteRefName = normalizeRemoteNameWithoutRemote(remoteRef.name());
 
     } catch (err) {
-        console.log("push failed, invalid upstream");
-        return 1;
+        dialog.showErrorBox("Push failed", `Invalid upstream: ${err.message}`);
+        return false;
     }
 
     // undocumented, https://github.com/nodegit/nodegit/issues/1270#issuecomment-293742772
     const force = data.force ? "+" : "";
 
-    let pushResult = 1;
     try {
-        pushResult = await remote.push(
+        // will return 0 on success
+        const pushResult = await remote.push(
             [`${force}${data.localBranch}:refs/heads/${remoteRefName}`],
             {
                 callbacks: {
@@ -158,12 +158,13 @@ export async function push(repo: Repository, data: IpcActionParams[IpcAction.PUS
                 }
             }
         );
+        return !pushResult;
     } catch (err) {
         // invalid authentication?
-        console.warn("push failed", err);
+        dialog.showErrorBox("Push failed", err.message);
     }
 
-    return pushResult;
+    return true;
 }
 
 export async function setUpstream(repo: Repository, local: string, remoteRefName: string | null) {

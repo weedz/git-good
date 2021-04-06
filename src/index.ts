@@ -241,13 +241,18 @@ const menuTemplate = [
             {
                 label: 'Pull...',
                 click() {
-                    sendEvent(win.webContents, "pull-head");
+                    provider.pull(repo);
+                    // sendEvent(win.webContents, "pull-head");
                 }
             },
             {
                 label: 'Push...',
                 click() {
-                    sendEvent(win.webContents, "push-head");
+                    // provider.push(repo {
+                    //     localBranch: "",
+                    //     remote: ""
+                    // });
+                    // sendEvent(win.webContents, "push-head");
                 }
             },
             {
@@ -410,7 +415,7 @@ const eventMap: {
     [IpcAction.BLAME_FILE]: provider.blameFile,
     [IpcAction.PUSH]: async (repo, data) => {
         const result = await provider.push(repo, data);
-        return {result: !result};
+        return {result};
     },
     [IpcAction.SET_UPSTREAM]: async (repo, data) => {
         const result = await provider.setUpstream(repo, data.local, data.remote);

@@ -1,6 +1,6 @@
 import { DialogTypes } from "src/Components/Dialog/types";
 import { IpcAction } from "../Actions";
-import { normalizeLocalName, normalizeRemoteNameWithoutOrigin, normalizeTagName } from "../Branch";
+import { normalizeLocalName, normalizeRemoteNameWithoutRemote, normalizeTagName, remoteName } from "../Branch";
 import { sendAsyncMessage } from "./IPC";
 import { closeDialogWindow, createBranchFromSha, createBranchFromRef, openDialogWindow, blameFile, setUpstream, renameLocalBranch } from "./store";
 
@@ -48,7 +48,7 @@ export function openDialog_BranchFrom(sha: string, type: BranchFromType) {
         if (sha.startsWith("refs/heads/")) {
             defaultValue = normalizeLocalName(sha);
         } else if (sha.startsWith("refs/remotes/")) {
-            defaultValue = normalizeRemoteNameWithoutOrigin(sha);
+            defaultValue = normalizeRemoteNameWithoutRemote(sha);
         } else if (sha.startsWith("refs/tags")) {
             defaultValue = normalizeTagName(sha);
         }
@@ -82,7 +82,7 @@ export function openDialog_RenameRef(sha: string, type: BranchType) {
         if (sha.startsWith("refs/heads/")) {
             currentName = normalizeLocalName(sha);
         } else if (sha.startsWith("refs/remotes/")) {
-            currentName = normalizeRemoteNameWithoutOrigin(sha);
+            currentName = normalizeRemoteNameWithoutRemote(sha);
         } else if (sha.startsWith("refs/tags")) {
             currentName = normalizeTagName(sha);
         }
@@ -108,6 +108,15 @@ export function openDialog_RenameRef(sha: string, type: BranchType) {
 }
 
 export function openDialog_SetUpstream(local: string, currentUpstream?: string) {
+    let oldRemote = "origin";
+    let branch = local;
+    if (currentUpstream) {
+        oldRemote = remoteName(currentUpstream);
+        branch = normalizeRemoteNameWithoutRemote(currentUpstream);
+    } else {
+        branch = normalizeLocalName(branch);
+    }
+
     openDialogWindow(DialogTypes.SET_UPSTREAM, {
         confirmCb(remote, upstream) {
             closeDialogWindow();
@@ -117,8 +126,8 @@ export function openDialog_SetUpstream(local: string, currentUpstream?: string) 
             closeDialogWindow();
         },
         default: {
-            remote: "origin",
-            branch: currentUpstream || normalizeLocalName(local),
+            remote: oldRemote,
+            branch,
         }
     });
 }

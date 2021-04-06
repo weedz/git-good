@@ -1,7 +1,7 @@
 import { Menu, MenuItem, dialog, getCurrentWindow } from "@electron/remote";
 import { h } from "preact";
 import { RefType } from "src/Data/Actions";
-import { normalizeRemoteNameWithoutOrigin } from "src/Data/Branch";
+import { remoteName } from "src/Data/Branch";
 import { pullHead } from "src/Data/Renderer";
 import { BranchFromType, openDialog_BranchFrom, openDialog_SetUpstream, openDialog_RenameRef, BranchType } from "src/Data/Renderer/Dialogs";
 import { contextMenuState, checkoutBranch, deleteBranch, deleteRemoteBranch, Store, push } from "src/Data/Renderer/store";
@@ -10,16 +10,42 @@ const setUpstreamMenuItem = new MenuItem({
     label: 'Set upstream...',
     click() {
         const local = contextMenuState.data.ref;
-        openDialog_SetUpstream(local, contextMenuState.data.remote && normalizeRemoteNameWithoutOrigin(contextMenuState.data.remote));
+        openDialog_SetUpstream(local, contextMenuState.data.remote);
     }
 })
 
-const originMenu = new Menu();
-originMenu.append(new MenuItem({
+const remotesMenu = new Menu();
+remotesMenu.append(new MenuItem({
+    label: "Add remote...",
+    click() {
+        console.log("add remote")
+        return;
+    }
+}))
+
+const remoteMenu = new Menu();
+remoteMenu.append(new MenuItem({
     label: 'Fetch...',
     click() {
         console.log("fetch");
-        return "fetch";
+        return;
+    }
+}));
+remoteMenu.append(new MenuItem({
+    type: "separator"
+}));
+remoteMenu.append(new MenuItem({
+    label: 'Edit...',
+    click() {
+        console.log("edit");
+        return;
+    }
+}));
+remoteMenu.append(new MenuItem({
+    label: 'Remote...',
+    click() {
+        console.log("remote");
+        return;
     }
 }));
 
@@ -31,9 +57,9 @@ const newBranch = new MenuItem({
     }
 });
 
-const remoteMenu = new Menu();
-remoteMenu.append(newBranch);
-remoteMenu.append(new MenuItem({
+const remoteRefMenu = new Menu();
+remoteRefMenu.append(newBranch);
+remoteRefMenu.append(new MenuItem({
     label: 'Delete...',
     async click() {
         const refName = contextMenuState.data.ref;
@@ -48,13 +74,13 @@ remoteMenu.append(new MenuItem({
         }
     }
 }));
-remoteMenu.append(new MenuItem({
+remoteRefMenu.append(new MenuItem({
     label: 'Rebase...',
     click() {
         console.log("Rebase");
     }
 }));
-remoteMenu.append(new MenuItem({
+remoteRefMenu.append(new MenuItem({
     label: 'Merge...',
     click() {
         console.log("Merge");
@@ -135,6 +161,8 @@ headMenu.append(new MenuItem({
             return dialog.showErrorBox("Missing remote.", ref);
         }
 
+        const remote = remoteName(head.remote);
+
         if (head.status?.behind) {
             const result = await dialog.showMessageBox({
                 title: "Force push?",
@@ -144,10 +172,10 @@ headMenu.append(new MenuItem({
                 cancelId: 1,
             });
             if (result.response === 0) {
-                push("origin", ref, true);
+                push(remote, ref, true);
             }
         } else {
-            push("origin", ref);
+            push(remote, ref);
         }
     }
 }));
@@ -156,10 +184,10 @@ headMenu.append(setUpstreamMenuItem);
 const tagMenu = new Menu();
 tagMenu.append(newBranch);
 
-export function showOriginMenu(e: h.JSX.TargetedMouseEvent<HTMLAnchorElement>) {
+export function showRemotesMenu(e: h.JSX.TargetedMouseEvent<HTMLAnchorElement>) {
     e.preventDefault();
     contextMenuState.data = e.currentTarget.dataset as {[name: string]: string};
-    originMenu.popup({
+    remotesMenu.popup({
         window: getCurrentWindow()
     });
 }
@@ -167,6 +195,13 @@ export function showRemoteMenu(e: h.JSX.TargetedMouseEvent<HTMLAnchorElement>) {
     e.preventDefault();
     contextMenuState.data = e.currentTarget.dataset as {[name: string]: string};
     remoteMenu.popup({
+        window: getCurrentWindow()
+    });
+}
+export function showRemoteRefMenu(e: h.JSX.TargetedMouseEvent<HTMLAnchorElement>) {
+    e.preventDefault();
+    contextMenuState.data = e.currentTarget.dataset as {[name: string]: string};
+    remoteRefMenu.popup({
         window: getCurrentWindow()
     });
 }

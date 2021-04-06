@@ -49,7 +49,7 @@ export function pullHead() {
     sendAsyncMessage(IpcAction.PULL);
 }
 function pushHead() {
-    push("origin", "HEAD");
+    setLock(Locks.BRANCH_LIST);
 }
 
 function setStatus(status: RepoStatus) {
