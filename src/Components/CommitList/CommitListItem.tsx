@@ -2,7 +2,7 @@ import { h } from "preact";
 import { PureComponent } from "preact/compat";
 import { LoadCommitReturn, RefType } from "src/Data/Actions";
 import { GlobalLinks, updateStore, Store } from "src/Data/Renderer/store";
-import { showLocalMenu, showRemoteMenu, showTagMenu } from "../BranchList/Menu";
+import { showLocalMenu, showRemoteRefMenu, showTagMenu } from "../BranchList/Menu";
 import Link from "../Link";
 import HeadColors from "./HeadColors";
 import { showCommitMenu } from "./Menu";
@@ -43,7 +43,7 @@ export default class CommitListItem extends PureComponent<Props> {
                                 if (ref.type === RefType.LOCAL) {
                                     menu = showLocalMenu;
                                 } else if (ref.type === RefType.REMOTE) {
-                                    menu = showRemoteMenu;
+                                    menu = showRemoteRefMenu;
                                 } else if (ref.type === RefType.TAG) {
                                     menu = showTagMenu;
                                 }

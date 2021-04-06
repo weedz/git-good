@@ -87,7 +87,7 @@ export class RenderBranchTree extends PureComponent<{
 // eslint-disable-next-line react/prefer-stateless-function
 export class RenderRemotes extends PureComponent<{
     branches: BranchTree
-    originContextMenu: (event: h.JSX.TargetedMouseEvent<HTMLAnchorElement>) => void
+    remoteContextMenu: (event: h.JSX.TargetedMouseEvent<HTMLAnchorElement>) => void
     contextMenu: (event: h.JSX.TargetedMouseEvent<HTMLAnchorElement>) => void
 }> {
     render() {
@@ -98,7 +98,7 @@ export class RenderRemotes extends PureComponent<{
         for (const item of Object.keys(this.props.branches.subtree)) {
             items.push(
                 <li className="sub-tree">
-                    <a style={{textIndent: "1em"}} onContextMenu={this.props.originContextMenu} href="#" onClick={toggleTreeItem}>{item}</a>
+                    <a style={{textIndent: "1em"}} onContextMenu={this.props.remoteContextMenu} href="#" onClick={toggleTreeItem}>{item}</a>
                     <RenderBranchTree branches={this.props.branches.subtree[item]} contextMenu={this.props.contextMenu} indent={2} />
                 </li>
             );

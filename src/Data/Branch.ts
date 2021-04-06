@@ -5,11 +5,16 @@ export function normalizeRemoteName(name: string) {
     return name.substring(13);
 }
 /**
- * omits the "refs/remotes/[ORIGIN]/" part of the name
+ * omits the "refs/remotes/[REMOTE]/" part of the name
  */
-export function normalizeRemoteNameWithoutOrigin(name: string) {
+export function normalizeRemoteNameWithoutRemote(name: string) {
     name = normalizeRemoteName(name);
     return name.substring(name.indexOf("/") + 1);
+}
+
+export function remoteName(name: string) {
+    name = normalizeRemoteName(name);
+    return name.substring(0, name.indexOf("/"));
 }
 /**
  * omits the "refs/heads/" part of the name

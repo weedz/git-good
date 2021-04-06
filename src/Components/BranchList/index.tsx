@@ -3,7 +3,7 @@ import "./style.css";
 import { normalizeLocalName } from "../../Data/Branch";
 import { BranchesObj, BranchObj, Locks } from "../../Data/Actions";
 import { Store, checkoutBranch, updateStore, PureStoreComponent } from "../../Data/Renderer/store";
-import { showHeadMenu, showLocalMenu, showOriginMenu, showRemoteMenu, showTagMenu } from "./Menu";
+import { showHeadMenu, showLocalMenu, showRemoteMenu, showRemoteRefMenu, showRemotesMenu, showTagMenu } from "./Menu";
 import { branchesAheadBehind, toggleTreeItem, getBranchTree, filterBranches, RenderBranchTree, RenderRemotes } from "./Utils";
 import Link from "../Link";
 import { Links } from "../LinkContainer";
@@ -100,8 +100,8 @@ export default class BranchList extends PureStoreComponent<unknown, State> {
                             </li>
                             <hr />
                             <li className="sub-tree">
-                                <a href="#" onClick={toggleTreeItem}>Remote</a>
-                                <RenderRemotes branches={this.state.branches.remote} originContextMenu={showOriginMenu} contextMenu={showRemoteMenu} />
+                                <a href="#" onClick={toggleTreeItem} onContextMenu={showRemotesMenu}>Remote</a>
+                                <RenderRemotes branches={this.state.branches.remote} remoteContextMenu={showRemoteMenu} contextMenu={showRemoteRefMenu} />
                             </li>
                             <hr />
                             <li className="sub-tree">
