@@ -219,10 +219,10 @@ export function closeFile() {
     unselectLink("files");
 }
 export function abortRebase() {
-    sendAsyncMessage(IpcAction.ABORT_REBASE);
+    sendAsyncMessage(IpcAction.ABORT_REBASE, null);
 }
 export function continueRebase() {
-    sendAsyncMessage(IpcAction.CONTINUE_REBASE);
+    sendAsyncMessage(IpcAction.CONTINUE_REBASE, null);
 }
 
 export function setLock(lock: keyof StoreType["locks"]) {

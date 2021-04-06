@@ -7,20 +7,16 @@ export type WindowEvents =
     "open-settings" |
     "app-lock-ui" |
     "app-unlock-ui" |
-    "pull-head" |
-    "push-head" |
     "begin-compare-revisions" |
     "begin-blame-file";
 
 export type WindowArguments = {
     "repo-opened": IpcActionReturn[IpcAction.OPEN_REPO]
-    "refresh-workdir": void
-    "open-settings": void
+    "refresh-workdir": null
+    "open-settings": null
     "app-lock-ui": Locks
     "app-unlock-ui": Locks
-    "pull-head": void
-    "push-head": void
-    "begin-compare-revisions": void
+    "begin-compare-revisions": null
     "fetch-status": {done: true} | {
         remote: string
         totalDeltas: number
@@ -30,5 +26,5 @@ export type WindowArguments = {
         indexedObjects: number
         receivedBytes: number
     }
-    "begin-blame-file": string
+    "begin-blame-file": null
 }

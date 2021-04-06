@@ -60,7 +60,7 @@ export type IpcActionParams = {
         }
     }
     [IpcAction.PULL]: null
-    [IpcAction.PUSH]: {
+    [IpcAction.PUSH]: null | {
         force?: boolean
         remote: string
         localBranch: string

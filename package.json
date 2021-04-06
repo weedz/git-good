@@ -4,7 +4,7 @@
   "description": "Git good",
   "main": "dist/index.js",
   "scripts": {
-    "start": "NODE_OPTIONS=\"--unhandled-rejections=strict\" electron --trace-deprecation .",
+    "start": "electron .",
     "dist": "electron-builder",
     "publish": "electron-builder --publish always",
     "build": "node scripts/build.js",

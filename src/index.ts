@@ -5,7 +5,7 @@ import { spawn } from "child_process";
 import { Branch, Commit, Object, Oid, Rebase, Reference, Repository } from "nodegit";
 
 import * as provider from "./Data/Main/Provider";
-import { IpcAction, IpcActionParams, IpcActionReturn, IpcActionReturnError } from "./Data/Actions";
+import { IpcAction, IpcActionParams, IpcActionReturn, IpcActionReturnError, Locks } from "./Data/Actions";
 import { sendEvent } from "./Data/Main/WindowEvents";
 import { TransferProgress } from "types/nodegit";
 
@@ -148,7 +148,7 @@ const menuTemplate = [
                 label: "Preferences...",
                 accelerator: 'CmdOrCtrl+,',
                 click() {
-                    sendEvent(win.webContents, "open-settings");
+                    sendEvent(win.webContents, "open-settings", null);
                 }
             },
             {
@@ -235,24 +235,23 @@ const menuTemplate = [
             {
                 label: "Refresh",
                 click() {
-                    sendEvent(win.webContents, "refresh-workdir");
+                    sendEvent(win.webContents, "refresh-workdir", null);
                 }
             },
             {
                 label: 'Pull...',
-                click() {
-                    provider.pull(repo);
-                    // sendEvent(win.webContents, "pull-head");
+                async click() {
+                    sendEvent(win.webContents, "app-lock-ui", Locks.BRANCH_LIST);
+                    await provider.pull(repo);
+                    sendEvent(win.webContents, "app-unlock-ui", Locks.BRANCH_LIST);
                 }
             },
             {
                 label: 'Push...',
-                click() {
-                    // provider.push(repo {
-                    //     localBranch: "",
-                    //     remote: ""
-                    // });
-                    // sendEvent(win.webContents, "push-head");
+                async click() {
+                    sendEvent(win.webContents, "app-lock-ui", Locks.BRANCH_LIST);
+                    await provider.push(repo, null);
+                    sendEvent(win.webContents, "app-unlock-ui", Locks.BRANCH_LIST);
                 }
             },
             {
@@ -261,13 +260,13 @@ const menuTemplate = [
             {
                 label: "Compare revisions...",
                 click() {
-                    sendEvent(win.webContents, "begin-compare-revisions");
+                    sendEvent(win.webContents, "begin-compare-revisions", null);
                 }
             },
             {
                 label: "Blame file...",
                 click() {
-                    sendEvent(win.webContents, "begin-blame-file");
+                    sendEvent(win.webContents, "begin-blame-file", null);
                 }
             }
         ]
