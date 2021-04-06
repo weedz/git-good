@@ -1,0 +1,17 @@
+name: Test
+on: push
+jobs:
+  Lint:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out Git repository
+        uses: actions/checkout@v2
+      - name: Install Node.js, NPM and Yarn
+        uses: actions/setup-node@v2
+        with:
+          node-version: 15
+      - name: Install node dependencies
+# Skip install scripts, otherwise we build nodegit on `npm install`.
+        run: npm ci --ignore-scripts
+      - name: Run ESLint
+        run: npm run lint
