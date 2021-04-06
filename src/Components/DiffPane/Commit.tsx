@@ -1,5 +1,5 @@
 import { h } from "preact";
-import { sendAsyncMessage } from "src/Data/Renderer/IPC";
+import { ipcSendMessage } from "src/Data/Renderer/IPC";
 import { IpcAction, CommitObj, PatchObj, IpcActionReturn } from "src/Data/Actions";
 
 import "./style.css";
@@ -27,18 +27,18 @@ export default class Commit extends StoreComponent<Props, State> {
     componentWillReceiveProps(props: Props) {
         if (props.sha !== this.props.sha) {
             this.resetView();
-            sendAsyncMessage(IpcAction.LOAD_COMMIT, props.sha);
+            ipcSendMessage(IpcAction.LOAD_COMMIT, props.sha);
         }
     }
     componentDidMount() {
         this.resetView();
-        sendAsyncMessage(IpcAction.LOAD_COMMIT, this.props.sha);
+        ipcSendMessage(IpcAction.LOAD_COMMIT, this.props.sha);
         
         this.registerHandler(IpcAction.LOAD_COMMIT, this.loadCommit);
         this.registerHandler(IpcAction.LOAD_PATCHES_WITHOUT_HUNKS, this.handlePatch);
     }
     loadCommit = (commit: IpcActionReturn[IpcAction.LOAD_COMMIT]) => {
-        sendAsyncMessage(IpcAction.LOAD_PATCHES_WITHOUT_HUNKS, this.props.sha);
+        ipcSendMessage(IpcAction.LOAD_PATCHES_WITHOUT_HUNKS, this.props.sha);
         this.setState({
             commit
         });

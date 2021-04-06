@@ -1,22 +1,36 @@
 import { ipcRenderer } from "electron";
 import { dialog } from "@electron/remote";
+import { v4 as uuidv4 } from "uuid";
 import { IpcAction, IpcActionParams, IpcActionReturn, IpcActionReturnError } from "../Actions";
 import { WindowArguments, WindowEvents } from "../WindowEventTypes";
 
-function attach() {
-    ipcRenderer.on("asynchronous-reply", handleEvent);
+ipcRenderer.on("asynchronous-reply", handleMessage);
+const callbackHandlers: Record<string, (args: IpcActionReturn[IpcAction]) => void> = {};
+
+function handleMessage<T extends IpcAction>(_: unknown, payload: {id?: string, action: T, data: IpcActionReturn[T] | IpcActionReturnError}) {
+    if (payload.id && callbackHandlers[payload.id]) {
+        callbackHandlers[payload.id](payload.data);
+        delete callbackHandlers[payload.id];
+    }
+    handleEvent(payload);
 }
-attach();
 
 export function addWindowEventListener<T extends WindowEvents>(event: T, cb: (args: WindowArguments[T], event: T) => void) {
     ipcRenderer.on(event, (_, args) => cb(args, event));
 }
 
-export function sendAsyncMessage<T extends IpcAction>(action: T, data: IpcActionParams[T]) {
+export function ipcSendMessage<T extends IpcAction>(action: T, data: IpcActionParams[T], cb = false) {
+    const id = uuidv4();
     ipcRenderer.send("asynchronous-message", {
         action,
-        data
+        data,
+        id,
     });
+    if (cb) {
+        return new Promise<IpcActionReturn[T]>((resolve, _reject) => {
+            callbackHandlers[id] = resolve as unknown as (args: IpcActionReturn[IpcAction]) => void;
+        });
+    }
 }
 
 type HandlerCallback = (arg: IpcActionReturn[IpcAction]) => void;
@@ -68,7 +82,7 @@ export function unregisterHandler<T extends IpcAction>(action: T, callbacks: ((a
         handlers[action].splice(handlers[action].indexOf(cb as HandlerCallback)>>>0, 1);
     }
 }
-function handleEvent<T extends IpcAction>(_: unknown, payload: {action: T, data: IpcActionReturn[T] | IpcActionReturnError}) {
+function handleEvent<T extends IpcAction>(payload: {action: T, data: IpcActionReturn[T] | IpcActionReturnError}) {
     try {
         // eslint-disable-next-line @typescript-eslint/ban-ts-comment
         // @ts-ignore, https://github.com/microsoft/TypeScript/issues/43210
