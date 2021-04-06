@@ -317,7 +317,7 @@ export async function commit(repo: Repository, params: IpcActionParams[IpcAction
 
     const oid = await index.writeTree();
 
-    const message = params.message.body ? `${params.message.summary}\n${params.message.body}` : params.message.summary;
+    const message = params.message.body ? `${params.message.summary}\n\n${params.message.body}` : params.message.summary;
 
     try {
         if (params.amend) {
