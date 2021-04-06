@@ -3,7 +3,7 @@ import { promises as fs } from "fs";
 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
 // @ts-ignore, missing declations for Credential
 import { Credential, Repository, Revwalk, Commit, Diff, ConvenientPatch, ConvenientHunk, DiffLine, Object, Branch, Graph, Index, Reset, Checkout, DiffFindOptions, Blame, Reference, Oid, Signature, Merge } from "nodegit";
-import { IpcAction, BranchObj, BranchesObj, LineObj, HunkObj, PatchObj, CommitObj, IpcActionParams, IpcActionReturn, IpcActionReturnError, RefType } from "../Actions";
+import { IpcAction, BranchObj, LineObj, HunkObj, PatchObj, CommitObj, IpcActionParams, IpcActionReturn, IpcActionReturnError, RefType } from "../Actions";
 import { normalizeLocalName, normalizeRemoteName, normalizeRemoteNameWithoutOrigin, normalizeTagName } from "../Branch";
 import { dialog, IpcMainEvent } from "electron";
 
@@ -32,14 +32,15 @@ export function authenticate(url: string, username: string) {
 }
 
 function compileHistoryCommit(commit: Commit) {
+    const author = commit.author();
     return {
         parents: commit.parents().map(oid => oid.tostrS()),
         sha: commit.sha(),
         message: commit.message(),
         date: commit.date().getTime(),
         author: {
-            name: commit.author().name(),
-            email: commit.author().email(),
+            name: author.name(),
+            email: author.email(),
         }
     };
 }
@@ -210,7 +211,7 @@ export async function deleteRemoteRef(repo: Repository, refName: string): Promis
 export async function getBranches(repo: Repository): Promise<IpcActionReturn[IpcAction.LOAD_BRANCHES]> {
     const refs = await repo.getReferences();
 
-    const local: BranchesObj["local"] = [];
+    const local: BranchObj[] = [];
     const remote: BranchObj[] = [];
     const tags: BranchObj[] = [];
 

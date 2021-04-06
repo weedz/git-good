@@ -317,7 +317,7 @@ const eventMap: {
 } & {
     [A in Exclude<IpcAction, AsyncGeneratorFunctions>]: PromiseEventCallback<A>
 } = {
-    [IpcAction.OPEN_REPO]: async (_: Repository, path: IpcActionParams[IpcAction.OPEN_REPO]) => {
+    [IpcAction.OPEN_REPO]: async (_, path) => {
         if (path) {
             const opened = await openRepo(path);
             return {
@@ -330,7 +330,7 @@ const eventMap: {
     },
     [IpcAction.LOAD_BRANCHES]: provider.getBranches,
     [IpcAction.LOAD_COMMIT]: provider.loadCommit,
-    async *[IpcAction.LOAD_COMMITS](repo, params: IpcActionParams[IpcAction.LOAD_COMMITS]) {
+    async *[IpcAction.LOAD_COMMITS](repo, params) {
         const arg = await initGetComits(repo, params);
         if (!arg) {
             yield {commits: [], branch: "", cursor: params.cursor};
@@ -341,7 +341,7 @@ const eventMap: {
         }
     },
     [IpcAction.LOAD_PATCHES_WITHOUT_HUNKS]: provider.getCommitPatches,
-    [IpcAction.LOAD_HUNKS]: async (_, arg: IpcActionParams[IpcAction.LOAD_HUNKS]) => {
+    [IpcAction.LOAD_HUNKS]: async (_, arg) => {
         return {
             path: arg.path,
             hunks: await loadHunks(arg)
@@ -354,7 +354,7 @@ const eventMap: {
     [IpcAction.UNSTAGE_FILE]: provider.unstageFile,
     [IpcAction.DISCARD_FILE]: provider.discardChanges,
     [IpcAction.PULL]: provider.pull,
-    [IpcAction.CREATE_BRANCH]: async (repo, data: IpcActionParams[IpcAction.CREATE_BRANCH]) => {
+    [IpcAction.CREATE_BRANCH]: async (repo, data) => {
         let res;
         try {
             res = await repo.createBranch(data.name, data.sha);
@@ -365,7 +365,7 @@ const eventMap: {
             result: res !== null
         }
     },
-    [IpcAction.CREATE_BRANCH_FROM_REF]: async (repo, data: IpcActionParams[IpcAction.CREATE_BRANCH_FROM_REF]) => {
+    [IpcAction.CREATE_BRANCH_FROM_REF]: async (repo, data) => {
         const ref = await repo.getReference(data.ref);
         const sha = ref.isTag() ? (await ref.peel(Object.TYPE.COMMIT)) as unknown as Commit : await repo.getReferenceCommit(data.ref);
         
@@ -392,7 +392,7 @@ const eventMap: {
             result: !!renamedRef
         }
     },
-    [IpcAction.DELETE_REF]: async (repo, data: IpcActionParams[IpcAction.DELETE_REF]) => {
+    [IpcAction.DELETE_REF]: async (repo, data) => {
         const ref = await repo.getReference(data.name);
         const res = Branch.delete(ref);
         return {result: !res};
@@ -401,24 +401,24 @@ const eventMap: {
     [IpcAction.FIND_FILE]: provider.findFile,
     [IpcAction.ABORT_REBASE]: abortRebase,
     [IpcAction.CONTINUE_REBASE]: continueRebase,
-    [IpcAction.OPEN_COMPARE_REVISIONS]: async (repo, data: IpcActionParams[IpcAction.OPEN_COMPARE_REVISIONS]) => {
+    [IpcAction.OPEN_COMPARE_REVISIONS]: async (repo, data) => {
         if (await provider.compareRevisions(repo, data)) {
             return provider.compareRevisionsPatches();
         }
         return {error: "revisions not found"};
     },
     [IpcAction.BLAME_FILE]: provider.blameFile,
-    [IpcAction.PUSH]: async (repo, data: IpcActionParams[IpcAction.PUSH]): Promise<IpcActionReturn[IpcAction.PUSH]> => {
+    [IpcAction.PUSH]: async (repo, data) => {
         const result = await provider.push(repo, data);
         return {result: !result};
     },
-    [IpcAction.SET_UPSTREAM]: async (repo, data: IpcActionParams[IpcAction.SET_UPSTREAM]) => {
+    [IpcAction.SET_UPSTREAM]: async (repo, data) => {
         const result = await provider.setUpstream(repo, data.local, data.remote);
         return {result: !result};
     },
     [IpcAction.COMMIT]: provider.commit,
     [IpcAction.REMOTES]: provider.remotes,
-    [IpcAction.RESOLVE_CONFLICT]: async (repo, {path}: IpcActionParams[IpcAction.RESOLVE_CONFLICT], event) => {
+    [IpcAction.RESOLVE_CONFLICT]: async (repo, {path}, event) => {
         const result = await provider.resolveConflict(path);
         const refreshCallback = eventMap[IpcAction.REFRESH_WORKDIR] as PromiseEventCallback<IpcAction.REFRESH_WORKDIR>;
         provider.eventReply(event, IpcAction.REFRESH_WORKDIR, await refreshCallback(repo, null, event));
