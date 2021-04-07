@@ -4,6 +4,8 @@ import { DialogTypes } from "./types";
 import { NewBranch, RenameBranch } from "./Branch";
 import { SetUpstream } from "./SetUpstream";
 import { Compare } from "./Compare";
+import { EditRemote } from "./EditRemote";
+import { AddRemote } from "./AddRemote";
 
 import "./style.css";
 import { Blame } from "./Blame";
@@ -14,6 +16,8 @@ const dialogTypes = {
     [DialogTypes.COMPARE]: Compare,
     [DialogTypes.SET_UPSTREAM]: SetUpstream,
     [DialogTypes.BLAME]: Blame,
+    [DialogTypes.EDIT_REMOTE]: EditRemote,
+    [DialogTypes.ADD_REMOTE]: AddRemote,
 };
 
 type State = {

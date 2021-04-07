@@ -27,6 +27,10 @@ export enum IpcAction {
     BLAME_FILE,
     REMOTES,
     RESOLVE_CONFLICT,
+    EDIT_REMOTE,
+    NEW_REMOTE,
+    REMOVE_REMOTE,
+    FETCH,
 }
 
 export type IpcActionParams = {
@@ -94,6 +98,10 @@ export type IpcActionParams = {
     [IpcAction.BLAME_FILE]: string
     [IpcAction.REMOTES]: null
     [IpcAction.RESOLVE_CONFLICT]: {path: string}
+    [IpcAction.EDIT_REMOTE]: {oldName: string, name: string, pullFrom: string, pushTo?: string}
+    [IpcAction.NEW_REMOTE]: {name: string, pullFrom: string, pushTo?: string}
+    [IpcAction.REMOVE_REMOTE]: {name: string}
+    [IpcAction.FETCH]: null | {remote: string}
 };
 
 export type IpcActionReturn = {
@@ -136,8 +144,16 @@ export type IpcActionReturn = {
     [IpcAction.CONTINUE_REBASE]: RepoStatus
     [IpcAction.OPEN_COMPARE_REVISIONS]: PatchObj[]
     [IpcAction.BLAME_FILE]: unknown
-    [IpcAction.REMOTES]: {result: string[]}
+    [IpcAction.REMOTES]: {
+        name: string
+        pushTo?: string
+        pullFrom: string
+    }[]
     [IpcAction.RESOLVE_CONFLICT]: {result: boolean}
+    [IpcAction.EDIT_REMOTE]: {result: boolean}
+    [IpcAction.NEW_REMOTE]: {result: boolean}
+    [IpcAction.REMOVE_REMOTE]: {result: boolean}
+    [IpcAction.FETCH]: {result: boolean}
 };
 
 export type IpcActionReturnError = {

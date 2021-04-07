@@ -4,6 +4,8 @@ export enum DialogTypes {
     COMPARE,
     SET_UPSTREAM,
     BLAME,
+    EDIT_REMOTE,
+    ADD_REMOTE,
 }
 
 export type DialogProps = {
@@ -12,6 +14,8 @@ export type DialogProps = {
     [DialogTypes.COMPARE]: CompareProps
     [DialogTypes.SET_UPSTREAM]: SetUpstreamProps
     [DialogTypes.BLAME]: BranchProps
+    [DialogTypes.EDIT_REMOTE]: RemoteProps
+    [DialogTypes.ADD_REMOTE]: Omit<RemoteProps, "data">
 }
 
 export type CompareProps = {
@@ -26,6 +30,16 @@ export type CompareProps = {
 export type BlameProps = {
     defaultValue?: string
     confirmCb: (file: string) => void
+    cancelCb: () => void
+};
+
+export type RemoteProps = {
+    data: {
+        pullFrom: string
+        pushTo?: string
+        name: string
+    }
+    confirmCb: (data: RemoteProps["data"]) => void
     cancelCb: () => void
 };
 

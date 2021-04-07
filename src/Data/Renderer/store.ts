@@ -17,7 +17,7 @@ export type StoreType = {
     }
     branches: BranchesObj
     head?: BranchObj
-    remotes: string[]
+    remotes: IpcActionReturn[IpcAction.REMOTES]
     heads: {
         [key: string]: BranchObj[]
     }

@@ -314,7 +314,11 @@ export async function getBranches(repo: Repository): Promise<IpcActionReturn[Ipc
 
 export async function remotes(repo: Repository): Promise<IpcActionReturn[IpcAction.REMOTES]> {
     const remotes = await repo.getRemotes();
-    return {result: remotes.map(remote => remote.name())};
+    return remotes.map(remote => ({
+        name: remote.name(),
+        pullFrom: remote.url(),
+        pushTo: remote.pushurl(),
+    }))
 }
 
 export async function findFile(repo: Repository, file: string): Promise<IpcActionReturn[IpcAction.FIND_FILE]> {
