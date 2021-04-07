@@ -139,8 +139,10 @@ headMenu.append(new MenuItem({
         if (!headSHA) {
             return dialog.showErrorBox("Invalid reference", ref);
         }
-        const head = Store.heads[headSHA].filter(head => head.type === RefType.LOCAL)[0];
-        if (!head.remote) {
+
+        const head = Store.heads[headSHA].find(head => head.name === ref);
+
+        if (!head?.remote) {
             return dialog.showErrorBox("Missing remote.", ref);
         }
         pullHead();
