@@ -19,18 +19,21 @@ export function addWindowEventListener<T extends WindowEvents>(event: T, cb: (ar
     ipcRenderer.on(event, (_, args) => cb(args, event));
 }
 
-export function ipcSendMessage<T extends IpcAction>(action: T, data: IpcActionParams[T], cb = false) {
+export function ipcSendMessage<T extends IpcAction>(action: T, data: IpcActionParams[T]) {
     const id = uuidv4();
     ipcRenderer.send("asynchronous-message", {
         action,
         data,
         id,
     });
-    if (cb) {
-        return new Promise<IpcActionReturn[T]>((resolve, _reject) => {
-            callbackHandlers[id] = resolve as unknown as (args: IpcActionReturn[IpcAction]) => void;
-        });
-    }
+    return id;
+}
+
+export function ipcGetData<T extends IpcAction>(action: T, data: IpcActionParams[T]) {
+    const id = ipcSendMessage(action, data);
+    return new Promise<IpcActionReturn[T]>((resolve, _reject) => {
+        callbackHandlers[id] = resolve as unknown as (args: IpcActionReturn[IpcAction]) => void;
+    });
 }
 
 type HandlerCallback = (arg: IpcActionReturn[IpcAction]) => void;
@@ -64,6 +67,10 @@ const handlers: {[T in IpcAction]: HandlerCallback[]} = {
     [IpcAction.BLAME_FILE]: [],
     [IpcAction.REMOTES]: [],
     [IpcAction.RESOLVE_CONFLICT]: [],
+    [IpcAction.EDIT_REMOTE]: [],
+    [IpcAction.NEW_REMOTE]: [],
+    [IpcAction.REMOVE_REMOTE]: [],
+    [IpcAction.FETCH]: [],
 };
 export function registerHandler<T extends IpcAction>(action: T, callbacks: ((arg: IpcActionReturn[T]) => void) | (Array<(arg: IpcActionReturn[T]) => void>)) {
     if (!Array.isArray(callbacks)) {

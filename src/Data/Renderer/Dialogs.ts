@@ -1,7 +1,7 @@
 import { DialogTypes } from "src/Components/Dialog/types";
 import { IpcAction } from "../Actions";
 import { normalizeLocalName, normalizeRemoteNameWithoutRemote, normalizeTagName, remoteName } from "../Branch";
-import { ipcSendMessage } from "./IPC";
+import { ipcGetData, ipcSendMessage } from "./IPC";
 import { closeDialogWindow, createBranchFromSha, createBranchFromRef, openDialogWindow, blameFile, setUpstream, renameLocalBranch } from "./store";
 
 export function openDialog_BlameFile() {
@@ -12,6 +12,34 @@ export function openDialog_BlameFile() {
             {
                 blameFile(file);
             }
+        },
+        cancelCb() {
+            closeDialogWindow();
+        },
+    });
+}
+
+export function openDialog_EditRemote(data: {name: string, pullFrom: string, pushTo?: string}) {
+    const oldName = data.name;
+    openDialogWindow(DialogTypes.EDIT_REMOTE, {
+        data,
+        async confirmCb(data) {
+            closeDialogWindow();
+            await ipcGetData(IpcAction.EDIT_REMOTE, {oldName, ...data});
+            ipcSendMessage(IpcAction.FETCH, null);
+        },
+        cancelCb() {
+            closeDialogWindow();
+        },
+    });
+}
+
+export function openDialog_AddRemote() {
+    openDialogWindow(DialogTypes.ADD_REMOTE, {
+        async confirmCb(data) {
+            closeDialogWindow();
+            await ipcGetData(IpcAction.NEW_REMOTE, data);
+            ipcSendMessage(IpcAction.FETCH, null);
         },
         cancelCb() {
             closeDialogWindow();

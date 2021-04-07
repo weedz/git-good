@@ -98,7 +98,7 @@ export class RenderRemotes extends PureComponent<{
         for (const item of Object.keys(this.props.branches.subtree)) {
             items.push(
                 <li className="sub-tree">
-                    <a style={{textIndent: "1em"}} onContextMenu={this.props.remoteContextMenu} href="#" onClick={toggleTreeItem}>{item}</a>
+                    <a style={{textIndent: "1em"}} onContextMenu={this.props.remoteContextMenu} href="#" onClick={toggleTreeItem} data-remote={item}>{item}</a>
                     <RenderBranchTree branches={this.props.branches.subtree[item]} contextMenu={this.props.contextMenu} indent={2} />
                 </li>
             );

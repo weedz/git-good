@@ -1,8 +1,9 @@
 import { Menu, MenuItem, dialog, getCurrentWindow } from "@electron/remote";
 import { h } from "preact";
-import { RefType } from "src/Data/Actions";
+import { IpcAction } from "src/Data/Actions";
 import { pullHead, pushHead } from "src/Data/Renderer";
-import { BranchFromType, openDialog_BranchFrom, openDialog_SetUpstream, openDialog_RenameRef, BranchType } from "src/Data/Renderer/Dialogs";
+import { BranchFromType, openDialog_BranchFrom, openDialog_SetUpstream, openDialog_RenameRef, BranchType, openDialog_EditRemote, openDialog_AddRemote } from "src/Data/Renderer/Dialogs";
+import { ipcSendMessage, ipcGetData } from "src/Data/Renderer/IPC";
 import { contextMenuState, checkoutBranch, deleteBranch, deleteRemoteBranch, Store } from "src/Data/Renderer/store";
 
 const setUpstreamMenuItem = new MenuItem({
@@ -16,8 +17,8 @@ const setUpstreamMenuItem = new MenuItem({
 const remotesMenu = new Menu();
 remotesMenu.append(new MenuItem({
     label: "Add remote...",
-    click() {
-        console.log("add remote")
+    async click() {
+        openDialog_AddRemote();
         return;
     }
 }))
@@ -25,8 +26,11 @@ remotesMenu.append(new MenuItem({
 const remoteMenu = new Menu();
 remoteMenu.append(new MenuItem({
     label: 'Fetch...',
-    click() {
-        console.log("fetch");
+    async click() {
+        const result = await ipcGetData(IpcAction.FETCH, {remote: contextMenuState.data.remote});
+        if (!result.result) {
+            dialog.showErrorBox("Failed to fetch remote", "Failed to fetch remote");
+        }
         return;
     }
 }));
@@ -35,15 +39,31 @@ remoteMenu.append(new MenuItem({
 }));
 remoteMenu.append(new MenuItem({
     label: 'Edit...',
-    click() {
-        console.log("edit");
+    async click() {
+        const remotes = await ipcGetData(IpcAction.REMOTES, null);
+        const remote = remotes.find(item => item.name === contextMenuState.data.remote);
+        if (!remote) {
+            dialog.showErrorBox("Error", `Could not find remote '${contextMenuState.data.remote}'`);
+            return;
+        }
+        openDialog_EditRemote(remote);
         return;
     }
 }));
 remoteMenu.append(new MenuItem({
-    label: 'Remote...',
-    click() {
-        console.log("remote");
+    label: 'Remove',
+    async click() {
+        const result = await dialog.showMessageBox({
+            message: `Delete remote ${contextMenuState.data.remote}?`,
+            type: "question",
+            buttons: ["Confirm", "Cancel"],
+            cancelId: 1,
+        });
+        if (result.response === 0) {
+            console.log(`remote '${contextMenuState.data.remote}' deleted!`);
+            await ipcGetData(IpcAction.REMOVE_REMOTE, {name: contextMenuState.data.remote});
+            ipcSendMessage(IpcAction.FETCH, null);
+        }
         return;
     }
 }));

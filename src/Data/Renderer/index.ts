@@ -128,9 +128,9 @@ function handleNewCommit() {
     });
 }
 
-function handleRemotes(data: IpcActionReturn[IpcAction.REMOTES]) {
+function handleRemotes(remotes: IpcActionReturn[IpcAction.REMOTES]) {
     updateStore({
-        remotes: data.result
+        remotes
     });
 }
 

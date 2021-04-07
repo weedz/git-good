@@ -2,7 +2,7 @@ import { join } from "path";
 import { app, BrowserWindow, ipcMain, Menu, dialog, shell, MenuItemConstructorOptions, IpcMainEvent, screen } from "electron";
 import { spawn } from "child_process";
 
-import { Branch, Commit, Object, Oid, Rebase, Reference, Repository } from "nodegit";
+import { Branch, Commit, Object, Oid, Rebase, Reference, Remote, Repository } from "nodegit";
 
 import * as provider from "./Data/Main/Provider";
 import { IpcAction, IpcActionParams, IpcActionReturn, IpcActionReturnError, Locks } from "./Data/Actions";
@@ -210,26 +210,7 @@ const menuTemplate = [
                     if (!repo) {
                         return dialog.showErrorBox(`Error`, "Not in a repository");
                     }
-                    await repo.fetchAll({
-                        prune: 1,
-                        callbacks: {
-                            credentials: provider.authenticate,
-                            transferProgress: (stats: TransferProgress, remote: string) => {
-                                sendEvent(win.webContents, "fetch-status", {
-                                    remote,
-                                    receivedObjects: stats.receivedObjects(),
-                                    totalObjects: stats.totalObjects(),
-                                    indexedDeltas: stats.indexedDeltas(),
-                                    totalDeltas: stats.totalDeltas(),
-                                    indexedObjects: stats.indexedObjects(),
-                                    receivedBytes: stats.receivedBytes(),
-                                });
-                            },
-                        },
-                    });
-                    sendEvent(win.webContents, "fetch-status", {
-                        done: true
-                    });
+                    fetchAll(repo);
                 }
             },
             {
@@ -429,6 +410,58 @@ const eventMap: {
         provider.eventReply(event, IpcAction.REFRESH_WORKDIR, await refreshCallback(repo, null, event));
         return {result: !result};
     },
+    [IpcAction.EDIT_REMOTE]: async (repo, data) => {
+        if (!Remote.isValidName(data.name)) {
+            dialog.showErrorBox("Failed to edit remote", "Invalid name");
+            return {result: false};
+        }
+        await Remote.delete(repo, data.oldName);
+        await Remote.create(repo, data.name, data.pullFrom);
+        if (data.pushTo) {
+            Remote.setPushurl(repo, data.name, data.pushTo);
+        }
+        return {result: true};
+    },
+    [IpcAction.NEW_REMOTE]: async (repo, data) => {
+        try {
+            await Remote.create(repo, data.name, data.pullFrom);
+        }
+        catch(err) {
+            dialog.showErrorBox("Failed to create remote", err.message);
+            return {result: false};
+        }
+
+        if (data.pushTo) {
+            Remote.setPushurl(repo, data.name, data.pushTo);
+        }
+        return {result: true};
+    },
+    [IpcAction.REMOVE_REMOTE]: async (repo, data) => {
+        const remote = repo.getRemote(data.name);
+        if (!remote) {
+            dialog.showErrorBox("Could not remove remote", `Remote '${data.name}' not found`);
+            return {result: false};
+        }
+
+        try {
+            await Remote.delete(repo, data.name);
+        }
+        catch(err) {
+            dialog.showErrorBox("Could not remove remote", err.message);
+            return {result: false};
+        }
+
+        return {result: true};
+    },
+    [IpcAction.FETCH]: async (repo, data) => {
+        if (!data) {
+            fetchAll(repo);
+            return {result: true};
+        }
+
+        // FIXME: Fetch from specific remote
+        return {result: false};
+    }
 }
 
 ipcMain.on("asynchronous-message", async (event, arg: EventArgs) => {
@@ -516,6 +549,29 @@ function repoStatus() {
         bisecting: repo.isBisecting(),
         state: repo.state(),
     };
+}
+
+async function fetchAll(repo: Repository) {
+    await repo.fetchAll({
+        prune: 1,
+        callbacks: {
+            credentials: provider.authenticate,
+            transferProgress: (stats: TransferProgress, remote: string) => {
+                sendEvent(win.webContents, "fetch-status", {
+                    remote,
+                    receivedObjects: stats.receivedObjects(),
+                    totalObjects: stats.totalObjects(),
+                    indexedDeltas: stats.indexedDeltas(),
+                    totalDeltas: stats.totalDeltas(),
+                    indexedObjects: stats.indexedObjects(),
+                    receivedBytes: stats.receivedBytes(),
+                });
+            },
+        },
+    });
+    sendEvent(win.webContents, "fetch-status", {
+        done: true
+    });
 }
 
 async function initGetComits(repo: Repository, params: IpcActionParams[IpcAction.LOAD_COMMITS]) {
