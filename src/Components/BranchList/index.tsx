@@ -75,7 +75,7 @@ export default class BranchList extends PureStoreComponent<unknown, State> {
         if (this.state.head) {
             headRef.push(<span>&nbsp;({this.state.head.name === "HEAD" ? `detached ${this.state.head.headSHA.substring(0, 8)}` : normalizeLocalName(this.state.head.name)})</span>);
 
-            const remote = Store.heads[this.state.head.headSHA].find(head => head.name === this.state.head?.name);
+            const remote = Store.heads[this.state.head.headSHA]?.find(head => head.name === this.state.head?.name);
 
             if (remote) {
                 const aheadBehind = branchesAheadBehind(remote);
