@@ -444,12 +444,6 @@ const eventMap: {
         return {result: true};
     },
     [IpcAction.REMOVE_REMOTE]: async (repo, data) => {
-        const remote = repo.getRemote(data.name);
-        if (!remote) {
-            dialog.showErrorBox("Could not remove remote", `Remote '${data.name}' not found`);
-            return {result: false};
-        }
-
         try {
             await Remote.delete(repo, data.name);
         }
