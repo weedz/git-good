@@ -415,8 +415,15 @@ const eventMap: {
             dialog.showErrorBox("Failed to edit remote", "Invalid name");
             return {result: false};
         }
-        await Remote.delete(repo, data.oldName);
-        await Remote.create(repo, data.name, data.pullFrom);
+        // When we rename a remote, we need to remove the old remote and then
+        // create a new remote with the new name
+        if (data.oldName !== data.name) {
+            await Remote.delete(repo, data.oldName);
+            await Remote.create(repo, data.name, data.pullFrom);
+        } else {
+            Remote.setUrl(repo, data.name, data.pullFrom);
+        }
+
         if (data.pushTo) {
             Remote.setPushurl(repo, data.name, data.pushTo);
         }
