@@ -14,7 +14,7 @@ export function SetUpstream(dialog: SetUpstreamProps) {
     }}>
         <h4>Set upstream</h4>
         <select name="remote" onChange={e => data.remote = e.currentTarget.value}>
-            {Store.remotes.map(remote => <option value={remote.name} selected={remote.name === data.remote}>{remote}</option>)}
+            {Store.remotes.map(remote => <option value={remote.name} selected={remote.name === data.remote}>{remote.name}</option>)}
         </select>
         <input type="text" name="branch" placeholder="Remote branch..." onChange={e => data.branch = e.currentTarget.value} value={data.branch} />
         <button type="submit">Confirm</button>

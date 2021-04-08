@@ -66,7 +66,7 @@ export class RenderBranchTree extends PureComponent<{
         if (this.props.branches.items) {
             for (const branch of this.props.branches.items) {
                 const link = (
-                    <Link style={{textIndent: `${this.props.indent}em`}} selectAction={selectAction} onDblClick={this.props.dblClick} onContextMenu={this.props.contextMenu} data-ref={branch.ref.name} linkData={branch.ref.name}>
+                    <Link style={{textIndent: `${this.props.indent}em`}} selectAction={selectAction} onDblClick={this.props.dblClick} onContextMenu={this.props.contextMenu} data-ref={branch.ref.name} data-remote={branch.ref.remote} linkData={branch.ref.name}>
                         {branch.name}&nbsp;{branchesAheadBehind(branch.ref)}
                     </Link>
                 ) as unknown as Link;
