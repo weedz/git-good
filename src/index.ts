@@ -1,11 +1,12 @@
 import { join } from "path";
-import { app, BrowserWindow, ipcMain, Menu, dialog, shell, MenuItemConstructorOptions, IpcMainEvent, screen } from "electron";
+import { app, BrowserWindow, ipcMain, Menu, dialog, shell, MenuItemConstructorOptions, IpcMainEvent, screen, clipboard } from "electron";
 import { spawn } from "child_process";
 
 import { Branch, Commit, Object, Oid, Rebase, Reference, Remote, Repository } from "nodegit";
 
 import * as provider from "./Data/Main/Provider";
 import { IpcAction, IpcActionParams, IpcActionReturn, IpcActionReturnError, Locks } from "./Data/Actions";
+import { formatTimeAgo } from "./Data/Utils";
 import { sendEvent } from "./Data/Main/WindowEvents";
 import { TransferProgress } from "types/nodegit";
 
@@ -15,6 +16,9 @@ import { TransferProgress } from "types/nodegit";
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 require('@electron/remote/main').initialize();
 
+// constants from rollup
+declare const __build_date__: number;
+// declare const __last_comit__: string;
 
 const isMac = process.platform === "darwin";
 // const isLinux = process.platform === "linux";
@@ -276,7 +280,33 @@ const menuTemplate = [
                 async click() {
                     shell.openExternal("https://github.com/weedz/git-good");
                 }
-            }
+            },
+            {
+                type: "separator"
+            },
+            {
+                label: "About",
+                async click() {
+                    const buildDate = new Date(__build_date__);
+                    const versionsString = `Version: ${app.getVersion()}\n` +
+                        `Date: ${buildDate.toISOString()} (${formatTimeAgo(buildDate)})\n` +
+                        `Commit: __last_comit__\n` +
+                        `Electron: ${process.versions.electron}\n` +
+                        `Chrome: ${process.versions.chrome}\n` +
+                        `Node: ${process.versions.node}\n` +
+                        `V8: ${process.versions.v8}\n` +
+                        `OS: ${process.getSystemVersion()}`;
+                    const response = await dialog.showMessageBox(win, {
+                        type: "info",
+                        title: "Git-good",
+                        message: versionsString,
+                        buttons: ["Copy", "Ok"],
+                    });
+                    if (response.response === 0) {
+                        clipboard.writeText(versionsString);
+                    }
+                }
+            },
         ]
     }
 ] as Array<MenuItemConstructorOptions>;
