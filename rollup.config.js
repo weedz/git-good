@@ -27,7 +27,9 @@ export default {
         resolve({
             extensions
         }),
-        postcss(),
+        postcss({
+            minimize: true
+        }),
         production && terser(),
     ],
     watch: {
