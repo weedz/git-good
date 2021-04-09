@@ -63,7 +63,7 @@ const store: StoreType = {
     comparePatches: [],
     commitMsg: {summary: "", body: ""},
     diffOptions: {
-        ignoreWhitespace: false
+        ignoreWhitespace: true
     }
 };
 export type LinkTypes = "commits" | "branches" | "files";
