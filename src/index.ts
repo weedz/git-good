@@ -300,7 +300,8 @@ const menuTemplate = [
                         type: "info",
                         title: "Git-good",
                         message: versionsString,
-                        buttons: ["Copy", "Ok"],
+                        buttons: ["Copy", "OK"],
+                        defaultId: 1,
                     });
                     if (response.response === 0) {
                         clipboard.writeText(versionsString);
