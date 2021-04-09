@@ -4,7 +4,7 @@ import { IpcAction } from "src/Data/Actions";
 import { pullHead, pushHead } from "src/Data/Renderer";
 import { BranchFromType, openDialog_BranchFrom, openDialog_SetUpstream, openDialog_RenameRef, BranchType, openDialog_EditRemote, openDialog_AddRemote } from "src/Data/Renderer/Dialogs";
 import { ipcSendMessage, ipcGetData } from "src/Data/Renderer/IPC";
-import { contextMenuState, checkoutBranch, deleteBranch, deleteRemoteBranch, Store } from "src/Data/Renderer/store";
+import { contextMenuState, checkoutBranch, deleteBranch, deleteRemoteBranch } from "src/Data/Renderer/store";
 
 const setUpstreamMenuItem = new MenuItem({
     label: 'Set upstream...',
@@ -154,17 +154,6 @@ const headMenu = new Menu();
 headMenu.append(new MenuItem({
     label: 'Pull...',
     click() {
-        const ref = contextMenuState.data.ref;
-        const headSHA = Store.head?.headSHA;
-        if (!headSHA) {
-            return dialog.showErrorBox("Invalid reference", ref);
-        }
-
-        const head = Store.heads[headSHA].find(head => head.name === ref);
-
-        if (!head?.remote) {
-            return dialog.showErrorBox("Missing remote.", ref);
-        }
         pullHead();
     }
 }));
