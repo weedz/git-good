@@ -56,10 +56,10 @@ remoteMenu.append(new MenuItem({
         const result = await dialog.showMessageBox({
             message: `Delete remote ${contextMenuState.data.remote}?`,
             type: "question",
-            buttons: ["Confirm", "Cancel"],
-            cancelId: 1,
+            buttons: ["Cancel", "Confirm"],
+            cancelId: 0,
         });
-        if (result.response === 0) {
+        if (result.response === 1) {
             console.log(`remote '${contextMenuState.data.remote}' deleted!`);
             await ipcGetData(IpcAction.REMOVE_REMOTE, {name: contextMenuState.data.remote});
             ipcSendMessage(IpcAction.FETCH, null);
@@ -85,10 +85,10 @@ remoteRefMenu.append(new MenuItem({
         const result = await dialog.showMessageBox({
             message: `Delete branch ${refName}?`,
             type: "question",
-            buttons: ["Confirm", "Cancel"],
-            cancelId: 1,
+            buttons: ["Cancel", "Confirm"],
+            cancelId: 0,
         });
-        if (result.response === 0) {
+        if (result.response === 1) {
             deleteRemoteBranch(refName);
         }
     }
@@ -121,10 +121,10 @@ localMenu.append(new MenuItem({
         const result = await dialog.showMessageBox({
             message: `Delete branch ${refName}?`,
             type: "question",
-            buttons: ["Confirm", "Cancel"],
-            cancelId: 1,
+            buttons: ["Cancel", "Confirm"],
+            cancelId: 0,
         });
-        if (result.response === 0) {
+        if (result.response === 1) {
             deleteBranch(refName);
         }
     }
