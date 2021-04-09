@@ -36,6 +36,9 @@ export type StoreType = {
         summary: string
         body: string
     }
+    diffOptions: {
+        ignoreWhitespace: boolean
+    }
 };
 
 const store: StoreType = {
@@ -59,6 +62,9 @@ const store: StoreType = {
     viewChanges: null,
     comparePatches: [],
     commitMsg: {summary: "", body: ""},
+    diffOptions: {
+        ignoreWhitespace: false
+    }
 };
 export type LinkTypes = "commits" | "branches" | "files";
 export const GlobalLinks: {
@@ -96,7 +102,8 @@ const listeners: {
     locks: [],
     remotes: [],
     selectedBranch: [],
-    viewChanges: []
+    viewChanges: [],
+    diffOptions: [],
 };
 
 function subscribe<T extends StoreKeys>(key: T, cb: PartialStoreListener<T>) {

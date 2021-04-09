@@ -1,6 +1,6 @@
 import { h } from "preact";
 import { HunkObj, LineObj } from "src/Data/Actions";
-import { Store, closeFile, blameFile, PureStoreComponent } from "src/Data/Renderer/store";
+import { Store, closeFile, blameFile, PureStoreComponent, updateStore } from "src/Data/Renderer/store";
 import { DELTA } from "src/Data/Utils";
 import HunksContainer from "./HunksContainer";
 
@@ -164,9 +164,13 @@ export default class FileDiff extends PureStoreComponent<unknown, State> {
                         <button onClick={() => this.setState({diffType: "side-by-side"}, this.renderHunks)}>Side-by-side</button>
                     </li>
                 </ul>
-                <label>
+                {/* <label>
                     <span>Wrap line</span>
-                    <input checked={this.state.wrapLine} type="checkbox" onClick={(e) => this.setState({wrapLine: (e.target as unknown as HTMLInputElement).checked})} />
+                    <input checked={this.state.wrapLine} type="checkbox" onClick={(e) => this.setState({wrapLine: e.currentTarget.checked})} />
+                </label> */}
+                <label>
+                    <span>Ignore whitespace</span>
+                    <input checked={Store.diffOptions.ignoreWhitespace} type="checkbox" onClick={(e) => updateStore({diffOptions: {ignoreWhitespace: e.currentTarget.checked}})} />
                 </label>
                 <HunksContainer itemHeight={17} width={this.longestLine * FONT_WIDTH} items={this.state.lines} />
             </div>

@@ -5,7 +5,9 @@ import { IpcAction, CommitObj, PatchObj, IpcActionReturn } from "src/Data/Action
 import "./style.css";
 import CommitMessage from "./CommitMessage";
 import ChangedFiles from "./ChangedFiles";
-import { StoreComponent } from "src/Data/Renderer/store";
+import { Store, StoreComponent } from "src/Data/Renderer/store";
+import { Diff } from "nodegit";
+import { triggerAction } from "../Link";
 
 type State = {
     commit: null | CommitObj
@@ -34,11 +36,18 @@ export default class Commit extends StoreComponent<Props, State> {
         this.resetView();
         ipcSendMessage(IpcAction.LOAD_COMMIT, this.props.sha);
         
+        this.listen("diffOptions", () => this.state.commit && this.loadCommit(this.state.commit));
         this.registerHandler(IpcAction.LOAD_COMMIT, this.loadCommit);
         this.registerHandler(IpcAction.LOAD_PATCHES_WITHOUT_HUNKS, this.handlePatch);
     }
     loadCommit = (commit: IpcActionReturn[IpcAction.LOAD_COMMIT]) => {
-        ipcSendMessage(IpcAction.LOAD_PATCHES_WITHOUT_HUNKS, this.props.sha);
+        let options;
+        if (Store.diffOptions.ignoreWhitespace) {
+            options = {
+                flags: Diff.OPTION.IGNORE_WHITESPACE
+            };
+        }
+        ipcSendMessage(IpcAction.LOAD_PATCHES_WITHOUT_HUNKS, {sha: this.props.sha, options});
         this.setState({
             commit
         });
@@ -47,6 +56,10 @@ export default class Commit extends StoreComponent<Props, State> {
         this.setState({
             patches,
             loadingComplete: true,
+        }, () => {
+            if (Store.currentFile) {
+                triggerAction("files");
+            }
         });
     }
     render() {

@@ -3,7 +3,7 @@ import { promises as fs } from "fs";
 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
 // @ts-ignore, missing declations for Credential
 import { Credential, Repository, Revwalk, Commit, Diff, ConvenientPatch, ConvenientHunk, DiffLine, Object, Branch, Graph, Index, Reset, Checkout, DiffFindOptions, Blame, Reference, Oid, Signature, Merge, Remote } from "nodegit";
-import { IpcAction, BranchObj, LineObj, HunkObj, PatchObj, CommitObj, IpcActionParams, IpcActionReturn, IpcActionReturnError, RefType } from "../Actions";
+import { IpcAction, BranchObj, LineObj, HunkObj, PatchObj, CommitObj, IpcActionParams, IpcActionReturn, IpcActionReturnError, RefType, DiffOptions } from "../Actions";
 import { normalizeLocalName, normalizeRemoteName, normalizeRemoteNameWithoutRemote, normalizeTagName, remoteName } from "../Branch";
 import { dialog, IpcMainEvent } from "electron";
 
@@ -587,13 +587,13 @@ async function handleDiff(diff: Diff, patches: {[path: string]: ConvenientPatch}
     });
 }
 
-export async function getCommitPatches(_: Repository, sha: string): Promise<IpcActionReturn[IpcAction.LOAD_PATCHES_WITHOUT_HUNKS]> {
+export async function getCommitPatches(sha: string, options?: DiffOptions): Promise<IpcActionReturn[IpcAction.LOAD_PATCHES_WITHOUT_HUNKS]> {
     const commit = commitObjectCache[sha].commit;
     
     // TODO: fix this. Merge commits are a bit messy without this.
     const tree = await commit.getTree();
     const diffOpts: DiffFindOptions = {
-        flags: Diff.FIND.RENAMES | Diff.FIND.IGNORE_WHITESPACE,
+        flags: Diff.FIND.RENAMES,
     };
 
     // TODO: which parent to chose?
@@ -602,7 +602,10 @@ export async function getCommitPatches(_: Repository, sha: string): Promise<IpcA
     if (parents.length) {
         // TODO: how many parents?
         diffs = await Promise.all(
-            parents.map(parent => parent.getTree().then(parentTree => tree.diffWithOptions(parentTree)))
+            parents.map(parent => parent.getTree().then(parentTree => 
+                // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+                // @ts-ignore
+                tree.diffWithOptions(parentTree, options)))
         );
     }
     else {

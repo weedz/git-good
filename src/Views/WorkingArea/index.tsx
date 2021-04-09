@@ -32,6 +32,7 @@ export default class WorkingArea extends StoreComponent<unknown, State> {
 
         ipcSendMessage(IpcAction.LOAD_COMMIT, null);
 
+        this.listen("diffOptions", this.getChanges);
         this.listen("commitMsg", msg => {
             this.setState({commitMsg: msg});
         });

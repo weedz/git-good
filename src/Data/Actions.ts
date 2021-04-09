@@ -1,3 +1,5 @@
+import { Diff } from "nodegit";
+
 export enum IpcAction {
     LOAD_COMMITS,
     LOAD_BRANCHES,
@@ -33,12 +35,19 @@ export enum IpcAction {
     FETCH,
 }
 
+export type DiffOptions = {
+    flags: Diff.OPTION
+}
+
 export type IpcActionParams = {
     [IpcAction.LOAD_COMMITS]: LoadCommitsParam
     [IpcAction.LOAD_BRANCHES]: null
     [IpcAction.OPEN_REPO]: string | null
     [IpcAction.LOAD_COMMIT]: string | null
-    [IpcAction.LOAD_PATCHES_WITHOUT_HUNKS]: string
+    [IpcAction.LOAD_PATCHES_WITHOUT_HUNKS]: {
+        sha: string
+        options?: DiffOptions
+    }
     [IpcAction.LOAD_HUNKS]: 
     ({
         workDir: boolean

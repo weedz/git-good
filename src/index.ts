@@ -356,7 +356,7 @@ const eventMap: {
             }
         }
     },
-    [IpcAction.LOAD_PATCHES_WITHOUT_HUNKS]: provider.getCommitPatches,
+    [IpcAction.LOAD_PATCHES_WITHOUT_HUNKS]: async (_, args) => provider.getCommitPatches(args.sha, args.options),
     [IpcAction.LOAD_HUNKS]: async (_, arg) => {
         return {
             path: arg.path,
