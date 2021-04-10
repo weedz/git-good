@@ -1,6 +1,6 @@
 import { join } from "path";
 import { app, BrowserWindow, ipcMain, Menu, dialog, shell, MenuItemConstructorOptions, IpcMainEvent, screen, clipboard } from "electron";
-import { spawn } from "child_process";
+import { exec, spawn } from "child_process";
 
 import { Branch, Commit, Object, Oid, Rebase, Reference, Remote, Repository } from "nodegit";
 
@@ -121,7 +121,7 @@ const menuTemplate = [
                         let process;
                         // TODO: configure different terminals?
                         if (isWindows) {
-                            process = spawn("cmd.exe", {
+                            process = exec("start cmd.exe", {
                                 cwd: repo.workdir()
                             });
                         } else if (isMac) {

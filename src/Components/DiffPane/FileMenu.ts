@@ -1,4 +1,5 @@
 import { shell } from "electron";
+import { join } from "path";
 import { getCurrentWindow, Menu, MenuItem } from "@electron/remote";
 import { h } from "preact";
 import { blameFile, contextMenuState, Store } from "src/Data/Renderer/store";
@@ -14,8 +15,10 @@ fileMenu.append(new MenuItem({
 fileMenu.append(new MenuItem({
     label: "Show in folder",
     click() {
-        const path = `${Store.repo?.path}/${contextMenuState.data.path}`;
-        shell.showItemInFolder(path);
+        if (Store.repo?.path) {
+            const filepath = join(Store.repo.path, contextMenuState.data.path);
+            shell.showItemInFolder(filepath);
+        }
     }
 }));
 fileMenu.append(new MenuItem({
