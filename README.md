@@ -39,23 +39,3 @@ Now run
 $ npm run dist
 ```
 to compile all the native dependencies etc. You can run this with `CC="ccache gcc" JOBS=max npm run dist` (omit `CC="ccache gcc"` if you don't have `ccache` installed) to speed up compile time.
-
-## Git Auth
-
-### GitHub
-
-https://docs.github.com/en/github/authenticating-to-github/creating-a-personal-access-token
-
-For personal access token, set Auth type to "Username/password" and:
-
-* `username = [ACCESS_TOKEN]`
-* `password = x-oauth-basic`
-
-### GitLab
-
-https://docs.gitlab.com/ee/user/profile/personal_access_tokens.html
-
-For personal access token, set Auth type to "Username/password" and:
-
-* `username = [USERNAME]`
-* `password = [ACCESS_TOKEN]`
