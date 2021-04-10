@@ -24,7 +24,7 @@ export function eventReply<T extends IpcAction>(event: IpcMainEvent, action: T, 
     });
 }
 
-export function authenticate(url: string, username: string) {
+export function authenticate(username: string, auth: Auth) {
     if (auth.type === "ssh") {
         return Credential.sshKeyFromAgent(username || "git");
     } else if (auth.type === "userpass") {
@@ -126,7 +126,7 @@ export async function pull(repo: Repository): Promise<IpcActionReturn[IpcAction.
     return {result: !!result};
 }
 
-async function pushHead(repo: Repository) {
+async function pushHead(repo: Repository, auth: Auth) {
     const head = await repo.head();
     let upstream;
     try {
@@ -149,18 +149,18 @@ async function pushHead(repo: Repository) {
             cancelId: 1,
         });
         if (result.response === 0) {
-            return doPush(remote, head.name(), normalizeRemoteNameWithoutRemote(upstream.name()), true);
+            return doPush(remote, head.name(), normalizeRemoteNameWithoutRemote(upstream.name()), auth, true);
         }
     } else {
-        return doPush(remote, head.name(), normalizeRemoteNameWithoutRemote(upstream.name()));
+        return doPush(remote, head.name(), normalizeRemoteNameWithoutRemote(upstream.name()), auth);
     }
 
     return false;
 }
 
-export async function push(repo: Repository, data: IpcActionParams[IpcAction.PUSH]) {
+export async function push(repo: Repository, data: IpcActionParams[IpcAction.PUSH], auth: Auth) {
     if (!data) {
-        return pushHead(repo);
+        return pushHead(repo, auth);
     }
 
     const localRef = await repo.getReference(data.localBranch);
@@ -176,10 +176,10 @@ export async function push(repo: Repository, data: IpcActionParams[IpcAction.PUS
     }
 
     const remote = await repo.getRemote(data.remote);
-    return doPush(remote, data.localBranch, remoteRefName, data.force);
+    return doPush(remote, data.localBranch, remoteRefName, auth, data.force);
 }
 
-async function doPush(remote: Remote, localName: string, remoteName: string, forcePush = false) {
+async function doPush(remote: Remote, localName: string, remoteName: string, auth: Auth, forcePush = false) {
     // undocumented, https://github.com/nodegit/nodegit/issues/1270#issuecomment-293742772
     const force = forcePush ? "+" : "";
     try {
@@ -188,7 +188,7 @@ async function doPush(remote: Remote, localName: string, remoteName: string, for
             [`${force}${localName}:refs/heads/${remoteName}`],
             {
                 callbacks: {
-                    credentials: authenticate,
+                    credentials: (_url: string, username: string) => authenticate(username, auth),
 
                     // FIXME: Can we use this to show "progress" when pushing?
                     // transferProgress: (...args: any) => void,
@@ -220,7 +220,7 @@ export async function setUpstream(repo: Repository, local: string, remoteRefName
     return result;
 }
 
-export async function deleteRemoteRef(repo: Repository, refName: string): Promise<IpcActionReturn[IpcAction.DELETE_REMOTE_REF]> {
+export async function deleteRemoteRef(repo: Repository, refName: string, auth: Auth): Promise<IpcActionReturn[IpcAction.DELETE_REMOTE_REF]> {
     const ref = await repo.getReference(refName);
 
     if (ref.isRemote()) {
@@ -234,7 +234,7 @@ export async function deleteRemoteRef(repo: Repository, refName: string): Promis
         try {
             await remote.push([`:refs/heads/${branchName}`], {
                 callbacks: {
-                    credentials: authenticate
+                    credentials: (_url: string, username: string) => authenticate(username, auth)
                 }
             });
         } catch (err) {
@@ -345,10 +345,7 @@ export async function findFile(repo: Repository, file: string): Promise<IpcActio
     };
 }
 
-export async function commit(repo: Repository, params: IpcActionParams[IpcAction.COMMIT]): Promise<IpcActionReturn[IpcAction.COMMIT] | IpcActionReturnError> {
-    // TODO: get from settings
-    const committer = Signature.now("Linus Björklund", "weedzcokie@gmail.com");
-
+export async function commit(repo: Repository, params: IpcActionParams[IpcAction.COMMIT], committer: Signature): Promise<IpcActionReturn[IpcAction.COMMIT] | IpcActionReturnError> {
     if (!committer.email()) {
         return {
             error: "No git credentials provided."
@@ -763,7 +760,7 @@ export async function blameFile(repo: Repository, filePath: string): Promise<Ipc
     return {};
 }
 
-type Auth = {
+export type Auth = {
     type: "ssh"
     agent: boolean
 } | {
@@ -771,14 +768,6 @@ type Auth = {
     username: string
     password: string
 };
-
-// TODO: Make this configurable. global- and per reposotiry
-const auth: Auth = {
-    type: "userpass",
-    username: "personal-access-token",
-    password: "x-oauth-basic"
-};
-export const GitAuth: Readonly<typeof auth> = auth;
 
 let currentCommit: string;
 let commitObjectCache: {

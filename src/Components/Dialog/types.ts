@@ -1,3 +1,5 @@
+import { AppConfig } from "src/Data/Config";
+
 export enum DialogTypes {
     NEW_BRANCH,
     RENAME_BRANCH,
@@ -61,6 +63,6 @@ export type SetUpstreamProps = {
 };
 
 export type SettingsProps = {
-    confirmCb: (settings: unknown) => void
+    confirmCb: (settings: AppConfig) => void
     cancelCb: () => void
 }

@@ -163,7 +163,7 @@ export function openDialog_SetUpstream(local: string, currentUpstream?: string) 
 export function openDialog_Settings() {
     openDialogWindow(DialogTypes.SETTINGS, {
         confirmCb(settings) {
-            console.log(settings);
+            ipcSendMessage(IpcAction.SAVE_SETTINGS, settings);
         },
         cancelCb() {
             closeDialogWindow();

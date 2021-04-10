@@ -2,19 +2,33 @@ import { join } from "path";
 import { app, BrowserWindow, ipcMain, Menu, dialog, shell, MenuItemConstructorOptions, IpcMainEvent, screen, clipboard } from "electron";
 import { exec, spawn } from "child_process";
 
-import { Branch, Commit, Object, Oid, Rebase, Reference, Remote, Repository } from "nodegit";
+import { Branch, Commit, Object, Oid, Rebase, Reference, Remote, Repository, Signature } from "nodegit";
 
 import * as provider from "./Data/Main/Provider";
 import { IpcAction, IpcActionParams, IpcActionReturn, IpcActionReturnError, Locks } from "./Data/Actions";
 import { formatTimeAgo } from "./Data/Utils";
+import { AppConfig } from "./Data/Config";
 import { sendEvent } from "./Data/Main/WindowEvents";
 import { TransferProgress } from "types/nodegit";
+import { readFileSync } from "fs";
+import { writeFile } from "fs/promises";
 
 // import { initialize } from "@electron/remote";
 // initialize();
 
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 require('@electron/remote/main').initialize();
+
+let appConfig: AppConfig;
+const globalAppConfigPath = join(app.getPath("userData"), "git-good.config.json");
+
+console.log(globalAppConfigPath);
+try {
+    const configJSON = readFileSync(globalAppConfigPath).toString();
+    appConfig = JSON.parse(configJSON);
+} catch (err) {
+    console.log("No existing config file");
+}
 
 // constants from rollup
 declare const __build_date__: number;
@@ -235,7 +249,12 @@ const menuTemplate = [
                 label: 'Push...',
                 async click() {
                     sendEvent(win.webContents, "app-lock-ui", Locks.BRANCH_LIST);
-                    await provider.push(repo, null);
+                    const auth = getAuth();
+                    if (auth) {
+                        await provider.push(repo, null, auth);
+                    } else {
+                        dialog.showErrorBox("Failed to push", "No git credentials");
+                    }
                     sendEvent(win.webContents, "app-unlock-ui", Locks.BRANCH_LIST);
                 }
             },
@@ -414,7 +433,13 @@ const eventMap: {
         const res = Branch.delete(ref);
         return {result: !res};
     },
-    [IpcAction.DELETE_REMOTE_REF]: provider.deleteRemoteRef,
+    [IpcAction.DELETE_REMOTE_REF]: async (repo, data) => {
+        const auth = getAuth();
+        if (auth) {
+            return provider.deleteRemoteRef(repo, data, auth);
+        }
+        return {result: false};
+    },
     [IpcAction.FIND_FILE]: provider.findFile,
     [IpcAction.ABORT_REBASE]: abortRebase,
     [IpcAction.CONTINUE_REBASE]: continueRebase,
@@ -426,14 +451,20 @@ const eventMap: {
     },
     [IpcAction.BLAME_FILE]: provider.blameFile,
     [IpcAction.PUSH]: async (repo, data) => {
-        const result = await provider.push(repo, data);
+        const auth = getAuth();
+        const result = auth ? await provider.push(repo, data, auth) : false;
         return {result};
     },
     [IpcAction.SET_UPSTREAM]: async (repo, data) => {
         const result = await provider.setUpstream(repo, data.local, data.remote);
         return {result: !result};
     },
-    [IpcAction.COMMIT]: provider.commit,
+    [IpcAction.COMMIT]: async (repo, data) => {
+        if (!appConfig.gitName || !appConfig.gitEmail) {
+            return {error: "invalid name/email"};
+        }
+        return provider.commit(repo, data, Signature.now(appConfig.gitName, appConfig.gitEmail))
+    },
     [IpcAction.REMOTES]: provider.remotes,
     [IpcAction.RESOLVE_CONFLICT]: async (repo, {path}, event) => {
         const result = await provider.resolveConflict(path);
@@ -493,6 +524,19 @@ const eventMap: {
 
         // FIXME: Fetch from specific remote
         return {result: false};
+    },
+    [IpcAction.SAVE_SETTINGS]: async (_, data) => {
+        appConfig = data;
+        try {
+            await writeFile(globalAppConfigPath, JSON.stringify(data));
+            return {result: true};
+        } catch (err) {
+            dialog.showErrorBox("Failed to save settings", err.message);
+        }
+        return {result: false};
+    },
+    [IpcAction.GET_SETTINGS]: async (_, _data) => {
+        return appConfig;
     }
 }
 
@@ -584,23 +628,32 @@ function repoStatus() {
 }
 
 async function fetchAll(repo: Repository) {
-    await repo.fetchAll({
-        prune: 1,
-        callbacks: {
-            credentials: provider.authenticate,
-            transferProgress: (stats: TransferProgress, remote: string) => {
-                sendEvent(win.webContents, "fetch-status", {
-                    remote,
-                    receivedObjects: stats.receivedObjects(),
-                    totalObjects: stats.totalObjects(),
-                    indexedDeltas: stats.indexedDeltas(),
-                    totalDeltas: stats.totalDeltas(),
-                    indexedObjects: stats.indexedObjects(),
-                    receivedBytes: stats.receivedBytes(),
-                });
+    try {
+        await repo.fetchAll({
+            prune: 1,
+            callbacks: {
+                credentials: (_url: string, username: string) => {
+                    const auth = getAuth();
+                    if (auth) {
+                        return provider.authenticate(username, auth);
+                    }
+                },
+                transferProgress: (stats: TransferProgress, remote: string) => {
+                    sendEvent(win.webContents, "fetch-status", {
+                        remote,
+                        receivedObjects: stats.receivedObjects(),
+                        totalObjects: stats.totalObjects(),
+                        indexedDeltas: stats.indexedDeltas(),
+                        totalDeltas: stats.totalDeltas(),
+                        indexedObjects: stats.indexedObjects(),
+                        receivedBytes: stats.receivedBytes(),
+                    });
+                },
             },
-        },
-    });
+        });
+    } catch (err) {
+        dialog.showErrorBox("Fetch failed", err.message);
+    }
     sendEvent(win.webContents, "fetch-status", {
         done: true
     });
@@ -651,4 +704,21 @@ function loadHunks(params: IpcActionParams[IpcAction.LOAD_HUNKS]) {
         return provider.hunksFromCompare(params.path);
     }
     return provider.getWorkdirHunks(params.path, params.type);
+}
+
+function getAuth() {
+    if (appConfig.authType === "ssh") {
+        return {
+            agent: appConfig.sshAgent,
+            type: appConfig.authType
+        }
+    }
+    if (appConfig.username && appConfig.password) {
+        return {
+            type: appConfig.authType,
+            username: appConfig.username,
+            password: appConfig.password,
+        }
+    }
+    return false;
 }

@@ -1,4 +1,5 @@
 import { Diff } from "nodegit";
+import { AppConfig } from "./Config";
 
 export enum IpcAction {
     LOAD_COMMITS,
@@ -33,6 +34,8 @@ export enum IpcAction {
     NEW_REMOTE,
     REMOVE_REMOTE,
     FETCH,
+    SAVE_SETTINGS,
+    GET_SETTINGS,
 }
 
 export type DiffOptions = {
@@ -111,6 +114,8 @@ export type IpcActionParams = {
     [IpcAction.NEW_REMOTE]: {name: string, pullFrom: string, pushTo?: string}
     [IpcAction.REMOVE_REMOTE]: {name: string}
     [IpcAction.FETCH]: null | {remote: string}
+    [IpcAction.SAVE_SETTINGS]: AppConfig
+    [IpcAction.GET_SETTINGS]: string | null
 };
 
 export type IpcActionReturn = {
@@ -163,6 +168,8 @@ export type IpcActionReturn = {
     [IpcAction.NEW_REMOTE]: {result: boolean}
     [IpcAction.REMOVE_REMOTE]: {result: boolean}
     [IpcAction.FETCH]: {result: boolean}
+    [IpcAction.SAVE_SETTINGS]: {result: boolean}
+    [IpcAction.GET_SETTINGS]: AppConfig
 };
 
 export type IpcActionReturnError = {
