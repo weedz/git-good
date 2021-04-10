@@ -1,18 +1,13 @@
 import { remote } from "electron";
 import { Component, h } from "preact";
+import { IpcAction } from "src/Data/Actions";
+import { AppConfig } from "src/Data/Config";
+import { ipcGetData } from "src/Data/Renderer/IPC";
 import { SettingsProps } from "./types";
 
 type State = {
-    authType: "ssh" | "userpass"
-    username?: string
-    password?: string
-    gitEmail: string
-    gitName: string
-    sshPrivateKey?: string
-    sshPublicKey?: string
-    sshAgent?: boolean
-    useGPG: boolean
-}
+    config: AppConfig
+};
 
 async function selectFile(cb: (data: string) => void) {
     const result = await remote.dialog.showOpenDialog({});
@@ -23,12 +18,29 @@ async function selectFile(cb: (data: string) => void) {
 
 export class Settings extends Component<SettingsProps, State> {
     setAuth = (e: h.JSX.TargetedEvent<HTMLInputElement, Event>) => {
-        this.setState({
-            authType: e.currentTarget.value as State["authType"]
-        });
+        this.setConfigKey("authType", e.currentTarget.value as AppConfig["authType"]);
     };
+    
+    async componentDidMount() {
+        ipcGetData(IpcAction.GET_SETTINGS, null).then(config => {
+            this.setState({
+                config
+            });
+        });
+    }
+
+    setConfigKey<T extends keyof AppConfig>(key: T, value: AppConfig[T]) {
+        const config = this.state.config;
+        config[key] = value;
+        this.setState({
+            config
+        });
+    }
 
     render() {
+        if (!this.state.config) {
+            return <p>Loading config...</p>
+        }
         return <div className="dialog-window" style={{
             width: "100%",
             height: "100%",
@@ -36,45 +48,45 @@ export class Settings extends Component<SettingsProps, State> {
         }}>
             <form onSubmit={e => {
                 e.preventDefault();
-                this.props.confirmCb(this.state);
+                this.props.confirmCb(this.state.config);
             }}>
                 <h2>Settings</h2>
                 <div className="pane">
                     <h3>Auth type</h3>
                     <div>
-                        <input id="ssh" type="radio" name="auth-type" value="ssh" onChange={this.setAuth} />
+                        <input id="ssh" type="radio" name="auth-type" checked={this.state.config.authType !== "userpass"} value="ssh" onChange={this.setAuth} />
                         <label for="ssh">SSH</label>
-                        {this.state.authType === "ssh" && (
+                        {this.state.config.authType === "ssh" && (
                             <div>
                                 <div>
                                     <label for="ssh-agent">Use SSH agent:</label>
-                                    <input id="ssh-agent" type="checkbox" name="ssh-agent" checked={this.state.sshAgent} onChange={e => this.setState({sshAgent: e.currentTarget.checked})} />
+                                    <input id="ssh-agent" type="checkbox" name="ssh-agent" checked={this.state.config.sshAgent} onChange={e => this.setConfigKey("sshAgent", e.currentTarget.checked)} />
                                 </div>
                                 <div>
                                     <label for="ssh-public-key">SSH Public key:</label>
-                                    <button disabled={this.state.sshAgent} id="ssh-public-key" type="file" name="ssh-public-key" onClick={() => selectFile((path) => this.setState({sshPublicKey: path}))}>Browse</button>
-                                    {!this.state.sshAgent && <span>{this.state.sshPublicKey}</span>}
+                                    <button disabled={this.state.config.sshAgent} id="ssh-public-key" type="file" name="ssh-public-key" onClick={() => selectFile(path => this.setConfigKey("sshPublicKey", path))}>Browse</button>
+                                    {!this.state.config.sshAgent && <span>{this.state.config.sshPublicKey}</span>}
                                 </div>
                                 <div>
                                     <label for="ssh-private-key">SSH Private key:</label>
-                                    <button disabled={this.state.sshAgent} id="ssh-private-key" type="file" name="ssh-private-key" onClick={() => selectFile((path) => this.setState({sshPrivateKey: path}))}>Browse</button>
-                                    {!this.state.sshAgent && <span>{this.state.sshPrivateKey}</span>}
+                                    <button disabled={this.state.config.sshAgent} id="ssh-private-key" type="file" name="ssh-private-key" onClick={() => selectFile(path => this.setConfigKey("sshPrivateKey", path))}>Browse</button>
+                                    {!this.state.config.sshAgent && <span>{this.state.config.sshPrivateKey}</span>}
                                 </div>
                             </div>
                         )}
                     </div>
                     <div>
-                        <input id="access-token" type="radio" name="auth-type" value="userpass" onChange={this.setAuth} />
+                        <input id="access-token" type="radio" name="auth-type"checked={this.state.config.authType === "userpass"}  value="userpass" onChange={this.setAuth} />
                         <label for="access-token">Username/password</label>
-                        {this.state.authType === "userpass" && (
+                        {this.state.config.authType === "userpass" && (
                             <div>
                                 <div>
                                     <label for="auth-username">Username:</label>
-                                    <input id="auth-username" type="text" name="username" value={this.state.username} onKeyUp={e => this.setState({username: e.currentTarget.value})} />
+                                    <input id="auth-username" type="text" name="username" value={this.state.config.username} onKeyUp={e => this.setConfigKey("username", e.currentTarget.value)} />
                                 </div>
                                 <div>
                                     <label for="auth-username">Password:</label>
-                                    <input id="auth-password" type="password" name="password" value={this.state.password} onKeyUp={e => this.setState({password: e.currentTarget.value})} />
+                                    <input id="auth-password" type="password" name="password" value={this.state.config.password} onKeyUp={e => this.setConfigKey("password", e.currentTarget.value)} />
                                 </div>
                             </div>
                         )}
@@ -90,19 +102,19 @@ export class Settings extends Component<SettingsProps, State> {
                     </div>
                     <div>
                         <label for="git-email">Email:</label>
-                        <input type="text" id="git-email" name="email" onKeyUp={e => this.setState({gitEmail: e.currentTarget.value})} />
+                        <input type="text" id="git-email" name="email" value={this.state.config.gitEmail} onKeyUp={e => this.setConfigKey("gitEmail", e.currentTarget.value)} />
                     </div>
                     <div>
                         <label for="git-name">Name:</label>
-                        <input type="text" id="git-name" name="name" onKeyUp={e => this.setState({gitName: e.currentTarget.value})} />
+                        <input type="text" id="git-name" name="name" value={this.state.config.gitName} onKeyUp={e => this.setConfigKey("gitName", e.currentTarget.value)} />
                     </div>
                     <div>
                         <h4>GPG</h4>
                         <div>
                             <label for="use-gpg">Use gpg:</label>
-                            <input type="checkbox" id="use-gpg" name="use-gpg" onChange={e => this.setState({useGPG: e.currentTarget.checked})} />
+                            <input type="checkbox" id="use-gpg" name="use-gpg" onChange={e => this.setConfigKey("useGPG", e.currentTarget.checked)} />
                         </div>
-                        {this.state.useGPG &&
+                        {this.state.config.useGPG &&
                             <div>
                                 <div>
                                     <label for="gpg-id">GPG key:</label>
@@ -127,7 +139,8 @@ export class Settings extends Component<SettingsProps, State> {
                     <div>
                         <label for="terminal-app">Terminal application:</label>
                         <select>
-                            <option>gnome-terminal</option>
+                            {/* FIXME: Add valid options for windows and mac, and custom command */}
+                            <option>x-terminal-emulator</option>
                         </select>
                     </div>
                 </div>
