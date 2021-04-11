@@ -33,6 +33,8 @@
 #diff-pane .msg {
     max-height: 150px;
     overflow: auto;
+    padding: 5px;
+    border: 1px solid #555;
 }
 #diff-pane .msg pre {
     margin-top: 3px;

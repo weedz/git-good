@@ -9,6 +9,10 @@ export default function CommitMessage(props: {commit: CommitObj}) {
     return (
         <div>
             <h4>{props.commit.sha}</h4>
+            <div className="msg">
+                <h4>{props.commit.message.summary}</h4>
+                <pre>{props.commit.message.body}</pre>
+            </div>
             <p>
                 <span>Parents:</span>
                 <ul className="parent-list">
@@ -19,11 +23,6 @@ export default function CommitMessage(props: {commit: CommitObj}) {
             {props.commit.date !== props.commit.authorDate && <p className="date">Authored: {new Date(props.commit.authorDate * 1000).toLocaleString()}</p>}
             <p className="author">author: {props.commit.author.name} &lt;{props.commit.author.email}&gt;</p>
             {props.commit.committer.email !== props.commit.author.email && <p className="author">commiter: {props.commit.committer.name} &lt;{props.commit.committer.email}&gt;</p>}
-            <hr />
-            <div className="msg">
-                <h4>{props.commit.message.summary}</h4>
-                <pre>{props.commit.message.body}</pre>
-            </div>
         </div>
     );
 }
