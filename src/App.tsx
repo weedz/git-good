@@ -33,8 +33,7 @@ export default class App extends StoreComponent {
             }
         });
 
-        const path = process.argv[0];
-        openRepo(path);
+        openRepo(process.cwd());
     }
     render() {
         if (!Store.repo) {
