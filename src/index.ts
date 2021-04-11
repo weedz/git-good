@@ -10,8 +10,7 @@ import { formatTimeAgo } from "./Data/Utils";
 import { AppConfig } from "./Data/Config";
 import { sendEvent } from "./Data/Main/WindowEvents";
 import { TransferProgress } from "types/nodegit";
-import { readFileSync } from "fs";
-import { writeFile } from "fs/promises";
+import { readFileSync, writeFileSync } from "fs";
 
 // import { initialize } from "@electron/remote";
 // initialize();
@@ -528,7 +527,7 @@ const eventMap: {
     [IpcAction.SAVE_SETTINGS]: async (_, data) => {
         appConfig = data;
         try {
-            await writeFile(globalAppConfigPath, JSON.stringify(data));
+            writeFileSync(globalAppConfigPath, JSON.stringify(data));
             return {result: true};
         } catch (err) {
             dialog.showErrorBox("Failed to save settings", err.message);
