@@ -1,5 +1,5 @@
 import { remote } from "electron";
-import { Component, h } from "preact";
+import { Component, Fragment, h } from "preact";
 import { IpcAction } from "src/Data/Actions";
 import { AppConfig } from "src/Data/Config";
 import { ipcGetData } from "src/Data/Renderer/IPC";
@@ -7,6 +7,8 @@ import { SettingsProps } from "./types";
 
 type State = {
     config: AppConfig
+} & {
+    showUserPass: boolean
 };
 
 async function selectFile(cb: (data: string) => void) {
@@ -24,7 +26,8 @@ export class Settings extends Component<SettingsProps, State> {
     async componentDidMount() {
         ipcGetData(IpcAction.GET_SETTINGS, null).then(config => {
             this.setState({
-                config
+                config,
+                showUserPass: false
             });
         });
     }
@@ -80,14 +83,18 @@ export class Settings extends Component<SettingsProps, State> {
                         <label for="access-token">Username/password</label>
                         {this.state.config.authType === "userpass" && (
                             <div>
-                                <div>
-                                    <label for="auth-username">Username:</label>
-                                    <input id="auth-username" type="text" name="username" value={this.state.config.username} onKeyUp={e => this.setConfigKey("username", e.currentTarget.value)} />
-                                </div>
-                                <div>
-                                    <label for="auth-username">Password:</label>
-                                    <input id="auth-password" type="password" name="password" value={this.state.config.password} onKeyUp={e => this.setConfigKey("password", e.currentTarget.value)} />
-                                </div>
+                                {!this.state.showUserPass ? <button onClick={() => this.setState({showUserPass: true})}>Show username/password</button> : (
+                                    <Fragment>
+                                    <div>
+                                        <label for="auth-username">Username:</label>
+                                        <input id="auth-username" type="text" name="username" value={this.state.config.username} onKeyUp={e => this.setConfigKey("username", e.currentTarget.value)} />
+                                    </div>
+                                    <div>
+                                        <label for="auth-username">Password:</label>
+                                        <input id="auth-password" type="text" name="password" value={this.state.config.password} onKeyUp={e => this.setConfigKey("password", e.currentTarget.value)} />
+                                    </div>
+                                    </Fragment>
+                            )}
                             </div>
                         )}
                     </div>
