@@ -104,7 +104,7 @@ export class Settings extends Component<SettingsProps, State> {
                     <div>
                         <h4>Profiles</h4>
                         <select>
-                            <option>Linus Björklund</option>
+                            <option>default</option>
                         </select>
                     </div>
                     <div>
