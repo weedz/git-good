@@ -151,7 +151,7 @@ export default class WorkingArea extends StoreComponent<unknown, State> {
                             this.updateMessage({summary: e.currentTarget.value});
                         }} />
                         <br />
-                        <textarea id="commit-msg" name="msg" onKeyUp={(e: h.JSX.TargetedEvent<HTMLTextAreaElement, KeyboardEvent>) => {
+                        <textarea id="commit-msg" name="msg" placeholder="Description" onKeyUp={(e: h.JSX.TargetedEvent<HTMLTextAreaElement, KeyboardEvent>) => {
                             this.updateMessage({body: e.currentTarget.value});
                         }} value={this.state.commitMsg.body} />
                         <br />
