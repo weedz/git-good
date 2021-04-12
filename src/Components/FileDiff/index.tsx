@@ -9,6 +9,7 @@ import "./style.css";
 type State = {
     diffType: "inline" | "side-by-side"
     viewType: "file" | "diff"
+    width: "full" | "limited"
     sideSelected: "left" | "right" | null
     wrapLine: boolean
     lines: Array<{
@@ -56,6 +57,7 @@ export default class FileDiff extends PureStoreComponent<unknown, State> {
             sideSelected: null,
             wrapLine: false,
             lines: [],
+            width: "limited"
         };
     }
     componentDidMount() {
@@ -144,11 +146,13 @@ export default class FileDiff extends PureStoreComponent<unknown, State> {
         if (this.state.diffType === "side-by-side") {
             classes.push("parallel");
         }
+        if (this.state.width === "full") {
+            classes.push("full-width");
+        }
 
         return (
             <div id="file-diff" className={`pane ${classes.join(" ")}`}>
-                <a href="#" onClick={closeFile}>Close</a>
-                <h1>{patch.actualFile.path}</h1>
+                <h2>{patch.actualFile.path}<a href="#" onClick={closeFile}>🗙</a></h2>
                 {patch.status === DELTA.RENAMED && <h4>{patch.oldFile.path} &rArr; {patch.newFile.path} ({patch.similarity}%)</h4>}
                 <p>{patch.hunks?.length} chunks, Additions: {patch.lineStats.total_additions}, Deletions: {patch.lineStats.total_deletions}</p>
                 <ul className="horizontal space-evenly">
@@ -162,6 +166,9 @@ export default class FileDiff extends PureStoreComponent<unknown, State> {
                     <li className="btn-group">
                         <button onClick={() => this.setState({diffType: "inline"}, this.renderHunks)}>Inline</button>
                         <button onClick={() => this.setState({diffType: "side-by-side"}, this.renderHunks)}>Side-by-side</button>
+                    </li>
+                    <li className="btn-group">
+                        <button onClick={() => this.setState({width: this.state.width === "limited" ? "full" : "limited"})}>Fullscreen</button>
                     </li>
                 </ul>
                 {/* <label>

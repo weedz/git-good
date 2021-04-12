@@ -10,8 +10,20 @@
     flex-direction: column;
     --border-color: #aaa;
 }
-#file-diff h1 {
+#file-diff.full-width {
+    width: calc(100vw - 6px);
+}
+#file-diff h2 {
     overflow-wrap: anywhere;
+    display: flex;
+    justify-content: space-between;
+}
+#file-diff h2 > a {
+    padding: 0 10px;
+}
+#file-diff h2,
+#file-diff > p {
+    margin: 6px;
 }
 #file-diff > .hunks {
     overflow-y: auto;
