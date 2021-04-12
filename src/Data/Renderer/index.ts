@@ -1,3 +1,4 @@
+import { Diff } from "nodegit";
 import { BranchObj, IpcAction, IpcActionReturn, Locks, RepoStatus } from "../Actions";
 import { WindowArguments } from "../WindowEventTypes";
 import { openDialog_BlameFile, openDialog_CompareRevisions, openDialog_Settings } from "./Dialogs";
@@ -5,7 +6,13 @@ import { addWindowEventListener, registerHandler, ipcSendMessage } from "./IPC";
 import { Store, clearLock, setLock, updateStore, StoreType, GlobalLinks } from "./store";
 
 function refreshWorkdir() {
-    ipcSendMessage(IpcAction.REFRESH_WORKDIR, null);
+    let options = null;
+    if (Store.diffOptions.ignoreWhitespace) {
+        options = {
+            flags: Diff.OPTION.IGNORE_WHITESPACE
+        };
+    }
+    ipcSendMessage(IpcAction.REFRESH_WORKDIR, options);
 }
 
 function repoOpened(result: IpcActionReturn[IpcAction.OPEN_REPO]) {

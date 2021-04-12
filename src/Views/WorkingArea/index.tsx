@@ -7,6 +7,7 @@ import ChangedFiles from "src/Components/DiffPane/ChangedFiles";
 import { dialog } from "@electron/remote";
 import { commit, updateStore, Store, StoreType, StoreComponent } from "src/Data/Renderer/store";
 import { triggerAction } from "src/Components/Link";
+import { Diff } from "nodegit";
 
 type State = {
     unstaged?: PatchObj[]
@@ -32,7 +33,15 @@ export default class WorkingArea extends StoreComponent<unknown, State> {
 
         ipcSendMessage(IpcAction.LOAD_COMMIT, null);
 
-        this.listen("diffOptions", this.getChanges);
+        this.listen("diffOptions", () => {
+            let options = null;
+            if (Store.diffOptions.ignoreWhitespace) {
+                options = {
+                    flags: Diff.OPTION.IGNORE_WHITESPACE
+                };
+            }
+            ipcSendMessage(IpcAction.REFRESH_WORKDIR, options);
+        });
         this.listen("commitMsg", msg => {
             this.setState({commitMsg: msg});
         });

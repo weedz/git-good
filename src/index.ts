@@ -384,9 +384,21 @@ const eventMap: {
     [IpcAction.CHECKOUT_BRANCH]: provider.checkoutBranch,
     [IpcAction.REFRESH_WORKDIR]: provider.refreshWorkDir,
     [IpcAction.GET_CHANGES]: provider.loadChanges,
-    [IpcAction.STAGE_FILE]: provider.stageFile,
-    [IpcAction.UNSTAGE_FILE]: provider.unstageFile,
-    [IpcAction.DISCARD_FILE]: provider.discardChanges,
+    [IpcAction.STAGE_FILE]: async (repo, data) => {
+        const result = await provider.stageFile(repo, data);
+        sendEvent(win.webContents, "refresh-workdir", null);
+        return result;
+    },
+    [IpcAction.UNSTAGE_FILE]: async (repo, data) => {
+        const result = await provider.unstageFile(repo, data);
+        sendEvent(win.webContents, "refresh-workdir", null);
+        return result;
+    },
+    [IpcAction.DISCARD_FILE]: async (repo, data) => {
+        const result = await provider.discardChanges(repo, data);
+        sendEvent(win.webContents, "refresh-workdir", null);
+        return result;
+    },
     [IpcAction.PULL]: provider.pull,
     [IpcAction.CREATE_BRANCH]: async (repo, data) => {
         let res;
@@ -464,10 +476,9 @@ const eventMap: {
         return provider.commit(repo, data, Signature.now(appConfig.gitName, appConfig.gitEmail))
     },
     [IpcAction.REMOTES]: provider.remotes,
-    [IpcAction.RESOLVE_CONFLICT]: async (repo, {path}, event) => {
+    [IpcAction.RESOLVE_CONFLICT]: async (_, {path}) => {
         const result = await provider.resolveConflict(path);
-        const refreshCallback = eventMap[IpcAction.REFRESH_WORKDIR] as PromiseEventCallback<IpcAction.REFRESH_WORKDIR>;
-        provider.eventReply(event, IpcAction.REFRESH_WORKDIR, await refreshCallback(repo, null, event));
+        sendEvent(win.webContents, "refresh-workdir", null);
         return {result: !result};
     },
     [IpcAction.EDIT_REMOTE]: async (repo, data) => {

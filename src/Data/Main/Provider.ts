@@ -375,10 +375,11 @@ export async function commit(repo: Repository, params: IpcActionParams[IpcAction
     return loadCommit(repo, null);
 }
 
-export async function refreshWorkDir(repo: Repository): Promise<IpcActionReturn[IpcAction.REFRESH_WORKDIR]> {
+export async function refreshWorkDir(repo: Repository, options: IpcActionParams[IpcAction.REFRESH_WORKDIR]): Promise<IpcActionReturn[IpcAction.REFRESH_WORKDIR]> {
     index = await repo.refreshIndex();
 
-    const changes = await Promise.all([getStagedPatches(repo), getUnstagedPatches(repo)]);
+    const flags = options?.flags || 0;
+    const changes = await Promise.all([getUnstagedPatches(repo, flags), getStagedPatches(repo, flags)]);
 
     workDirIndexCache = {
         unstagedPatches: changes[0],
@@ -391,7 +392,7 @@ export async function refreshWorkDir(repo: Repository): Promise<IpcActionReturn[
     };
 }
 
-export async function stageFile(repo: Repository, filePath: string, event: IpcMainEvent): Promise<IpcActionReturn[IpcAction.STAGE_FILE]> {
+export async function stageFile(repo: Repository, filePath: string): Promise<IpcActionReturn[IpcAction.STAGE_FILE]> {
     index = await repo.refreshIndex();
 
     let result;
@@ -409,20 +410,16 @@ export async function stageFile(repo: Repository, filePath: string, event: IpcMa
         await index.write();
     }
 
-    eventReply(event, IpcAction.REFRESH_WORKDIR, await refreshWorkDir(repo));
-
     return {result: 0};
 }
-export async function unstageFile(repo: Repository, path: string, event: IpcMainEvent): Promise<IpcActionReturn[IpcAction.UNSTAGE_FILE]> {
+export async function unstageFile(repo: Repository, path: string): Promise<IpcActionReturn[IpcAction.UNSTAGE_FILE]> {
     const head = await repo.getHeadCommit();
     await Reset.default(repo, head, path);
     index = await repo.refreshIndex();
 
-    eventReply(event, IpcAction.REFRESH_WORKDIR, await refreshWorkDir(repo));
-
     return {result: 0};
 }
-export async function discardChanges(repo: Repository, filePath: string, event: IpcMainEvent): Promise<IpcActionReturn[IpcAction.DISCARD_FILE]> {
+export async function discardChanges(repo: Repository, filePath: string): Promise<IpcActionReturn[IpcAction.DISCARD_FILE]> {
     if (!index.getByPath(filePath)) {
         // file not found in index (untracked), delete?
         const result = await dialog.showMessageBox({
@@ -434,7 +431,6 @@ export async function discardChanges(repo: Repository, filePath: string, event: 
         if (result.response === 0) {
             await fs.unlink(path.join(repo.workdir(), filePath));
         }
-        eventReply(event, IpcAction.REFRESH_WORKDIR, await refreshWorkDir(repo));
         return {result: 0};
     }
     try {
@@ -445,26 +441,27 @@ export async function discardChanges(repo: Repository, filePath: string, event: 
         console.error(err)
     }
 
-    eventReply(event, IpcAction.REFRESH_WORKDIR, await refreshWorkDir(repo));
     return {result: 0};
 }
 
-async function getStagedPatches(repo: Repository) {
+async function getUnstagedPatches(repo: Repository, flags: Diff.OPTION) {
     const unstagedDiff = await Diff.indexToWorkdir(repo, undefined, {
-        flags: Diff.OPTION.SHOW_UNTRACKED_CONTENT | Diff.OPTION.RECURSE_UNTRACKED_DIRS
+        flags: Diff.OPTION.SHOW_UNTRACKED_CONTENT | Diff.OPTION.RECURSE_UNTRACKED_DIRS | flags
     });
     const diffOpts: DiffFindOptions = {
-        flags: Diff.FIND.RENAMES | Diff.FIND.IGNORE_WHITESPACE,
+        flags: Diff.FIND.RENAMES,
     };
     await unstagedDiff.findSimilar(diffOpts);
     return unstagedDiff.patches();
 }
 
-async function getUnstagedPatches(repo: Repository) {
+async function getStagedPatches(repo: Repository, flags: Diff.OPTION) {
     const head = await repo.getHeadCommit();
-    const stagedDiff = await Diff.treeToIndex(repo, await head.getTree());
+    const stagedDiff = await Diff.treeToIndex(repo, await head.getTree(), undefined, {
+        flags
+    });
     const diffOpts: DiffFindOptions = {
-        flags: Diff.FIND.RENAMES | Diff.FIND.IGNORE_WHITESPACE,
+        flags: Diff.FIND.RENAMES,
     };
     await stagedDiff.findSimilar(diffOpts);
     return stagedDiff.patches();

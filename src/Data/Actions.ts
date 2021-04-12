@@ -63,7 +63,7 @@ export type IpcActionParams = {
         path: string
     }
     [IpcAction.CHECKOUT_BRANCH]: string
-    [IpcAction.REFRESH_WORKDIR]: null
+    [IpcAction.REFRESH_WORKDIR]: DiffOptions | null
     [IpcAction.GET_CHANGES]: null
     [IpcAction.STAGE_FILE]: string
     [IpcAction.UNSTAGE_FILE]: string
