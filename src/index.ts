@@ -481,7 +481,7 @@ const eventMap: {
         sendEvent(win.webContents, "refresh-workdir", null);
         return {result: !result};
     },
-    [IpcAction.EDIT_REMOTE]: async (repo, data) => {
+    [IpcAction.EDIT_REMOTE]: async (repo, data, event) => {
         if (!Remote.isValidName(data.name)) {
             dialog.showErrorBox("Failed to edit remote", "Invalid name");
             return {result: false};
@@ -498,13 +498,20 @@ const eventMap: {
         if (data.pushTo) {
             Remote.setPushurl(repo, data.name, data.pushTo);
         }
+
+        await fetchAll(repo);
+
+        provider.eventReply(event, IpcAction.REMOTES, await provider.remotes(repo));
+        provider.eventReply(event, IpcAction.LOAD_BRANCHES, await provider.getBranches(repo));
+
         return {result: true};
     },
-    [IpcAction.NEW_REMOTE]: async (repo, data) => {
+    [IpcAction.NEW_REMOTE]: async (repo, data, event) => {
         try {
             await Remote.create(repo, data.name, data.pullFrom);
         }
         catch(err) {
+            await Remote.delete(repo, data.name);
             dialog.showErrorBox("Failed to create remote", err.message);
             return {result: false};
         }
@@ -512,9 +519,15 @@ const eventMap: {
         if (data.pushTo) {
             Remote.setPushurl(repo, data.name, data.pushTo);
         }
+
+        await fetchAll(repo);
+
+        provider.eventReply(event, IpcAction.REMOTES, await provider.remotes(repo));
+        provider.eventReply(event, IpcAction.LOAD_BRANCHES, await provider.getBranches(repo));
+
         return {result: true};
     },
-    [IpcAction.REMOVE_REMOTE]: async (repo, data) => {
+    [IpcAction.REMOVE_REMOTE]: async (repo, data, event) => {
         try {
             await Remote.delete(repo, data.name);
         }
@@ -522,6 +535,9 @@ const eventMap: {
             dialog.showErrorBox("Could not remove remote", err.message);
             return {result: false};
         }
+
+        provider.eventReply(event, IpcAction.REMOTES, await provider.remotes(repo));
+        provider.eventReply(event, IpcAction.LOAD_BRANCHES, await provider.getBranches(repo));
 
         return {result: true};
     },

@@ -3,7 +3,7 @@ import { h } from "preact";
 import { IpcAction } from "src/Data/Actions";
 import { pullHead, pushHead } from "src/Data/Renderer";
 import { BranchFromType, openDialog_BranchFrom, openDialog_SetUpstream, openDialog_RenameRef, BranchType, openDialog_EditRemote, openDialog_AddRemote } from "src/Data/Renderer/Dialogs";
-import { ipcSendMessage, ipcGetData } from "src/Data/Renderer/IPC";
+import { ipcGetData } from "src/Data/Renderer/IPC";
 import { contextMenuState, checkoutBranch, deleteBranch, deleteRemoteBranch } from "src/Data/Renderer/store";
 
 const setUpstreamMenuItem = new MenuItem({
@@ -60,9 +60,7 @@ remoteMenu.append(new MenuItem({
             cancelId: 0,
         });
         if (result.response === 1) {
-            console.log(`remote '${contextMenuState.data.remote}' deleted!`);
             await ipcGetData(IpcAction.REMOVE_REMOTE, {name: contextMenuState.data.remote});
-            ipcSendMessage(IpcAction.FETCH, null);
         }
         return;
     }

@@ -26,7 +26,6 @@ export function openDialog_EditRemote(data: {name: string, pullFrom: string, pus
         async confirmCb(data) {
             closeDialogWindow();
             await ipcGetData(IpcAction.EDIT_REMOTE, {oldName, ...data});
-            ipcSendMessage(IpcAction.FETCH, null);
         },
         cancelCb() {
             closeDialogWindow();
@@ -39,7 +38,6 @@ export function openDialog_AddRemote() {
         async confirmCb(data) {
             closeDialogWindow();
             await ipcGetData(IpcAction.NEW_REMOTE, data);
-            ipcSendMessage(IpcAction.FETCH, null);
         },
         cancelCb() {
             closeDialogWindow();
