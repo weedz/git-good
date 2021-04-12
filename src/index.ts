@@ -21,7 +21,6 @@ require('@electron/remote/main').initialize();
 let appConfig: AppConfig;
 const globalAppConfigPath = join(app.getPath("userData"), "git-good.config.json");
 
-console.log(globalAppConfigPath);
 try {
     const configJSON = readFileSync(globalAppConfigPath).toString();
     appConfig = JSON.parse(configJSON);
