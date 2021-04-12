@@ -226,7 +226,7 @@ const menuTemplate = [
                     if (!repo) {
                         return dialog.showErrorBox(`Error`, "Not in a repository");
                     }
-                    fetchAll(repo);
+                    fetchFrom(repo);
                 }
             },
             {
@@ -499,7 +499,7 @@ const eventMap: {
             Remote.setPushurl(repo, data.name, data.pushTo);
         }
 
-        await fetchAll(repo);
+        await fetchFrom(repo, [await repo.getRemote(data.name)]);
 
         provider.eventReply(event, IpcAction.REMOTES, await provider.remotes(repo));
         provider.eventReply(event, IpcAction.LOAD_BRANCHES, await provider.getBranches(repo));
@@ -507,11 +507,11 @@ const eventMap: {
         return {result: true};
     },
     [IpcAction.NEW_REMOTE]: async (repo, data, event) => {
+        let remote;
         try {
-            await Remote.create(repo, data.name, data.pullFrom);
+            remote = await Remote.create(repo, data.name, data.pullFrom);
         }
         catch(err) {
-            await Remote.delete(repo, data.name);
             dialog.showErrorBox("Failed to create remote", err.message);
             return {result: false};
         }
@@ -520,7 +520,11 @@ const eventMap: {
             Remote.setPushurl(repo, data.name, data.pushTo);
         }
 
-        await fetchAll(repo);
+        if (!await fetchFrom(repo, [remote])) {
+            // Deleting remote with (possibly) invalid url
+            await Remote.delete(repo, data.name);
+            return {result: false};
+        }
 
         provider.eventReply(event, IpcAction.REMOTES, await provider.remotes(repo));
         provider.eventReply(event, IpcAction.LOAD_BRANCHES, await provider.getBranches(repo));
@@ -542,13 +546,7 @@ const eventMap: {
         return {result: true};
     },
     [IpcAction.FETCH]: async (repo, data) => {
-        if (!data) {
-            fetchAll(repo);
-            return {result: true};
-        }
-
-        // FIXME: Fetch from specific remote
-        return {result: false};
+        return {result: await fetchFrom(repo, data?.remote ? [await repo.getRemote(data.remote)] : undefined)};
     },
     [IpcAction.SAVE_SETTINGS]: async (_, data) => {
         appConfig = data;
@@ -652,39 +650,46 @@ function repoStatus() {
     };
 }
 
-async function fetchAll(repo: Repository) {
+async function fetchFrom(repo: Repository, remotes?: Remote[]) {
+    if (!remotes) {
+        remotes = await repo.getRemotes();
+    }
     let update = false;
     try {
-        await repo.fetchAll({
-            prune: 1,
-            callbacks: {
-                credentials: (_url: string, username: string) => {
-                    const auth = getAuth();
-                    if (auth) {
-                        return provider.authenticate(username, auth);
-                    }
+        for (const remote of remotes) {
+            await remote.fetch([], {
+                prune: 1,
+                callbacks: {
+                    credentials: (_url: string, username: string) => {
+                        const auth = getAuth();
+                        if (auth) {
+                            return provider.authenticate(username, auth);
+                        }
+                    },
+                    transferProgress: (stats: TransferProgress, remote: string) => {
+                        update = true;
+                        sendEvent(win.webContents, "fetch-status", {
+                            remote,
+                            receivedObjects: stats.receivedObjects(),
+                            totalObjects: stats.totalObjects(),
+                            indexedDeltas: stats.indexedDeltas(),
+                            totalDeltas: stats.totalDeltas(),
+                            indexedObjects: stats.indexedObjects(),
+                            receivedBytes: stats.receivedBytes(),
+                        });
+                    },
                 },
-                transferProgress: (stats: TransferProgress, remote: string) => {
-                    update = true;
-                    sendEvent(win.webContents, "fetch-status", {
-                        remote,
-                        receivedObjects: stats.receivedObjects(),
-                        totalObjects: stats.totalObjects(),
-                        indexedDeltas: stats.indexedDeltas(),
-                        totalDeltas: stats.totalDeltas(),
-                        indexedObjects: stats.indexedObjects(),
-                        receivedBytes: stats.receivedBytes(),
-                    });
-                },
-            },
-        });
+            }, "");
+        }
     } catch (err) {
         dialog.showErrorBox("Fetch failed", err.message);
+        return false;
     }
     sendEvent(win.webContents, "fetch-status", {
         done: true,
         update
     });
+    return true;
 }
 
 async function initGetComits(repo: Repository, params: IpcActionParams[IpcAction.LOAD_COMMITS]) {
