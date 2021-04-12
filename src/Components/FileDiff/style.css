@@ -10,6 +10,10 @@
     flex-direction: column;
     --border-color: #aaa;
 }
+#file-diff > ul.horizontal {
+    padding: 5px 0;
+    border-bottom: 1px solid #555;
+}
 #file-diff.full-width {
     width: calc(100vw - 6px);
 }

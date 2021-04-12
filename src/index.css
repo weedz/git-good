@@ -125,8 +125,8 @@ ul.horizontal {
   flex-direction: row;
 }
 .btn-group {
-  margin-left: 7px;
-  margin-right: 7px;
+  margin-left: 6px;
+  margin-right: 6px;
 }
 .btn-group > * {
   border-right-width: 0;
@@ -163,4 +163,9 @@ button:hover,
 input[type="button"]:hover,
 input[type="submit"]:hover {
   color: #eee;
+}
+
+button.active {
+  background: #234;
+  color: #fefefe;
 }

@@ -9,7 +9,7 @@ import "./style.css";
 type State = {
     diffType: "inline" | "side-by-side"
     viewType: "file" | "diff"
-    width: "full" | "limited"
+    fullWidth: boolean
     sideSelected: "left" | "right" | null
     wrapLine: boolean
     lines: Array<{
@@ -57,7 +57,7 @@ export default class FileDiff extends PureStoreComponent<unknown, State> {
             sideSelected: null,
             wrapLine: false,
             lines: [],
-            width: "limited"
+            fullWidth: false
         };
     }
     componentDidMount() {
@@ -146,7 +146,7 @@ export default class FileDiff extends PureStoreComponent<unknown, State> {
         if (this.state.diffType === "side-by-side") {
             classes.push("parallel");
         }
-        if (this.state.width === "full") {
+        if (this.state.fullWidth) {
             classes.push("full-width");
         }
 
@@ -157,28 +157,23 @@ export default class FileDiff extends PureStoreComponent<unknown, State> {
                 <p>{patch.hunks?.length} chunks, Additions: {patch.lineStats.total_additions}, Deletions: {patch.lineStats.total_deletions}</p>
                 <ul className="horizontal space-evenly">
                     <li className="btn-group">
-                        <button onClick={() => this.setState({viewType: "file"}, this.renderHunks)}>File View</button>
-                        <button onClick={() => this.setState({viewType: "diff"}, this.renderHunks)}>Diff View</button>
+                        <button onClick={() => 0 && this.setState({viewType: "file"}, this.renderHunks)}>File View</button>
+                        <button className={this.state.viewType === "diff" ? "active" : undefined} onClick={() => this.setState({viewType: "diff"}, this.renderHunks)}>Diff View</button>
                     </li>
                     <li className="btn-group">
                         <button onClick={() => blameFile(patch.actualFile.path)}>History</button>
                     </li>
                     <li className="btn-group">
-                        <button onClick={() => this.setState({diffType: "inline"}, this.renderHunks)}>Inline</button>
-                        <button onClick={() => this.setState({diffType: "side-by-side"}, this.renderHunks)}>Side-by-side</button>
+                        <button className={this.state.diffType === "inline" ? "active" : undefined} onClick={() => this.setState({diffType: "inline"}, this.renderHunks)}>Inline</button>
+                        <button onClick={() => 0 && this.setState({diffType: "side-by-side"}, this.renderHunks)}>Side-by-side</button>
                     </li>
                     <li className="btn-group">
-                        <button onClick={() => this.setState({width: this.state.width === "limited" ? "full" : "limited"})}>Fullscreen</button>
+                        <button className={this.state.fullWidth ? "active" : undefined} onClick={() => this.setState({fullWidth: !this.state.fullWidth})}>Fullscreen</button>
+                    </li>
+                    <li>
+                        <button className={Store.diffOptions.ignoreWhitespace ? "active" : undefined} onClick={() => updateStore({diffOptions: {ignoreWhitespace: !Store.diffOptions.ignoreWhitespace}})}>Ignore whitespace</button>
                     </li>
                 </ul>
-                {/* <label>
-                    <span>Wrap line</span>
-                    <input checked={this.state.wrapLine} type="checkbox" onClick={(e) => this.setState({wrapLine: e.currentTarget.checked})} />
-                </label> */}
-                <label>
-                    <span>Ignore whitespace</span>
-                    <input checked={Store.diffOptions.ignoreWhitespace} type="checkbox" onClick={(e) => updateStore({diffOptions: {ignoreWhitespace: e.currentTarget.checked}})} />
-                </label>
                 <HunksContainer itemHeight={17} width={this.longestLine * FONT_WIDTH} items={this.state.lines} />
             </div>
         );
