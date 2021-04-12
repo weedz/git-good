@@ -40,6 +40,7 @@ type HandlerCallback = (arg: IpcActionReturn[IpcAction]) => void;
 
 const handlers: {[T in IpcAction]: HandlerCallback[]} = {
     [IpcAction.LOAD_COMMITS]: [],
+    [IpcAction.LOAD_FILE_COMMITS]: [],
     [IpcAction.LOAD_BRANCHES]: [],
     [IpcAction.OPEN_REPO]: [],
     [IpcAction.LOAD_COMMIT]: [],

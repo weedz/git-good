@@ -3,6 +3,7 @@ import { AppConfig } from "./Config";
 
 export enum IpcAction {
     LOAD_COMMITS,
+    LOAD_FILE_COMMITS,
     LOAD_BRANCHES,
     OPEN_REPO,
     LOAD_COMMIT,
@@ -44,6 +45,7 @@ export type DiffOptions = {
 
 export type IpcActionParams = {
     [IpcAction.LOAD_COMMITS]: LoadCommitsParam
+    [IpcAction.LOAD_FILE_COMMITS]: LoadFileCommitsParam
     [IpcAction.LOAD_BRANCHES]: null
     [IpcAction.OPEN_REPO]: string | null
     [IpcAction.LOAD_COMMIT]: string | null
@@ -120,6 +122,7 @@ export type IpcActionParams = {
 
 export type IpcActionReturn = {
     [IpcAction.LOAD_COMMITS]: LoadCommitsReturn
+    [IpcAction.LOAD_FILE_COMMITS]: LoadCommitsReturn
     [IpcAction.LOAD_BRANCHES]: BranchesObj & {head: BranchObj}
     [IpcAction.OPEN_REPO]: {
         opened: boolean
@@ -272,11 +275,16 @@ interface LoadCommitsParamSha {
 interface LoadCommitsParamBranch {
     branch: string
 }
+type LoadFileCommitsParam = {
+    /** SHA of last fetched commit */
+    cursor?: string
+    num?: number
+    file: string
+}
 type LoadCommitsParam = {
     /** SHA of last fetched commit */
     cursor?: string
     num?: number
-    file?: string
 } & (LoadCommitsParamBranch | LoadCommitsParamSha | {history: true})
 export type LoadCommitReturn = {
     sha: string

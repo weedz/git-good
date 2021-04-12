@@ -27,7 +27,6 @@ fileMenu.append(new MenuItem({
 fileMenu.append(new MenuItem({
     label: "Blame",
     click() {
-        console.log(`Blame ${contextMenuState.data.path}`);
         blameFile(contextMenuState.data.path);
     }
 }));

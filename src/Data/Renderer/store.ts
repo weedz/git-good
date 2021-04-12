@@ -314,4 +314,5 @@ export function closeDialogWindow() {
 
 export function blameFile(file: string) {
     ipcSendMessage(IpcAction.BLAME_FILE, file);
+    ipcSendMessage(IpcAction.LOAD_FILE_COMMITS, {file});
 }

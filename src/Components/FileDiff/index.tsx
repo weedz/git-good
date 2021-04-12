@@ -1,5 +1,5 @@
 import { h } from "preact";
-import { HunkObj, LineObj } from "src/Data/Actions";
+import { HunkObj, IpcAction, LineObj } from "src/Data/Actions";
 import { Store, closeFile, blameFile, PureStoreComponent, updateStore } from "src/Data/Renderer/store";
 import { DELTA } from "src/Data/Utils";
 import HunksContainer from "./HunksContainer";
@@ -62,6 +62,12 @@ export default class FileDiff extends PureStoreComponent<unknown, State> {
     }
     componentDidMount() {
         this.listen("currentFile", this.renderHunks);
+        this.registerHandler(IpcAction.BLAME_FILE, (data) => {
+            console.log("BLAME_FILE:", data);
+        });
+        this.registerHandler(IpcAction.LOAD_FILE_COMMITS, (commits) => {
+            console.log("LOAD_FILE_COMMITS:", commits);
+        });
     }
 
     renderHunks = () => {

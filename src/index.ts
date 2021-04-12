@@ -345,7 +345,7 @@ type EventArgs = {
 type AsyncGeneratorEventCallback<A extends IpcAction> = (repo: Repository, args: IpcActionParams[A], event: IpcMainEvent) => AsyncGenerator<IpcActionReturn[A] | IpcActionReturnError>;
 type PromiseEventCallback<A extends IpcAction> = (repo: Repository, args: IpcActionParams[A], event: IpcMainEvent) => Promise<IpcActionReturn[A] | IpcActionReturnError>;
 
-type AsyncGeneratorFunctions = IpcAction.LOAD_COMMITS;
+type AsyncGeneratorFunctions = IpcAction.LOAD_COMMITS | IpcAction.LOAD_FILE_COMMITS;
 
 const eventMap: {
     [A in AsyncGeneratorFunctions]: AsyncGeneratorEventCallback<A>
@@ -370,7 +370,17 @@ const eventMap: {
         if (!arg) {
             yield {commits: [], branch: "", cursor: params.cursor};
         } else {
-            for await (const commits of provider.getCommits(repo, arg.branch, arg.revwalkStart, params.file, params.num)) {
+            for await (const commits of provider.getCommits(repo, arg.branch, arg.revwalkStart, undefined, params.num)) {
+                yield commits;
+            }
+        }
+    },
+    async *[IpcAction.LOAD_FILE_COMMITS](repo, params) {
+        const arg = await initGetComits(repo, params);
+        if (!arg) {
+            yield {commits: [], branch: "", cursor: params.cursor};
+        } else {
+            for await (const commits of provider.getCommits(repo, arg.branch, arg.revwalkStart, params.file, params.num || 10000)) {
                 yield commits;
             }
         }
@@ -584,8 +594,8 @@ ipcMain.on("asynchronous-message", async (event, arg: EventArgs) => {
         return provider.eventReply(event, action, {error: "empty repo... FIXME"}, arg.id);
     }
 
-    // TODO: fix proper type to detect AsyncIterator-stuff
-    if (action === IpcAction.LOAD_COMMITS) {
+    // TODO: fix proper type to detect AsyncIterator-stuff, AsyncGeneratorFunctions
+    if (action === IpcAction.LOAD_COMMITS || action === IpcAction.LOAD_FILE_COMMITS) {
         const callback = eventMap[action] as AsyncGeneratorEventCallback<typeof action>;
         const data = arg.data as IpcActionParams[typeof action];
         for await (const result of callback(repo, data, event)) {
@@ -693,14 +703,14 @@ async function fetchFrom(repo: Repository, remotes?: Remote[]) {
     return true;
 }
 
-async function initGetComits(repo: Repository, params: IpcActionParams[IpcAction.LOAD_COMMITS]) {
+async function initGetComits(repo: Repository, params: IpcActionParams[IpcAction.LOAD_COMMITS] | IpcActionParams[IpcAction.LOAD_FILE_COMMITS]) {
     let branch = "HEAD";
     let revwalkStart: "refs/*" | Oid;
     if ("history" in params) {
         branch = "history";
         revwalkStart = "refs/*";
     } else {
-        let start: Commit;
+        let start: Commit | null = null;
         if (params.cursor) {
             const lastCommit = await repo.getCommit(params.cursor);
             if (!lastCommit.parentcount()) {
@@ -716,7 +726,7 @@ async function initGetComits(repo: Repository, params: IpcActionParams[IpcAction
             } else {
                 start = await repo.getReferenceCommit(params.branch);
             }
-        } else {
+        } else if ("sha" in params) {
             start = await repo.getCommit(params.sha);
         }
         if (!start) {

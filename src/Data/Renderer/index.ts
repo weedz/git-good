@@ -118,8 +118,9 @@ function handleCompareRevisions(data: IpcActionReturn[IpcAction.OPEN_COMPARE_REV
     });
 }
 
-function handleBlameFile(data: IpcActionReturn[IpcAction.BLAME_FILE]) {
-    console.log("blame", data);
+function handleBlameFile(_data: IpcActionReturn[IpcAction.BLAME_FILE]) {
+    // FIXME: Open "filediff" (if not open already)
+    // console.log("blame", data);
 }
 
 function handlePushResult(_: IpcActionReturn[IpcAction.PUSH]) {

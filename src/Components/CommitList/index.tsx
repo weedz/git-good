@@ -1,7 +1,7 @@
 import { h } from "preact";
 import { ipcSendMessage } from "src/Data/Renderer/IPC";
 import { IpcAction, IpcActionReturn, LoadCommitReturn, IpcActionParams, Locks } from "src/Data/Actions";
-import { clearLock, GlobalLinks, PureStoreComponent, setLock, Store } from "src/Data/Renderer/store";
+import { blameFile, clearLock, GlobalLinks, PureStoreComponent, setLock, Store } from "src/Data/Renderer/store";
 
 import "./style.css";
 import FileFilter from "./FileFilter";
@@ -12,7 +12,6 @@ import CommitContainer from "./CommitContainer";
 type State = {
     commits: IpcActionReturn[IpcAction.LOAD_COMMITS]["commits"]
     filter: undefined | string
-    fileFilter: undefined | string
     fileResults: string[]
     loading: boolean
 };
@@ -34,7 +33,6 @@ export default class CommitList extends PureStoreComponent<unknown, State> {
         super();
         this.state = {
             commits: [],
-            fileFilter: undefined,
             filter: undefined,
             fileResults: [],
             loading: false,
@@ -78,10 +76,6 @@ export default class CommitList extends PureStoreComponent<unknown, State> {
                 num: pageSize,
                 branch: Store.selectedBranch.branch || "HEAD",
             };
-        }
-        if (this.state.fileFilter) {
-            options.num = 5000;
-            options.file = this.state.fileFilter;
         }
 
         ipcSendMessage(IpcAction.LOAD_COMMITS, {
@@ -137,9 +131,9 @@ export default class CommitList extends PureStoreComponent<unknown, State> {
         });
     }
     filterByFile = (file: string | undefined) => {
-        this.setState({
-            fileFilter: file,
-        }, this.handleProps);
+        if (file) {
+            blameFile(file);
+        }
     }
     
     filterCommits() {
