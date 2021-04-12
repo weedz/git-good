@@ -1,6 +1,5 @@
 import { Diff } from "nodegit";
 import { BranchObj, IpcAction, IpcActionReturn, Locks, RepoStatus } from "../Actions";
-import { WindowArguments } from "../WindowEventTypes";
 import { openDialog_BlameFile, openDialog_CompareRevisions, openDialog_Settings } from "./Dialogs";
 import { addWindowEventListener, registerHandler, ipcSendMessage } from "./IPC";
 import { Store, clearLock, setLock, updateStore, StoreType, GlobalLinks } from "./store";
@@ -155,10 +154,12 @@ addWindowEventListener("app-lock-ui", setLock);
 addWindowEventListener("app-unlock-ui", clearLock);
 addWindowEventListener("begin-compare-revisions", openDialog_CompareRevisions);
 addWindowEventListener("begin-blame-file", openDialog_BlameFile);
-addWindowEventListener("fetch-status", (stats: WindowArguments["fetch-status"]) => {
+addWindowEventListener("fetch-status", stats => {
     if ("done" in stats) {
-        console.log("Fetch all: done");
-        loadBranches();
+        console.log(`Fetch all done: ${stats.update ? "refreshing branch/commit list": "no update"}`);
+        if (stats.update) {
+            loadBranches();
+        }
     } else if (stats.receivedObjects == stats.totalObjects) {
         console.log(`Resolving deltas ${stats.indexedDeltas}/${stats.totalDeltas}`);
     } else if (stats.totalObjects > 0) {

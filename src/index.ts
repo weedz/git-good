@@ -637,6 +637,7 @@ function repoStatus() {
 }
 
 async function fetchAll(repo: Repository) {
+    let update = false;
     try {
         await repo.fetchAll({
             prune: 1,
@@ -648,6 +649,7 @@ async function fetchAll(repo: Repository) {
                     }
                 },
                 transferProgress: (stats: TransferProgress, remote: string) => {
+                    update = true;
                     sendEvent(win.webContents, "fetch-status", {
                         remote,
                         receivedObjects: stats.receivedObjects(),
@@ -664,7 +666,8 @@ async function fetchAll(repo: Repository) {
         dialog.showErrorBox("Fetch failed", err.message);
     }
     sendEvent(win.webContents, "fetch-status", {
-        done: true
+        done: true,
+        update
     });
 }
 
