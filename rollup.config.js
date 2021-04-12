@@ -25,7 +25,7 @@ const plugins = [
         extensions
     }),
     postcss({
-        minimize: true
+        minimize: production
     }),
     replace({
         preventAssignment: true,

@@ -14,6 +14,7 @@ export const actionLock: {
 } = {};
 
 export function eventReply<T extends IpcAction>(event: IpcMainEvent, action: T, data: IpcActionReturn[T] | IpcActionReturnError, id?: string) {
+    // console.log("eventReply():", IpcAction[action], data);
     if (action in actionLock) {
         delete actionLock[action];
     }
@@ -726,22 +727,37 @@ export async function blameFile(repo: Repository, filePath: string): Promise<Ipc
 
         const lines = file.toString("utf8").split("\n");
 
+        const hunks = [];
+
         // console.log(lines.map( (line, lineNumber) => `${lineNumber}: ${line}`).join("\n"), file.length, blame);
         // console.log(blame.getHunkCount());
-        console.log(lines);
+        // console.log(lines);
 
         const hunkCount = blame.getHunkCount();
         for (let i = 0; i < hunkCount; i++) {
             const hunk = blame.getHunkByIndex(i)
-            console.log(hunk.finalCommitId().tostrS().slice(0,8), hunk.origCommitId().tostrS().slice(0,8), hunk.finalStartLineNumber(), hunk.origStartLineNumber(), hunk.linesInHunk());
+            // console.log(hunk.finalCommitId().tostrS().slice(0,8), hunk.origCommitId().tostrS().slice(0,8), hunk.finalStartLineNumber(), hunk.origStartLineNumber(), hunk.linesInHunk());
 
-            const startIndex = hunk.finalStartLineNumber() - 1;
-            console.log(lines.slice(startIndex, startIndex + hunk.linesInHunk()).join("\n"));
+            // const startIndex = hunk.finalStartLineNumber() - 1;
+            // console.log(lines.slice(startIndex, startIndex + hunk.linesInHunk()).join("\n"));
+
+            hunks.push({
+                finalCommitId: hunk.finalCommitId().tostrS(),
+                origCommitId: hunk.origCommitId().tostrS(),
+                finalStartLineNumber: hunk.finalStartLineNumber(),
+                origStartLineNumber: hunk.origStartLineNumber(),
+                linesInHunk: hunk.linesInHunk(),
+            });
         }
 
+        return {
+            lines,
+            hunks,
+        };
     } catch (err) {
         console.error(err);
     }
+
     return {};
 }
 
