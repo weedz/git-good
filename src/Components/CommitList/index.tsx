@@ -157,7 +157,7 @@ export default class CommitList extends PureStoreComponent<unknown, State> {
         return (
             <div id="commits-pane" className="pane">
                 <h4>Commits</h4>
-                <div>
+                <div style="padding: 5px 0; border-bottom: 1px solid #555;">
                     <input type="text" value={this.state.filter} onKeyUp={this.filter} placeholder="sha,message" />
                     <FileFilter filterByFile={this.filterByFile} />
                 </div>

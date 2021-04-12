@@ -2,6 +2,23 @@
   box-sizing: border-box;
   tab-size: 4;
 }
+
+::-webkit-scrollbar-corner {
+  background: #000;
+}
+::-webkit-scrollbar {
+  background: #000;
+  width: 12px;
+  height: 12px;
+}
+::-webkit-scrollbar-thumb {
+  background: #555;
+  border-radius: 20px;
+  border: 2px solid #000;
+  min-height: 40px;
+  min-width: 40px;
+}
+
 head,
 body {
   margin: 0;
@@ -91,8 +108,8 @@ textarea:focus {
 
 .selected,
 .selected * {
-  color: #eee;
-  background-color: #3b4749
+  color: #efefef;
+  background-color: #234;
 }
 
 .diff-line-marking {
