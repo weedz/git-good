@@ -138,7 +138,7 @@ const menuTemplate = [
                                 cwd: repo.workdir()
                             });
                         } else if (isMac) {
-                            process = spawn("open", ["-a", "."], {
+                            process = spawn("open", ["-a", "Terminal", "."], {
                                 cwd: repo.workdir()
                             });
                         } else {
