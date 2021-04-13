@@ -3,7 +3,7 @@ import { h } from "preact";
 import { IpcAction } from "src/Data/Actions";
 import { pullHead, pushHead } from "src/Data/Renderer";
 import { BranchFromType, openDialog_BranchFrom, openDialog_SetUpstream, openDialog_RenameRef, BranchType, openDialog_EditRemote, openDialog_AddRemote } from "src/Data/Renderer/Dialogs";
-import { ipcGetData } from "src/Data/Renderer/IPC";
+import { ipcGetData, ipcSendMessage } from "src/Data/Renderer/IPC";
 import { contextMenuState, checkoutBranch, deleteBranch, deleteRemoteBranch } from "src/Data/Renderer/store";
 
 const setUpstreamMenuItem = new MenuItem({
@@ -16,12 +16,23 @@ const setUpstreamMenuItem = new MenuItem({
 
 const remotesMenu = new Menu();
 remotesMenu.append(new MenuItem({
-    label: "Add remote...",
+    label: "Fetch all",
     async click() {
-        openDialog_AddRemote();
-        return;
+        const result = await ipcGetData(IpcAction.FETCH, null);
+        if (!result.result) {
+            dialog.showErrorBox("Failed to fetch remote", "Failed to fetch remote");
+        }
     }
-}))
+}));
+remotesMenu.append(new MenuItem({
+    type: "separator",
+}));
+remotesMenu.append(new MenuItem({
+    label: "Add remote...",
+    click() {
+        openDialog_AddRemote();
+    }
+}));
 
 const remoteMenu = new Menu();
 remoteMenu.append(new MenuItem({
@@ -31,7 +42,6 @@ remoteMenu.append(new MenuItem({
         if (!result.result) {
             dialog.showErrorBox("Failed to fetch remote", "Failed to fetch remote");
         }
-        return;
     }
 }));
 remoteMenu.append(new MenuItem({
@@ -47,7 +57,6 @@ remoteMenu.append(new MenuItem({
             return;
         }
         openDialog_EditRemote(remote);
-        return;
     }
 }));
 remoteMenu.append(new MenuItem({
@@ -60,9 +69,8 @@ remoteMenu.append(new MenuItem({
             cancelId: 0,
         });
         if (result.response === 1) {
-            await ipcGetData(IpcAction.REMOVE_REMOTE, {name: contextMenuState.data.remote});
+            ipcSendMessage(IpcAction.REMOVE_REMOTE, {name: contextMenuState.data.remote});
         }
-        return;
     }
 }));
 
