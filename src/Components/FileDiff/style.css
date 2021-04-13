@@ -1,21 +1,25 @@
-#file-diff {
+#file-diff-container {
     position: fixed;
     left: 0;
     z-index: 1;
     height: calc(100% - 6px);
-    /* TODO: fix layout.. */
     width: calc(100vw - 325px - 12px);
+    background-color: #000;
+    display: flex;
+}
+#file-diff-container.full-width {
+    width: calc(100vw - 6px);
+}
+#file-diff {
     background-color: #000;
     display: flex;
     flex-direction: column;
     --border-color: #aaa;
+    flex: 1;
 }
 #file-diff > ul.horizontal {
     padding: 5px 0;
     border-bottom: 1px solid #555;
-}
-#file-diff.full-width {
-    width: calc(100vw - 6px);
 }
 #file-diff h2 {
     overflow-wrap: anywhere;
@@ -61,4 +65,26 @@
 }
 .diff-type {
     width: 10px;
+}
+
+#file-history-commits {
+    width: 240px;
+    overflow: auto;
+}
+#file-history-commits li {
+    height: 50px;
+    display: flex;
+    white-space: nowrap;
+}
+#file-history-commits li a {
+    overflow: hidden;
+    flex: 1;
+    justify-content: center;
+}
+#file-history-commits li a:not(.selected):hover {
+    background-color: #1c2122;
+  }
+#file-history-commits li .msg {
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
