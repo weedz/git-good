@@ -72,7 +72,7 @@ export async function *getCommits(repo: Repository, branch: string, start: "refs
         let cursorCommit: Commit | null = null;
 
         const history: Commit[] = [];
-        for await (const oid of walkTheRev(revwalk, num)) {
+        for (const oid of await revwalk.fastWalk(num)) {
             const commit = await Commit.lookup(repo, oid);
             if (await filter(commit)) {
                 history.push(commit);
@@ -95,19 +95,6 @@ export async function *getCommits(repo: Repository, branch: string, start: "refs
             commits: history.map(compileHistoryCommit),
             branch
         };
-    }
-}
-
-async function *walkTheRev(revwalk: Revwalk, num: number) {
-    let count = 0;
-    while (count < num) {
-        count++;
-        try {
-            const oid = revwalk.next();
-            yield oid;
-        } catch {
-            return false;
-        }
     }
 }
 
