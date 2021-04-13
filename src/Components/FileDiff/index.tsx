@@ -154,7 +154,7 @@ export default class FileDiff extends PureStoreComponent<unknown, State> {
             <div id="file-diff" className={`pane ${classes.join(" ")}`}>
                 <h2>{patch.actualFile.path}<a href="#" onClick={closeFile}>🗙</a></h2>
                 {patch.status === DELTA.RENAMED && <h4>{patch.oldFile.path} &rArr; {patch.newFile.path} ({patch.similarity}%)</h4>}
-                <p>{patch.hunks?.length} chunks, Additions: {patch.lineStats.total_additions}, Deletions: {patch.lineStats.total_deletions}</p>
+                <p>{patch.hunks?.length} chunks,&nbsp;<span className="added">+{patch.lineStats.total_additions}</span>&nbsp;<span className="deleted">-{patch.lineStats.total_deletions}</span></p>
                 <ul className="horizontal space-evenly">
                     <li className="btn-group">
                         <button onClick={() => 0 && this.setState({viewType: "file"}, this.renderHunks)}>File View</button>

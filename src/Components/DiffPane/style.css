@@ -63,11 +63,13 @@
     color: yellowgreen;
 }
 .changed-files .file-deleted .status,
-.file-types .file-deleted {
+.file-types .file-deleted,
+.deleted {
     color: red;
 }
 .changed-files .file-added .status,
-.file-types .file-added {
+.file-types .file-added,
+.added {
     color: green;
 }
 .changed-files .file-renamed .status,
@@ -75,7 +77,7 @@
     color: blue;
 }
 .changed-files .file-conflicted {
-    background-color: orange;
+    background-color: #aa7700;
 }
 .changed-files .file-types {
     list-style: none;
