@@ -128,6 +128,7 @@ const menuTemplate = [
             },
             {
                 label: "Open in Terminal",
+                accelerator: 'CmdOrCtrl+Shift+C',
                 click() {
                     if (repo) {
                         let process;
