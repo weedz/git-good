@@ -72,8 +72,9 @@ export async function *getCommits(repo: Repository, branch: string, start: "refs
         let cursorCommit: Commit | null = null;
 
         const history: Commit[] = [];
-        for (const oid of await revwalk.fastWalk(num)) {
-            const commit = await Commit.lookup(repo, oid);
+        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+        // @ts-ignore, https://www.nodegit.org/api/revwalk/#commitWalk
+        for (const commit of await revwalk.commitWalk(num) as Array<Commit>) {
             if (await filter(commit)) {
                 history.push(commit);
             } else {
