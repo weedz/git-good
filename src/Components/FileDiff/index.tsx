@@ -1,7 +1,8 @@
 import { h } from "preact";
-import { HunkObj, IpcAction, LineObj } from "src/Data/Actions";
+import { HunkObj, IpcAction, LineObj, IpcActionReturn } from "src/Data/Actions";
 import { Store, closeFile, blameFile, PureStoreComponent, updateStore } from "src/Data/Renderer/store";
-import { DELTA } from "src/Data/Utils";
+import { DELTA, formatTimeAgo } from "src/Data/Utils";
+import Link from "../Link";
 import HunksContainer from "./HunksContainer";
 
 import "./style.css";
@@ -10,13 +11,13 @@ type State = {
     diffType: "inline" | "side-by-side"
     viewType: "file" | "diff"
     fullWidth: boolean
-    sideSelected: "left" | "right" | null
     wrapLine: boolean
     lines: Array<{
         type: string
         content: string
         line?: LineObj
     }>
+    fileHistory: IpcActionReturn[IpcAction.LOAD_FILE_COMMITS]["commits"]
 }
 
 // Current font and size might be closer to 7.80.
@@ -49,24 +50,20 @@ const FONT_WIDTH = 7.85;
 
 export default class FileDiff extends PureStoreComponent<unknown, State> {
     longestLine = 0;
-    constructor() {
-        super();
-        this.state = {
-            viewType: "diff",
-            diffType: "inline",
-            sideSelected: null,
-            wrapLine: false,
-            lines: [],
-            fullWidth: false
-        };
-    }
+    state: State = {
+        viewType: "diff",
+        diffType: "inline",
+        wrapLine: false,
+        lines: [],
+        fullWidth: false,
+        fileHistory: []
+    };
     componentDidMount() {
         this.listen("currentFile", this.renderHunks);
-        this.registerHandler(IpcAction.BLAME_FILE, (data) => {
-            console.log("BLAME_FILE:", data);
-        });
-        this.registerHandler(IpcAction.LOAD_FILE_COMMITS, (commits) => {
-            console.log("LOAD_FILE_COMMITS:", commits);
+        this.registerHandler(IpcAction.LOAD_FILE_COMMITS, commitsResult => {
+            this.setState({
+                fileHistory: commitsResult.commits
+            });
         });
     }
 
@@ -102,6 +99,15 @@ export default class FileDiff extends PureStoreComponent<unknown, State> {
             line
         }
     }
+
+    closeActiveFileDiff = () => {
+        if (this.state.fileHistory.length) {
+            this.setState({
+                fileHistory: []
+            });
+        }
+        closeFile();
+    }
     
     // renderLineSideBySide = (line: LineObj & {newContent?: LineObj}) => {
     //     const newLine = line.newContent || line;
@@ -123,19 +129,6 @@ export default class FileDiff extends PureStoreComponent<unknown, State> {
     //     );
     // }
 
-    // selectLeft = () => {
-    //     if (this.state.sideSelected !== "left") {
-    //         window.getSelection()?.removeAllRanges();
-    //         this.setState({sideSelected: "left"});
-    //     }
-    // }
-    // selectRight = () => {
-    //     if (this.state.sideSelected !== "right") {
-    //         window.getSelection()?.removeAllRanges();
-    //         this.setState({sideSelected: "right"});
-    //     }
-    // }
-
     render() {
         if (!Store.currentFile) {
             return;
@@ -143,9 +136,6 @@ export default class FileDiff extends PureStoreComponent<unknown, State> {
         const patch = Store.currentFile.patch;
 
         const classes = [];
-        if (this.state.sideSelected) {
-            classes.push(`${this.state.sideSelected}-side-selected`);
-        }
         if (this.state.wrapLine) {
             classes.push("wrap-content");
         }
@@ -157,30 +147,62 @@ export default class FileDiff extends PureStoreComponent<unknown, State> {
         }
 
         return (
-            <div id="file-diff" className={`pane ${classes.join(" ")}`}>
-                <h2>{patch.actualFile.path}<a href="#" onClick={closeFile}>🗙</a></h2>
-                {patch.status === DELTA.RENAMED && <h4>{patch.oldFile.path} &rArr; {patch.newFile.path} ({patch.similarity}%)</h4>}
-                <p>{patch.hunks?.length} chunks,&nbsp;<span className="added">+{patch.lineStats.total_additions}</span>&nbsp;<span className="deleted">-{patch.lineStats.total_deletions}</span></p>
-                <ul className="horizontal space-evenly">
-                    <li className="btn-group">
-                        <button onClick={() => 0 && this.setState({viewType: "file"}, this.renderHunks)}>File View</button>
-                        <button className={this.state.viewType === "diff" ? "active" : undefined} onClick={() => this.setState({viewType: "diff"}, this.renderHunks)}>Diff View</button>
-                    </li>
-                    <li className="btn-group">
-                        <button onClick={() => blameFile(patch.actualFile.path)}>History</button>
-                    </li>
-                    <li className="btn-group">
-                        <button className={this.state.diffType === "inline" ? "active" : undefined} onClick={() => this.setState({diffType: "inline"}, this.renderHunks)}>Inline</button>
-                        <button onClick={() => 0 && this.setState({diffType: "side-by-side"}, this.renderHunks)}>Side-by-side</button>
-                    </li>
-                    <li className="btn-group">
-                        <button className={this.state.fullWidth ? "active" : undefined} onClick={() => this.setState({fullWidth: !this.state.fullWidth})}>Fullscreen</button>
-                    </li>
-                    <li>
-                        <button className={Store.diffOptions.ignoreWhitespace ? "active" : undefined} onClick={() => updateStore({diffOptions: {ignoreWhitespace: !Store.diffOptions.ignoreWhitespace}})}>Ignore whitespace</button>
-                    </li>
-                </ul>
-                <HunksContainer itemHeight={17} width={this.longestLine * FONT_WIDTH} items={this.state.lines} />
+            <div className={`pane ${classes.join(" ")}`} id="file-diff-container">
+                {!!this.state.fileHistory.length && (
+                <div id="file-history-commits">
+                    <h4>File history</h4>
+                    <ul>
+                        {this.state.fileHistory.slice(0,50).map(
+                            commit => (
+                            <li>
+                                <Link title={commit.message} className="flex-column">
+                                    <div className="flex-row">
+                                        <span className="msg">{commit.message.substring(0, commit.message.indexOf("\n")>>>0 || 60)}</span>
+                                    </div>
+                                    <div className="flex-row space-between">
+                                        <span>{commit.sha.substring(0,8)}</span>
+                                        <span className="date">{formatTimeAgo(new Date(commit.date))}</span>
+                                    </div>
+                                </Link>
+                            </li>
+                            )
+                        )}
+                    </ul>
+                </div>
+                )}
+                <div id="file-diff">
+                    <h2>{patch.actualFile.path}<a href="#" onClick={this.closeActiveFileDiff}>🗙</a></h2>
+                    {patch.status === DELTA.RENAMED && <h4>{patch.oldFile.path} &rArr; {patch.newFile.path} ({patch.similarity}%)</h4>}
+                    <p>{patch.hunks?.length} chunks,&nbsp;<span className="added">+{patch.lineStats.total_additions}</span>&nbsp;<span className="deleted">-{patch.lineStats.total_deletions}</span></p>
+                    <ul className="horizontal space-evenly">
+                        <li className="btn-group">
+                            <button onClick={() => 0 && this.setState({viewType: "file"}, this.renderHunks)}>File View</button>
+                            <button className={this.state.viewType === "diff" ? "active" : undefined} onClick={() => this.setState({viewType: "diff"}, this.renderHunks)}>Diff View</button>
+                        </li>
+                        <li className="btn-group">
+                            <button className={this.state.fileHistory.length ? "active" : undefined} onClick={() => {
+                                if (!this.state.fileHistory.length) {
+                                    this.setState({fullWidth: true});
+                                    blameFile(patch.actualFile.path);
+                                }
+                            }}>History</button>
+                            <button onClick={() => {
+                                console.log("BLAME. Noop.")
+                            }}>Blame</button>
+                        </li>
+                        <li className="btn-group">
+                            <button className={this.state.diffType === "inline" ? "active" : undefined} onClick={() => this.setState({diffType: "inline"}, this.renderHunks)}>Inline</button>
+                            <button onClick={() => 0 && this.setState({diffType: "side-by-side"}, this.renderHunks)}>Side-by-side</button>
+                        </li>
+                        <li className="btn-group">
+                            <button className={this.state.fullWidth ? "active" : undefined} onClick={() => this.setState({fullWidth: !this.state.fullWidth})}>Fullscreen</button>
+                        </li>
+                        <li>
+                            <button className={Store.diffOptions.ignoreWhitespace ? "active" : undefined} onClick={() => updateStore({diffOptions: {ignoreWhitespace: !Store.diffOptions.ignoreWhitespace}})}>Ignore whitespace</button>
+                        </li>
+                    </ul>
+                    <HunksContainer itemHeight={17} width={this.longestLine * FONT_WIDTH} items={this.state.lines} />
+                </div>
             </div>
         );
     }

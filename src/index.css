@@ -141,6 +141,19 @@ ul.horizontal {
   display: flex;
   flex-direction: row;
 }
+
+.flex-row {
+  display: flex;
+  flex-direction: row;
+}
+.flex-column {
+  display: flex;
+  flex-direction: column;
+}
+.space-between {
+  justify-content: space-between;
+}
+
 .btn-group {
   margin-left: 6px;
   margin-right: 6px;
