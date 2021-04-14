@@ -2,13 +2,13 @@
     position: fixed;
     left: 0;
     z-index: 1;
-    height: calc(100% - 6px);
-    width: calc(100vw - 325px - 12px);
+    height: 100%;
+    width: calc(100vw - 325px - 6px);
     background-color: #000;
     display: flex;
 }
 #file-diff-container.full-width {
-    width: calc(100vw - 6px);
+    width: 100vw;
 }
 #file-diff {
     background-color: #000;
@@ -75,6 +75,7 @@
     height: 50px;
     display: flex;
     white-space: nowrap;
+    border-top: 1px solid #555;
 }
 #file-history-commits li a {
     overflow: hidden;

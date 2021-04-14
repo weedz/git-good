@@ -53,15 +53,19 @@ export type IpcActionParams = {
         sha: string
         options?: DiffOptions
     }
-    [IpcAction.LOAD_HUNKS]: 
-    ({
-        workDir: boolean
-        type: "staged" | "unstaged"
-    } | {
-        sha: string
-    } | {
-        compare: boolean
-    }) & {
+    [IpcAction.LOAD_HUNKS]: (
+        {
+            file: string
+            sha: string
+        } | {
+            workDir: boolean
+            type: "staged" | "unstaged"
+        } | {
+            sha: string
+        } | {
+            compare: boolean
+        }
+    ) & {
         path: string
     }
     [IpcAction.CHECKOUT_BRANCH]: string
@@ -209,7 +213,7 @@ export type LineObj = {
 };
 export type HunkObj = {
     header: string
-    lines?: LineObj[]
+    lines: LineObj[]
     // old: number
     // new: number
 };
