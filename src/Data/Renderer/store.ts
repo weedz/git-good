@@ -22,6 +22,7 @@ export type StoreType = {
         [key: string]: BranchObj[]
     }
     currentFile: null | {
+        commitSHA?: string
         patch: PatchObj
     }
     locks: {
@@ -201,11 +202,12 @@ export function openFile(params: {file: string, sha: string} | (
     {compare: true}
 ) & {patch: PatchObj}) {
     if ("patch" in params) {
-        updateStore({
-            currentFile: {
-                patch: params.patch
-            }
-        });
+        const currentFile: StoreType["currentFile"] = {
+            patch: params.patch,
+        };
+        if ("sha"in params) {
+            currentFile.commitSHA = params.sha;
+        }
         if (!params.patch.hunks) {
             if ("sha" in params) {
                 ipcSendMessage(IpcAction.LOAD_HUNKS, {
@@ -225,6 +227,9 @@ export function openFile(params: {file: string, sha: string} | (
                 });
             }
         }
+        updateStore({
+            currentFile
+        });
     } else {
         // FIXME: Maybe implement a separate function for this?
         ipcSendMessage(IpcAction.LOAD_HUNKS, {
@@ -324,9 +329,9 @@ export function closeDialogWindow() {
     });
 }
 
-export function blameFile(file: string) {
+export function blameFile(file: string, sha?: string) {
     // ipcSendMessage(IpcAction.BLAME_FILE, file);
-    ipcSendMessage(IpcAction.LOAD_FILE_COMMITS, {file});
+    ipcSendMessage(IpcAction.LOAD_FILE_COMMITS, {file, cursor: sha, startAtCursor: true});
 }
 
 export async function openFileHistory(file: string, sha?: string) {
@@ -334,9 +339,10 @@ export async function openFileHistory(file: string, sha?: string) {
     if (filePatch) {
         updateStore({
             currentFile: {
-                patch: filePatch
+                patch: filePatch,
+                commitSHA: sha
             },
         });
-        blameFile(file);
+        blameFile(file, sha);
     }
 }

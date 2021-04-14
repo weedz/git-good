@@ -25,9 +25,9 @@ fileMenu.append(new MenuItem({
     type: "separator"
 }));
 fileMenu.append(new MenuItem({
-    label: "Blame",
+    label: "History",
     click() {
-        openFileHistory(contextMenuState.data.path);
+        openFileHistory(contextMenuState.data.path, contextMenuState.data.sha);
     }
 }));
 fileMenu.append(new MenuItem({
@@ -41,9 +41,12 @@ fileMenu.append(new MenuItem({
     }
 }));
 
-export function showFileMenu(e: h.JSX.TargetedMouseEvent<HTMLLIElement>) {
+export function showFileMenu(e: h.JSX.TargetedMouseEvent<HTMLLIElement>, sha?: string) {
     e.preventDefault();
     contextMenuState.data = e.currentTarget.dataset as {[name: string]: string};
+    if (sha) {
+        contextMenuState.data.sha = sha;
+    }
     fileMenu.popup({
         window: getCurrentWindow()
     });

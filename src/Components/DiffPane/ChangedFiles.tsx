@@ -104,7 +104,7 @@ export default class ChangedFiles extends Component<Props, {fileFilter?: string}
             ];
         }
         return (
-            <li onContextMenu={showFileMenu} className="sub-tree" key={patch.actualFile.path} data-path={patch.actualFile.path}>
+            <li onContextMenu={this.fileContextMenu} className="sub-tree" key={patch.actualFile.path} data-path={patch.actualFile.path}>
                 <Link className={typeCss} linkData={patch} selectAction={this.openFile}>
                     <span className="status">{getType(patch.status)}</span>&nbsp;
                     <span>{patch.actualFile.path}</span>
@@ -114,6 +114,9 @@ export default class ChangedFiles extends Component<Props, {fileFilter?: string}
                 </div>
             </li>
         );
+    }
+    fileContextMenu = (e: h.JSX.TargetedMouseEvent<HTMLLIElement>) => {
+        showFileMenu(e, "commit" in this.props ? this.props.commit.sha : undefined);
     }
     render() {
         const fileFilter = this.state.fileFilter;

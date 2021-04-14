@@ -289,12 +289,14 @@ interface LoadCommitsParamBranch {
 type LoadFileCommitsParam = {
     /** SHA of last fetched commit */
     cursor?: string
+    startAtCursor?: boolean
     num?: number
     file: string
 }
 type LoadCommitsParam = {
     /** SHA of last fetched commit */
     cursor?: string
+    startAtCursor?: boolean
     num?: number
 } & (LoadCommitsParamBranch | LoadCommitsParamSha | {history: true})
 export type LoadCommitReturn = {

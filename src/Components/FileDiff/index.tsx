@@ -163,7 +163,8 @@ export default class FileDiff extends PureStoreComponent<unknown, State> {
                                     if (filePatch) {
                                         updateStore({
                                             currentFile: {
-                                                patch: filePatch
+                                                patch: filePatch,
+                                                commitSHA: commit.sha
                                             },
                                         });
                                     }
@@ -195,7 +196,7 @@ export default class FileDiff extends PureStoreComponent<unknown, State> {
                             <button className={this.state.fileHistory.length ? "active" : undefined} onClick={() => {
                                 if (!this.state.fileHistory.length) {
                                     this.setState({fullWidth: true});
-                                    blameFile(patch.actualFile.path);
+                                    blameFile(patch.actualFile.path, Store.currentFile?.commitSHA);
                                 }
                             }}>History</button>
                             <button onClick={() => {

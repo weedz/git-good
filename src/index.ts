@@ -715,11 +715,13 @@ async function initGetComits(repo: Repository, params: IpcActionParams[IpcAction
     } else {
         let start: Commit | null = null;
         if (params.cursor) {
-            const lastCommit = await repo.getCommit(params.cursor);
-            if (!lastCommit.parentcount()) {
+            start = await repo.getCommit(params.cursor);
+            if (!start.parentcount()) {
                 return false;
             }
-            start = await lastCommit.parent(0);
+            if (!params.startAtCursor) {
+                start = await start.parent(0);
+            }
         }
         else if ("branch" in params) {
             branch = params.branch;
