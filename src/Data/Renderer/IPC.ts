@@ -74,6 +74,7 @@ const handlers: {[T in IpcAction]: HandlerCallback[]} = {
     [IpcAction.FETCH]: [],
     [IpcAction.SAVE_SETTINGS]: [],
     [IpcAction.GET_SETTINGS]: [],
+    [IpcAction.FILE_DIFF_AT]: [],
 };
 export function registerHandler<T extends IpcAction>(action: T, callbacks: ((arg: IpcActionReturn[T]) => void) | (Array<(arg: IpcActionReturn[T]) => void>)) {
     if (!Array.isArray(callbacks)) {

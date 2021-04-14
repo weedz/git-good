@@ -2,7 +2,7 @@ import { shell } from "electron";
 import { join } from "path";
 import { getCurrentWindow, Menu, MenuItem } from "@electron/remote";
 import { h } from "preact";
-import { blameFile, contextMenuState, Store } from "src/Data/Renderer/store";
+import { contextMenuState, openFileHistory, Store } from "src/Data/Renderer/store";
 
 const fileMenu = new Menu();
 fileMenu.append(new MenuItem({
@@ -27,7 +27,7 @@ fileMenu.append(new MenuItem({
 fileMenu.append(new MenuItem({
     label: "Blame",
     click() {
-        blameFile(contextMenuState.data.path);
+        openFileHistory(contextMenuState.data.path);
     }
 }));
 fileMenu.append(new MenuItem({

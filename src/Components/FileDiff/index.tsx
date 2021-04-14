@@ -1,6 +1,7 @@
 import { h } from "preact";
 import { HunkObj, IpcAction, LineObj, IpcActionReturn } from "src/Data/Actions";
-import { Store, closeFile, blameFile, PureStoreComponent, updateStore, openFile } from "src/Data/Renderer/store";
+import { ipcGetData } from "src/Data/Renderer/IPC";
+import { Store, closeFile, blameFile, PureStoreComponent, updateStore } from "src/Data/Renderer/store";
 import { DELTA, formatTimeAgo } from "src/Data/Utils";
 import Link from "../Link";
 import HunksContainer from "./HunksContainer";
@@ -135,6 +136,8 @@ export default class FileDiff extends PureStoreComponent<unknown, State> {
         }
         const patch = Store.currentFile.patch;
 
+        const fullWidth = this.state.fullWidth || this.state.fileHistory.length;
+
         const classes = [];
         if (this.state.wrapLine) {
             classes.push("wrap-content");
@@ -142,7 +145,7 @@ export default class FileDiff extends PureStoreComponent<unknown, State> {
         if (this.state.diffType === "side-by-side") {
             classes.push("parallel");
         }
-        if (this.state.fullWidth) {
+        if (fullWidth) {
             classes.push("full-width");
         }
 
@@ -155,11 +158,15 @@ export default class FileDiff extends PureStoreComponent<unknown, State> {
                         {this.state.fileHistory.slice(0,1000).map(
                             commit => (
                             <li>
-                                <Link selectAction={(_arg) => {
-                                    openFile({
-                                        file: patch.actualFile.path,
-                                        sha: commit.sha
-                                    });
+                                <Link selectAction={async (_arg) => {
+                                    const filePatch = await ipcGetData(IpcAction.FILE_DIFF_AT, {file: patch.actualFile.path, sha: commit.sha});
+                                    if (filePatch) {
+                                        updateStore({
+                                            currentFile: {
+                                                patch: filePatch
+                                            },
+                                        });
+                                    }
                                 }} title={commit.message} className="flex-column">
                                     <div className="flex-row">
                                         <span className="msg">{commit.message.substring(0, commit.message.indexOf("\n")>>>0 || 60)}</span>
@@ -200,7 +207,7 @@ export default class FileDiff extends PureStoreComponent<unknown, State> {
                             <button onClick={() => 0 && this.setState({diffType: "side-by-side"}, this.renderHunks)}>Side-by-side</button>
                         </li>
                         <li className="btn-group">
-                            <button className={this.state.fullWidth ? "active" : undefined} onClick={() => this.setState({fullWidth: !this.state.fullWidth})}>Fullscreen</button>
+                            <button className={fullWidth ? "active" : undefined} onClick={() => this.setState({fullWidth: !this.state.fullWidth})} disabled={this.state.fileHistory.length > 0}>Fullscreen</button>
                         </li>
                         <li>
                             <button className={Store.diffOptions.ignoreWhitespace ? "active" : undefined} onClick={() => updateStore({diffOptions: {ignoreWhitespace: !Store.diffOptions.ignoreWhitespace}})}>Ignore whitespace</button>

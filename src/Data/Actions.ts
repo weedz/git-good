@@ -37,6 +37,7 @@ export enum IpcAction {
     FETCH,
     SAVE_SETTINGS,
     GET_SETTINGS,
+    FILE_DIFF_AT,
 }
 
 export type DiffOptions = {
@@ -122,6 +123,11 @@ export type IpcActionParams = {
     [IpcAction.FETCH]: null | {remote: string}
     [IpcAction.SAVE_SETTINGS]: AppConfig
     [IpcAction.GET_SETTINGS]: string | null
+    [IpcAction.FILE_DIFF_AT]: {
+        file: string
+        sha?: string
+        options?: DiffOptions
+    }
 };
 
 export type IpcActionReturn = {
@@ -177,6 +183,7 @@ export type IpcActionReturn = {
     [IpcAction.FETCH]: {result: boolean}
     [IpcAction.SAVE_SETTINGS]: {result: boolean}
     [IpcAction.GET_SETTINGS]: AppConfig
+    [IpcAction.FILE_DIFF_AT]: PatchObj | false
 };
 
 export type IpcActionReturnError = {

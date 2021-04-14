@@ -2,7 +2,7 @@ import { DialogTypes } from "src/Components/Dialog/types";
 import { IpcAction } from "../Actions";
 import { normalizeLocalName, normalizeRemoteNameWithoutRemote, normalizeTagName, remoteName } from "../Branch";
 import { ipcGetData, ipcSendMessage } from "./IPC";
-import { closeDialogWindow, createBranchFromSha, createBranchFromRef, openDialogWindow, blameFile, setUpstream, renameLocalBranch } from "./store";
+import { closeDialogWindow, createBranchFromSha, createBranchFromRef, openDialogWindow, setUpstream, renameLocalBranch, openFileHistory } from "./store";
 
 export function openDialog_BlameFile() {
     openDialogWindow(DialogTypes.BLAME, {
@@ -10,7 +10,7 @@ export function openDialog_BlameFile() {
             closeDialogWindow();
             if (file)
             {
-                blameFile(file);
+                openFileHistory(file);
             }
         },
         cancelCb() {
