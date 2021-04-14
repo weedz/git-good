@@ -2,8 +2,7 @@ import * as path from "path";
 import { promises as fs } from "fs";
 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
 // @ts-ignore, missing declations for Credential,Patch
-import { Credential, Repository, Revwalk, Commit, Diff, ConvenientPatch, ConvenientHunk, DiffLine, Object, Branch, Graph, Index, Reset, Checkout, DiffFindOptions, Blame, Reference, Oid, Signature, Merge, Remote, Blob, Tree, Patch } from "nodegit";
-import "./NodeGitPatched";
+import { Credential, Repository, Revwalk, Commit, Diff, ConvenientPatch, ConvenientHunk, DiffLine, Object, Branch, Graph, Index, Reset, Checkout, DiffFindOptions, Blame, Reference, Oid, Signature, Merge, Remote, Patch } from "nodegit";
 import { IpcAction, BranchObj, LineObj, HunkObj, PatchObj, CommitObj, IpcActionParams, IpcActionReturn, IpcActionReturnError, RefType, DiffOptions } from "../Actions";
 import { normalizeLocalName, normalizeRemoteName, normalizeRemoteNameWithoutRemote, normalizeTagName, remoteName } from "../Branch";
 import { dialog, IpcMainEvent } from "electron";
@@ -530,34 +529,39 @@ async function loadHunks(patch: ConvenientPatch) {
     return Promise.all(hunks.map(handleHunk));
 }
 
-async function blob_file_from_tree(repo: Repository, tree: Tree, file: string) {
-    const treeEntry = await tree.entryByPath(file);
-    const obj = await treeEntry.toObject(repo) as Blob;
-    const blob = await Blob.lookup(repo, obj);
-    return blob;
-}
-
 export async function diff_file_at_commit(repo: Repository, file: string, sha?: string) {
     const commit = sha ? await repo.getCommit(sha) : await repo.getHeadCommit();
-    const tree = await commit.getTree();
+    // TODO: which parent to chose?
+    const parents = await commit.getParents(1);
+    if (!parents.length) {
+        return false;
+    }
 
-    const blob = await blob_file_from_tree(repo, tree, file);
+    let blob;
+    try {
+        const entry = await commit.getEntry(file);
+        blob = await entry.getBlob();
+    } catch (err) {
+        // blob does not exist in tree, file probably deleted
+    }
 
     // FIXME: Configure this using an argument (like "Ignore whitespace" from filediff view)
     const diffOpts = {
         flags: Diff.OPTION.IGNORE_WHITESPACE,
     };
 
-    // TODO: which parent to chose?
-    const parents = await commit.getParents(1);
-
-    if (!parents.length) {
-        return false;
+    let oldBlob;
+    try {
+        const entry = await parents[0].getEntry(file);
+        oldBlob = await entry.getBlob();
+    } catch (err) {
+        // blob does not exist in tree, probably a new file
     }
 
-    const parentTree = await parents[0].getTree();
-
-    const oldBlob = await blob_file_from_tree(repo, parentTree, file);
+    if (!blob && !oldBlob) {
+        // ??
+        return false;
+    }
 
     const hunks: HunkObj[] = []
 
