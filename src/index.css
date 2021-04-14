@@ -183,9 +183,9 @@ input[type="submit"] {
   padding: 3px 6px;
   user-select: none;
 }
-button [disabled],
-input[type="button"][disabled],
-input[type="submit"][disabled] {
+button:disabled,
+input[type="button"]:disabled,
+input[type="submit"]:disabled {
   cursor: not-allowed;
   color: #777
 }

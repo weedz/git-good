@@ -516,7 +516,7 @@ export async function getHunks(repo: Repository, sha: string, path: string): Pro
     if (patch) {
         return loadHunks(patch);
     }
-    return diff_file_at_commit(repo, sha, path);
+    return false;
 }
 export async function hunksFromCompare(path: string): Promise<false | HunkObj[]> {
     return loadHunks(compareObjCache.patches[path]);
@@ -537,8 +537,8 @@ async function blob_file_from_tree(repo: Repository, tree: Tree, file: string) {
     return blob;
 }
 
-export async function diff_file_at_commit(repo: Repository, sha: string, file: string) {
-    const commit = await repo.getCommit(sha);
+export async function diff_file_at_commit(repo: Repository, file: string, sha?: string) {
+    const commit = sha ? await repo.getCommit(sha) : await repo.getHeadCommit();
     const tree = await commit.getTree();
 
     const blob = await blob_file_from_tree(repo, tree, file);
@@ -575,7 +575,32 @@ export async function diff_file_at_commit(repo: Repository, sha: string, file: s
         hunks.push(hunk);
     }
 
-    return hunks;
+    const delta = patch.getDelta();
+
+    const patchNewFile = delta.newFile();
+    const patchOldFile = delta.oldFile();
+
+    const newFile = {
+        path: patchNewFile.path(),
+        size: patchNewFile.size(),
+        mode: patchNewFile.mode(),
+        flags: patchNewFile.flags(),
+    };
+    const oldFile = {
+        path: patchOldFile.path(),
+        size: patchOldFile.size(),
+        mode: patchOldFile.mode(),
+        flags: patchOldFile.flags(),
+    };
+
+    return {
+        status: delta.status(),
+        lineStats: patch.lineStats(),
+        newFile,
+        oldFile,
+        actualFile: newFile.path ? newFile : oldFile,
+        hunks,
+    };
 }
 
 export async function resolveConflict(path: string) {

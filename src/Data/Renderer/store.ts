@@ -3,7 +3,7 @@ import { PureComponent } from "preact/compat";
 import { DialogProps, DialogTypes } from "src/Components/Dialog/types";
 import Link, { unselectLink } from "src/Components/Link";
 import { IpcAction, BranchesObj, BranchObj, PatchObj, Locks, RepoStatus, IpcActionParams, IpcActionReturn } from "../Actions";
-import { registerHandler, ipcSendMessage } from "./IPC";
+import { registerHandler, ipcSendMessage, ipcGetData } from "./IPC";
 
 export type DialogWindow = {
     type: DialogTypes
@@ -327,4 +327,16 @@ export function closeDialogWindow() {
 export function blameFile(file: string) {
     // ipcSendMessage(IpcAction.BLAME_FILE, file);
     ipcSendMessage(IpcAction.LOAD_FILE_COMMITS, {file});
+}
+
+export async function openFileHistory(file: string, sha?: string) {
+    const filePatch = await ipcGetData(IpcAction.FILE_DIFF_AT, {file, sha});
+    if (filePatch) {
+        updateStore({
+            currentFile: {
+                patch: filePatch
+            },
+        });
+        blameFile(file);
+    }
 }

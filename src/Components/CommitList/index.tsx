@@ -1,7 +1,7 @@
 import { h } from "preact";
 import { ipcSendMessage } from "src/Data/Renderer/IPC";
 import { IpcAction, IpcActionReturn, LoadCommitReturn, IpcActionParams, Locks } from "src/Data/Actions";
-import { blameFile, clearLock, GlobalLinks, PureStoreComponent, setLock, Store } from "src/Data/Renderer/store";
+import { clearLock, GlobalLinks, openFileHistory, PureStoreComponent, setLock, Store } from "src/Data/Renderer/store";
 
 import "./style.css";
 import FileFilter from "./FileFilter";
@@ -132,7 +132,7 @@ export default class CommitList extends PureStoreComponent<unknown, State> {
     }
     filterByFile = (file: string | undefined) => {
         if (file) {
-            blameFile(file);
+            openFileHistory(file);
         }
     }
     
