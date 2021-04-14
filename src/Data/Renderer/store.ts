@@ -195,30 +195,42 @@ export function checkoutBranch(branch: string) {
     ipcSendMessage(IpcAction.CHECKOUT_BRANCH, branch);
 }
 
-export function openFile(params: ({sha: string} | {workDir: true, type: "staged" | "unstaged"} | {compare: true}) & {patch: PatchObj}) {
-    updateStore({
-        currentFile: {
-            patch: params.patch
+export function openFile(params: {file: string, sha: string} | (
+    {sha: string} |
+    {workDir: true, type: "staged" | "unstaged"} |
+    {compare: true}
+) & {patch: PatchObj}) {
+    if ("patch" in params) {
+        updateStore({
+            currentFile: {
+                patch: params.patch
+            }
+        });
+        if (!params.patch.hunks) {
+            if ("sha" in params) {
+                ipcSendMessage(IpcAction.LOAD_HUNKS, {
+                    sha: params.sha,
+                    path: params.patch.actualFile.path,
+                });
+            } else if ("compare" in params) {
+                ipcSendMessage(IpcAction.LOAD_HUNKS, {
+                    compare: true,
+                    path: params.patch.actualFile.path,
+                });
+            } else {
+                ipcSendMessage(IpcAction.LOAD_HUNKS, {
+                    workDir: true,
+                    path: params.patch.actualFile.path,
+                    type: params.type
+                });
+            }
         }
-    });
-    if (!params.patch.hunks) {
-        if ("sha" in params) {
-            ipcSendMessage(IpcAction.LOAD_HUNKS, {
-                sha: params.sha,
-                path: params.patch.actualFile.path,
-            });
-        } else if ("compare" in params) {
-            ipcSendMessage(IpcAction.LOAD_HUNKS, {
-                compare: true,
-                path: params.patch.actualFile.path,
-            });
-        } else {
-            ipcSendMessage(IpcAction.LOAD_HUNKS, {
-                workDir: true,
-                path: params.patch.actualFile.path,
-                type: params.type
-            });
-        }
+    } else {
+        // FIXME: Maybe implement a separate function for this?
+        ipcSendMessage(IpcAction.LOAD_HUNKS, {
+            sha: params.sha,
+            path: params.file,
+        });
     }
 }
 export function closeFile() {

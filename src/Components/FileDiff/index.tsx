@@ -1,6 +1,6 @@
 import { h } from "preact";
 import { HunkObj, IpcAction, LineObj, IpcActionReturn } from "src/Data/Actions";
-import { Store, closeFile, blameFile, PureStoreComponent, updateStore } from "src/Data/Renderer/store";
+import { Store, closeFile, blameFile, PureStoreComponent, updateStore, openFile } from "src/Data/Renderer/store";
 import { DELTA, formatTimeAgo } from "src/Data/Utils";
 import Link from "../Link";
 import HunksContainer from "./HunksContainer";
@@ -147,15 +147,20 @@ export default class FileDiff extends PureStoreComponent<unknown, State> {
         }
 
         return (
-            <div className={`pane ${classes.join(" ")}`} id="file-diff-container">
+            <div className={`${classes.join(" ")}`} id="file-diff-container">
                 {!!this.state.fileHistory.length && (
-                <div id="file-history-commits">
+                <div id="file-history-commits" className="pane">
                     <h4>File history</h4>
                     <ul>
-                        {this.state.fileHistory.slice(0,50).map(
+                        {this.state.fileHistory.slice(0,1000).map(
                             commit => (
                             <li>
-                                <Link title={commit.message} className="flex-column">
+                                <Link selectAction={(_arg) => {
+                                    openFile({
+                                        file: patch.actualFile.path,
+                                        sha: commit.sha
+                                    });
+                                }} title={commit.message} className="flex-column">
                                     <div className="flex-row">
                                         <span className="msg">{commit.message.substring(0, commit.message.indexOf("\n")>>>0 || 60)}</span>
                                     </div>
@@ -170,7 +175,7 @@ export default class FileDiff extends PureStoreComponent<unknown, State> {
                     </ul>
                 </div>
                 )}
-                <div id="file-diff">
+                <div id="file-diff" className="pane">
                     <h2>{patch.actualFile.path}<a href="#" onClick={this.closeActiveFileDiff}>🗙</a></h2>
                     {patch.status === DELTA.RENAMED && <h4>{patch.oldFile.path} &rArr; {patch.newFile.path} ({patch.similarity}%)</h4>}
                     <p>{patch.hunks?.length} chunks,&nbsp;<span className="added">+{patch.lineStats.total_additions}</span>&nbsp;<span className="deleted">-{patch.lineStats.total_deletions}</span></p>

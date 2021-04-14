@@ -1,8 +1,9 @@
 import * as path from "path";
 import { promises as fs } from "fs";
 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-// @ts-ignore, missing declations for Credential
-import { Credential, Repository, Revwalk, Commit, Diff, ConvenientPatch, ConvenientHunk, DiffLine, Object, Branch, Graph, Index, Reset, Checkout, DiffFindOptions, Blame, Reference, Oid, Signature, Merge, Remote } from "nodegit";
+// @ts-ignore, missing declations for Credential,Patch
+import { Credential, Repository, Revwalk, Commit, Diff, ConvenientPatch, ConvenientHunk, DiffLine, Object, Branch, Graph, Index, Reset, Checkout, DiffFindOptions, Blame, Reference, Oid, Signature, Merge, Remote, Blob, Tree, Patch } from "nodegit";
+import "./NodeGitPatched";
 import { IpcAction, BranchObj, LineObj, HunkObj, PatchObj, CommitObj, IpcActionParams, IpcActionReturn, IpcActionReturnError, RefType, DiffOptions } from "../Actions";
 import { normalizeLocalName, normalizeRemoteName, normalizeRemoteNameWithoutRemote, normalizeTagName, remoteName } from "../Branch";
 import { dialog, IpcMainEvent } from "electron";
@@ -497,7 +498,7 @@ function handleLine(line: DiffLine): LineObj {
         length: line.contentLen(),
         oldLineno,
         newLineno,
-        content: line.rawContent().trimRight()
+        content: line.rawContent().slice(0, line.contentLen()).trimEnd()
     };
 }
 async function handleHunk(hunk: ConvenientHunk): Promise<HunkObj> {
@@ -510,9 +511,12 @@ async function handleHunk(hunk: ConvenientHunk): Promise<HunkObj> {
         // new: hunk.newStart()
     };
 }
-export async function getHunks(sha: string, path: string): Promise<false | HunkObj[]> {
+export async function getHunks(repo: Repository, sha: string, path: string): Promise<false | HunkObj[]> {
     const patch = commitObjectCache[sha]?.patches[path];
-    return loadHunks(patch);
+    if (patch) {
+        return loadHunks(patch);
+    }
+    return diff_file_at_commit(repo, sha, path);
 }
 export async function hunksFromCompare(path: string): Promise<false | HunkObj[]> {
     return loadHunks(compareObjCache.patches[path]);
@@ -524,6 +528,54 @@ async function loadHunks(patch: ConvenientPatch) {
 
     const hunks = await patch.hunks();
     return Promise.all(hunks.map(handleHunk));
+}
+
+async function blob_file_from_tree(repo: Repository, tree: Tree, file: string) {
+    const treeEntry = await tree.entryByPath(file);
+    const obj = await treeEntry.toObject(repo) as Blob;
+    const blob = await Blob.lookup(repo, obj);
+    return blob;
+}
+
+export async function diff_file_at_commit(repo: Repository, sha: string, file: string) {
+    const commit = await repo.getCommit(sha);
+    const tree = await commit.getTree();
+
+    const blob = await blob_file_from_tree(repo, tree, file);
+
+    // FIXME: Configure this using an argument (like "Ignore whitespace" from filediff view)
+    const diffOpts = {
+        flags: Diff.OPTION.IGNORE_WHITESPACE,
+    };
+
+    // TODO: which parent to chose?
+    const parents = await commit.getParents(1);
+
+    if (!parents.length) {
+        return false;
+    }
+
+    const parentTree = await parents[0].getTree();
+
+    const oldBlob = await blob_file_from_tree(repo, parentTree, file);
+
+    const hunks: HunkObj[] = []
+
+    const patch = await Patch.fromBlobs(oldBlob, file, blob, file, diffOpts);
+    for (let i = 0; i < patch.numHunks(); ++i) {
+        const hunkResult = await patch.getHunk(i);
+        const hunk: HunkObj = {
+            header: hunkResult.hunk.header().trim(),
+            lines: [],
+        };
+        for (let j = 0; j < patch.numLinesInHunk(i); ++j) {
+            const line = await patch.getLineInHunk(i, j) as DiffLine;
+            hunk.lines.push(handleLine(line));
+        }
+        hunks.push(hunk);
+    }
+
+    return hunks;
 }
 
 export async function resolveConflict(path: string) {

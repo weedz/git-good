@@ -389,7 +389,7 @@ const eventMap: {
     [IpcAction.LOAD_HUNKS]: async (_, arg) => {
         return {
             path: arg.path,
-            hunks: await loadHunks(arg)
+            hunks: await loadHunks(repo, arg)
         };
     },
     [IpcAction.CHECKOUT_BRANCH]: provider.checkoutBranch,
@@ -741,10 +741,11 @@ async function initGetComits(repo: Repository, params: IpcActionParams[IpcAction
     };
 }
 
-function loadHunks(params: IpcActionParams[IpcAction.LOAD_HUNKS]) {
+function loadHunks(repo: Repository, params: IpcActionParams[IpcAction.LOAD_HUNKS]) {
     if ("sha" in params) {
-        return provider.getHunks(params.sha, params.path);
-    } else if ("compare" in params) {
+        return provider.getHunks(repo, params.sha, params.path);
+    }
+    if ("compare" in params) {
         return provider.hunksFromCompare(params.path);
     }
     return provider.getWorkdirHunks(params.path, params.type);
