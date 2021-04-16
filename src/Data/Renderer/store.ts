@@ -5,6 +5,23 @@ import Link, { unselectLink } from "src/Components/Link";
 import { IpcAction, BranchesObj, BranchObj, PatchObj, Locks, RepoStatus, IpcActionParams, IpcActionReturn } from "../Actions";
 import { registerHandler, ipcSendMessage } from "./IPC";
 
+// Glyph properties
+let _glyphWidth = 7.81;
+calculateGlyphWidth(13, 'JetBrains Mono NL');
+
+function calculateGlyphWidth(size: number, font: string) {
+    const canvas = document.createElement("canvas");
+    const ctx = canvas.getContext("2d");
+    if (ctx) {
+        ctx.font = `${size}px '${font}'`;
+        const textMetrics = ctx.measureText("i");
+        _glyphWidth = textMetrics.width;
+    }
+}
+export function glyphWidth() {
+    return _glyphWidth;
+}
+
 export type DialogWindow = {
     type: DialogTypes
     props: DialogProps[DialogTypes]

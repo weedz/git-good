@@ -1,6 +1,6 @@
 import { h } from "preact";
 import { HunkObj, IpcAction, LineObj, IpcActionReturn } from "src/Data/Actions";
-import { Store, closeFile, openFileHistory, PureStoreComponent, updateStore } from "src/Data/Renderer/store";
+import { Store, closeFile, openFileHistory, PureStoreComponent, updateStore, glyphWidth } from "src/Data/Renderer/store";
 import { DELTA } from "src/Data/Utils";
 import FileHistory from "./FileHistory";
 import HunksContainer from "./HunksContainer";
@@ -19,10 +19,6 @@ type State = {
     }>
     fileHistory: IpcActionReturn[IpcAction.LOAD_FILE_COMMITS]["commits"]
 }
-
-// Current font and size might be closer to 7.80.
-// Could possibly be calculated "on the fly" somehow, but that is a problem for when we change font...
-const FONT_WIDTH = 7.85;
 
 // function compactLines(lines: LineObj[]) {
 //     const parsedLines = [];
@@ -152,7 +148,7 @@ export default class FileDiff extends PureStoreComponent<unknown, State> {
             <div className={`${classes.join(" ")}`} id="file-diff-container">
                 {!!this.state.fileHistory.length && <FileHistory fileHistory={this.state.fileHistory} />}
                 <div id="file-diff" className="pane">
-                    <h2>{patch.actualFile.path}<a href="#" onClick={this.closeActiveFileDiff}>🗙</a></h2>
+                    <h2>{patch.actualFile.path}<a href="#" onClick={this.closeActiveFileDiff}>&#x1f5d9;</a></h2>
                     {patch.status === DELTA.RENAMED && <h4>{patch.oldFile.path} &rArr; {patch.newFile.path} ({patch.similarity}%)</h4>}
                     <p>{patch.hunks?.length} chunks,&nbsp;<span className="added">+{patch.lineStats.total_additions}</span>&nbsp;<span className="deleted">-{patch.lineStats.total_deletions}</span></p>
                     <ul className="horizontal space-evenly">
@@ -182,7 +178,7 @@ export default class FileDiff extends PureStoreComponent<unknown, State> {
                             <button className={Store.diffOptions.ignoreWhitespace ? "active" : undefined} onClick={() => updateStore({diffOptions: {ignoreWhitespace: !Store.diffOptions.ignoreWhitespace}})}>Ignore whitespace</button>
                         </li>
                     </ul>
-                    <HunksContainer itemHeight={17} width={this.longestLine * FONT_WIDTH} items={this.state.lines} />
+                    <HunksContainer itemHeight={17} width={this.longestLine * glyphWidth()} items={this.state.lines} />
                 </div>
             </div>
         );
