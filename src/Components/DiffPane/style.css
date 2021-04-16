@@ -58,8 +58,11 @@
     flex-direction: column;
     flex: 1;
 }
+
+/* FIXME: change all of these to just `.modified`, `.added` and so on. */
 .changed-files .file-modified .status,
-.file-types .file-modified {
+.file-types .file-modified,
+.modified {
     color: yellowgreen;
 }
 .changed-files .file-deleted .status,
@@ -73,7 +76,8 @@
     color: green;
 }
 .changed-files .file-renamed .status,
-.file-types .file-renamed {
+.file-types .file-renamed,
+.renamed {
     color: blue;
 }
 .changed-files .file-conflicted {

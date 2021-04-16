@@ -1,7 +1,8 @@
+import { Diff } from "nodegit";
 import { h } from "preact";
 import { HunkObj, IpcAction, LineObj, IpcActionReturn } from "src/Data/Actions";
 import { ipcGetData } from "src/Data/Renderer/IPC";
-import { Store, closeFile, blameFile, PureStoreComponent, updateStore } from "src/Data/Renderer/store";
+import { Store, closeFile, openFileHistory, PureStoreComponent, updateStore } from "src/Data/Renderer/store";
 import { DELTA, formatTimeAgo } from "src/Data/Utils";
 import Link from "../Link";
 import HunksContainer from "./HunksContainer";
@@ -156,29 +157,41 @@ export default class FileDiff extends PureStoreComponent<unknown, State> {
                     <h4>File history</h4>
                     <ul>
                         {this.state.fileHistory.slice(0,1000).map(
-                            commit => (
-                            <li>
-                                <Link selectAction={async (_arg) => {
-                                    const filePatch = await ipcGetData(IpcAction.FILE_DIFF_AT, {file: patch.actualFile.path, sha: commit.sha});
-                                    if (filePatch) {
-                                        updateStore({
-                                            currentFile: {
-                                                patch: filePatch,
-                                                commitSHA: commit.sha
-                                            },
-                                        });
-                                    }
-                                }} title={commit.message} className="flex-column">
-                                    <div className="flex-row">
-                                        <span className="msg">{commit.message.substring(0, commit.message.indexOf("\n")>>>0 || 60)}</span>
-                                    </div>
-                                    <div className="flex-row space-between">
-                                        <span>{commit.sha.substring(0,8)}</span>
-                                        <span className="date">{formatTimeAgo(new Date(commit.date))}</span>
-                                    </div>
-                                </Link>
-                            </li>
-                            )
+                            commit => {
+                                let status = "";
+                                if (commit.status === Diff.DELTA.ADDED) {
+                                    status = " added";
+                                } else if (commit.status === Diff.DELTA.RENAMED) {
+                                    status = " renamed";
+                                } else if (commit.status === Diff.DELTA.DELETED) {
+                                    status = " deleted";
+                                } else if (commit.status === Diff.DELTA.MODIFIED) {
+                                    status = " modified";
+                                }
+                                return (
+                                    <li>
+                                        <Link selectAction={async (_arg) => {
+                                            const filePatch = await ipcGetData(IpcAction.FILE_DIFF_AT, {file: commit.path, sha: commit.sha});
+                                            if (filePatch) {
+                                                updateStore({
+                                                    currentFile: {
+                                                        patch: filePatch,
+                                                        commitSHA: commit.sha
+                                                    },
+                                                });
+                                            }
+                                        }} title={commit.message} className="flex-column">
+                                            <div className="flex-row">
+                                                <span className={`msg${status}`}>{commit.message.substring(0, commit.message.indexOf("\n")>>>0 || 60)}</span>
+                                            </div>
+                                            <div className="flex-row space-between">
+                                                <span>{commit.sha.substring(0,8)}</span>
+                                                <span className="date">{formatTimeAgo(new Date(commit.date))}</span>
+                                            </div>
+                                        </Link>
+                                    </li>
+                                    )
+                            }
                         )}
                     </ul>
                 </div>
@@ -196,7 +209,7 @@ export default class FileDiff extends PureStoreComponent<unknown, State> {
                             <button className={this.state.fileHistory.length ? "active" : undefined} onClick={() => {
                                 if (!this.state.fileHistory.length) {
                                     this.setState({fullWidth: true});
-                                    blameFile(patch.actualFile.path, Store.currentFile?.commitSHA);
+                                    openFileHistory(patch.actualFile.path, Store.currentFile?.commitSHA);
                                 }
                             }}>History</button>
                             <button onClick={() => {

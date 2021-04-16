@@ -3,7 +3,7 @@ import { PureComponent } from "preact/compat";
 import { DialogProps, DialogTypes } from "src/Components/Dialog/types";
 import Link, { unselectLink } from "src/Components/Link";
 import { IpcAction, BranchesObj, BranchObj, PatchObj, Locks, RepoStatus, IpcActionParams, IpcActionReturn } from "../Actions";
-import { registerHandler, ipcSendMessage, ipcGetData } from "./IPC";
+import { registerHandler, ipcSendMessage } from "./IPC";
 
 export type DialogWindow = {
     type: DialogTypes
@@ -329,20 +329,19 @@ export function closeDialogWindow() {
     });
 }
 
-export function blameFile(file: string, sha?: string) {
-    // ipcSendMessage(IpcAction.BLAME_FILE, file);
-    ipcSendMessage(IpcAction.LOAD_FILE_COMMITS, {file, cursor: sha, startAtCursor: true});
-}
-
 export async function openFileHistory(file: string, sha?: string) {
-    const filePatch = await ipcGetData(IpcAction.FILE_DIFF_AT, {file, sha});
-    if (filePatch) {
-        updateStore({
-            currentFile: {
-                patch: filePatch,
-                commitSHA: sha
+    ipcSendMessage(IpcAction.LOAD_FILE_COMMITS, {file, cursor: sha, startAtCursor: true});
+    updateStore({
+        currentFile: {
+            patch: {
+                status: 0,
+                hunks: [],
+                newFile: { path: "", size: 0, mode: 0, flags: 0 },
+                oldFile: { path: "", size: 0, mode: 0, flags: 0 },
+                lineStats: { total_context: 0, total_additions: 0, total_deletions: 0 },
+                actualFile: { path: file, size: 0, mode: 0, flags: 0 }
             },
-        });
-        blameFile(file, sha);
-    }
+            commitSHA: sha
+        },
+    });
 }

@@ -2,8 +2,8 @@ import * as path from "path";
 import { promises as fs } from "fs";
 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
 // @ts-ignore, missing declations for Credential,Patch
-import { Credential, Repository, Revwalk, Commit, Diff, ConvenientPatch, ConvenientHunk, DiffLine, Object, Branch, Graph, Index, Reset, Checkout, DiffFindOptions, Blame, Reference, Oid, Signature, Merge, Remote, Patch } from "nodegit";
-import { IpcAction, BranchObj, LineObj, HunkObj, PatchObj, CommitObj, IpcActionParams, IpcActionReturn, IpcActionReturnError, RefType, DiffOptions } from "../Actions";
+import { Credential, Repository, Revwalk, Commit, Diff, ConvenientPatch, ConvenientHunk, DiffLine, Object, Branch, Graph, Index, Reset, Checkout, DiffFindOptions, Blame, Reference, Oid, Signature, Merge, Remote, DiffOptions } from "nodegit";
+import { IpcAction, BranchObj, LineObj, HunkObj, PatchObj, CommitObj, IpcActionParams, IpcActionReturn, IpcActionReturnError, RefType } from "../Actions";
 import { normalizeLocalName, normalizeRemoteName, normalizeRemoteNameWithoutRemote, normalizeTagName, remoteName } from "../Branch";
 import { dialog, IpcMainEvent } from "electron";
 
@@ -32,8 +32,19 @@ export function authenticate(username: string, auth: Auth) {
         return Credential.userpassPlaintextNew(auth.username, auth.password);
     }
 }
-
-function compileHistoryCommit(commit: Commit) {
+type HistoryCommit = {
+    parents: string[]
+    sha: string,
+    message: string,
+    date: number,
+    author: {
+        name: string,
+        email: string,
+    },
+    path?: string
+    status?: number
+}
+function compileHistoryCommit(commit: Commit): HistoryCommit {
     const author = commit.author();
     return {
         parents: commit.parents().map(oid => oid.tostrS()),
@@ -51,7 +62,7 @@ const commitFilters = {
     default: (_: Commit, ..._args: unknown[]) => true,
 }
 
-export async function *getCommits(repo: Repository, branch: string, start: "refs/*" | Oid, file?: string, num = 1000) {
+function initRevwalk(repo: Repository, start: "refs/*" | Oid) {
     const revwalk = repo.createRevWalk();
     revwalk.sorting(Revwalk.SORT.TOPOLOGICAL | Revwalk.SORT.TIME);
 
@@ -60,44 +71,80 @@ export async function *getCommits(repo: Repository, branch: string, start: "refs
     } else {
         revwalk.push(start);
     }
+    return revwalk;
+}
 
-    if (file) {
-        const commits = await revwalk.fileHistoryWalk(file, num);
-        yield {
-            cursor: commits[commits.length - 1]?.commit.sha(),
-            branch,
-            commits: commits.map(historyEntry => compileHistoryCommit(historyEntry.commit))
-        };
-    } else {
-        const filter = commitFilters.default;
-        let cursorCommit: Commit | null = null;
+export async function getFileCommits(repo: Repository, branch: string, start: "refs/*" | Oid, file: string, num = 50000) {
+    const revwalk = initRevwalk(repo, start);
 
-        const history: Commit[] = [];
-        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-        // @ts-ignore, https://www.nodegit.org/api/revwalk/#commitWalk
-        for (const commit of await revwalk.commitWalk(num) as Array<Commit>) {
-            if (await filter(commit)) {
-                history.push(commit);
-            } else {
-                cursorCommit = commit;
-            }
-            if (history.length >= 100) {
-                cursorCommit = history[history.length - 1];
-                yield {
-                    branch,
-                    commits: history.splice(0, 100).map(compileHistoryCommit)
-                };
-            }
+    let currentName = file;
+    // FIXME: HistoryEntry should set commit.repo.
+    const historyEntries = await revwalk.fileHistoryWalk(currentName, num);
+
+    const commits: IpcActionReturn[IpcAction.LOAD_FILE_COMMITS]["commits"] = [];
+
+    fileHistoryCache = {};
+
+    for (const entry of historyEntries) {
+        const commit = entry.commit;
+        const historyCommit = compileHistoryCommit(entry.commit);
+        historyCommit.status = entry.status;
+
+        historyCommit.path = currentName;
+        
+        if (entry.status === Diff.DELTA.RENAMED) {
+            
+            currentName = entry.oldName;
+            const parent = await commit.parent(0);
+            revwalk.push(parent.id());
+            const newHistoryEntries = await revwalk.fileHistoryWalk(currentName, num);
+            historyEntries.push(...newHistoryEntries);
         }
 
-        const cursor = history.length > 0 ? history[history.length - 1]?.sha() : cursorCommit?.sha();
+        commits.push(historyCommit as HistoryCommit & {path: string});
 
-        yield {
-            cursor,
-            commits: history.map(compileHistoryCommit),
-            branch
-        };
+        entry.oldName = currentName;
+        fileHistoryCache[commit.sha()] = entry;
     }
+
+    return {
+        cursor: historyEntries[historyEntries.length - 1]?.commit.sha(),
+        branch,
+        commits
+    };
+}
+
+export async function* getCommits(repo: Repository, branch: string, start: "refs/*" | Oid, num = 1000) {
+    const revwalk = initRevwalk(repo, start);
+
+    const filter = commitFilters.default;
+    let cursorCommit: Commit | null = null;
+
+    const history: Commit[] = [];
+    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+    // @ts-ignore, https://www.nodegit.org/api/revwalk/#commitWalk
+    for (const commit of await revwalk.commitWalk(num) as Array<Commit>) {
+        if (await filter(commit)) {
+            history.push(commit);
+        } else {
+            cursorCommit = commit;
+        }
+        if (history.length >= 100) {
+            cursorCommit = history[history.length - 1];
+            yield {
+                branch,
+                commits: history.splice(0, 100).map(compileHistoryCommit)
+            };
+        }
+    }
+
+    const cursor = history.length > 0 ? history[history.length - 1]?.sha() : cursorCommit?.sha();
+
+    yield {
+        cursor,
+        commits: history.map(compileHistoryCommit),
+        branch
+    };
 }
 
 export async function pull(repo: Repository): Promise<IpcActionReturn[IpcAction.PULL]> {
@@ -109,10 +156,10 @@ export async function pull(repo: Repository): Promise<IpcActionReturn[IpcAction.
     catch (err) {
         // Missing remote/upstream
         dialog.showErrorBox("Pull failed", "No upstream");
-        return {result: false};
+        return { result: false };
     }
     const result = await repo.mergeBranches(head, upstream, undefined, Merge.PREFERENCE.FASTFORWARD_ONLY);
-    return {result: !!result};
+    return { result: !!result };
 }
 
 async function pushHead(repo: Repository, auth: Auth) {
@@ -121,13 +168,13 @@ async function pushHead(repo: Repository, auth: Auth) {
     try {
         upstream = await Branch.upstream(head);
     }
-    catch(err) {
+    catch (err) {
         dialog.showErrorBox("Missing upstream", err.message);
         return false;
     }
 
     const remote = await repo.getRemote(remoteName(upstream.name()));
-    const status = await Graph.aheadBehind(repo, head.target(), upstream.target()) as unknown as {ahead: number, behind: number};
+    const status = await Graph.aheadBehind(repo, head.target(), upstream.target()) as unknown as { ahead: number, behind: number };
 
     if (status.behind) {
         const result = await dialog.showMessageBox({
@@ -231,7 +278,7 @@ export async function deleteRemoteRef(repo: Repository, refName: string, auth: A
         }
         ref.delete();
     }
-    return {result: false};
+    return { result: false };
 }
 
 // {local: Branch[], remote: Branch[], tags: Branch[]}
@@ -258,8 +305,8 @@ export async function getBranches(repo: Repository): Promise<IpcActionReturn[Ipc
                     const upstream = await Branch.upstream(ref);
                     const upstreamHead = await upstream.peel(Object.TYPE.COMMIT);
                     refObj.remote = upstream.name();
-                    refObj.status = await Graph.aheadBehind(repo, headCommit.id(), upstreamHead.id()) as unknown as {ahead: number, behind: number};
-                } catch(_) {
+                    refObj.status = await Graph.aheadBehind(repo, headCommit.id(), upstreamHead.id()) as unknown as { ahead: number, behind: number };
+                } catch (_) {
                     // missing upstream
                 }
 
@@ -276,17 +323,17 @@ export async function getBranches(repo: Repository): Promise<IpcActionReturn[Ipc
             }
         })
     );
-    
+
     const head = await repo.head();
     const headCommit = await head.peel(Object.TYPE.COMMIT);
     let headUpstream: string | undefined;
     try {
         const upstream = await Branch.upstream(head);
         headUpstream = upstream.name();
-    } catch(_) {
+    } catch (_) {
         // no upstream for "head"
     }
-    
+
     return {
         local,
         remote,
@@ -354,7 +401,7 @@ export async function commit(repo: Repository, params: IpcActionParams[IpcAction
         } else {
             await repo.createCommit("HEAD", committer, committer, message, oid, [parent]);
         }
-    } catch(err) {
+    } catch (err) {
         console.warn("Failed to commit:", err);
         return {
             error: "Failed to commit."
@@ -391,7 +438,7 @@ export async function stageFile(repo: Repository, filePath: string): Promise<Ipc
         // and needs to be removed from the index
         await fs.access(path.join(repo.workdir(), filePath));
         result = await index.addByPath(filePath);
-    } catch(err) {
+    } catch (err) {
         result = await index.removeByPath(filePath);
     }
 
@@ -399,14 +446,14 @@ export async function stageFile(repo: Repository, filePath: string): Promise<Ipc
         await index.write();
     }
 
-    return {result: 0};
+    return { result: 0 };
 }
 export async function unstageFile(repo: Repository, path: string): Promise<IpcActionReturn[IpcAction.UNSTAGE_FILE]> {
     const head = await repo.getHeadCommit();
     await Reset.default(repo, head, path);
     index = await repo.refreshIndex();
 
-    return {result: 0};
+    return { result: 0 };
 }
 export async function discardChanges(repo: Repository, filePath: string): Promise<IpcActionReturn[IpcAction.DISCARD_FILE]> {
     if (!index.getByPath(filePath)) {
@@ -420,7 +467,7 @@ export async function discardChanges(repo: Repository, filePath: string): Promis
         if (result.response === 0) {
             await fs.unlink(path.join(repo.workdir(), filePath));
         }
-        return {result: 0};
+        return { result: 0 };
     }
     try {
         const head = await repo.getHeadCommit();
@@ -430,7 +477,7 @@ export async function discardChanges(repo: Repository, filePath: string): Promis
         console.error(err)
     }
 
-    return {result: 0};
+    return { result: 0 };
 }
 
 async function getUnstagedPatches(repo: Repository, flags: Diff.OPTION) {
@@ -497,12 +544,12 @@ function handleLine(line: DiffLine): LineObj {
         length: line.contentLen(),
         oldLineno,
         newLineno,
-        content: line.rawContent().slice(0, line.contentLen()).trimEnd()
+        content: line.rawContent().trimEnd()
     };
 }
 async function handleHunk(hunk: ConvenientHunk): Promise<HunkObj> {
     const lines = await hunk.lines();
-    
+
     return {
         header: hunk.header().trim(),
         lines: lines.map(handleLine),
@@ -529,82 +576,60 @@ async function loadHunks(patch: ConvenientPatch) {
     return Promise.all(hunks.map(handleHunk));
 }
 
-export async function diff_file_at_commit(repo: Repository, file: string, sha?: string) {
-    const commit = sha ? await repo.getCommit(sha) : await repo.getHeadCommit();
+async function commit_diff_parent(commit: Commit, diffOptions?: DiffOptions) {
+    const tree = await commit.getTree();
+
     // TODO: which parent to chose?
     const parents = await commit.getParents(1);
-    if (!parents.length) {
-        return false;
+    if (parents.length) {
+        const parent = parents[0];
+        const parentTree = await parent.getTree();
+
+        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+        // @ts-ignore
+        return await tree.diffWithOptions(parentTree, diffOptions) as Diff;
     }
 
-    let blob;
-    try {
-        const entry = await commit.getEntry(file);
-        blob = await entry.getBlob();
-    } catch (err) {
-        // blob does not exist in tree, file probably deleted
+    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+    // @ts-ignore, from nodegit source.
+    return await tree.diffWithOptions(null, diffOptions) as Diff;
+}
+
+export async function diff_file_at_commit(repo: Repository, file: string, sha: string) {
+    const historyEntry = fileHistoryCache[sha];
+    // FIXME: Cannot use this until Revwalk.fileHistoryWalk() sets repo on returned Commit items.
+    // const commit = historyEntry.commit;
+    const commit = await Commit.lookup(repo, sha);
+
+    const pathspec = [file];
+
+    // Find renames
+    if (historyEntry.oldName) {
+        pathspec.push(historyEntry.oldName);
     }
 
-    // FIXME: Configure this using an argument (like "Ignore whitespace" from filediff view)
-    const diffOpts = {
+    const diff = await commit_diff_parent(commit, {
+        pathspec,
         flags: Diff.OPTION.IGNORE_WHITESPACE,
-    };
+    });
+    await diff.findSimilar({
+        flags: Diff.FIND.RENAMES
+    });
 
-    let oldBlob;
-    try {
-        const entry = await parents[0].getEntry(file);
-        oldBlob = await entry.getBlob();
-    } catch (err) {
-        // blob does not exist in tree, probably a new file
-    }
-
-    if (!blob && !oldBlob) {
-        // ??
-        return false;
-    }
-
-    const hunks: HunkObj[] = []
-
-    const patch = await Patch.fromBlobs(oldBlob, file, blob, file, diffOpts);
-    for (let i = 0; i < patch.numHunks(); ++i) {
-        const hunkResult = await patch.getHunk(i);
-        const hunk: HunkObj = {
-            header: hunkResult.hunk.header().trim(),
-            lines: [],
-        };
-        for (let j = 0; j < patch.numLinesInHunk(i); ++j) {
-            const line = await patch.getLineInHunk(i, j) as DiffLine;
-            hunk.lines.push(handleLine(line));
+    const convPatches = await diff.patches();
+    const patch = convPatches[0];
+    
+    const hunks = (await patch.hunks()).map(async hunk => (
+        {
+            header: hunk.header().trim(),
+            lines: (await hunk.lines()).map(handleLine),
         }
-        hunks.push(hunk);
-    }
+    ));
 
-    const delta = patch.getDelta();
+    const patchObj = handlePatch(patch);
+    patchObj.hunks = await Promise.all(hunks);
 
-    const patchNewFile = delta.newFile();
-    const patchOldFile = delta.oldFile();
-
-    const newFile = {
-        path: patchNewFile.path(),
-        size: patchNewFile.size(),
-        mode: patchNewFile.mode(),
-        flags: patchNewFile.flags(),
-    };
-    const oldFile = {
-        path: patchOldFile.path(),
-        size: patchOldFile.size(),
-        mode: patchOldFile.mode(),
-        flags: patchOldFile.flags(),
-    };
-
-    return {
-        status: delta.status(),
-        lineStats: patch.lineStats(),
-        newFile,
-        oldFile,
-        actualFile: newFile.path ? newFile : oldFile,
-        hunks,
-    };
+    return patchObj;
 }
 
 export async function resolveConflict(path: string) {
@@ -643,7 +668,7 @@ function handlePatch(patch: ConvenientPatch): PatchObj {
     return patchResult;
 }
 
-async function handleDiff(diff: Diff, patches: {[path: string]: ConvenientPatch}) {
+async function handleDiff(diff: Diff, patches: { [path: string]: ConvenientPatch }) {
     return (await diff.patches()).map(convPatch => {
         const patch = handlePatch(convPatch);
         patches[patch.actualFile.path] = convPatch;
@@ -653,40 +678,16 @@ async function handleDiff(diff: Diff, patches: {[path: string]: ConvenientPatch}
 
 export async function getCommitPatches(sha: string, options?: DiffOptions): Promise<IpcActionReturn[IpcAction.LOAD_PATCHES_WITHOUT_HUNKS]> {
     const commit = commitObjectCache[sha].commit;
-    
-    // TODO: fix this. Merge commits are a bit messy without this.
-    const tree = await commit.getTree();
-    const diffOpts: DiffFindOptions = {
+
+    const diff = await commit_diff_parent(commit, options);
+    await diff.findSimilar({
         flags: Diff.FIND.RENAMES,
-    };
-
-    // TODO: which parent to chose?
-    const parents = await commit.getParents(1);
-    let diffs: Diff[];
-    if (parents.length) {
-        // TODO: how many parents?
-        diffs = await Promise.all(
-            parents.map(parent => parent.getTree().then(parentTree => 
-                // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-                // @ts-ignore
-                tree.diffWithOptions(parentTree, options)))
-        );
-    }
-    else {
-        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-        // @ts-ignore, from nodegit source.
-        diffs = [await tree.diffWithOptions(null)];
-    }
-
-    const patches = diffs.map(async diff => {
-        await diff.findSimilar(diffOpts);
-        return handleDiff(diff, commitObjectCache[currentCommit].patches);
     });
 
-    return (await Promise.all(patches)).flat();
+    return handleDiff(diff, commitObjectCache[currentCommit].patches);
 }
 
-export async function compareRevisions(repo: Repository, revisions: {from: string, to: string}) {
+export async function compareRevisions(repo: Repository, revisions: { from: string, to: string }) {
     const fromCommit = repo.getReference(revisions.from)
         .then(ref => ref.peel(Object.TYPE.COMMIT) as unknown as Commit)
         .then(commit => commit.id().tostrS())
@@ -716,7 +717,7 @@ export async function compareRevisions(repo: Repository, revisions: {from: strin
 export async function compareRevisionsPatches() {
     const from = compareObjCache.from;
     const to = compareObjCache.to;
-    
+
     // TODO: fix this. Merge commits are a bit messy without this.
     const tree = await to.getTree();
     const diffOpts: DiffFindOptions = {
@@ -743,11 +744,11 @@ export async function loadCommit(repo: Repository, sha: string | null): Promise<
     const committer = commit.committer();
 
     const msg = commit.message();
-    const msgSummary = msg.substring(0, msg.indexOf("\n")>>>0);
+    const msgSummary = msg.substring(0, msg.indexOf("\n") >>> 0);
     const msgBody = msg.substring(msgSummary.length).trim();
 
     return {
-        parents: commit.parents().map(parent => ({sha: parent.tostrS()})),
+        parents: commit.parents().map(parent => ({ sha: parent.tostrS() })),
         sha: commit.sha(),
         authorDate: author.when().time(),
         date: committer.when().time(),
@@ -791,7 +792,7 @@ export async function checkoutBranch(repo: Repository, branch: string) {
             normalizedName: head.name(),
             type: RefType.LOCAL
         };
-    } catch(err) {
+    } catch (err) {
         console.error(err);
         return {
             error: err.message
@@ -868,6 +869,9 @@ let compareObjCache: {
         [path: string]: ConvenientPatch
     }
 };
+let fileHistoryCache: {
+    [sha: string]: Revwalk.HistoryEntry
+} = {};
 let workDirIndexCache: {
     unstagedPatches: ConvenientPatch[]
     stagedPatches: ConvenientPatch[]

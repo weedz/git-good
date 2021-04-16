@@ -1,4 +1,4 @@
-import { Diff } from "nodegit";
+import { Diff, DiffOptions } from "nodegit";
 import { AppConfig } from "./Config";
 
 export enum IpcAction {
@@ -38,10 +38,6 @@ export enum IpcAction {
     SAVE_SETTINGS,
     GET_SETTINGS,
     FILE_DIFF_AT,
-}
-
-export type DiffOptions = {
-    flags: Diff.OPTION
 }
 
 export type IpcActionParams = {
@@ -125,14 +121,14 @@ export type IpcActionParams = {
     [IpcAction.GET_SETTINGS]: string | null
     [IpcAction.FILE_DIFF_AT]: {
         file: string
-        sha?: string
+        sha: string
         options?: DiffOptions
     }
 };
 
 export type IpcActionReturn = {
     [IpcAction.LOAD_COMMITS]: LoadCommitsReturn
-    [IpcAction.LOAD_FILE_COMMITS]: LoadCommitsReturn
+    [IpcAction.LOAD_FILE_COMMITS]: LoadFileCommitsReturn
     [IpcAction.LOAD_BRANCHES]: BranchesObj & {head: BranchObj}
     [IpcAction.OPEN_REPO]: {
         opened: boolean
@@ -311,6 +307,15 @@ export type LoadCommitReturn = {
 }
 type LoadCommitsReturn = {
     commits: LoadCommitReturn[]
+    branch: string
+    cursor?: string
+};
+type LoadFileCommitsReturn = {
+    commits: Array<LoadCommitReturn & {
+        // FIXME: Enforce `status`?
+        status?: Diff.DELTA
+        path: string
+    }>
     branch: string
     cursor?: string
 };
