@@ -70,16 +70,20 @@
 #file-history-commits {
     width: 240px;
     overflow: auto;
+    display: flex;
+    flex-direction: column;
 }
 #file-history-commits li {
     height: 50px;
     display: flex;
+    flex-direction: column;
     white-space: nowrap;
     border-top: 1px solid #555;
+    width: 100%;
 }
 #file-history-commits li a {
     overflow: hidden;
-    flex: 1;
+    flex: auto;
     justify-content: center;
 }
 #file-history-commits li a:not(.selected):hover {

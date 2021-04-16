@@ -137,6 +137,13 @@ ul.block-list > li > a:not(.selected):hover {
   opacity: 0.4;
 }
 
+.scroll-container {
+  flex-grow: 1;
+  overflow: auto;
+  will-change: transform;
+  height: 100%;
+}
+
 ul.horizontal {
   display: flex;
   flex-direction: row;

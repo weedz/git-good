@@ -10,7 +10,7 @@ type Props<T> = {
 export default class ScrollContainer<T> extends ScrollListView<T, Props<T>> {
     render() {
         return (
-            <div ref={this.containerRef} id={this.props.containerId} className={this.props.className}>
+            <div ref={this.containerRef} id={this.props.containerId} className={`scroll-container ${this.props.className || ""}`}>
                 <ul
                     style={{
                         position: "relative",

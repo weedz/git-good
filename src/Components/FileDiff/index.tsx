@@ -1,10 +1,8 @@
-import { Diff } from "nodegit";
 import { h } from "preact";
 import { HunkObj, IpcAction, LineObj, IpcActionReturn } from "src/Data/Actions";
-import { ipcGetData } from "src/Data/Renderer/IPC";
 import { Store, closeFile, openFileHistory, PureStoreComponent, updateStore } from "src/Data/Renderer/store";
-import { DELTA, formatTimeAgo } from "src/Data/Utils";
-import Link from "../Link";
+import { DELTA } from "src/Data/Utils";
+import FileHistory from "./FileHistory";
 import HunksContainer from "./HunksContainer";
 
 import "./style.css";
@@ -152,50 +150,7 @@ export default class FileDiff extends PureStoreComponent<unknown, State> {
 
         return (
             <div className={`${classes.join(" ")}`} id="file-diff-container">
-                {!!this.state.fileHistory.length && (
-                <div id="file-history-commits" className="pane">
-                    <h4>File history</h4>
-                    <ul>
-                        {this.state.fileHistory.slice(0,1000).map(
-                            commit => {
-                                let status = "";
-                                if (commit.status === Diff.DELTA.ADDED) {
-                                    status = " added";
-                                } else if (commit.status === Diff.DELTA.RENAMED) {
-                                    status = " renamed";
-                                } else if (commit.status === Diff.DELTA.DELETED) {
-                                    status = " deleted";
-                                } else if (commit.status === Diff.DELTA.MODIFIED) {
-                                    status = " modified";
-                                }
-                                return (
-                                    <li>
-                                        <Link selectAction={async (_arg) => {
-                                            const filePatch = await ipcGetData(IpcAction.FILE_DIFF_AT, {file: commit.path, sha: commit.sha});
-                                            if (filePatch) {
-                                                updateStore({
-                                                    currentFile: {
-                                                        patch: filePatch,
-                                                        commitSHA: commit.sha
-                                                    },
-                                                });
-                                            }
-                                        }} title={commit.message} className="flex-column">
-                                            <div className="flex-row">
-                                                <span className={`msg${status}`}>{commit.message.substring(0, commit.message.indexOf("\n")>>>0 || 60)}</span>
-                                            </div>
-                                            <div className="flex-row space-between">
-                                                <span>{commit.sha.substring(0,8)}</span>
-                                                <span className="date">{formatTimeAgo(new Date(commit.date))}</span>
-                                            </div>
-                                        </Link>
-                                    </li>
-                                    )
-                            }
-                        )}
-                    </ul>
-                </div>
-                )}
+                {!!this.state.fileHistory.length && <FileHistory fileHistory={this.state.fileHistory} />}
                 <div id="file-diff" className="pane">
                     <h2>{patch.actualFile.path}<a href="#" onClick={this.closeActiveFileDiff}>🗙</a></h2>
                     {patch.status === DELTA.RENAMED && <h4>{patch.oldFile.path} &rArr; {patch.newFile.path} ({patch.similarity}%)</h4>}

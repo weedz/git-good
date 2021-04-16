@@ -77,9 +77,16 @@ function initRevwalk(repo: Repository, start: "refs/*" | Oid) {
 export async function getFileCommits(repo: Repository, branch: string, start: "refs/*" | Oid, file: string, num = 50000) {
     const revwalk = initRevwalk(repo, start);
 
+    let followRenames = false;
+
     let currentName = file;
     // FIXME: HistoryEntry should set commit.repo.
     const historyEntries = await revwalk.fileHistoryWalk(currentName, num);
+
+    if (historyEntries[0].status === Diff.DELTA.RENAMED) {
+        // We always "follow renames" if the file is renamed in the first commit
+        followRenames = true;
+    }
 
     const commits: IpcActionReturn[IpcAction.LOAD_FILE_COMMITS]["commits"] = [];
 
@@ -91,9 +98,17 @@ export async function getFileCommits(repo: Repository, branch: string, start: "r
         historyCommit.status = entry.status;
 
         historyCommit.path = currentName;
-        
+
         if (entry.status === Diff.DELTA.RENAMED) {
-            
+            historyCommit.path = entry.oldName;
+        }
+        
+        if (entry.status === Diff.DELTA.RENAMED && followRenames) {
+            followRenames = false;
+
+            historyCommit.path = entry.newName;
+
+            // To follow renames:
             currentName = entry.oldName;
             const parent = await commit.parent(0);
             revwalk.push(parent.id());
@@ -103,7 +118,9 @@ export async function getFileCommits(repo: Repository, branch: string, start: "r
 
         commits.push(historyCommit as HistoryCommit & {path: string});
 
-        entry.oldName = currentName;
+        if (!entry.oldName) {
+            entry.oldName = currentName;
+        }
         fileHistoryCache[commit.sha()] = entry;
     }
 
@@ -604,8 +621,10 @@ export async function diff_file_at_commit(repo: Repository, file: string, sha: s
     const pathspec = [file];
 
     // Find renames
-    if (historyEntry.oldName) {
+    if (historyEntry.oldName !== file) {
         pathspec.push(historyEntry.oldName);
+    } else if (historyEntry.newName !== file) {
+        pathspec.push(historyEntry.newName);
     }
 
     const diff = await commit_diff_parent(commit, {
@@ -617,6 +636,9 @@ export async function diff_file_at_commit(repo: Repository, file: string, sha: s
     });
 
     const convPatches = await diff.patches();
+    if (!convPatches.length) {
+        return {error: "empty patch"};
+    }
     const patch = convPatches[0];
     
     const hunks = (await patch.hunks()).map(async hunk => (

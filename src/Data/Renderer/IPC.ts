@@ -9,7 +9,13 @@ const callbackHandlers: Record<string, (args: IpcActionReturn[IpcAction]) => voi
 
 function handleMessage<T extends IpcAction>(_: unknown, payload: {id?: string, action: T, data: IpcActionReturn[T] | IpcActionReturnError}) {
     if (payload.id && callbackHandlers[payload.id]) {
-        callbackHandlers[payload.id](payload.data);
+        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+        // @ts-ignore
+        if ("error" in payload.data) {
+            callbackHandlers[payload.id](false);
+        } else {
+            callbackHandlers[payload.id](payload.data);
+        }
         delete callbackHandlers[payload.id];
     }
     handleEvent(payload);
