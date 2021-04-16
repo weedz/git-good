@@ -503,8 +503,6 @@ const eventMap: {
         }
 
         if (data.oldName !== data.name) {
-            // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-            // @ts-ignore
             await Remote.rename(repo, data.oldName, data.name);
         }
 

@@ -1,7 +1,7 @@
 import * as path from "path";
 import { promises as fs } from "fs";
 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-// @ts-ignore, missing declations for Credential,Patch
+// @ts-ignore, missing declations for Credential
 import { Credential, Repository, Revwalk, Commit, Diff, ConvenientPatch, ConvenientHunk, DiffLine, Object, Branch, Graph, Index, Reset, Checkout, DiffFindOptions, Blame, Reference, Oid, Signature, Merge, Remote, DiffOptions } from "nodegit";
 import { IpcAction, BranchObj, LineObj, HunkObj, PatchObj, CommitObj, IpcActionParams, IpcActionReturn, RefType, IpcPayloadMsg } from "../Actions";
 import { normalizeLocalName, normalizeRemoteName, normalizeRemoteNameWithoutRemote, normalizeTagName, remoteName } from "../Branch";
@@ -138,8 +138,6 @@ export async function* getCommits(repo: Repository, branch: string, start: "refs
     let cursorCommit: Commit | null = null;
 
     const history: Commit[] = [];
-    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-    // @ts-ignore, https://www.nodegit.org/api/revwalk/#commitWalk
     for (const commit of await revwalk.commitWalk(num) as Array<Commit>) {
         if (await filter(commit)) {
             history.push(commit);
@@ -266,8 +264,6 @@ export async function setUpstream(repo: Repository, local: string, remoteRefName
             await Reference.create(repo, `refs/remotes/${remoteRefName}`, (await reference.peel(Object.TYPE.COMMIT)).id() as unknown as Oid, 0, "");
         }
     }
-    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-    // @ts-ignore, https://www.nodegit.org/api/branch/#setUpstream (pass NULL to unset)
     const result = await Branch.setUpstream(reference, remoteRefName);
 
     return result;
@@ -602,13 +598,9 @@ async function commit_diff_parent(commit: Commit, diffOptions?: DiffOptions) {
         const parent = parents[0];
         const parentTree = await parent.getTree();
 
-        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-        // @ts-ignore
         return await tree.diffWithOptions(parentTree, diffOptions) as Diff;
     }
 
-    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-    // @ts-ignore, from nodegit source.
     return await tree.diffWithOptions(null, diffOptions) as Diff;
 }
 
