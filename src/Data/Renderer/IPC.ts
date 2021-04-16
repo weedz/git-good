@@ -1,18 +1,17 @@
 import { ipcRenderer } from "electron";
 import { dialog } from "@electron/remote";
 import { v4 as uuidv4 } from "uuid";
-import { IpcAction, IpcActionParams, IpcActionReturn, IpcActionReturnError } from "../Actions";
+import { IpcAction, IpcActionParams, IpcActionReturn, IpcPayload } from "../Actions";
 import { WindowArguments, WindowEvents } from "../WindowEventTypes";
 
 ipcRenderer.on("asynchronous-reply", handleMessage);
-const callbackHandlers: Record<string, (args: IpcActionReturn[IpcAction]) => void> = {};
+// We send null to callbacks when the action failed/returned an error
+const callbackHandlers: Record<string, (args: IpcActionReturn[IpcAction] | null) => void> = {};
 
-function handleMessage<T extends IpcAction>(_: unknown, payload: {id?: string, action: T, data: IpcActionReturn[T] | IpcActionReturnError}) {
+function handleMessage<T extends IpcAction>(_: unknown, payload: IpcPayload<T>) {
     if (payload.id && callbackHandlers[payload.id]) {
-        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-        // @ts-ignore
-        if ("error" in payload.data) {
-            callbackHandlers[payload.id](false);
+        if ("error" in payload) {
+            callbackHandlers[payload.id](null);
         } else {
             callbackHandlers[payload.id](payload.data);
         }
@@ -38,7 +37,7 @@ export function ipcSendMessage<T extends IpcAction>(action: T, data: IpcActionPa
 export function ipcGetData<T extends IpcAction>(action: T, data: IpcActionParams[T]) {
     const id = ipcSendMessage(action, data);
     return new Promise<IpcActionReturn[T]>((resolve, _reject) => {
-        callbackHandlers[id] = resolve as unknown as (args: IpcActionReturn[IpcAction]) => void;
+        callbackHandlers[id] = resolve as unknown as (args: IpcActionReturn[IpcAction] | null) => void;
     });
 }
 
@@ -99,12 +98,10 @@ export function unregisterHandler<T extends IpcAction>(action: T, callbacks: ((a
         handlers[action].splice(handlers[action].indexOf(cb as HandlerCallback)>>>0, 1);
     }
 }
-function handleEvent<T extends IpcAction>(payload: {action: T, data: IpcActionReturn[T] | IpcActionReturnError}) {
+function handleEvent<T extends IpcAction>(payload: IpcPayload<T>) {
     try {
-        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-        // @ts-ignore, https://github.com/microsoft/TypeScript/issues/43210
-        if ("error" in payload.data) {
-            dialog.showErrorBox(`Error ${IpcAction[payload.action]}`, payload.data.error);
+        if ("error" in payload) {
+            dialog.showErrorBox(`Error ${IpcAction[payload.action]}`, payload.error.msg);
             // FIXME: can we define some sort of error handler here?
             console.warn(payload);
             return;

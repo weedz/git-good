@@ -1,6 +1,15 @@
 import { Diff, DiffOptions } from "nodegit";
 import { AppConfig } from "./Config";
 
+export type IpcPayload<T extends IpcAction> = {
+    id?: string
+    action: T
+} & (
+    {data: IpcActionReturn[T]} | {error: IpcActionReturnError}
+);
+
+export type IpcPayloadMsg<T extends IpcAction> = IpcActionReturn[T] | {error: IpcActionReturnError["msg"]};
+
 export enum IpcAction {
     LOAD_COMMITS,
     LOAD_FILE_COMMITS,
@@ -183,7 +192,7 @@ export type IpcActionReturn = {
 };
 
 export type IpcActionReturnError = {
-    error: string
+    msg: string
 };
 
 export type RepoStatus = {

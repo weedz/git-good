@@ -5,7 +5,7 @@ import { exec, spawn } from "child_process";
 import { Branch, Commit, Object, Oid, Rebase, Reference, Remote, Repository, Signature } from "nodegit";
 
 import * as provider from "./Data/Main/Provider";
-import { IpcAction, IpcActionParams, IpcActionReturn, IpcActionReturnError, Locks } from "./Data/Actions";
+import { IpcAction, IpcActionParams, IpcActionReturn, IpcPayloadMsg, Locks } from "./Data/Actions";
 import { formatTimeAgo } from "./Data/Utils";
 import { AppConfig } from "./Data/Config";
 import { sendEvent } from "./Data/Main/WindowEvents";
@@ -342,8 +342,8 @@ type EventArgs = {
     id?: string
 };
 
-type AsyncGeneratorEventCallback<A extends IpcAction> = (repo: Repository, args: IpcActionParams[A], event: IpcMainEvent) => AsyncGenerator<IpcActionReturn[A] | IpcActionReturnError>;
-type PromiseEventCallback<A extends IpcAction> = (repo: Repository, args: IpcActionParams[A], event: IpcMainEvent) => Promise<IpcActionReturn[A] | IpcActionReturnError>;
+type AsyncGeneratorEventCallback<A extends IpcAction> = (repo: Repository, args: IpcActionParams[A], event: IpcMainEvent) => AsyncGenerator<IpcPayloadMsg<A>>;
+type PromiseEventCallback<A extends IpcAction> = (repo: Repository, args: IpcActionParams[A], event: IpcMainEvent) => Promise<IpcPayloadMsg<A>>;
 
 type AsyncGeneratorFunctions = IpcAction.LOAD_COMMITS;
 

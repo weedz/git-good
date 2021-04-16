@@ -3,7 +3,7 @@ import { promises as fs } from "fs";
 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
 // @ts-ignore, missing declations for Credential,Patch
 import { Credential, Repository, Revwalk, Commit, Diff, ConvenientPatch, ConvenientHunk, DiffLine, Object, Branch, Graph, Index, Reset, Checkout, DiffFindOptions, Blame, Reference, Oid, Signature, Merge, Remote, DiffOptions } from "nodegit";
-import { IpcAction, BranchObj, LineObj, HunkObj, PatchObj, CommitObj, IpcActionParams, IpcActionReturn, IpcActionReturnError, RefType } from "../Actions";
+import { IpcAction, BranchObj, LineObj, HunkObj, PatchObj, CommitObj, IpcActionParams, IpcActionReturn, RefType, IpcPayloadMsg } from "../Actions";
 import { normalizeLocalName, normalizeRemoteName, normalizeRemoteNameWithoutRemote, normalizeTagName, remoteName } from "../Branch";
 import { dialog, IpcMainEvent } from "electron";
 
@@ -13,7 +13,7 @@ export const actionLock: {
     };
 } = {};
 
-export function eventReply<T extends IpcAction>(event: IpcMainEvent, action: T, data: IpcActionReturn[T] | IpcActionReturnError, id?: string) {
+export function eventReply<T extends IpcAction>(event: IpcMainEvent, action: T, data: IpcPayloadMsg<T>, id?: string) {
     // console.log("eventReply():", IpcAction[action], data);
     if (action in actionLock) {
         delete actionLock[action];
@@ -398,7 +398,7 @@ export async function findFile(repo: Repository, file: string): Promise<IpcActio
     };
 }
 
-export async function commit(repo: Repository, params: IpcActionParams[IpcAction.COMMIT], committer: Signature): Promise<IpcActionReturn[IpcAction.COMMIT] | IpcActionReturnError> {
+export async function commit(repo: Repository, params: IpcActionParams[IpcAction.COMMIT], committer: Signature) {
     if (!committer.email()) {
         return {
             error: "No git credentials provided."
@@ -822,7 +822,7 @@ export async function checkoutBranch(repo: Repository, branch: string) {
     }
 }
 
-export async function blameFile(repo: Repository, filePath: string): Promise<IpcActionReturn[IpcAction.BLAME_FILE]> {
+export async function blameFile(repo: Repository, filePath: string) {
     try {
         const blame = await Blame.file(repo, filePath);
 
