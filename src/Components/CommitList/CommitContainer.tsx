@@ -4,10 +4,6 @@ import { LoadCommitReturn } from "src/Data/Actions";
 import ScrollContainer from "../ScrollContainer";
 import CommitListItem from "./CommitListItem";
 
-/*
-TODO: Use something similar for FileDiff?
-*/
-
 type Props = {
     commits: LoadCommitReturn[]
     graph: {

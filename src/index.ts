@@ -346,6 +346,10 @@ type AsyncGeneratorEventCallback<A extends IpcAction> = (repo: Repository, args:
 type PromiseEventCallback<A extends IpcAction> = (repo: Repository, args: IpcActionParams[A], event: IpcMainEvent) => Promise<IpcPayloadMsg<A>>;
 
 type AsyncGeneratorFunctions = IpcAction.LOAD_COMMITS;
+function isAsyncGenerator(action: IpcAction): action is AsyncGeneratorFunctions {
+    // TODO: fix proper type to detect AsyncIterator-stuff, AsyncGeneratorFunctions
+    return action === IpcAction.LOAD_COMMITS;
+}
 
 const eventMap: {
     [A in AsyncGeneratorFunctions]: AsyncGeneratorEventCallback<A>
@@ -596,8 +600,7 @@ ipcMain.on("asynchronous-message", async (event, arg: EventArgs) => {
         return provider.eventReply(event, action, {error: "empty repo... FIXME"}, arg.id);
     }
 
-    // TODO: fix proper type to detect AsyncIterator-stuff, AsyncGeneratorFunctions
-    if (action === IpcAction.LOAD_COMMITS) {
+    if (isAsyncGenerator(action)) {
         const callback = eventMap[action] as AsyncGeneratorEventCallback<typeof action>;
         const data = arg.data as IpcActionParams[typeof action];
         for await (const result of callback(repo, data, event)) {

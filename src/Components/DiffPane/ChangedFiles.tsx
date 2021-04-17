@@ -128,10 +128,10 @@ export default class ChangedFiles extends Component<Props, {fileFilter?: string}
             <div className="changed-files">
                 <input type="text" onKeyUp={this.filterFiles} placeholder="Search file..." value={this.state.fileFilter} />
                 <ul className="file-types">
-                    {this.fileTypes.modified > 0 && <li className="file-modified">{this.fileTypes.modified} modified</li>}
-                    {this.fileTypes.added > 0 && <li className="file-added">{this.fileTypes.added} added</li>}
-                    {this.fileTypes.deleted > 0 && <li className="file-deleted">{this.fileTypes.deleted} deleted</li>}
-                    {this.fileTypes.renamed > 0 && <li className="file-renamed">{this.fileTypes.renamed} renamed</li>}
+                    {this.fileTypes.modified > 0 && <li className="modified">{this.fileTypes.modified} modified</li>}
+                    {this.fileTypes.added > 0 && <li className="added">{this.fileTypes.added} added</li>}
+                    {this.fileTypes.deleted > 0 && <li className="deleted">{this.fileTypes.deleted} deleted</li>}
+                    {this.fileTypes.renamed > 0 && <li className="renamed">{this.fileTypes.renamed} renamed</li>}
                 </ul>
                 <Links.Provider value="files">
                     <ul className="diff-view block-list inset">

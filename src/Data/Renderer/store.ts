@@ -104,7 +104,6 @@ type StoreKeys = keyof StoreType;
 
 type PartialStoreListener<T extends StoreKeys> = (arg: StoreType[T]) => void;
 
-// FIXME: change to Map? faster to "unsubscribe"?
 const listeners: {
     [K in StoreKeys]: PartialStoreListener<K>[]
 } = {
@@ -213,47 +212,39 @@ export function checkoutBranch(branch: string) {
     ipcSendMessage(IpcAction.CHECKOUT_BRANCH, branch);
 }
 
-export function openFile(params: {file: string, sha: string} | (
+export function openFile(params: (
     {sha: string} |
     {workDir: true, type: "staged" | "unstaged"} |
     {compare: true}
 ) & {patch: PatchObj}) {
-    if ("patch" in params) {
-        const currentFile: StoreType["currentFile"] = {
-            patch: params.patch,
-        };
-        if ("sha"in params) {
-            currentFile.commitSHA = params.sha;
-        }
-        if (!params.patch.hunks) {
-            if ("sha" in params) {
-                ipcSendMessage(IpcAction.LOAD_HUNKS, {
-                    sha: params.sha,
-                    path: params.patch.actualFile.path,
-                });
-            } else if ("compare" in params) {
-                ipcSendMessage(IpcAction.LOAD_HUNKS, {
-                    compare: true,
-                    path: params.patch.actualFile.path,
-                });
-            } else {
-                ipcSendMessage(IpcAction.LOAD_HUNKS, {
-                    workDir: true,
-                    path: params.patch.actualFile.path,
-                    type: params.type
-                });
-            }
-        }
-        updateStore({
-            currentFile
-        });
-    } else {
-        // FIXME: Maybe implement a separate function for this?
-        ipcSendMessage(IpcAction.LOAD_HUNKS, {
-            sha: params.sha,
-            path: params.file,
-        });
+    const currentFile: StoreType["currentFile"] = {
+        patch: params.patch,
+    };
+    if ("sha" in params) {
+        currentFile.commitSHA = params.sha;
     }
+    if (!params.patch.hunks) {
+        if ("sha" in params) {
+            ipcSendMessage(IpcAction.LOAD_HUNKS, {
+                sha: params.sha,
+                path: params.patch.actualFile.path,
+            });
+        } else if ("compare" in params) {
+            ipcSendMessage(IpcAction.LOAD_HUNKS, {
+                compare: true,
+                path: params.patch.actualFile.path,
+            });
+        } else {
+            ipcSendMessage(IpcAction.LOAD_HUNKS, {
+                workDir: true,
+                path: params.patch.actualFile.path,
+                type: params.type
+            });
+        }
+    }
+    updateStore({
+        currentFile
+    });
 }
 export function closeFile() {
     updateStore({

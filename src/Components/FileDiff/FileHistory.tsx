@@ -8,10 +8,6 @@ import { formatTimeAgo } from "src/Data/Utils";
 import ScrollContainer from "../ScrollContainer";
 import Link from "../Link";
 
-/*
-TODO: Use something similar for FileDiff?
-*/
-
 const ITEM_HEIGHT = 50;
 const ACTION_ITEM_HEIGHT = 12;
 
