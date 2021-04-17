@@ -37,7 +37,6 @@ export enum IpcAction {
     ABORT_REBASE,
     CONTINUE_REBASE,
     OPEN_COMPARE_REVISIONS,
-    BLAME_FILE,
     REMOTES,
     RESOLVE_CONFLICT,
     EDIT_REMOTE,
@@ -119,7 +118,6 @@ export type IpcActionParams = {
     [IpcAction.ABORT_REBASE]: null
     [IpcAction.CONTINUE_REBASE]: null
     [IpcAction.OPEN_COMPARE_REVISIONS]: {from: string, to: string}
-    [IpcAction.BLAME_FILE]: string
     [IpcAction.REMOTES]: null
     [IpcAction.RESOLVE_CONFLICT]: {path: string}
     [IpcAction.EDIT_REMOTE]: {oldName: string, name: string, pullFrom: string, pushTo?: string}
@@ -175,7 +173,6 @@ export type IpcActionReturn = {
     [IpcAction.ABORT_REBASE]: RepoStatus
     [IpcAction.CONTINUE_REBASE]: RepoStatus
     [IpcAction.OPEN_COMPARE_REVISIONS]: PatchObj[]
-    [IpcAction.BLAME_FILE]: unknown
     [IpcAction.REMOTES]: {
         name: string
         pushTo?: string

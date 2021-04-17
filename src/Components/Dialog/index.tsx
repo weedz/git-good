@@ -6,17 +6,15 @@ import { SetUpstream } from "./SetUpstream";
 import { Compare } from "./Compare";
 import { EditRemote } from "./EditRemote";
 import { AddRemote } from "./AddRemote";
+import { Settings } from "./Settings";
 
 import "./style.css";
-import { Blame } from "./Blame";
-import { Settings } from "./Settings";
 
 const dialogTypes = {
     [DialogTypes.NEW_BRANCH]: NewBranch,
     [DialogTypes.RENAME_BRANCH]: RenameBranch,
     [DialogTypes.COMPARE]: Compare,
     [DialogTypes.SET_UPSTREAM]: SetUpstream,
-    [DialogTypes.BLAME]: Blame,
     [DialogTypes.EDIT_REMOTE]: EditRemote,
     [DialogTypes.ADD_REMOTE]: AddRemote,
     [DialogTypes.SETTINGS]: Settings,

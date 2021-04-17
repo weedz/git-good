@@ -2,7 +2,7 @@ import * as path from "path";
 import { promises as fs } from "fs";
 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
 // @ts-ignore, missing declations for Credential
-import { Credential, Repository, Revwalk, Commit, Diff, ConvenientPatch, ConvenientHunk, DiffLine, Object, Branch, Graph, Index, Reset, Checkout, DiffFindOptions, Blame, Reference, Oid, Signature, Merge, Remote, DiffOptions } from "nodegit";
+import { Credential, Repository, Revwalk, Commit, Diff, ConvenientPatch, ConvenientHunk, DiffLine, Object, Branch, Graph, Index, Reset, Checkout, DiffFindOptions, Reference, Oid, Signature, Merge, Remote, DiffOptions } from "nodegit";
 import { IpcAction, BranchObj, LineObj, HunkObj, PatchObj, CommitObj, IpcActionParams, IpcActionReturn, RefType, IpcPayloadMsg } from "../Actions";
 import { normalizeLocalName, normalizeRemoteName, normalizeRemoteNameWithoutRemote, normalizeTagName, remoteName } from "../Branch";
 import { dialog, IpcMainEvent } from "electron";
@@ -807,49 +807,6 @@ export async function checkoutBranch(repo: Repository, branch: string) {
             error: err.message
         };
     }
-}
-
-export async function blameFile(repo: Repository, filePath: string) {
-    try {
-        const blame = await Blame.file(repo, filePath);
-
-        const fullFilePath = path.join(repo.workdir(), filePath);
-        const file = await fs.readFile(fullFilePath);
-
-        const lines = file.toString("utf8").split("\n");
-
-        const hunks = [];
-
-        // console.log(lines.map( (line, lineNumber) => `${lineNumber}: ${line}`).join("\n"), file.length, blame);
-        // console.log(blame.getHunkCount());
-        // console.log(lines);
-
-        const hunkCount = blame.getHunkCount();
-        for (let i = 0; i < hunkCount; i++) {
-            const hunk = blame.getHunkByIndex(i)
-            // console.log(hunk.finalCommitId().tostrS().slice(0,8), hunk.origCommitId().tostrS().slice(0,8), hunk.finalStartLineNumber(), hunk.origStartLineNumber(), hunk.linesInHunk());
-
-            // const startIndex = hunk.finalStartLineNumber() - 1;
-            // console.log(lines.slice(startIndex, startIndex + hunk.linesInHunk()).join("\n"));
-
-            hunks.push({
-                finalCommitId: hunk.finalCommitId().tostrS(),
-                origCommitId: hunk.origCommitId().tostrS(),
-                finalStartLineNumber: hunk.finalStartLineNumber(),
-                origStartLineNumber: hunk.origStartLineNumber(),
-                linesInHunk: hunk.linesInHunk(),
-            });
-        }
-
-        return {
-            lines,
-            hunks,
-        };
-    } catch (err) {
-        console.error(err);
-    }
-
-    return {};
 }
 
 export type Auth = {

@@ -70,7 +70,6 @@ const handlers: {[T in IpcAction]: HandlerCallback[]} = {
     [IpcAction.ABORT_REBASE]: [],
     [IpcAction.CONTINUE_REBASE]: [],
     [IpcAction.OPEN_COMPARE_REVISIONS]: [],
-    [IpcAction.BLAME_FILE]: [],
     [IpcAction.REMOTES]: [],
     [IpcAction.RESOLVE_CONFLICT]: [],
     [IpcAction.EDIT_REMOTE]: [],

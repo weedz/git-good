@@ -1,6 +1,6 @@
 import { Diff } from "nodegit";
 import { BranchObj, IpcAction, IpcActionReturn, Locks, RepoStatus } from "../Actions";
-import { openDialog_BlameFile, openDialog_CompareRevisions, openDialog_Settings } from "./Dialogs";
+import { openDialog_CompareRevisions, openDialog_Settings } from "./Dialogs";
 import { addWindowEventListener, registerHandler, ipcSendMessage } from "./IPC";
 import { Store, clearLock, setLock, updateStore, StoreType, GlobalLinks } from "./store";
 
@@ -118,11 +118,6 @@ function handleCompareRevisions(data: IpcActionReturn[IpcAction.OPEN_COMPARE_REV
     });
 }
 
-function handleBlameFile(_data: IpcActionReturn[IpcAction.BLAME_FILE]) {
-    // FIXME: Open "filediff" (if not open already)
-    // console.log("blame", data);
-}
-
 function handlePushResult(_: IpcActionReturn[IpcAction.PUSH]) {
     loadBranches();
 }
@@ -154,7 +149,6 @@ addWindowEventListener("open-settings", openSettings);
 addWindowEventListener("app-lock-ui", setLock);
 addWindowEventListener("app-unlock-ui", clearLock);
 addWindowEventListener("begin-compare-revisions", openDialog_CompareRevisions);
-addWindowEventListener("begin-blame-file", openDialog_BlameFile);
 addWindowEventListener("fetch-status", stats => {
     if ("done" in stats) {
         console.log(`Fetch all done: ${stats.update ? "refreshing branch/commit list": "no update"}`);
@@ -183,6 +177,5 @@ registerHandler(IpcAction.RENAME_LOCAL_BRANCH, loadBranches);
 registerHandler(IpcAction.ABORT_REBASE, setStatus);
 registerHandler(IpcAction.CONTINUE_REBASE, setStatus);
 registerHandler(IpcAction.OPEN_COMPARE_REVISIONS, handleCompareRevisions);
-registerHandler(IpcAction.BLAME_FILE, handleBlameFile);
 registerHandler(IpcAction.COMMIT, handleNewCommit);
 registerHandler(IpcAction.REMOTES, handleRemotes);

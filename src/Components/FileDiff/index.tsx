@@ -163,9 +163,6 @@ export default class FileDiff extends PureStoreComponent<unknown, State> {
                                     openFileHistory(patch.actualFile.path, Store.currentFile?.commitSHA);
                                 }
                             }}>History</button>
-                            <button onClick={() => {
-                                console.log("BLAME. Noop.")
-                            }}>Blame</button>
                         </li>
                         <li className="btn-group">
                             <button className={this.state.diffType === "inline" ? "active" : undefined} onClick={() => this.setState({diffType: "inline"}, this.renderHunks)}>Inline</button>

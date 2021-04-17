@@ -7,8 +7,7 @@ export type WindowEvents =
     "open-settings" |
     "app-lock-ui" |
     "app-unlock-ui" |
-    "begin-compare-revisions" |
-    "begin-blame-file";
+    "begin-compare-revisions";
 
 export type WindowArguments = {
     "repo-opened": IpcActionReturn[IpcAction.OPEN_REPO]
@@ -26,5 +25,4 @@ export type WindowArguments = {
         indexedObjects: number
         receivedBytes: number
     }
-    "begin-blame-file": null
 }

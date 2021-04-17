@@ -265,12 +265,6 @@ const menuTemplate = [
                 click() {
                     sendEvent(win.webContents, "begin-compare-revisions", null);
                 }
-            },
-            {
-                label: "Blame file...",
-                click() {
-                    sendEvent(win.webContents, "begin-blame-file", null);
-                }
             }
         ]
     },
@@ -478,7 +472,6 @@ const eventMap: {
         }
         return {error: "revisions not found"};
     },
-    [IpcAction.BLAME_FILE]: provider.blameFile,
     [IpcAction.PUSH]: async (repo, data) => {
         const auth = getAuth();
         const result = auth ? await provider.push(repo, data, auth) : false;
