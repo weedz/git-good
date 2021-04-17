@@ -144,11 +144,6 @@ ul.block-list > li > a:not(.selected):hover {
   height: 100%;
 }
 
-ul.horizontal {
-  display: flex;
-  flex-direction: row;
-}
-
 .flex-row {
   display: flex;
   flex-direction: row;

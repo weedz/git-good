@@ -17,7 +17,7 @@
     --border-color: #aaa;
     flex: 1;
 }
-#file-diff > ul.horizontal {
+#file-diff > ul.file-diff-toolbar {
     padding: 5px 0;
     border-bottom: 1px solid #555;
 }

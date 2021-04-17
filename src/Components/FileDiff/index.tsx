@@ -8,8 +8,6 @@ import HunksContainer from "./HunksContainer";
 import "./style.css";
 
 type State = {
-    diffType: "inline" | "side-by-side"
-    viewType: "file" | "diff"
     fullWidth: boolean
     wrapLine: boolean
     lines: Array<{
@@ -47,8 +45,6 @@ type State = {
 export default class FileDiff extends PureStoreComponent<unknown, State> {
     longestLine = 0;
     state: State = {
-        viewType: "diff",
-        diffType: "inline",
         wrapLine: false,
         lines: [],
         fullWidth: false,
@@ -134,12 +130,6 @@ export default class FileDiff extends PureStoreComponent<unknown, State> {
         const fullWidth = this.state.fullWidth || !!this.state.fileHistory;
 
         const classes = [];
-        if (this.state.wrapLine) {
-            classes.push("wrap-content");
-        }
-        if (this.state.diffType === "side-by-side") {
-            classes.push("parallel");
-        }
         if (fullWidth) {
             classes.push("full-width");
         }
@@ -156,11 +146,7 @@ export default class FileDiff extends PureStoreComponent<unknown, State> {
                     <h2>{patch.actualFile.path}<a href="#" onClick={this.closeActiveFileDiff}>&#x1f5d9;</a></h2>
                     {patch.status === DELTA.RENAMED && <h4>{patch.oldFile.path} &rArr; {patch.newFile.path} ({patch.similarity}%)</h4>}
                     <p>{patch.hunks?.length} chunks,&nbsp;<span className="added">+{patch.lineStats.total_additions}</span>&nbsp;<span className="deleted">-{patch.lineStats.total_deletions}</span></p>
-                    <ul className="horizontal space-evenly">
-                        <li className="btn-group">
-                            <button onClick={() => 0 && this.setState({viewType: "file"}, this.renderHunks)}>File View</button>
-                            <button className={this.state.viewType === "diff" ? "active" : undefined} onClick={() => this.setState({viewType: "diff"}, this.renderHunks)}>Diff View</button>
-                        </li>
+                    <ul className="file-diff-toolbar flex-row">
                         <li className="btn-group">
                             <button className={this.state.fileHistory ? "active" : undefined} onClick={() => {
                                 if (!this.state.fileHistory) {
@@ -168,10 +154,6 @@ export default class FileDiff extends PureStoreComponent<unknown, State> {
                                     openFileHistory(patch.actualFile.path, Store.currentFile?.commitSHA);
                                 }
                             }}>History</button>
-                        </li>
-                        <li className="btn-group">
-                            <button className={this.state.diffType === "inline" ? "active" : undefined} onClick={() => this.setState({diffType: "inline"}, this.renderHunks)}>Inline</button>
-                            <button onClick={() => 0 && this.setState({diffType: "side-by-side"}, this.renderHunks)}>Side-by-side</button>
                         </li>
                         <li className="btn-group">
                             <button className={fullWidth ? "active" : undefined} onClick={() => this.setState({fullWidth: !this.state.fullWidth})} disabled={!!this.state.fileHistory}>Fullscreen</button>
