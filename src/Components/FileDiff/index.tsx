@@ -1,6 +1,6 @@
 import { h } from "preact";
 import { HunkObj, IpcAction, LineObj, IpcActionReturn } from "src/Data/Actions";
-import { Store, closeFile, openFileHistory, PureStoreComponent, updateStore, glyphWidth } from "src/Data/Renderer/store";
+import { Store, closeFile, openFileHistory, PureStoreComponent, updateStore, glyphWidth, StoreType } from "src/Data/Renderer/store";
 import { DELTA } from "src/Data/Utils";
 import FileHistory from "./FileHistory";
 import HunksContainer from "./HunksContainer";
@@ -58,16 +58,16 @@ export default class FileDiff extends PureStoreComponent<unknown, State> {
         this.listen("currentFile", this.renderHunks);
         this.registerHandler(IpcAction.LOAD_FILE_COMMITS, commitsResult => {
             this.setState({
-                fileHistory: commitsResult.commits
+                fileHistory: commitsResult.commits || []
             });
         });
     }
 
-    renderHunks = () => {
-        const patch = Store.currentFile?.patch;
+    renderHunks = (newStore?: StoreType["currentFile"]) => {
+        const patch = newStore?.patch;
         this.longestLine = 0;
         this.setState({
-            lines: patch?.hunks ? patch.hunks.map(this.renderHunk).flat() : []
+            lines: patch?.hunks ? patch.hunks.map(this.renderHunk).flat() : [],
         });
     }
 

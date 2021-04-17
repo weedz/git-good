@@ -172,8 +172,8 @@ function triggerKeyListeners(newStore: Partial<StoreType>) {
 }
 
 export function updateStore(newStore: Partial<StoreType>) {
-    Object.assign(store, newStore);
     triggerKeyListeners(newStore);
+    Object.assign(store, newStore);
 }
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -187,12 +187,13 @@ function setStoreDeep(paths: Array<string | number>, data: any) {
     const key = paths[paths.length - 1];
     const newStore = { [key]: data };
 
-    Object.assign(obj[key], newStore);
     // eslint-disable-next-line @typescript-eslint/ban-ts-comment
     // @ts-ignore
     for (const listener of listeners[paths[0]]) {
         listener(newStore);
     }
+
+    Object.assign(obj[key], newStore);
 }
 
 

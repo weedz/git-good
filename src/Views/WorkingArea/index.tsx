@@ -33,9 +33,9 @@ export default class WorkingArea extends StoreComponent<unknown, State> {
 
         ipcSendMessage(IpcAction.LOAD_COMMIT, null);
 
-        this.listen("diffOptions", () => {
+        this.listen("diffOptions", (diffOptions) => {
             let options = null;
-            if (Store.diffOptions.ignoreWhitespace) {
+            if (diffOptions.ignoreWhitespace) {
                 options = {
                     flags: Diff.OPTION.IGNORE_WHITESPACE
                 };
