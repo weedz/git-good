@@ -102,21 +102,16 @@ export async function getFileCommits(repo: Repository, branch: string, start: "r
         if (entry.status === Diff.DELTA.RENAMED) {
             historyCommit.path = entry.oldName;
         }
-        
+
         if (entry.status === Diff.DELTA.RENAMED && followRenames) {
             followRenames = false;
 
             historyCommit.path = entry.newName;
 
-            // To follow renames:
             currentName = entry.oldName;
-            const parent = await commit.parent(0);
-            revwalk.push(parent.id());
-            const newHistoryEntries = await revwalk.fileHistoryWalk(currentName, num);
-            historyEntries.push(...newHistoryEntries);
         }
 
-        commits.push(historyCommit as HistoryCommit & {path: string});
+        commits.push(historyCommit as HistoryCommit & { path: string });
 
         if (!entry.oldName) {
             entry.oldName = currentName;
@@ -629,10 +624,10 @@ export async function diff_file_at_commit(repo: Repository, file: string, sha: s
 
     const convPatches = await diff.patches();
     if (!convPatches.length) {
-        return {error: "empty patch"};
+        return { error: "empty patch" };
     }
     const patch = convPatches[0];
-    
+
     const hunks = (await patch.hunks()).map(async hunk => (
         {
             header: hunk.header().trim(),
