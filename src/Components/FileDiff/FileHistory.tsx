@@ -3,7 +3,7 @@ import { h } from "preact";
 import { PureComponent } from "preact/compat";
 import { ipcGetData } from "src/Data/Renderer/IPC";
 import { IpcActionReturn, IpcAction } from "src/Data/Actions";
-import { openFileHistory, updateStore } from "src/Data/Renderer/store";
+import { updateStore } from "src/Data/Renderer/store";
 import { formatTimeAgo } from "src/Data/Utils";
 import ScrollContainer from "../ScrollContainer";
 import Link from "../Link";
@@ -13,6 +13,7 @@ const ACTION_ITEM_HEIGHT = 12;
 
 type Props = {
     fileHistory: IpcActionReturn[IpcAction.LOAD_FILE_COMMITS]["commits"]
+    openFileHistory: (path: string) => void
 }
 
 // eslint-disable-next-line react/prefer-stateless-function
@@ -21,7 +22,9 @@ export default class CommitContainer extends PureComponent<Props> {
         return (
             <div id="file-history-commits" className="pane">
                 <h4>File history</h4>
-                {<ScrollContainer items={this.props.fileHistory} itemHeight={ITEM_HEIGHT} renderItems={(commits, start) => {
+                {!this.props.fileHistory.length ? (
+                    <p>Loading...</p>
+                ) : <ScrollContainer items={this.props.fileHistory} itemHeight={ITEM_HEIGHT} renderItems={(commits, start) => {
                     let extraHeightOffset = 0;
                     return commits.map((commit, idx) => {
                         let status = "";
@@ -31,7 +34,7 @@ export default class CommitContainer extends PureComponent<Props> {
                             status = " added";
                         } else if (commit.status === Diff.DELTA.RENAMED) {
                             status = " renamed";
-                            action = <Link selectAction={() => openFileHistory(commit.path)} title={commit.path}><span className="renamed">RENAMED</span>&nbsp;&gt;&nbsp;{commit.path}</Link>;
+                            action = <Link selectAction={() => this.props.openFileHistory(commit.path)} title={commit.path}><span className="renamed">RENAMED</span>&nbsp;&gt;&nbsp;{commit.path}</Link>;
                             height = `${ITEM_HEIGHT + ACTION_ITEM_HEIGHT}px`;
                         } else if (commit.status === Diff.DELTA.DELETED) {
                             status = " deleted";

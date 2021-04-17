@@ -17,7 +17,7 @@ type State = {
         content: string
         line?: LineObj
     }>
-    fileHistory: IpcActionReturn[IpcAction.LOAD_FILE_COMMITS]["commits"]
+    fileHistory: null | IpcActionReturn[IpcAction.LOAD_FILE_COMMITS]["commits"]
 }
 
 // function compactLines(lines: LineObj[]) {
@@ -52,13 +52,13 @@ export default class FileDiff extends PureStoreComponent<unknown, State> {
         wrapLine: false,
         lines: [],
         fullWidth: false,
-        fileHistory: []
+        fileHistory: null
     };
     componentDidMount() {
         this.listen("currentFile", this.renderHunks);
         this.registerHandler(IpcAction.LOAD_FILE_COMMITS, commitsResult => {
             this.setState({
-                fileHistory: commitsResult.commits || []
+                fileHistory: commitsResult.commits || null
             });
         });
     }
@@ -97,9 +97,9 @@ export default class FileDiff extends PureStoreComponent<unknown, State> {
     }
 
     closeActiveFileDiff = () => {
-        if (this.state.fileHistory.length) {
+        if (this.state.fileHistory) {
             this.setState({
-                fileHistory: []
+                fileHistory: null
             });
         }
         closeFile();
@@ -131,7 +131,7 @@ export default class FileDiff extends PureStoreComponent<unknown, State> {
         }
         const patch = Store.currentFile.patch;
 
-        const fullWidth = this.state.fullWidth || this.state.fileHistory.length;
+        const fullWidth = this.state.fullWidth || !!this.state.fileHistory;
 
         const classes = [];
         if (this.state.wrapLine) {
@@ -146,7 +146,12 @@ export default class FileDiff extends PureStoreComponent<unknown, State> {
 
         return (
             <div className={`${classes.join(" ")}`} id="file-diff-container">
-                {!!this.state.fileHistory.length && <FileHistory fileHistory={this.state.fileHistory} />}
+                {!!this.state.fileHistory && <FileHistory openFileHistory={path => {
+                    this.setState({
+                        fileHistory: []
+                    });
+                    openFileHistory(path);
+                }} fileHistory={this.state.fileHistory} />}
                 <div id="file-diff" className="pane">
                     <h2>{patch.actualFile.path}<a href="#" onClick={this.closeActiveFileDiff}>&#x1f5d9;</a></h2>
                     {patch.status === DELTA.RENAMED && <h4>{patch.oldFile.path} &rArr; {patch.newFile.path} ({patch.similarity}%)</h4>}
@@ -157,9 +162,9 @@ export default class FileDiff extends PureStoreComponent<unknown, State> {
                             <button className={this.state.viewType === "diff" ? "active" : undefined} onClick={() => this.setState({viewType: "diff"}, this.renderHunks)}>Diff View</button>
                         </li>
                         <li className="btn-group">
-                            <button className={this.state.fileHistory.length ? "active" : undefined} onClick={() => {
-                                if (!this.state.fileHistory.length) {
-                                    this.setState({fullWidth: true});
+                            <button className={this.state.fileHistory ? "active" : undefined} onClick={() => {
+                                if (!this.state.fileHistory) {
+                                    this.setState({fileHistory: []});
                                     openFileHistory(patch.actualFile.path, Store.currentFile?.commitSHA);
                                 }
                             }}>History</button>
@@ -169,7 +174,7 @@ export default class FileDiff extends PureStoreComponent<unknown, State> {
                             <button onClick={() => 0 && this.setState({diffType: "side-by-side"}, this.renderHunks)}>Side-by-side</button>
                         </li>
                         <li className="btn-group">
-                            <button className={fullWidth ? "active" : undefined} onClick={() => this.setState({fullWidth: !this.state.fullWidth})} disabled={this.state.fileHistory.length > 0}>Fullscreen</button>
+                            <button className={fullWidth ? "active" : undefined} onClick={() => this.setState({fullWidth: !this.state.fullWidth})} disabled={!!this.state.fileHistory}>Fullscreen</button>
                         </li>
                         <li>
                             <button className={Store.diffOptions.ignoreWhitespace ? "active" : undefined} onClick={() => updateStore({diffOptions: {ignoreWhitespace: !Store.diffOptions.ignoreWhitespace}})}>Ignore whitespace</button>
