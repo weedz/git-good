@@ -99,18 +99,6 @@ remoteRefMenu.append(new MenuItem({
         }
     }
 }));
-remoteRefMenu.append(new MenuItem({
-    label: 'Rebase...',
-    click() {
-        console.log("Rebase");
-    }
-}));
-remoteRefMenu.append(new MenuItem({
-    label: 'Merge...',
-    click() {
-        console.log("Merge");
-    }
-}));
 
 const localMenu = new Menu();
 localMenu.append(new MenuItem({
@@ -140,18 +128,6 @@ localMenu.append(new MenuItem({
     click() {
         const refName = contextMenuState.data.ref;
         openDialog_RenameRef(refName, BranchType.LOCAL);
-    }
-}));
-localMenu.append(new MenuItem({
-    label: 'Rebase...',
-    click() {
-        console.log("Rebase");
-    }
-}));
-localMenu.append(new MenuItem({
-    label: 'Merge...',
-    click() {
-        console.log("Merge");
     }
 }));
 localMenu.append(setUpstreamMenuItem);
