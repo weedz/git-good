@@ -3,7 +3,7 @@ import { PureComponent } from "preact/compat";
 import { DialogProps, DialogTypes } from "src/Components/Dialog/types";
 import Link, { unselectLink } from "src/Components/Link";
 import { IpcAction, BranchesObj, BranchObj, PatchObj, Locks, RepoStatus, IpcActionParams, IpcActionReturn } from "../Actions";
-import { registerHandler, ipcSendMessage } from "./IPC";
+import { registerHandler, ipcSendMessage, ipcGetData } from "./IPC";
 
 // Glyph properties
 let _glyphWidth = 7.81;
@@ -305,7 +305,7 @@ export function deleteRemoteBranch(name: string) {
 }
 
 export function setUpstream(local: string, remote: string | null) {
-    ipcSendMessage(IpcAction.SET_UPSTREAM, {
+    return ipcGetData(IpcAction.SET_UPSTREAM, {
         local,
         remote: remote || null
     });

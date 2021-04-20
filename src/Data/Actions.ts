@@ -5,7 +5,7 @@ export type IpcPayload<T extends IpcAction> = {
     id?: string
     action: T
 } & (
-    {data: IpcActionReturn[T]} | {error: IpcActionReturnError}
+    {data: IpcActionReturn[T]} | {error: string}
 );
 
 export type IpcResponse<T extends IpcAction> = IpcActionReturn[T] | false;
@@ -191,7 +191,7 @@ export type IpcActionReturn = {
 };
 
 export type IpcActionReturnError = {
-    msg: string
+    msg: Error
 };
 
 export type RepoStatus = {

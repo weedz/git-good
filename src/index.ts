@@ -5,7 +5,7 @@ import { exec, spawn } from "child_process";
 import { Branch, Commit, Object, Oid, Rebase, Reference, Remote, Repository, Signature } from "nodegit";
 
 import * as provider from "./Data/Main/Provider";
-import { IpcAction, IpcActionParams, IpcActionReturn, IpcPayloadMsg, Locks } from "./Data/Actions";
+import { IpcAction, IpcActionParams, IpcActionReturn, Locks } from "./Data/Actions";
 import { formatTimeAgo } from "./Data/Utils";
 import { AppConfig } from "./Data/Config";
 import { sendEvent } from "./Data/Main/WindowEvents";
@@ -336,8 +336,8 @@ type EventArgs = {
     id?: string
 };
 
-type AsyncGeneratorEventCallback<A extends IpcAction> = (repo: Repository, args: IpcActionParams[A], event: IpcMainEvent) => AsyncGenerator<IpcPayloadMsg<A>>;
-type PromiseEventCallback<A extends IpcAction> = (repo: Repository, args: IpcActionParams[A], event: IpcMainEvent) => Promise<IpcPayloadMsg<A>>;
+type AsyncGeneratorEventCallback<A extends IpcAction> = (repo: Repository, args: IpcActionParams[A], event: IpcMainEvent) => AsyncGenerator<IpcActionReturn[A]>;
+type PromiseEventCallback<A extends IpcAction> = (repo: Repository, args: IpcActionParams[A], event: IpcMainEvent) => Promise<IpcActionReturn[A]>;
 
 type AsyncGeneratorFunctions = IpcAction.LOAD_COMMITS;
 function isAsyncGenerator(action: IpcAction): action is AsyncGeneratorFunctions {
@@ -354,117 +354,73 @@ const eventMap: {
         if (path) {
             const opened = await openRepo(path);
             return {
-                result:{
-                    path,
-                    opened,
-                    status: opened ? repoStatus() : null,
-                }
+                path,
+                opened,
+                status: opened ? repoStatus() : null,
             }
         }
-        return {result: await openRepoDialog()};
+        return openRepoDialog();
     },
-    [IpcAction.LOAD_BRANCHES]: async (repo) => {
-        return {result: await provider.getBranches(repo)};
-    },
-    [IpcAction.LOAD_COMMIT]: async (repo, sha) => {
-        return {result: await provider.loadCommit(repo, sha)};
-    },
+    [IpcAction.LOAD_BRANCHES]: provider.getBranches,
+    [IpcAction.LOAD_COMMIT]: provider.loadCommit,
     async *[IpcAction.LOAD_COMMITS](repo, params) {
         const arg = await initGetComits(repo, params);
         if (!arg) {
-            yield {
-                result: {commits: [], branch: "", cursor: params.cursor}
-            };
+            yield {commits: [], branch: "", cursor: params.cursor};
         } else {
             for await (const commits of provider.getCommits(repo, arg.branch, arg.revwalkStart, params.num)) {
-                yield {result: commits};
+                yield commits;
             }
         }
     },
     [IpcAction.LOAD_FILE_COMMITS]: async (repo, params) => {
         const arg = await initGetComits(repo, params);
         if (!arg) {
-            return {error: "invalid params"};
+            throw Error("Invalid params");
         }
         const result = await provider.getFileCommits(repo, arg.branch, arg.revwalkStart, params.file, params.num);
         if (!result) {
-            return {error: "failed to load commits"};
+            throw Error("failed to load commits");
         }
-        return {result};
+        return result;
     },
-    [IpcAction.LOAD_PATCHES_WITHOUT_HUNKS]: async (_, args) => {
-        return {result: await provider.getCommitPatches(args.sha, args.options)}
-    },
-    [IpcAction.FILE_DIFF_AT]: async (_, args) => {
-        const result = await provider.diff_file_at_commit(repo, args.file, args.sha);
-        if ("error" in result) {
-            return result;
-        }
-        return {result};
-    },
+    [IpcAction.LOAD_PATCHES_WITHOUT_HUNKS]: async (_, args) => provider.getCommitPatches(args.sha, args.options),
+    [IpcAction.FILE_DIFF_AT]: async (_, args) => provider.diff_file_at_commit(repo, args.file, args.sha),
     [IpcAction.LOAD_HUNKS]: async (_, arg) => {
         return {
-            result: {
-                path: arg.path,
-                hunks: await loadHunks(repo, arg)
-            }
+            path: arg.path,
+            hunks: await loadHunks(repo, arg)
         };
     },
-    [IpcAction.CHECKOUT_BRANCH]: async (repo, data) => {
-        const result = await provider.checkoutBranch(repo, data);
-        if ("error" in result) {
-            return {error: result.error};
-        }
-        return {result};
-    },
-    [IpcAction.REFRESH_WORKDIR]: async (repo, options) => {
-        return {result: await  provider.refreshWorkDir(repo, options)};
-    },
-    [IpcAction.GET_CHANGES]: async () => {
-        return {result: await provider.loadChanges()};
-    },
+    [IpcAction.CHECKOUT_BRANCH]: provider.checkoutBranch,
+    [IpcAction.REFRESH_WORKDIR]: provider.refreshWorkDir,
+    [IpcAction.GET_CHANGES]: provider.loadChanges,
     [IpcAction.STAGE_FILE]: async (repo, data) => {
         const result = await provider.stageFile(repo, data);
         sendEvent(win.webContents, "refresh-workdir", null);
-        return {result};
+        return result;
     },
     [IpcAction.UNSTAGE_FILE]: async (repo, data) => {
         const result = await provider.unstageFile(repo, data);
         sendEvent(win.webContents, "refresh-workdir", null);
-        return {result};
+        return result;
     },
     [IpcAction.DISCARD_FILE]: async (repo, data) => {
         const result = await provider.discardChanges(repo, data);
         sendEvent(win.webContents, "refresh-workdir", null);
-        return {result};
+        return result;
     },
-    [IpcAction.PULL]: async (repo, branch) => {
-        return {result: await provider.pull(repo, branch)};
-    },
+    [IpcAction.PULL]: provider.pull,
     [IpcAction.CREATE_BRANCH]: async (repo, data) => {
-        let res;
-        try {
-            res = await repo.createBranch(data.name, data.sha);
-        } catch (err) {
-            dialog.showErrorBox("Could not create branch", err.toString());
-        }
-        return {
-            result: res !== null
-        }
+        const res = await repo.createBranch(data.name, data.sha)
+        return res !== null;
     },
     [IpcAction.CREATE_BRANCH_FROM_REF]: async (repo, data) => {
         const ref = await repo.getReference(data.ref);
         const sha = ref.isTag() ? (await ref.peel(Object.TYPE.COMMIT)) as unknown as Commit : await repo.getReferenceCommit(data.ref);
         
-        let res;
-        try {
-            res = await repo.createBranch(data.name, sha);
-        } catch (err) {
-            dialog.showErrorBox("Could not create branch", err.toString());
-        }
-        return {
-            result: res !== null
-        };
+        const res = await repo.createBranch(data.name, sha);
+        return res !== null;
     },
     // TODO: Should we allow renaming remote refs? Can we use the same call for remote refs?
     [IpcAction.RENAME_LOCAL_BRANCH]: async (repo, data) => {
@@ -475,70 +431,52 @@ const eventMap: {
             // We only allow rename of a local branch (so the name should begin with "refs/heads/")
             renamedRef = await ref.rename(`refs/heads/${data.name}`, 0, "renamed");
         }
-        return {
-            result: !!renamedRef
-        }
+        return !!renamedRef;
     },
     [IpcAction.DELETE_REF]: async (repo, data) => {
         const ref = await repo.getReference(data.name);
         const res = Branch.delete(ref);
-        return {result: !res};
+        return !res
     },
     [IpcAction.DELETE_REMOTE_REF]: async (repo, data) => {
         const auth = getAuth();
         if (auth) {
-            return {result: await provider.deleteRemoteRef(repo, data, auth)};
+            return await provider.deleteRemoteRef(repo, data, auth);
         }
-        return {result: false};
+        return false
     },
-    [IpcAction.FIND_FILE]: async (repo, file) => {
-        return {result: await provider.findFile(repo, file)};
-    },
-    [IpcAction.ABORT_REBASE]: async (repo) => {
-        return {result: await abortRebase(repo)};
-    },
-    [IpcAction.CONTINUE_REBASE]: async (repo) => {
-        return {result: await continueRebase(repo)};
-    },
+    [IpcAction.FIND_FILE]: provider.findFile,
+    [IpcAction.ABORT_REBASE]: abortRebase,
+    [IpcAction.CONTINUE_REBASE]: continueRebase,
     [IpcAction.OPEN_COMPARE_REVISIONS]: async (repo, revisions) => {
         if (await provider.compareRevisions(repo, revisions)) {
-            return {result: await provider.compareRevisionsPatches()};
+            return provider.compareRevisionsPatches();
         }
-        return {error: "revisions not found"};
+        throw Error("Revisions not found");
     },
     [IpcAction.PUSH]: async (repo, data) => {
         const auth = getAuth();
-        const result = auth ? await provider.push(repo, data, auth) : false;
-        return {result};
+        return auth ? await provider.push(repo, data, auth) : false;
     },
     [IpcAction.SET_UPSTREAM]: async (repo, data) => {
         const result = await provider.setUpstream(repo, data.local, data.remote);
-        return {result: !result};
+        return !result;
     },
     [IpcAction.COMMIT]: async (repo, data) => {
         if (!appConfig.gitName || !appConfig.gitEmail) {
-            return {error: "invalid name/email"};
+            throw Error("Invalid name/email");
         }
-        const result = await provider.commit(repo, data, Signature.now(appConfig.gitName, appConfig.gitEmail));
-        if ("error" in result) {
-            return result;
-        }
-        return {
-            result
-        };
+        return await provider.commit(repo, data, Signature.now(appConfig.gitName, appConfig.gitEmail));
     },
-    [IpcAction.REMOTES]: async (repo) => {
-        return {result: await provider.remotes(repo)};
-    },
+    [IpcAction.REMOTES]: provider.remotes,
     [IpcAction.RESOLVE_CONFLICT]: async (_, {path}) => {
         const result = await provider.resolveConflict(path);
         sendEvent(win.webContents, "refresh-workdir", null);
-        return {result: !result};
+        return !result;
     },
     [IpcAction.EDIT_REMOTE]: async (repo, data, event) => {
         if (!Remote.isValidName(data.name)) {
-            dialog.showErrorBox("Failed to edit remote", "Invalid name");
-            return {result: false};
+            throw Error("Invalid remote name");
         }
 
         if (data.oldName !== data.name) {
@@ -556,17 +494,10 @@ const eventMap: {
         provider.eventReply(event, IpcAction.REMOTES, {result: await provider.remotes(repo)});
         provider.eventReply(event, IpcAction.LOAD_BRANCHES, {result: await provider.getBranches(repo)});
 
-        return {result: true};
+        return true;
     },
     [IpcAction.NEW_REMOTE]: async (repo, data, event) => {
-        let remote;
-        try {
-            remote = await Remote.create(repo, data.name, data.pullFrom);
-        }
-        catch(err) {
-            dialog.showErrorBox("Failed to create remote", err.message);
-            return {result: false};
-        }
+        const remote = await Remote.create(repo, data.name, data.pullFrom);
 
         if (data.pushTo) {
             Remote.setPushurl(repo, data.name, data.pushTo);
@@ -575,43 +506,35 @@ const eventMap: {
         if (!await fetchFrom(repo, [remote])) {
             // Deleting remote with (possibly) invalid url
             await Remote.delete(repo, data.name);
-            return {result: false};
+            return false;
         }
 
         provider.eventReply(event, IpcAction.REMOTES, {result: await provider.remotes(repo)});
         provider.eventReply(event, IpcAction.LOAD_BRANCHES, {result: await provider.getBranches(repo)});
 
-        return {result: true};
+        return true;
     },
     [IpcAction.REMOVE_REMOTE]: async (repo, data, event) => {
-        try {
-            await Remote.delete(repo, data.name);
-        }
-        catch(err) {
-            dialog.showErrorBox("Could not remove remote", err.message);
-            return {result: false};
-        }
+        await Remote.delete(repo, data.name);
 
         provider.eventReply(event, IpcAction.REMOTES, {result: await provider.remotes(repo)});
         provider.eventReply(event, IpcAction.LOAD_BRANCHES, {result: await provider.getBranches(repo)});
 
-        return {result: true};
+        return true;
     },
-    [IpcAction.FETCH]: async (repo, data) => {
-        return {result: await fetchFrom(repo, data?.remote ? [await repo.getRemote(data.remote)] : undefined)};
-    },
+    [IpcAction.FETCH]: async (repo, data) => fetchFrom(repo, data?.remote ? [await repo.getRemote(data.remote)] : undefined),
     [IpcAction.SAVE_SETTINGS]: async (_, data) => {
         appConfig = data;
         try {
             writeFileSync(globalAppConfigPath, JSON.stringify(data));
-            return {result: true};
+            return true;
         } catch (err) {
             dialog.showErrorBox("Failed to save settings", err.message);
         }
-        return {result: false};
+        return false;
     },
     [IpcAction.GET_SETTINGS]: async (_, _data) => {
-        return {result: appConfig};
+        return appConfig;
     }
 }
 
@@ -619,32 +542,40 @@ ipcMain.on("asynchronous-message", async (event, arg: EventArgs) => {
     const action = arg.action;
     const lock = provider.actionLock[action];
     if (lock && !lock.interuptable) {
-        provider.eventReply(event, action, {error: "action pending"}, arg.id);
+        provider.eventReplyError(event, action, {error: Error("action pending")}, arg.id);
         return;
     }
 
     provider.actionLock[action] = {interuptable: false};
 
     if (action !== IpcAction.OPEN_REPO && !repo) {
-        provider.eventReply(event, action, {error: "Not in a repository"}, arg.id);
+        provider.eventReplyError(event, action, {error: Error("Not in a repository")}, arg.id);
         return;
     }
 
     if (repo && repo.isEmpty()) {
         // WIP: fix handling of empty repos.
-        return provider.eventReply(event, action, {error: "empty repo... FIXME"}, arg.id);
+        return provider.eventReplyError(event, action, {error: Error("empty repo... FIXME")}, arg.id);
     }
 
     if (isAsyncGenerator(action)) {
         const callback = eventMap[action] as AsyncGeneratorEventCallback<typeof action>;
         const data = arg.data as IpcActionParams[typeof action];
-        for await (const result of callback(repo, data, event)) {
-            provider.eventReply(event, action, result, arg.id);
+        try {
+            for await (const result of callback(repo, data, event)) {
+                provider.eventReply(event, action, {result}, arg.id);
+            }
+        } catch (err) {
+            provider.eventReplyError(event, action, {error: err}, arg.id);
         }
     } else {
         const callback = eventMap[action] as PromiseEventCallback<typeof action>;
         const data = arg.data as IpcActionParams[typeof action];
-        provider.eventReply(event, action, await callback(repo, data, event), arg.id);
+        try {
+            provider.eventReply(event, action, {result: await callback(repo, data, event)}, arg.id);
+        } catch (err) {
+            provider.eventReplyError(event, action, {error: err}, arg.id);
+        }
     }
 });
 

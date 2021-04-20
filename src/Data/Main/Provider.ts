@@ -3,7 +3,7 @@ import { promises as fs } from "fs";
 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
 // @ts-ignore, missing declations for Credential
 import { Credential, Repository, Revwalk, Commit, Diff, ConvenientPatch, ConvenientHunk, DiffLine, Object, Branch, Graph, Index, Reset, Checkout, DiffFindOptions, Reference, Oid, Signature, Merge, Remote, DiffOptions } from "nodegit";
-import { IpcAction, BranchObj, LineObj, HunkObj, PatchObj, CommitObj, IpcActionParams, IpcActionReturn, RefType, IpcPayloadMsg } from "../Actions";
+import { IpcAction, BranchObj, LineObj, HunkObj, PatchObj, CommitObj, IpcActionParams, IpcActionReturn, RefType, IpcActionReturnError } from "../Actions";
 import { normalizeLocalName, normalizeRemoteName, normalizeRemoteNameWithoutRemote, normalizeTagName, remoteName } from "../Branch";
 import { dialog, IpcMainEvent } from "electron";
 
@@ -13,22 +13,25 @@ export const actionLock: {
     };
 } = {};
 
-export function eventReply<T extends IpcAction>(event: IpcMainEvent, action: T, data: IpcPayloadMsg<T>, id?: string) {
+export function eventReply<T extends IpcAction>(event: IpcMainEvent, action: T, data: {result: IpcActionReturn[T]}, id?: string) {
     // console.log("eventReply():", IpcAction[action], data);
     if (action in actionLock) {
         delete actionLock[action];
     }
-    if ("error" in data) {
-        return event.reply("asynchronous-reply", {
-            action,
-            error: {msg: data.error},
-            id
-        });
-    }
-
     event.reply("asynchronous-reply", {
         action,
         data: data.result,
+        id
+    });
+}
+
+export function eventReplyError(event: IpcMainEvent, action: IpcAction, data: {error: IpcActionReturnError["msg"]}, id?: string) {
+    if (action in actionLock) {
+        delete actionLock[action];
+    }
+    event.reply("asynchronous-reply", {
+        action,
+        error: data.error.toString(),
         id
     });
 }
@@ -409,9 +412,7 @@ export async function findFile(repo: Repository, file: string): Promise<IpcActio
 
 export async function commit(repo: Repository, params: IpcActionParams[IpcAction.COMMIT], committer: Signature) {
     if (!committer.email()) {
-        return {
-            error: "No git credentials provided."
-        };
+        throw Error("No git credentials provided");
     }
 
     const parent = await repo.getHeadCommit();
@@ -420,18 +421,11 @@ export async function commit(repo: Repository, params: IpcActionParams[IpcAction
 
     const message = params.message.body ? `${params.message.summary}\n\n${params.message.body}` : params.message.summary;
 
-    try {
-        if (params.amend) {
-            const author = parent.author();
-            await parent.amend("HEAD", author, committer, "utf8", message, oid);
-        } else {
-            await repo.createCommit("HEAD", committer, committer, message, oid, [parent]);
-        }
-    } catch (err) {
-        console.warn("Failed to commit:", err);
-        return {
-            error: "Failed to commit."
-        };
+    if (params.amend) {
+        const author = parent.author();
+        await parent.amend("HEAD", author, committer, "utf8", message, oid);
+    } else {
+        await repo.createCommit("HEAD", committer, committer, message, oid, [parent]);
     }
 
     return loadCommit(repo, null);
@@ -642,7 +636,7 @@ export async function diff_file_at_commit(repo: Repository, file: string, sha: s
 
     const convPatches = await diff.patches();
     if (!convPatches.length) {
-        return { error: "empty patch" };
+        throw Error("empty patch");
     }
     const patch = convPatches[0];
 
@@ -808,23 +802,16 @@ export async function commitWithDiff(repo: Repository, sha: string) {
     return commit;
 }
 
-export async function checkoutBranch(repo: Repository, branch: string): Promise<{error: string} | BranchObj> {
-    try {
-        await repo.checkoutBranch(branch);
-        const head = await repo.head();
-        const headCommit = await head.peel(Object.TYPE.COMMIT);
-        return {
-            name: head.name(),
-            headSHA: headCommit.id().tostrS(),
-            normalizedName: head.name(),
-            type: RefType.LOCAL
-        };
-    } catch (err) {
-        console.error(err);
-        return {
-            error: err.message as string
-        };
-    }
+export async function checkoutBranch(repo: Repository, branch: string) {
+    await repo.checkoutBranch(branch);
+    const head = await repo.head();
+    const headCommit = await head.peel(Object.TYPE.COMMIT);
+    return {
+        name: head.name(),
+        headSHA: headCommit.id().tostrS(),
+        normalizedName: head.name(),
+        type: RefType.LOCAL
+    };
 }
 
 export type Auth = {

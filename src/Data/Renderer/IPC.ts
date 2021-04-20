@@ -101,7 +101,7 @@ function handleEvent<T extends IpcAction>(payload: IpcPayload<T>) {
     try {
         let data;
         if ("error" in payload) {
-            dialog.showErrorBox(`Error ${IpcAction[payload.action]}`, payload.error.msg);
+            dialog.showErrorBox(`Error ${IpcAction[payload.action]}`, payload.error);
             // FIXME: can we define some sort of error handler here?
             console.warn(payload);
             data = false;
