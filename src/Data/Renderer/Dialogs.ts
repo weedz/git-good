@@ -9,8 +9,9 @@ export function openDialog_EditRemote(data: {name: string, pullFrom: string, pus
     openDialogWindow(DialogTypes.EDIT_REMOTE, {
         data,
         async confirmCb(data) {
-            closeDialogWindow();
-            await ipcGetData(IpcAction.EDIT_REMOTE, {oldName, ...data});
+            if (await ipcGetData(IpcAction.EDIT_REMOTE, {oldName, ...data})) {
+                closeDialogWindow();
+            }
         },
         cancelCb() {
             closeDialogWindow();
@@ -21,8 +22,9 @@ export function openDialog_EditRemote(data: {name: string, pullFrom: string, pus
 export function openDialog_AddRemote() {
     openDialogWindow(DialogTypes.ADD_REMOTE, {
         async confirmCb(data) {
-            closeDialogWindow();
-            await ipcGetData(IpcAction.NEW_REMOTE, data);
+            if (await ipcGetData(IpcAction.NEW_REMOTE, data)) {
+                closeDialogWindow();
+            }
         },
         cancelCb() {
             closeDialogWindow();
@@ -34,8 +36,7 @@ export function openDialog_CompareRevisions() {
     openDialogWindow(DialogTypes.COMPARE, {
         confirmCb(from, to) {
             closeDialogWindow();
-            if (from && to)
-            {
+            if (from && to) {
                 ipcSendMessage(IpcAction.OPEN_COMPARE_REVISIONS, {
                     from,
                     to
@@ -129,9 +130,10 @@ export function openDialog_SetUpstream(local: string, currentUpstream?: string) 
     }
 
     openDialogWindow(DialogTypes.SET_UPSTREAM, {
-        confirmCb(remote, upstream) {
-            closeDialogWindow();
-            setUpstream(local, upstream ? `${remote}/${upstream}` : null);
+        async confirmCb(remote, upstream) {
+            if (await setUpstream(local, upstream ? `${remote}/${upstream}` : null)) {
+                closeDialogWindow();
+            }
         },
         cancelCb() {
             closeDialogWindow();
