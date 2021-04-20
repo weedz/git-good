@@ -3,7 +3,7 @@ import { promises as fs } from "fs";
 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
 // @ts-ignore, missing declations for Credential
 import { Credential, Repository, Revwalk, Commit, Diff, ConvenientPatch, ConvenientHunk, DiffLine, Object, Branch, Graph, Index, Reset, Checkout, DiffFindOptions, Reference, Oid, Signature, Merge, Remote, DiffOptions } from "nodegit";
-import { IpcAction, BranchObj, LineObj, HunkObj, PatchObj, CommitObj, IpcActionParams, IpcActionReturn, RefType, IpcActionReturnError } from "../Actions";
+import { IpcAction, BranchObj, LineObj, HunkObj, PatchObj, CommitObj, IpcActionParams, IpcActionReturn, RefType } from "../Actions";
 import { normalizeLocalName, normalizeRemoteName, normalizeRemoteNameWithoutRemote, normalizeTagName, remoteName } from "../Branch";
 import { dialog, IpcMainEvent } from "electron";
 
@@ -13,25 +13,20 @@ export const actionLock: {
     };
 } = {};
 
-export function eventReply<T extends IpcAction>(event: IpcMainEvent, action: T, data: {result: IpcActionReturn[T]}, id?: string) {
-    // console.log("eventReply():", IpcAction[action], data);
+export function eventReply<T extends IpcAction>(event: IpcMainEvent, action: T, data: Error | IpcActionReturn[T], id?: string) {
     if (action in actionLock) {
         delete actionLock[action];
     }
-    event.reply("asynchronous-reply", {
-        action,
-        data: data.result,
-        id
-    });
-}
-
-export function eventReplyError(event: IpcMainEvent, action: IpcAction, data: {error: IpcActionReturnError["msg"]}, id?: string) {
-    if (action in actionLock) {
-        delete actionLock[action];
+    if (data instanceof Error) {
+        return event.reply("asynchronous-reply", {
+            action,
+            error: data.toString(),
+            id
+        });
     }
     event.reply("asynchronous-reply", {
         action,
-        error: data.error.toString(),
+        data,
         id
     });
 }
@@ -412,7 +407,7 @@ export async function findFile(repo: Repository, file: string): Promise<IpcActio
 
 export async function commit(repo: Repository, params: IpcActionParams[IpcAction.COMMIT], committer: Signature) {
     if (!committer.email()) {
-        throw Error("No git credentials provided");
+        return Error("No git credentials provided");
     }
 
     const parent = await repo.getHeadCommit();
@@ -421,11 +416,15 @@ export async function commit(repo: Repository, params: IpcActionParams[IpcAction
 
     const message = params.message.body ? `${params.message.summary}\n\n${params.message.body}` : params.message.summary;
 
-    if (params.amend) {
-        const author = parent.author();
-        await parent.amend("HEAD", author, committer, "utf8", message, oid);
-    } else {
-        await repo.createCommit("HEAD", committer, committer, message, oid, [parent]);
+    try {
+        if (params.amend) {
+            const author = parent.author();
+            await parent.amend("HEAD", author, committer, "utf8", message, oid);
+        } else {
+            await repo.createCommit("HEAD", committer, committer, message, oid, [parent]);
+        }
+    } catch (err) {
+        return err;
     }
 
     return loadCommit(repo, null);
@@ -636,7 +635,7 @@ export async function diff_file_at_commit(repo: Repository, file: string, sha: s
 
     const convPatches = await diff.patches();
     if (!convPatches.length) {
-        throw Error("empty patch");
+        return Error("empty patch");
     }
     const patch = convPatches[0];
 
@@ -803,15 +802,19 @@ export async function commitWithDiff(repo: Repository, sha: string) {
 }
 
 export async function checkoutBranch(repo: Repository, branch: string) {
-    await repo.checkoutBranch(branch);
-    const head = await repo.head();
-    const headCommit = await head.peel(Object.TYPE.COMMIT);
-    return {
-        name: head.name(),
-        headSHA: headCommit.id().tostrS(),
-        normalizedName: head.name(),
-        type: RefType.LOCAL
-    };
+    try {
+        await repo.checkoutBranch(branch);
+        const head = await repo.head();
+        const headCommit = await head.peel(Object.TYPE.COMMIT);
+        return {
+            name: head.name(),
+            headSHA: headCommit.id().tostrS(),
+            normalizedName: head.name(),
+            type: RefType.LOCAL
+        };
+    } catch (err) {
+        return err;
+    }
 }
 
 export type Auth = {
