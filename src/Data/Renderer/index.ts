@@ -1,5 +1,5 @@
 import { Diff } from "nodegit";
-import { BranchObj, IpcAction, IpcActionReturn, Locks, RepoStatus } from "../Actions";
+import { BranchObj, IpcAction, IpcActionReturn, IpcResponse, Locks, RepoStatus } from "../Actions";
 import { openDialog_CompareRevisions, openDialog_Settings } from "./Dialogs";
 import { addWindowEventListener, registerHandler, ipcSendMessage } from "./IPC";
 import { Store, clearLock, setLock, updateStore, StoreType, GlobalLinks } from "./store";
@@ -102,7 +102,7 @@ function branchesLoaded(result: IpcActionReturn[IpcAction.LOAD_BRANCHES]) {
         heads
     });
 }
-function updateCurrentBranch(result: IpcActionReturn[IpcAction.CHECKOUT_BRANCH]) {
+function updateCurrentBranch(result: IpcResponse<IpcAction.CHECKOUT_BRANCH>) {
     clearLock(Locks.MAIN);
     if (result) {
         updateStore({

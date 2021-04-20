@@ -8,7 +8,9 @@ export type IpcPayload<T extends IpcAction> = {
     {data: IpcActionReturn[T]} | {error: IpcActionReturnError}
 );
 
-export type IpcPayloadMsg<T extends IpcAction> = IpcActionReturn[T] | {error: IpcActionReturnError["msg"]};
+export type IpcResponse<T extends IpcAction> = IpcActionReturn[T] | false;
+
+export type IpcPayloadMsg<T extends IpcAction> = {result: IpcActionReturn[T]} | {error: IpcActionReturnError["msg"]};
 
 export enum IpcAction {
     LOAD_COMMITS,
@@ -157,19 +159,19 @@ export type IpcActionReturn = {
         staged: PatchObj[]
         unstaged: PatchObj[]
     }
-    [IpcAction.STAGE_FILE]: {result: number}
-    [IpcAction.UNSTAGE_FILE]: {result: number}
-    [IpcAction.DISCARD_FILE]: {result: number}
+    [IpcAction.STAGE_FILE]: number
+    [IpcAction.UNSTAGE_FILE]: number
+    [IpcAction.DISCARD_FILE]: number
     [IpcAction.COMMIT]: CommitObj
-    [IpcAction.PULL]: {result: boolean}
-    [IpcAction.PUSH]: {result: boolean}
-    [IpcAction.SET_UPSTREAM]: {result: boolean}
-    [IpcAction.CREATE_BRANCH]: {result: boolean}
-    [IpcAction.CREATE_BRANCH_FROM_REF]: {result: boolean}
-    [IpcAction.DELETE_REF]: {result: boolean}
-    [IpcAction.DELETE_REMOTE_REF]: {result: boolean}
-    [IpcAction.RENAME_LOCAL_BRANCH]: {result: boolean}
-    [IpcAction.FIND_FILE]: {result: string[]}
+    [IpcAction.PULL]: boolean
+    [IpcAction.PUSH]: boolean
+    [IpcAction.SET_UPSTREAM]: boolean
+    [IpcAction.CREATE_BRANCH]: boolean
+    [IpcAction.CREATE_BRANCH_FROM_REF]: boolean
+    [IpcAction.DELETE_REF]: boolean
+    [IpcAction.DELETE_REMOTE_REF]: boolean
+    [IpcAction.RENAME_LOCAL_BRANCH]: boolean
+    [IpcAction.FIND_FILE]: string[]
     [IpcAction.ABORT_REBASE]: RepoStatus
     [IpcAction.CONTINUE_REBASE]: RepoStatus
     [IpcAction.OPEN_COMPARE_REVISIONS]: PatchObj[]
@@ -178,12 +180,12 @@ export type IpcActionReturn = {
         pushTo?: string
         pullFrom: string
     }[]
-    [IpcAction.RESOLVE_CONFLICT]: {result: boolean}
-    [IpcAction.EDIT_REMOTE]: {result: boolean}
-    [IpcAction.NEW_REMOTE]: {result: boolean}
-    [IpcAction.REMOVE_REMOTE]: {result: boolean}
-    [IpcAction.FETCH]: {result: boolean}
-    [IpcAction.SAVE_SETTINGS]: {result: boolean}
+    [IpcAction.RESOLVE_CONFLICT]: boolean
+    [IpcAction.EDIT_REMOTE]: boolean
+    [IpcAction.NEW_REMOTE]: boolean
+    [IpcAction.REMOVE_REMOTE]: boolean
+    [IpcAction.FETCH]: boolean
+    [IpcAction.SAVE_SETTINGS]: boolean
     [IpcAction.GET_SETTINGS]: AppConfig
     [IpcAction.FILE_DIFF_AT]: PatchObj | false
 };

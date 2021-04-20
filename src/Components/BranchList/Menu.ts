@@ -19,7 +19,7 @@ remotesMenu.append(new MenuItem({
     label: "Fetch all",
     async click() {
         const result = await ipcGetData(IpcAction.FETCH, null);
-        if (!result.result) {
+        if (!result) {
             dialog.showErrorBox("Failed to fetch remote", "Failed to fetch remote");
         }
     }
@@ -39,7 +39,7 @@ remoteMenu.append(new MenuItem({
     label: "Fetch",
     async click() {
         const result = await ipcGetData(IpcAction.FETCH, {remote: contextMenuState.data.remote});
-        if (!result.result) {
+        if (!result) {
             dialog.showErrorBox("Failed to fetch remote", "Failed to fetch remote");
         }
     }

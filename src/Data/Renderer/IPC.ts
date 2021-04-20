@@ -1,7 +1,7 @@
 import { ipcRenderer } from "electron";
 import { dialog } from "@electron/remote";
 import { v4 as uuidv4 } from "uuid";
-import { IpcAction, IpcActionParams, IpcActionReturn, IpcPayload } from "../Actions";
+import { IpcAction, IpcActionParams, IpcActionReturn, IpcPayload, IpcResponse } from "../Actions";
 import { WindowArguments, WindowEvents } from "../WindowEventTypes";
 
 ipcRenderer.on("asynchronous-reply", handleMessage);
@@ -41,7 +41,7 @@ export function ipcGetData<T extends IpcAction>(action: T, data: IpcActionParams
     });
 }
 
-type HandlerCallback = (arg: IpcActionReturn[IpcAction]) => void;
+type HandlerCallback = (arg: IpcResponse<IpcAction>) => void;
 
 const handlers: {[T in IpcAction]: HandlerCallback[]} = {
     [IpcAction.LOAD_COMMITS]: [],
@@ -99,14 +99,17 @@ export function unregisterHandler<T extends IpcAction>(action: T, callbacks: ((a
 }
 function handleEvent<T extends IpcAction>(payload: IpcPayload<T>) {
     try {
+        let data;
         if ("error" in payload) {
             dialog.showErrorBox(`Error ${IpcAction[payload.action]}`, payload.error.msg);
             // FIXME: can we define some sort of error handler here?
             console.warn(payload);
-            return;
+            data = false;
+        } else {
+            data = payload.data;
         }
         for (const handler of handlers[payload.action]) {
-            handler(payload.data);
+            handler(data);
         }
     } catch (e) {
         console.error(e);

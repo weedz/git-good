@@ -18,9 +18,17 @@ export function eventReply<T extends IpcAction>(event: IpcMainEvent, action: T, 
     if (action in actionLock) {
         delete actionLock[action];
     }
+    if ("error" in data) {
+        return event.reply("asynchronous-reply", {
+            action,
+            error: {msg: data.error},
+            id
+        });
+    }
+
     event.reply("asynchronous-reply", {
         action,
-        data,
+        data: data.result,
         id
     });
 }
@@ -165,7 +173,7 @@ export async function pull(repo: Repository, branch: string | null): Promise<Ipc
         } catch (err) {
             // invalid ref
             dialog.showErrorBox("Pull failed", `Invalid reference '${branch}'\n${err.message}`);
-            return { result: false };
+            return false;
         }
     } else {
         ref = await repo.head();
@@ -178,10 +186,10 @@ export async function pull(repo: Repository, branch: string | null): Promise<Ipc
     catch (err) {
         // Missing remote/upstream
         dialog.showErrorBox("Pull failed", "No upstream");
-        return { result: false };
+        return false;
     }
     const result = await repo.mergeBranches(ref, upstream, undefined, Merge.PREFERENCE.FASTFORWARD_ONLY);
-    return { result: !!result };
+    return !!result;
 }
 
 async function pushHead(repo: Repository, auth: Auth) {
@@ -298,7 +306,7 @@ export async function deleteRemoteRef(repo: Repository, refName: string, auth: A
         }
         ref.delete();
     }
-    return { result: false };
+    return false;
 }
 
 // {local: Branch[], remote: Branch[], tags: Branch[]}
@@ -396,9 +404,7 @@ export async function findFile(repo: Repository, file: string): Promise<IpcActio
         }
     }
 
-    return {
-        result: Array.from(set.values())
-    };
+    return Array.from(set.values())
 }
 
 export async function commit(repo: Repository, params: IpcActionParams[IpcAction.COMMIT], committer: Signature) {
@@ -466,14 +472,14 @@ export async function stageFile(repo: Repository, filePath: string): Promise<Ipc
         await index.write();
     }
 
-    return { result: 0 };
+    return 0;
 }
 export async function unstageFile(repo: Repository, path: string): Promise<IpcActionReturn[IpcAction.UNSTAGE_FILE]> {
     const head = await repo.getHeadCommit();
     await Reset.default(repo, head, path);
     index = await repo.refreshIndex();
 
-    return { result: 0 };
+    return 0;
 }
 export async function discardChanges(repo: Repository, filePath: string): Promise<IpcActionReturn[IpcAction.DISCARD_FILE]> {
     if (!index.getByPath(filePath)) {
@@ -487,7 +493,7 @@ export async function discardChanges(repo: Repository, filePath: string): Promis
         if (result.response === 0) {
             await fs.unlink(path.join(repo.workdir(), filePath));
         }
-        return { result: 0 };
+        return 0;
     }
     try {
         const head = await repo.getHeadCommit();
@@ -497,7 +503,7 @@ export async function discardChanges(repo: Repository, filePath: string): Promis
         console.error(err)
     }
 
-    return { result: 0 };
+    return 0;
 }
 
 async function getUnstagedPatches(repo: Repository, flags: Diff.OPTION) {
@@ -802,7 +808,7 @@ export async function commitWithDiff(repo: Repository, sha: string) {
     return commit;
 }
 
-export async function checkoutBranch(repo: Repository, branch: string) {
+export async function checkoutBranch(repo: Repository, branch: string): Promise<{error: string} | BranchObj> {
     try {
         await repo.checkoutBranch(branch);
         const head = await repo.head();
@@ -816,7 +822,7 @@ export async function checkoutBranch(repo: Repository, branch: string) {
     } catch (err) {
         console.error(err);
         return {
-            error: err.message
+            error: err.message as string
         };
     }
 }

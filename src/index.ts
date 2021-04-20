@@ -354,22 +354,30 @@ const eventMap: {
         if (path) {
             const opened = await openRepo(path);
             return {
-                path,
-                opened,
-                status: opened ? repoStatus() : null,
+                result:{
+                    path,
+                    opened,
+                    status: opened ? repoStatus() : null,
+                }
             }
         }
-        return await openRepoDialog();
+        return {result: await openRepoDialog()};
     },
-    [IpcAction.LOAD_BRANCHES]: provider.getBranches,
-    [IpcAction.LOAD_COMMIT]: provider.loadCommit,
+    [IpcAction.LOAD_BRANCHES]: async (repo) => {
+        return {result: await provider.getBranches(repo)};
+    },
+    [IpcAction.LOAD_COMMIT]: async (repo, sha) => {
+        return {result: await provider.loadCommit(repo, sha)};
+    },
     async *[IpcAction.LOAD_COMMITS](repo, params) {
         const arg = await initGetComits(repo, params);
         if (!arg) {
-            yield {commits: [], branch: "", cursor: params.cursor};
+            yield {
+                result: {commits: [], branch: "", cursor: params.cursor}
+            };
         } else {
             for await (const commits of provider.getCommits(repo, arg.branch, arg.revwalkStart, params.num)) {
-                yield commits;
+                yield {result: commits};
             }
         }
     },
@@ -382,37 +390,57 @@ const eventMap: {
         if (!result) {
             return {error: "failed to load commits"};
         }
-        return result;
+        return {result};
     },
-    [IpcAction.LOAD_PATCHES_WITHOUT_HUNKS]: async (_, args) => provider.getCommitPatches(args.sha, args.options),
+    [IpcAction.LOAD_PATCHES_WITHOUT_HUNKS]: async (_, args) => {
+        return {result: await provider.getCommitPatches(args.sha, args.options)}
+    },
     [IpcAction.FILE_DIFF_AT]: async (_, args) => {
-        return await provider.diff_file_at_commit(repo, args.file, args.sha);
+        const result = await provider.diff_file_at_commit(repo, args.file, args.sha);
+        if ("error" in result) {
+            return result;
+        }
+        return {result};
     },
     [IpcAction.LOAD_HUNKS]: async (_, arg) => {
         return {
-            path: arg.path,
-            hunks: await loadHunks(repo, arg)
+            result: {
+                path: arg.path,
+                hunks: await loadHunks(repo, arg)
+            }
         };
     },
-    [IpcAction.CHECKOUT_BRANCH]: provider.checkoutBranch,
-    [IpcAction.REFRESH_WORKDIR]: provider.refreshWorkDir,
-    [IpcAction.GET_CHANGES]: provider.loadChanges,
+    [IpcAction.CHECKOUT_BRANCH]: async (repo, data) => {
+        const result = await provider.checkoutBranch(repo, data);
+        if ("error" in result) {
+            return {error: result.error};
+        }
+        return {result};
+    },
+    [IpcAction.REFRESH_WORKDIR]: async (repo, options) => {
+        return {result: await  provider.refreshWorkDir(repo, options)};
+    },
+    [IpcAction.GET_CHANGES]: async () => {
+        return {result: await provider.loadChanges()};
+    },
     [IpcAction.STAGE_FILE]: async (repo, data) => {
         const result = await provider.stageFile(repo, data);
         sendEvent(win.webContents, "refresh-workdir", null);
-        return result;
+        return {result};
     },
     [IpcAction.UNSTAGE_FILE]: async (repo, data) => {
         const result = await provider.unstageFile(repo, data);
         sendEvent(win.webContents, "refresh-workdir", null);
-        return result;
+        return {result};
     },
     [IpcAction.DISCARD_FILE]: async (repo, data) => {
         const result = await provider.discardChanges(repo, data);
         sendEvent(win.webContents, "refresh-workdir", null);
-        return result;
+        return {result};
     },
-    [IpcAction.PULL]: provider.pull,
+    [IpcAction.PULL]: async (repo, branch) => {
+        return {result: await provider.pull(repo, branch)};
+    },
     [IpcAction.CREATE_BRANCH]: async (repo, data) => {
         let res;
         try {
@@ -459,16 +487,22 @@ const eventMap: {
     [IpcAction.DELETE_REMOTE_REF]: async (repo, data) => {
         const auth = getAuth();
         if (auth) {
-            return provider.deleteRemoteRef(repo, data, auth);
+            return {result: await provider.deleteRemoteRef(repo, data, auth)};
         }
         return {result: false};
     },
-    [IpcAction.FIND_FILE]: provider.findFile,
-    [IpcAction.ABORT_REBASE]: abortRebase,
-    [IpcAction.CONTINUE_REBASE]: continueRebase,
-    [IpcAction.OPEN_COMPARE_REVISIONS]: async (repo, data) => {
-        if (await provider.compareRevisions(repo, data)) {
-            return provider.compareRevisionsPatches();
+    [IpcAction.FIND_FILE]: async (repo, file) => {
+        return {result: await provider.findFile(repo, file)};
+    },
+    [IpcAction.ABORT_REBASE]: async (repo) => {
+        return {result: await abortRebase(repo)};
+    },
+    [IpcAction.CONTINUE_REBASE]: async (repo) => {
+        return {result: await continueRebase(repo)};
+    },
+    [IpcAction.OPEN_COMPARE_REVISIONS]: async (repo, revisions) => {
+        if (await provider.compareRevisions(repo, revisions)) {
+            return {result: await provider.compareRevisionsPatches()};
         }
         return {error: "revisions not found"};
     },
@@ -485,9 +519,17 @@ const eventMap: {
         if (!appConfig.gitName || !appConfig.gitEmail) {
             return {error: "invalid name/email"};
         }
-        return provider.commit(repo, data, Signature.now(appConfig.gitName, appConfig.gitEmail))
+        const result = await provider.commit(repo, data, Signature.now(appConfig.gitName, appConfig.gitEmail));
+        if ("error" in result) {
+            return result;
+        }
+        return {
+            result
+        };
     },
-    [IpcAction.REMOTES]: provider.remotes,
+    [IpcAction.REMOTES]: async (repo) => {
+        return {result: await provider.remotes(repo)};
+    },
     [IpcAction.RESOLVE_CONFLICT]: async (_, {path}) => {
         const result = await provider.resolveConflict(path);
         sendEvent(win.webContents, "refresh-workdir", null);
@@ -511,8 +553,8 @@ const eventMap: {
 
         await fetchFrom(repo, [await repo.getRemote(data.name)]);
 
-        provider.eventReply(event, IpcAction.REMOTES, await provider.remotes(repo));
-        provider.eventReply(event, IpcAction.LOAD_BRANCHES, await provider.getBranches(repo));
+        provider.eventReply(event, IpcAction.REMOTES, {result: await provider.remotes(repo)});
+        provider.eventReply(event, IpcAction.LOAD_BRANCHES, {result: await provider.getBranches(repo)});
 
         return {result: true};
     },
@@ -536,8 +578,8 @@ const eventMap: {
             return {result: false};
         }
 
-        provider.eventReply(event, IpcAction.REMOTES, await provider.remotes(repo));
-        provider.eventReply(event, IpcAction.LOAD_BRANCHES, await provider.getBranches(repo));
+        provider.eventReply(event, IpcAction.REMOTES, {result: await provider.remotes(repo)});
+        provider.eventReply(event, IpcAction.LOAD_BRANCHES, {result: await provider.getBranches(repo)});
 
         return {result: true};
     },
@@ -550,8 +592,8 @@ const eventMap: {
             return {result: false};
         }
 
-        provider.eventReply(event, IpcAction.REMOTES, await provider.remotes(repo));
-        provider.eventReply(event, IpcAction.LOAD_BRANCHES, await provider.getBranches(repo));
+        provider.eventReply(event, IpcAction.REMOTES, {result: await provider.remotes(repo)});
+        provider.eventReply(event, IpcAction.LOAD_BRANCHES, {result: await provider.getBranches(repo)});
 
         return {result: true};
     },
@@ -569,7 +611,7 @@ const eventMap: {
         return {result: false};
     },
     [IpcAction.GET_SETTINGS]: async (_, _data) => {
-        return appConfig;
+        return {result: appConfig};
     }
 }
 
