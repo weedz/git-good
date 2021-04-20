@@ -304,15 +304,6 @@ export function deleteRemoteBranch(name: string) {
     ipcSendMessage(IpcAction.DELETE_REMOTE_REF, name);
 }
 
-export function push(remote: string, localBranch: string, force?: boolean) {
-    setLock(Locks.BRANCH_LIST);
-    ipcSendMessage(IpcAction.PUSH, {
-        localBranch,
-        remote,
-        force
-    });
-}
-
 export function setUpstream(local: string, remote: string | null) {
     ipcSendMessage(IpcAction.SET_UPSTREAM, {
         local,

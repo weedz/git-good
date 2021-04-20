@@ -157,18 +157,30 @@ export async function* getCommits(repo: Repository, branch: string, start: "refs
     };
 }
 
-export async function pull(repo: Repository): Promise<IpcActionReturn[IpcAction.PULL]> {
-    const head = await repo.head();
+export async function pull(repo: Repository, branch: string | null): Promise<IpcActionReturn[IpcAction.PULL]> {
+    let ref;
+    if (branch) {
+        try {
+            ref = await repo.getReference(branch);
+        } catch (err) {
+            // invalid ref
+            dialog.showErrorBox("Pull failed", `Invalid reference '${branch}'\n${err.message}`);
+            return { result: false };
+        }
+    } else {
+        ref = await repo.head();
+    }
+
     let upstream: Reference;
     try {
-        upstream = await Branch.upstream(head);
+        upstream = await Branch.upstream(ref);
     }
     catch (err) {
         // Missing remote/upstream
         dialog.showErrorBox("Pull failed", "No upstream");
         return { result: false };
     }
-    const result = await repo.mergeBranches(head, upstream, undefined, Merge.PREFERENCE.FASTFORWARD_ONLY);
+    const result = await repo.mergeBranches(ref, upstream, undefined, Merge.PREFERENCE.FASTFORWARD_ONLY);
     return { result: !!result };
 }
 

@@ -51,11 +51,11 @@ function openSettings() {
     openDialog_Settings();
 }
 
-export function pullHead() {
-    ipcSendMessage(IpcAction.PULL, null);
+export function pull(ref: string | null) {
+    ipcSendMessage(IpcAction.PULL, ref);
 }
 
-export function pushHead() {
+export function push() {
     ipcSendMessage(IpcAction.PUSH, null);
 }
 

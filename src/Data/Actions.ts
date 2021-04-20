@@ -86,7 +86,7 @@ export type IpcActionParams = {
             body: string
         }
     }
-    [IpcAction.PULL]: null
+    [IpcAction.PULL]: null | string
     [IpcAction.PUSH]: null | {
         force?: boolean
         remote: string

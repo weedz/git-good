@@ -240,7 +240,7 @@ const menuTemplate = [
                 label: 'Pull...',
                 async click() {
                     sendEvent(win.webContents, "app-lock-ui", Locks.BRANCH_LIST);
-                    await provider.pull(repo);
+                    await provider.pull(repo, null);
                     sendEvent(win.webContents, "app-unlock-ui", Locks.BRANCH_LIST);
                 }
             },

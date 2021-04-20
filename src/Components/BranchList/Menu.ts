@@ -1,13 +1,13 @@
 import { Menu, MenuItem, dialog, getCurrentWindow } from "@electron/remote";
 import { h } from "preact";
 import { IpcAction } from "src/Data/Actions";
-import { pullHead, pushHead } from "src/Data/Renderer";
+import { pull, push } from "src/Data/Renderer";
 import { BranchFromType, openDialog_BranchFrom, openDialog_SetUpstream, openDialog_RenameRef, BranchType, openDialog_EditRemote, openDialog_AddRemote } from "src/Data/Renderer/Dialogs";
 import { ipcGetData, ipcSendMessage } from "src/Data/Renderer/IPC";
 import { contextMenuState, checkoutBranch, deleteBranch, deleteRemoteBranch } from "src/Data/Renderer/store";
 
 const setUpstreamMenuItem = new MenuItem({
-    label: 'Set upstream...',
+    label: "Set upstream...",
     click() {
         const local = contextMenuState.data.ref;
         openDialog_SetUpstream(local, contextMenuState.data.remote);
@@ -36,7 +36,7 @@ remotesMenu.append(new MenuItem({
 
 const remoteMenu = new Menu();
 remoteMenu.append(new MenuItem({
-    label: 'Fetch...',
+    label: "Fetch",
     async click() {
         const result = await ipcGetData(IpcAction.FETCH, {remote: contextMenuState.data.remote});
         if (!result.result) {
@@ -48,7 +48,7 @@ remoteMenu.append(new MenuItem({
     type: "separator"
 }));
 remoteMenu.append(new MenuItem({
-    label: 'Edit...',
+    label: "Edit...",
     async click() {
         const remotes = await ipcGetData(IpcAction.REMOTES, null);
         const remote = remotes.find(item => item.name === contextMenuState.data.remote);
@@ -60,7 +60,7 @@ remoteMenu.append(new MenuItem({
     }
 }));
 remoteMenu.append(new MenuItem({
-    label: 'Remove',
+    label: "Remove",
     async click() {
         const result = await dialog.showMessageBox({
             message: `Delete remote ${contextMenuState.data.remote}?`,
@@ -75,7 +75,7 @@ remoteMenu.append(new MenuItem({
 }));
 
 const newBranch = new MenuItem({
-    label: 'Create new branch...',
+    label: "Create new branch...",
     click() {
         const sha = contextMenuState.data.ref;
         openDialog_BranchFrom(sha, BranchFromType.REF);
@@ -85,7 +85,7 @@ const newBranch = new MenuItem({
 const remoteRefMenu = new Menu();
 remoteRefMenu.append(newBranch);
 remoteRefMenu.append(new MenuItem({
-    label: 'Delete...',
+    label: "Delete",
     async click() {
         const refName = contextMenuState.data.ref;
         const result = await dialog.showMessageBox({
@@ -102,14 +102,32 @@ remoteRefMenu.append(new MenuItem({
 
 const localMenu = new Menu();
 localMenu.append(new MenuItem({
-    label: 'Checkout...',
+    label: "Checkout",
     click() {
         checkoutBranch(contextMenuState.data.ref);
     }
 }));
+localMenu.append(new MenuItem({
+    label: "Pull",
+    click() {
+        const refName = contextMenuState.data.ref;
+        pull(refName);
+    }
+}));
+localMenu.append(setUpstreamMenuItem);
+localMenu.append(new MenuItem({
+    type: "separator",
+}));
 localMenu.append(newBranch);
 localMenu.append(new MenuItem({
-    label: 'Delete...',
+    label: "Rename...",
+    click() {
+        const refName = contextMenuState.data.ref;
+        openDialog_RenameRef(refName, BranchType.LOCAL);
+    }
+}));
+localMenu.append(new MenuItem({
+    label: "Delete",
     async click() {
         const refName = contextMenuState.data.ref;
         const result = await dialog.showMessageBox({
@@ -123,26 +141,18 @@ localMenu.append(new MenuItem({
         }
     }
 }));
-localMenu.append(new MenuItem({
-    label: 'Rename...',
-    click() {
-        const refName = contextMenuState.data.ref;
-        openDialog_RenameRef(refName, BranchType.LOCAL);
-    }
-}));
-localMenu.append(setUpstreamMenuItem);
 
 const headMenu = new Menu();
 headMenu.append(new MenuItem({
-    label: 'Pull...',
+    label: "Pull",
     click() {
-        pullHead();
+        pull(null);
     }
 }));
 headMenu.append(new MenuItem({
-    label: 'Push...',
+    label: "Push",
     click() {
-        pushHead();
+        push();
     }
 }));
 headMenu.append(setUpstreamMenuItem);
