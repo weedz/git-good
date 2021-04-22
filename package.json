@@ -1,6 +1,6 @@
 {
   "name": "git-good",
-  "version": "0.0.17",
+  "version": "0.0.18",
   "description": "Git good",
   "main": "dist/index.js",
   "scripts": {
