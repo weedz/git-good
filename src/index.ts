@@ -688,30 +688,36 @@ async function fetchFrom(repo: Repository, remotes?: Remote[]) {
 async function initGetComits(repo: Repository, params: IpcActionParams[IpcAction.LOAD_COMMITS] | IpcActionParams[IpcAction.LOAD_FILE_COMMITS]) {
     let branch = "HEAD";
     let revwalkStart: "refs/*" | Oid;
+    // FIXME: organize this...
     if ("history" in params) {
         branch = "history";
         revwalkStart = "refs/*";
     } else {
         let start: Commit | null = null;
-        if (params.cursor) {
-            start = await repo.getCommit(params.cursor);
-            if (!start.parentcount()) {
-                return false;
+        try {
+            if (params.cursor) {
+                start = await repo.getCommit(params.cursor);
+                if (!start.parentcount()) {
+                    return false;
+                }
+                if (!params.startAtCursor) {
+                    start = await start.parent(0);
+                }
             }
-            if (!params.startAtCursor) {
-                start = await start.parent(0);
+            else if ("branch" in params) {
+                branch = params.branch;
+                if (params.branch.includes("refs/tags")) {
+                    const ref = await repo.getReference(params.branch);
+                    start = await ref.peel(Object.TYPE.COMMIT) as unknown as Commit;
+                } else {
+                    start = await repo.getReferenceCommit(params.branch);
+                }
+            } else if ("sha" in params) {
+                start = await repo.getCommit(params.sha);
             }
-        }
-        else if ("branch" in params) {
-            branch = params.branch;
-            if (params.branch.includes("refs/tags")) {
-                const ref = await repo.getReference(params.branch);
-                start = await ref.peel(Object.TYPE.COMMIT) as unknown as Commit;
-            } else {
-                start = await repo.getReferenceCommit(params.branch);
-            }
-        } else if ("sha" in params) {
-            start = await repo.getCommit(params.sha);
+        } catch (err) {
+            // could not find requested ref
+            console.info("initGetCommits(): could not find requested ref, using head");
         }
         if (!start) {
             start = await repo.getHeadCommit();
