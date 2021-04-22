@@ -57,13 +57,20 @@ const createWindow = () => {
             nodeIntegration: true,
             enableRemoteModule: true,
             contextIsolation: false,
-            worldSafeExecuteJavaScript: false,
+            disableBlinkFeatures: "Auxclick"
         }
     });
 
     win.loadFile(join(__dirname, "../dist/index.html"));
 
-    // win.webContents.openDevTools();
+    win.webContents.on("will-navigate", e => {
+        e.preventDefault();
+    });
+    win.webContents.setWindowOpenHandler(() => {
+        return {
+            action: "deny"
+        }
+    });
 };
 
 app.commandLine.appendSwitch('disable-smooth-scrolling');
