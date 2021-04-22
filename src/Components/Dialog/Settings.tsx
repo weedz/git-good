@@ -9,6 +9,7 @@ type State = {
     config: AppConfig
 } & {
     showUserPass: boolean
+    saved: null | true
 };
 
 async function selectFile(cb: (data: string) => void) {
@@ -22,7 +23,7 @@ export class Settings extends Component<SettingsProps, State> {
     setAuth = (e: h.JSX.TargetedEvent<HTMLInputElement, Event>) => {
         this.setConfigKey("authType", e.currentTarget.value as AppConfig["authType"]);
     };
-    
+
     async componentDidMount() {
         ipcGetData(IpcAction.GET_SETTINGS, null).then(config => {
             this.setState({
@@ -151,7 +152,19 @@ export class Settings extends Component<SettingsProps, State> {
                         </select>
                     </div>
                 </div>
-                <button type="submit">Save</button>
+                {this.state.saved && <p>Settings saved!</p>}
+                <button type="submit" onClick={() => {
+                    this.setState({
+                        saved: true
+                    });
+                    setTimeout(() => {
+                        if (this) {
+                            this.setState({
+                                saved: null
+                            });
+                        }
+                    }, 5000);
+                }}>Save</button>
                 <button type="button" onClick={this.props.cancelCb}>Close</button>
             </form>
         </div>;
