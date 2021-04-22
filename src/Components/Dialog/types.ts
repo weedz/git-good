@@ -8,6 +8,8 @@ export enum DialogTypes {
     EDIT_REMOTE,
     ADD_REMOTE,
     SETTINGS,
+    CREATE_TAG,
+    PUSH_TAG,
 }
 
 export type DialogProps = {
@@ -18,6 +20,8 @@ export type DialogProps = {
     [DialogTypes.EDIT_REMOTE]: RemoteProps
     [DialogTypes.ADD_REMOTE]: Omit<RemoteProps, "data">
     [DialogTypes.SETTINGS]: SettingsProps
+    [DialogTypes.CREATE_TAG]: CreateTagProps
+    [DialogTypes.PUSH_TAG]: PushTagProps
 }
 
 export type CompareProps = {
@@ -56,5 +60,14 @@ export type SetUpstreamProps = {
 
 export type SettingsProps = {
     confirmCb: (settings: AppConfig) => void
+    cancelCb: () => void
+}
+
+export type CreateTagProps = {
+    confirmCb: (tag: {name: string, annotation?: string}) => void
+    cancelCb: () => void
+}
+export type PushTagProps = {
+    confirmCb: (remote: string) => void
     cancelCb: () => void
 }

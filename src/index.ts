@@ -561,7 +561,48 @@ const eventMap: {
     },
     [IpcAction.GET_SETTINGS]: async (_, _data) => {
         return appConfig;
-    }
+    },
+    [IpcAction.CREATE_TAG]: async (repo, data) => {
+        try {
+            let id = data.from;
+
+            if (!data.fromCommit) {
+                const ref = await repo.getReference(data.from);
+                const refAt = await repo.getReferenceCommit(ref);
+
+                id = refAt.id().tostrS();
+            }
+
+            if (data.annotation) {
+                await repo.createTag(id, data.name, data.annotation);
+            } else {
+                await repo.createLightweightTag(id, data.name);
+            }
+        } catch (err) {
+            dialog.showErrorBox("Failed to create tag", err.toString());
+        }
+
+        return true;
+    },
+    [IpcAction.DELETE_TAG]: async (repo, data) => {
+        if (data.remote) {
+            const auth = getAuth();
+            if (auth) {
+                // FIXME: Do we really need to check every remote?
+                for (const remote of await repo.getRemotes()) {
+                    await provider.deleteRemoteTag(remote, data.name, auth);
+                }
+            }
+        }
+
+        try {
+            await repo.deleteTagByName(data.name);
+        } catch (err) {
+            dialog.showErrorBox("Could not delete tag", err.toString());
+        }
+
+        return true;
+    },
 }
 
 ipcMain.on("asynchronous-message", async (event, arg: EventArgs) => {

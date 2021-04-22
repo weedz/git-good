@@ -155,3 +155,34 @@ export function openDialog_Settings() {
         },
     });
 }
+
+export function openDialog_createTag(from: string, fromCommit = false) {
+    openDialogWindow(DialogTypes.CREATE_TAG, {
+        confirmCb(tag) {
+            ipcSendMessage(IpcAction.CREATE_TAG, {
+                from,
+                fromCommit,
+                ...tag
+            });
+            closeDialogWindow();
+        },
+        cancelCb() {
+            closeDialogWindow();
+        }
+    })
+}
+
+export function openDialog_PushTag(tagName: string) {
+    openDialogWindow(DialogTypes.PUSH_TAG, {
+        confirmCb(remote) {
+            ipcSendMessage(IpcAction.PUSH, {
+                remote,
+                localBranch: tagName
+            });
+            closeDialogWindow();
+        },
+        cancelCb() {
+            closeDialogWindow();
+        }
+    })
+}

@@ -202,24 +202,8 @@ async function pushHead(repo: Repository, auth: Auth) {
     }
 
     const remote = await repo.getRemote(remoteName(upstream.name()));
-    const status = await Graph.aheadBehind(repo, head.target(), upstream.target()) as unknown as { ahead: number, behind: number };
 
-    if (status.behind) {
-        const result = await dialog.showMessageBox({
-            title: "Force push?",
-            message: `'${head.name()}' is behind the remote '${head.name()}'. Force push?`,
-            type: "question",
-            buttons: ["Yes", "No"],
-            cancelId: 1,
-        });
-        if (result.response === 0) {
-            return doPush(remote, head.name(), normalizeRemoteNameWithoutRemote(upstream.name()), auth, true);
-        }
-    } else {
-        return doPush(remote, head.name(), normalizeRemoteNameWithoutRemote(upstream.name()), auth);
-    }
-
-    return false;
+    return pushBranch(repo, remote, head, auth);
 }
 
 export async function push(repo: Repository, data: IpcActionParams[IpcAction.PUSH], auth: Auth) {
@@ -228,28 +212,60 @@ export async function push(repo: Repository, data: IpcActionParams[IpcAction.PUS
     }
 
     const localRef = await repo.getReference(data.localBranch);
+    const remote = await repo.getRemote(data.remote);
 
+    if (localRef.isBranch()) {
+        return pushBranch(repo, remote, localRef, auth, data.force);
+    }
+    if (localRef.isTag()) {
+        return pushTag(remote, localRef, auth);
+    }
+
+    return false;
+}
+
+async function pushBranch(repo: Repository, remote: Remote, localRef: Reference, auth: Auth, force = false) {
     let remoteRefName: string;
+    let status: { ahead: number, behind: number };
     try {
         // throws if no upstream
-        const remoteRef = await Branch.upstream(localRef);
-        remoteRefName = normalizeRemoteNameWithoutRemote(remoteRef.name());
+        const upstream = await Branch.upstream(localRef);
+        remoteRefName = normalizeRemoteNameWithoutRemote(upstream.name());
+
+        status = await Graph.aheadBehind(repo, localRef.target(), upstream.target()) as unknown as { ahead: number, behind: number };
     } catch (err) {
         dialog.showErrorBox("Push failed", `Invalid upstream: ${err.message}`);
         return false;
     }
 
-    const remote = await repo.getRemote(data.remote);
-    return doPush(remote, data.localBranch, remoteRefName, auth, data.force);
+    if (status.behind) {
+        const result = await dialog.showMessageBox({
+            title: "Force push?",
+            message: `'${localRef.name()}' is behind the remote '${localRef.name()}'. Force push?`,
+            type: "question",
+            buttons: ["No", "Yes"],
+            cancelId: 0,
+        });
+        if (result.response === 1) {
+            force = true;
+        }
+    }
+
+    return doPush(remote, localRef.name(), `heads/${remoteRefName}`, auth, force);
+}
+
+async function pushTag(remote: Remote, localRef: Reference, auth: Auth, remove = false) {
+    // We can pass an empty localref to delete a remote ref
+    return doPush(remote, remove ? "" : localRef.name(), `tags/${normalizeTagName(localRef.name())}`, auth);
 }
 
 async function doPush(remote: Remote, localName: string, remoteName: string, auth: Auth, forcePush = false) {
-    // undocumented, https://github.com/nodegit/nodegit/issues/1270#issuecomment-293742772
+    // something with pathspec, https://github.com/nodegit/nodegit/issues/1270#issuecomment-293742772
     const force = forcePush ? "+" : "";
     try {
         // will return 0 on success
         const pushResult = await remote.push(
-            [`${force}${localName}:refs/heads/${remoteName}`],
+            [`${force}${localName}:refs/${remoteName}`],
             {
                 callbacks: {
                     credentials: (_url: string, username: string) => authenticate(username, auth),
@@ -282,7 +298,7 @@ export async function setUpstream(repo: Repository, local: string, remoteRefName
     return result;
 }
 
-export async function deleteRemoteRef(repo: Repository, refName: string, auth: Auth): Promise<IpcActionReturn[IpcAction.DELETE_REMOTE_REF]> {
+export async function deleteRemoteRef(repo: Repository, refName: string, auth: Auth) {
     const ref = await repo.getReference(refName);
 
     if (ref.isRemote()) {
@@ -304,7 +320,22 @@ export async function deleteRemoteRef(repo: Repository, refName: string, auth: A
         }
         ref.delete();
     }
-    return false;
+    return true;
+}
+
+// tagName must contain full path for tag (eg. refs/tags/[tag])
+export async function deleteRemoteTag(remote: Remote, tagName: string, auth: Auth) {
+    try {
+        await remote.push([`:${tagName}`], {
+            callbacks: {
+                credentials: (_url: string, username: string) => authenticate(username, auth)
+            }
+        });
+    } catch (err) {
+        // tag not on remote..
+    }
+
+    return true;
 }
 
 // {local: Branch[], remote: Branch[], tags: Branch[]}

@@ -7,6 +7,8 @@ import { Compare } from "./Compare";
 import { EditRemote } from "./EditRemote";
 import { AddRemote } from "./AddRemote";
 import { Settings } from "./Settings";
+import { CreateTag } from "./CreateTag";
+import { PushTag } from "./PushTag";
 
 import "./style.css";
 
@@ -18,6 +20,8 @@ const dialogTypes = {
     [DialogTypes.EDIT_REMOTE]: EditRemote,
     [DialogTypes.ADD_REMOTE]: AddRemote,
     [DialogTypes.SETTINGS]: Settings,
+    [DialogTypes.CREATE_TAG]: CreateTag,
+    [DialogTypes.PUSH_TAG]: PushTag,
 };
 
 type State = {
