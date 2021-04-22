@@ -48,6 +48,8 @@ export enum IpcAction {
     SAVE_SETTINGS,
     GET_SETTINGS,
     FILE_DIFF_AT,
+    CREATE_TAG,
+    DELETE_TAG,
 }
 
 export type IpcActionParams = {
@@ -133,6 +135,16 @@ export type IpcActionParams = {
         sha: string
         options?: DiffOptions
     }
+    [IpcAction.CREATE_TAG]: {
+        name: string
+        from: string
+        fromCommit: boolean
+        annotation?: string
+    }
+    [IpcAction.DELETE_TAG]: {
+        name: string
+        remote?: boolean
+    }
 };
 
 export type IpcActionReturn = {
@@ -188,6 +200,8 @@ export type IpcActionReturn = {
     [IpcAction.SAVE_SETTINGS]: boolean
     [IpcAction.GET_SETTINGS]: AppConfig
     [IpcAction.FILE_DIFF_AT]: PatchObj | false
+    [IpcAction.CREATE_TAG]: boolean
+    [IpcAction.DELETE_TAG]: boolean
 };
 
 export type IpcActionReturnError = {

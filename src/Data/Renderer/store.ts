@@ -299,6 +299,14 @@ export function renameLocalBranch(oldName: string, newName: string) {
     });
 }
 
+export function deleteTag(name: string, remote?: boolean) {
+    setLock(Locks.BRANCH_LIST);
+    ipcSendMessage(IpcAction.DELETE_TAG, {
+        name,
+        remote,
+    });
+}
+
 export function deleteRemoteBranch(name: string) {
     setLock(Locks.BRANCH_LIST);
     ipcSendMessage(IpcAction.DELETE_REMOTE_REF, name);

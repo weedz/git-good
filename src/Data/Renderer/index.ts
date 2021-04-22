@@ -118,10 +118,6 @@ function handleCompareRevisions(data: IpcActionReturn[IpcAction.OPEN_COMPARE_REV
     });
 }
 
-function handlePushResult(_: IpcActionReturn[IpcAction.PUSH]) {
-    loadBranches();
-}
-
 function handleNewCommit() {
     refreshWorkdir();
     loadBranches();
@@ -167,7 +163,7 @@ registerHandler(IpcAction.LOAD_BRANCHES, branchesLoaded);
 registerHandler(IpcAction.CHECKOUT_BRANCH, updateCurrentBranch);
 registerHandler(IpcAction.LOAD_HUNKS, loadHunks);
 registerHandler(IpcAction.PULL, handlePullHead);
-registerHandler(IpcAction.PUSH, handlePushResult);
+registerHandler(IpcAction.PUSH, loadBranches);
 registerHandler(IpcAction.SET_UPSTREAM, loadBranches);
 registerHandler(IpcAction.CREATE_BRANCH, loadBranches);
 registerHandler(IpcAction.CREATE_BRANCH_FROM_REF, loadBranches);
@@ -179,3 +175,5 @@ registerHandler(IpcAction.CONTINUE_REBASE, setStatus);
 registerHandler(IpcAction.OPEN_COMPARE_REVISIONS, handleCompareRevisions);
 registerHandler(IpcAction.COMMIT, handleNewCommit);
 registerHandler(IpcAction.REMOTES, handleRemotes);
+registerHandler(IpcAction.CREATE_TAG, loadBranches);
+registerHandler(IpcAction.DELETE_TAG, loadBranches);

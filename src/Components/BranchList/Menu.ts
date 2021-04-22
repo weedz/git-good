@@ -2,9 +2,9 @@ import { Menu, MenuItem, dialog, getCurrentWindow } from "@electron/remote";
 import { h } from "preact";
 import { IpcAction } from "src/Data/Actions";
 import { pull, push } from "src/Data/Renderer";
-import { BranchFromType, openDialog_BranchFrom, openDialog_SetUpstream, openDialog_RenameRef, BranchType, openDialog_EditRemote, openDialog_AddRemote } from "src/Data/Renderer/Dialogs";
+import { BranchFromType, openDialog_BranchFrom, openDialog_SetUpstream, openDialog_RenameRef, BranchType, openDialog_EditRemote, openDialog_AddRemote, openDialog_createTag, openDialog_PushTag } from "src/Data/Renderer/Dialogs";
 import { ipcGetData, ipcSendMessage } from "src/Data/Renderer/IPC";
-import { contextMenuState, checkoutBranch, deleteBranch, deleteRemoteBranch } from "src/Data/Renderer/store";
+import { contextMenuState, checkoutBranch, deleteBranch, deleteRemoteBranch, Store, deleteTag } from "src/Data/Renderer/store";
 
 const setUpstreamMenuItem = new MenuItem({
     label: "Set upstream...",
@@ -12,7 +12,13 @@ const setUpstreamMenuItem = new MenuItem({
         const local = contextMenuState.data.ref;
         openDialog_SetUpstream(local, contextMenuState.data.remote);
     }
-})
+});
+const createTag = new MenuItem({
+    label: "Create tag here...",
+    click() {
+        openDialog_createTag(contextMenuState.data.ref);
+    }
+});
 
 const remotesMenu = new Menu();
 remotesMenu.append(new MenuItem({
@@ -99,6 +105,10 @@ remoteRefMenu.append(new MenuItem({
         }
     }
 }));
+remoteRefMenu.append(new MenuItem({
+    type: "separator"
+}));
+remoteRefMenu.append(createTag);
 
 const localMenu = new Menu();
 localMenu.append(new MenuItem({
@@ -141,6 +151,10 @@ localMenu.append(new MenuItem({
         }
     }
 }));
+localMenu.append(new MenuItem({
+    type: "separator"
+}));
+localMenu.append(createTag);
 
 const headMenu = new Menu();
 headMenu.append(new MenuItem({
@@ -156,9 +170,44 @@ headMenu.append(new MenuItem({
     }
 }));
 headMenu.append(setUpstreamMenuItem);
+headMenu.append(new MenuItem({
+    type: "separator"
+}));
+headMenu.append(createTag);
 
 const tagMenu = new Menu();
 tagMenu.append(newBranch);
+tagMenu.append(new MenuItem({
+    label: "Push to remote...",
+    async click() {
+        if (Store.remotes.length > 1) {
+            return openDialog_PushTag(contextMenuState.data.ref);
+        }
+        ipcSendMessage(IpcAction.PUSH, {
+            remote: Store.remotes[0].name,
+            localBranch: contextMenuState.data.ref
+        });
+    }
+}));
+tagMenu.append(new MenuItem({
+    type: "separator"
+}));
+tagMenu.append(new MenuItem({
+    label: "Delete",
+    async click() {
+        const refName = contextMenuState.data.ref;
+        const result = await dialog.showMessageBox({
+            message: `Delete tag ${refName}?`,
+            type: "question",
+            buttons: ["Cancel", "Confirm"],
+            cancelId: 0,
+            checkboxLabel: "Delete from remote?",
+        });
+        if (result.response === 1) {
+            deleteTag(refName, result.checkboxChecked);
+        }
+    }
+}));
 
 export function showRemotesMenu(e: h.JSX.TargetedMouseEvent<HTMLAnchorElement>) {
     e.preventDefault();

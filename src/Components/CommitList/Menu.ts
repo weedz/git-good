@@ -1,7 +1,7 @@
 import { getCurrentWindow, Menu, MenuItem } from "@electron/remote";
 import { h } from "preact";
 import { IpcAction } from "src/Data/Actions";
-import { BranchFromType, openDialog_BranchFrom } from "src/Data/Renderer/Dialogs";
+import { BranchFromType, openDialog_BranchFrom, openDialog_createTag } from "src/Data/Renderer/Dialogs";
 import { ipcSendMessage } from "src/Data/Renderer/IPC";
 import { contextMenuState } from "src/Data/Renderer/store";
 
@@ -16,11 +16,19 @@ commitMenu.append(new MenuItem({
 commitMenu.append(new MenuItem({
     label: 'Diff...',
     click() {
-        console.log("Diff", contextMenuState.data.sha);
         ipcSendMessage(IpcAction.OPEN_COMPARE_REVISIONS, {
             to: "HEAD",
             from: contextMenuState.data.sha
         });
+    }
+}));
+commitMenu.append(new MenuItem({
+    type: "separator"
+}));
+commitMenu.append(new MenuItem({
+    label: "Create tag here...",
+    click() {
+        openDialog_createTag(contextMenuState.data.sha, true);
     }
 }));
 

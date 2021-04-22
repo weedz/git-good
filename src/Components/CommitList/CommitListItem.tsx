@@ -27,14 +27,14 @@ function selectCommit(c: Link<string>) {
 export default class CommitListItem extends PureComponent<Props> {
     render() {
         const commitLink = (
-            <Link selectAction={selectCommit} linkData={this.props.commit.sha} onContextMenu={showCommitMenu}>
+            <Link selectAction={selectCommit} linkData={this.props.commit.sha} data-sha={this.props.commit.sha} onContextMenu={showCommitMenu}>
                 <span className="msg">{this.props.commit.message.substring(0, this.props.commit.message.indexOf("\n")>>>0 || 60)}</span>
             </Link>
         ) as unknown as Link;
         GlobalLinks.commits[this.props.commit.sha] = commitLink;
         
         return (
-            <li className="short" data-sha={this.props.commit.sha} style={this.props.style}>
+            <li className="short" style={this.props.style}>
                 <div className="commit-refs-container">
                     {Store.heads[this.props.commit.sha] &&
                         <ul className="commit-refs">
