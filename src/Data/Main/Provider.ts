@@ -650,9 +650,9 @@ export async function diff_file_at_commit(repo: Repository, file: string, sha: s
     const pathspec = [file];
 
     // Find renames
-    if (historyEntry.oldName !== file) {
+    if (historyEntry.oldName && historyEntry.oldName !== file) {
         pathspec.push(historyEntry.oldName);
-    } else if (historyEntry.newName !== file) {
+    } else if (historyEntry.newName && historyEntry.newName !== file) {
         pathspec.push(historyEntry.newName);
     }
 

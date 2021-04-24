@@ -45,7 +45,7 @@
   },
   "dependencies": {
     "@electron/remote": "^1.1.0",
-    "nodegit": "^0.28.0-alpha.2",
+    "nodegit": "^0.28.0-alpha.6",
     "uuid": "^8.3.2"
   },
   "build": {
