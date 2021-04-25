@@ -262,6 +262,10 @@ export type CommitObj = {
     parents: {
         sha: string
     }[],
+    signature?: {
+        verified: boolean
+        data: string
+    }
     sha: string
     diff?: DiffObj[]
     authorDate: number

@@ -1,11 +1,12 @@
 import { join } from "path";
 import { promises as fs } from "fs";
+import { dialog, IpcMainEvent } from "electron";
 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
 // @ts-ignore, missing declations for Credential
-import { Credential, Repository, Revwalk, Commit, Diff, ConvenientPatch, ConvenientHunk, DiffLine, Object, Branch, Graph, Index, Reset, Checkout, DiffFindOptions, Reference, Oid, Signature, Merge, Remote, DiffOptions, IndexEntry } from "nodegit";
+import { Credential, Repository, Revwalk, Commit, Diff, ConvenientPatch, ConvenientHunk, DiffLine, Object, Branch, Graph, Index, Reset, Checkout, DiffFindOptions, Reference, Oid, Signature, Merge, Remote, DiffOptions, IndexEntry, Error as NodeGitError, Tag } from "nodegit";
 import { IpcAction, BranchObj, LineObj, HunkObj, PatchObj, CommitObj, IpcActionParams, IpcActionReturn, RefType } from "../Actions";
 import { normalizeLocalName, normalizeRemoteName, normalizeRemoteNameWithoutRemote, normalizeTagName, remoteName } from "../Branch";
-import { dialog, IpcMainEvent } from "electron";
+import { gpgSign, gpgVerify } from "./GPG";
 
 export const actionLock: {
     [key in IpcAction]?: {
@@ -449,7 +450,17 @@ export async function findFile(repo: Repository, file: string): Promise<IpcActio
     return Array.from(set.values())
 }
 
-export async function commit(repo: Repository, params: IpcActionParams[IpcAction.COMMIT], committer: Signature) {
+function onSignature(key: string) {
+    return async (data: string) => {
+        return {
+            code: NodeGitError.CODE.OK,
+            field: "gpgsig",
+            signedData: await gpgSign(key, data),
+        };
+    }
+}
+
+export async function commit(repo: Repository, params: IpcActionParams[IpcAction.COMMIT], committer: Signature, gpgKey?: string) {
     if (!committer.email()) {
         return Error("No git credentials provided");
     }
@@ -463,7 +474,17 @@ export async function commit(repo: Repository, params: IpcActionParams[IpcAction
     try {
         if (params.amend) {
             const author = parent.author();
-            await parent.amend("HEAD", author, committer, "utf8", message, oid);
+            if (gpgKey) {
+                // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+                // @ts-ignore
+                await parent.amendWithSignature("HEAD", author, committer, "utf8", message, oid, onSignature(gpgKey));
+            } else {
+                await parent.amend("HEAD", author, committer, "utf8", message, oid);
+            }
+        } else if (gpgKey) {
+            // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+            // @ts-ignore
+            await repo.createCommitWithSignature("HEAD", committer, committer, message, oid, [parent], onSignature(gpgKey));
         } else {
             await repo.createCommit("HEAD", committer, committer, message, oid, [parent]);
         }
@@ -472,6 +493,33 @@ export async function commit(repo: Repository, params: IpcActionParams[IpcAction
     }
 
     return loadCommit(repo, null);
+}
+
+export async function createTag(repo: Repository, data: IpcActionParams[IpcAction.CREATE_TAG], tagger: Signature, gpgKey?: string) {
+    try {
+        let id = data.from;
+
+        if (!data.fromCommit) {
+            const ref = await repo.getReference(data.from);
+            const refAt = await repo.getReferenceCommit(ref);
+
+            id = refAt.id().tostrS();
+        }
+
+        if (gpgKey) {
+            // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+            // @ts-ignore
+            await Tag.createWithSignature(repo, data.name, id, tagger, data.annotation, 0, onSignature(gpgKey));
+        } else if (data.annotation) {
+            await repo.createTag(id, data.name, data.annotation);
+        } else {
+            await repo.createLightweightTag(id, data.name);
+        }
+    } catch (err) {
+        dialog.showErrorBox("Failed to create tag", err.toString());
+    }
+
+    return true;
 }
 
 export async function refreshWorkDir(repo: Repository, options: IpcActionParams[IpcAction.REFRESH_WORKDIR]): Promise<IpcActionReturn[IpcAction.REFRESH_WORKDIR]> {
@@ -906,7 +954,7 @@ export async function loadCommit(repo: Repository, sha: string | null): Promise<
     const msgSummary = msg.substring(0, msg.indexOf("\n") >>> 0);
     const msgBody = msg.substring(msgSummary.length).trim();
 
-    return {
+    const commitObj: CommitObj = {
         parents: commit.parents().map(parent => ({ sha: parent.tostrS() })),
         sha: commit.sha(),
         authorDate: author.when().time(),
@@ -923,7 +971,18 @@ export async function loadCommit(repo: Repository, sha: string | null): Promise<
             name: committer.name(),
             email: committer.email()
         },
-    } as CommitObj;
+    }
+
+    try {
+        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+        // @ts-ignore
+        const commitSignature = await commit.getSignature("gpgsig");
+        commitObj.signature = await gpgVerify(commitSignature.signature, commitSignature.signedData)
+    } catch (err) {
+        // Commit is probably not signed.
+    }
+
+    return commitObj;
 }
 
 export async function commitWithDiff(repo: Repository, sha: string) {

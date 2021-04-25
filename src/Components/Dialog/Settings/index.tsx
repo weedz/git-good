@@ -41,11 +41,9 @@ export class Settings extends Component<SettingsProps, State> {
                     saved: true
                 });
                 setTimeout(() => {
-                    if (this) {
-                        this.setState({
-                            saved: null
-                        });
-                    }
+                    this && this.setState({
+                        saved: null
+                    });
                 }, 5000);
                 this.props.confirmCb(this.state.config);
             }}>
@@ -54,13 +52,12 @@ export class Settings extends Component<SettingsProps, State> {
                     profile ? <Profile profile={profile} cancelCb={() => this.setState({editProfile: null})} saveProfile={profile => {
                         const profiles = this.state.config.profiles;
                         profiles[this.state.config.selectedProfile] = profile;
-                        console.log(this.state.config.selectedProfile);
-                        console.log(profiles);
                         this.setState({
                             config: {
                                 ...this.state.config,
                                 profiles
-                            }
+                            },
+                            editProfile: null
                         }, () => this.props.confirmCb(this.state.config));
                     }} />
                 : <Fragment>
@@ -91,7 +88,7 @@ export class Settings extends Component<SettingsProps, State> {
                             gitEmail: "",
                             gitName: "",
                             sshAgent: true,
-                            useGPG: false,
+                            gpg: undefined,
                         });
                         this.setState({
                             config: {

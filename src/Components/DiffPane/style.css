@@ -89,3 +89,22 @@
 .changed-files .file-types li:last-child {
     margin-right: 0;
 }
+
+.commit-header {
+    display: flex;
+    position: relative;
+}
+.commit-signature {
+    position: absolute;
+    left: 11px;
+}
+.commit-signature.good {
+    color: lightgreen;
+}
+.commit-signature.bad {
+    color: lightcoral;
+}
+.commit-sha {
+    flex: 1;
+    text-align: center;
+}

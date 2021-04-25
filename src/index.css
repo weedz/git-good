@@ -173,7 +173,9 @@ ul.block-list > li > a:not(.selected):hover {
   border-top-left-radius: 2px;
   border-bottom-left-radius: 2px;
 }
-
+.pointer {
+  cursor: pointer;
+}
 button,
 input[type="button"],
 input[type="submit"] {

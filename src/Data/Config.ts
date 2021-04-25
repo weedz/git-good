@@ -9,7 +9,14 @@ export type AppConfig = {
         sshPrivateKey?: string
         sshPublicKey?: string
         sshAgent: boolean
-        useGPG: boolean
+        gpg?: GpgConfig
     }>
     selectedProfile: number
 };
+
+export type GpgConfig = {
+    commit: boolean
+    tag: boolean
+    key: string
+    executable: string
+}

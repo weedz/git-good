@@ -3,13 +3,24 @@ import { CommitObj } from "src/Data/Actions";
 import { formatTimeAgo } from "src/Data/Utils";
 import { GlobalLinks } from "src/Data/Renderer/store";
 import Link from "../Link";
+import { clipboard } from "electron";
 
 export default function CommitMessage(props: {commit: CommitObj}) {
     const commitDate = new Date(props.commit.date * 1000);
     const authorDate = props.commit.date !== props.commit.authorDate ? new Date(props.commit.authorDate * 1000) : commitDate;
+
+    let signature;
+    if (props.commit.signature) {
+        const commitSignature = props.commit.signature;
+        signature = <span className={`commit-signature pointer ${commitSignature.verified ? "good" : "unknown"}`} onClick={() => clipboard.writeText(commitSignature.data)} title={commitSignature.data}>Signed</span>
+    }
+
     return (
         <div>
-            <h4>{props.commit.sha}</h4>
+            <div className="pane commit-header">
+                {signature}
+                <span className="commit-sha pointer" title="Copy sha" onClick={() => clipboard.writeText(props.commit.sha)}>{props.commit.sha.substring(0, 8)}</span>
+            </div>
             <div className="msg">
                 <h4>{props.commit.message.summary}</h4>
                 <pre>{props.commit.message.body}</pre>
