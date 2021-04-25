@@ -37,7 +37,7 @@ try {
                 gitEmail: "",
                 gitName: "",
                 sshAgent: true,
-                useGPG: false,
+                gpg: undefined,
             }
         ],
         selectedProfile: 0
@@ -507,7 +507,7 @@ const eventMap: {
         if (!selectedGitProfile.gitName || !selectedGitProfile.gitEmail) {
             return Error("Invalid name/email");
         }
-        return await provider.commit(repo, data, Signature.now(selectedGitProfile.gitName, selectedGitProfile.gitEmail));
+        return await provider.commit(repo, data, Signature.now(selectedGitProfile.gitName, selectedGitProfile.gitEmail), selectedGitProfile.gpg?.commit ? selectedGitProfile.gpg.key : undefined);
     },
     [IpcAction.REMOTES]: provider.remotes,
     [IpcAction.RESOLVE_CONFLICT]: async (repo, {path}) => {
@@ -590,26 +590,7 @@ const eventMap: {
         return appConfig;
     },
     [IpcAction.CREATE_TAG]: async (repo, data) => {
-        try {
-            let id = data.from;
-
-            if (!data.fromCommit) {
-                const ref = await repo.getReference(data.from);
-                const refAt = await repo.getReferenceCommit(ref);
-
-                id = refAt.id().tostrS();
-            }
-
-            if (data.annotation) {
-                await repo.createTag(id, data.name, data.annotation);
-            } else {
-                await repo.createLightweightTag(id, data.name);
-            }
-        } catch (err) {
-            dialog.showErrorBox("Failed to create tag", err.toString());
-        }
-
-        return true;
+        return provider.createTag(repo, data, Signature.now(selectedGitProfile.gitName, selectedGitProfile.gitEmail), selectedGitProfile.gpg?.tag ? selectedGitProfile.gpg.key : undefined);
     },
     [IpcAction.DELETE_TAG]: async (repo, data) => {
         if (data.remote) {

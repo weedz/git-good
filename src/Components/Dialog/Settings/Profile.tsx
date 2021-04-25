@@ -1,5 +1,5 @@
 import { Component, Fragment, h } from "preact";
-import { AppConfig } from "src/Data/Config";
+import { AppConfig, GpgConfig } from "src/Data/Config";
 import { selectFile } from "src/Data/Renderer/Utility";
 
 type State = {
@@ -32,6 +32,19 @@ export class Profile extends Component<Props, State> {
             config
         });
     }
+    setGpgConfigKey<T extends keyof GpgConfig>(key: T, value: GpgConfig[T]) {
+        const gpgConfig = this.state.config.gpg;
+        if (!gpgConfig) {
+            return;
+        }
+        gpgConfig[key] = value;
+        this.setState({
+            config: {
+                ...this.state.config,
+                gpg: gpgConfig,
+            }
+        });
+    }
 
     render() {
         return <div>
@@ -39,12 +52,7 @@ export class Profile extends Component<Props, State> {
                 e.preventDefault();
                 this.props.saveProfile(this.state.config);
             }}>
-                <input type="text" value={this.state.config.profileName} onChange={e => e.currentTarget.value.length > 0 && this.setState({
-                    config: {
-                        ...this.state.config,
-                        profileName: e.currentTarget.value
-                    }
-                })} />
+                <input type="text" value={this.state.config.profileName} onChange={e => e.currentTarget.value.length > 0 && this.setConfigKey("profileName", e.currentTarget.value)} />
                 <div className="pane">
                     <h3>Auth type</h3>
                     <div>
@@ -100,31 +108,44 @@ export class Profile extends Component<Props, State> {
                         <label for="git-name">Name:</label>
                         <input type="text" id="git-name" name="name" value={this.state.config.gitName} onKeyUp={e => this.setConfigKey("gitName", e.currentTarget.value)} />
                     </div>
-                    <div>
-                        <h4>GPG</h4>
+                </div>
+                <div className="pane">
+                    <h3>GPG</h3>
+                    <label>
+                        <span>Enable gpg:</span>
+                        <input type="checkbox" checked={!!this.state.config.gpg} onChange={
+                            e => this.setConfigKey("gpg", e.currentTarget.checked ? {
+                                commit: false,
+                                tag: false,
+                                key: "",
+                                executable: "gpg",
+                            } : undefined)
+                        } />
+                    </label>
+                    {!!this.state.config.gpg &&
+                    <Fragment>
                         <div>
-                            <label for="use-gpg">Use gpg:</label>
-                            <input type="checkbox" id="use-gpg" name="use-gpg" onChange={e => this.setConfigKey("useGPG", e.currentTarget.checked)} />
+                            <label for="gpg-key">GPG key:</label>
+                            {/* FIXME: list gpg keys from users machine */}
+                            {/* <select onChange={e => this.setGpgConfigKey("key", e.currentTarget.value)}>
+                                <option value="">None</option>
+                            </select> */}
+                            <input type="text" id="gpg-key" name="gpg-key" value={this.state.config.gpg.key} onChange={e => this.setGpgConfigKey("key", e.currentTarget.value)} />
                         </div>
-                        {this.state.config.useGPG &&
-                            <div>
-                                <div>
-                                    <label for="gpg-id">GPG key:</label>
-                                    <select>
-                                        <option>GPG 1...</option>
-                                    </select>
-                                </div>
-                                <div>
-                                    <label for="gpg-commit">Sign commits by default:</label>
-                                    <input type="checkbox" id="gpg-commit" name="gpg-commit" />
-                                </div>
-                                <div>
-                                    <label for="gpg-tags">Sign tags by default:</label>
-                                    <input type="checkbox" id="gpg-tags" name="gpg-tags" />
-                                </div>
-                            </div>
-                        }
-                    </div>
+                        <div>
+                            <label for="gpg-executable">GPG program:</label>
+                            <input type="text" id="gpg-executable" name="gpg-executable" value={this.state.config.gpg.executable} onChange={e => this.setGpgConfigKey("executable", e.currentTarget.value)} />
+                        </div>
+                        <div>
+                            <label for="gpg-commit">Sign commits by default:</label>
+                            <input type="checkbox" id="gpg-commit" name="gpg-commit" checked={this.state.config.gpg.commit} onChange={e => this.setGpgConfigKey("commit", e.currentTarget.checked)} />
+                        </div>
+                        <div>
+                            <label for="gpg-tags">Sign tags by default:</label>
+                            <input type="checkbox" id="gpg-tags" name="gpg-tags" checked={this.state.config.gpg.tag} onChange={e => this.setGpgConfigKey("tag", e.currentTarget.checked)} />
+                        </div>
+                    </Fragment>
+                    }
                 </div>
                 <div className="pane">
                     <h3>Terminal</h3>
