@@ -1,39 +1,31 @@
-import { remote } from "electron";
 import { Component, Fragment, h } from "preact";
-import { IpcAction } from "src/Data/Actions";
 import { AppConfig } from "src/Data/Config";
-import { ipcGetData } from "src/Data/Renderer/IPC";
-import { SettingsProps } from "./types";
+import { selectFile } from "src/Data/Renderer/Utility";
 
 type State = {
-    config: AppConfig
-} & {
     showUserPass: boolean
-    saved: null | true
-};
-
-async function selectFile(cb: (data: string) => void) {
-    const result = await remote.dialog.showOpenDialog({});
-    if (!result.canceled) {
-        cb(result.filePaths[0]);
-    }
+    config: AppConfig["profiles"][0]
 }
 
-export class Settings extends Component<SettingsProps, State> {
+type Props = {
+    profile: AppConfig["profiles"][0]
+    saveProfile: (profile: State["config"]) => void
+    cancelCb: () => void
+}
+
+export class Profile extends Component<Props, State> {
+    constructor(props: Props) {
+        super(props);
+        this.state = {
+            config: props.profile,
+            showUserPass: false,
+        };
+    }
     setAuth = (e: h.JSX.TargetedEvent<HTMLInputElement, Event>) => {
-        this.setConfigKey("authType", e.currentTarget.value as AppConfig["authType"]);
+        this.setConfigKey("authType", e.currentTarget.value as State["config"]["authType"]);
     };
 
-    async componentDidMount() {
-        ipcGetData(IpcAction.GET_SETTINGS, null).then(config => {
-            this.setState({
-                config,
-                showUserPass: false
-            });
-        });
-    }
-
-    setConfigKey<T extends keyof AppConfig>(key: T, value: AppConfig[T]) {
+    setConfigKey<T extends keyof State["config"]>(key: T, value: State["config"][T]) {
         const config = this.state.config;
         config[key] = value;
         this.setState({
@@ -42,19 +34,17 @@ export class Settings extends Component<SettingsProps, State> {
     }
 
     render() {
-        if (!this.state.config) {
-            return <p>Loading config...</p>
-        }
-        return <div className="dialog-window" style={{
-            width: "100%",
-            height: "100%",
-            overflowY: "auto",
-        }}>
+        return <div>
             <form onSubmit={e => {
                 e.preventDefault();
-                this.props.confirmCb(this.state.config);
+                this.props.saveProfile(this.state.config);
             }}>
-                <h2>Settings</h2>
+                <input type="text" value={this.state.config.profileName} onChange={e => e.currentTarget.value.length > 0 && this.setState({
+                    config: {
+                        ...this.state.config,
+                        profileName: e.currentTarget.value
+                    }
+                })} />
                 <div className="pane">
                     <h3>Auth type</h3>
                     <div>
@@ -103,12 +93,6 @@ export class Settings extends Component<SettingsProps, State> {
                 <div className="pane">
                     <h3>Git credentials</h3>
                     <div>
-                        <h4>Profiles</h4>
-                        <select>
-                            <option>default</option>
-                        </select>
-                    </div>
-                    <div>
                         <label for="git-email">Email:</label>
                         <input type="text" id="git-email" name="email" value={this.state.config.gitEmail} onKeyUp={e => this.setConfigKey("gitEmail", e.currentTarget.value)} />
                     </div>
@@ -152,19 +136,7 @@ export class Settings extends Component<SettingsProps, State> {
                         </select>
                     </div>
                 </div>
-                {this.state.saved && <p>Settings saved!</p>}
-                <button type="submit" onClick={() => {
-                    this.setState({
-                        saved: true
-                    });
-                    setTimeout(() => {
-                        if (this) {
-                            this.setState({
-                                saved: null
-                            });
-                        }
-                    }, 5000);
-                }}>Save</button>
+                <button type="submit">Save</button>
                 <button type="button" onClick={this.props.cancelCb}>Close</button>
             </form>
         </div>;

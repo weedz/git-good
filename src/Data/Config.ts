@@ -1,11 +1,15 @@
 export type AppConfig = {
-    authType: "ssh" | "userpass"
-    username?: string
-    password?: string
-    gitEmail: string
-    gitName: string
-    sshPrivateKey?: string
-    sshPublicKey?: string
-    sshAgent: boolean
-    useGPG: boolean
+    profiles: Array<{
+        profileName: string
+        authType: "ssh" | "userpass"
+        username?: string
+        password?: string
+        gitEmail: string
+        gitName: string
+        sshPrivateKey?: string
+        sshPublicKey?: string
+        sshAgent: boolean
+        useGPG: boolean
+    }>
+    selectedProfile: number
 };

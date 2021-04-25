@@ -19,13 +19,28 @@ import { readFileSync, writeFileSync } from "fs";
 require('@electron/remote/main').initialize();
 
 let appConfig: AppConfig;
+let selectedGitProfile: AppConfig["profiles"][0];
 const globalAppConfigPath = join(app.getPath("userData"), "git-good.config.json");
 
 try {
     const configJSON = readFileSync(globalAppConfigPath).toString();
     appConfig = JSON.parse(configJSON);
 } catch (err) {
-    console.log("No existing config file");
+    console.log("No existing config file. Creating...");
+    appConfig = {
+        profiles: [
+            {
+                profileName: "default",
+                authType: "ssh",
+                gitEmail: "",
+                gitName: "",
+                sshAgent: true,
+                useGPG: false,
+            }
+        ],
+        selectedProfile: 0
+    };
+    writeFileSync(globalAppConfigPath, JSON.stringify(appConfig));
 }
 
 // constants from rollup
@@ -480,10 +495,10 @@ const eventMap: {
         return !result;
     },
     [IpcAction.COMMIT]: async (repo, data) => {
-        if (!appConfig.gitName || !appConfig.gitEmail) {
+        if (!selectedGitProfile.gitName || !selectedGitProfile.gitEmail) {
             return Error("Invalid name/email");
         }
-        return await provider.commit(repo, data, Signature.now(appConfig.gitName, appConfig.gitEmail));
+        return await provider.commit(repo, data, Signature.now(selectedGitProfile.gitName, selectedGitProfile.gitEmail));
     },
     [IpcAction.REMOTES]: provider.remotes,
     [IpcAction.RESOLVE_CONFLICT]: async (_, {path}) => {
@@ -551,6 +566,9 @@ const eventMap: {
     [IpcAction.FETCH]: async (repo, data) => fetchFrom(repo, data?.remote ? [await repo.getRemote(data.remote)] : undefined),
     [IpcAction.SAVE_SETTINGS]: async (_, data) => {
         appConfig = data;
+        if (appConfig.profiles[data.selectedProfile]) {
+            selectedGitProfile = appConfig.profiles[data.selectedProfile];
+        }
         try {
             writeFileSync(globalAppConfigPath, JSON.stringify(data));
             return true;
@@ -790,17 +808,17 @@ function loadHunks(repo: Repository, params: IpcActionParams[IpcAction.LOAD_HUNK
 }
 
 function getAuth() {
-    if (appConfig.authType === "ssh") {
+    if (selectedGitProfile.authType === "ssh") {
         return {
-            agent: appConfig.sshAgent,
-            type: appConfig.authType
+            agent: selectedGitProfile.sshAgent,
+            type: selectedGitProfile.authType
         }
     }
-    if (appConfig.username && appConfig.password) {
+    if (selectedGitProfile.username && selectedGitProfile.password) {
         return {
-            type: appConfig.authType,
-            username: appConfig.username,
-            password: appConfig.password,
+            type: selectedGitProfile.authType,
+            username: selectedGitProfile.username,
+            password: selectedGitProfile.password,
         }
     }
     return false;
