@@ -30,8 +30,7 @@ export default class WorkingArea extends StoreComponent<unknown, State> {
         this.registerHandler(IpcAction.GET_CHANGES, this.update);
         this.registerHandler(IpcAction.LOAD_COMMIT, this.setHead);
         this.registerHandler(IpcAction.COMMIT, this.setHead);
-
-        ipcSendMessage(IpcAction.LOAD_COMMIT, null);
+        this.registerHandler(IpcAction.CHECKOUT_BRANCH, this.updateHead);
 
         this.listen("diffOptions", (diffOptions) => {
             let options = null;
@@ -45,7 +44,11 @@ export default class WorkingArea extends StoreComponent<unknown, State> {
         this.listen("commitMsg", msg => {
             this.setState({commitMsg: msg});
         });
+        this.updateHead();
         this.getChanges();
+    }
+    updateHead = () => {
+        ipcSendMessage(IpcAction.LOAD_COMMIT, null);
     }
     setHead = (head: CommitObj) => {
         this.setState({
