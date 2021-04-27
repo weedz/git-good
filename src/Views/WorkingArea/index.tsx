@@ -141,9 +141,9 @@ export default class WorkingArea extends StoreComponent<unknown, State> {
     render() {
         let commitButton;
         if (this.state.amend) {
-            commitButton = <input type="submit" name="amend" value="Amend" onClick={this.commit} />
+            commitButton = <input type="submit" name="amend" value="Amend" onClick={this.commit} disabled={!this.state.commitMsg.summary.length} />
         } else {
-            commitButton = <input type="submit" name="commit" value="Commit" onClick={this.commit} disabled={!this.state.staged?.length} />
+            commitButton = <input type="submit" name="commit" value="Commit" onClick={this.commit} disabled={!this.state.staged?.length || !this.state.commitMsg.summary.length} />
         }
 
         return (
