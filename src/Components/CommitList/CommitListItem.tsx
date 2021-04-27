@@ -27,7 +27,7 @@ function selectCommit(c: Link<string>) {
 export default class CommitListItem extends PureComponent<Props> {
     render() {
         const commitLink = (
-            <Link selectAction={selectCommit} linkData={this.props.commit.sha} data-sha={this.props.commit.sha} onContextMenu={showCommitMenu}>
+            <Link selectAction={selectCommit} linkData={this.props.commit.sha} data-sha={this.props.commit.sha} onContextMenu={showCommitMenu} title={this.props.commit.message}>
                 <span className="msg">{this.props.commit.message.substring(0, this.props.commit.message.indexOf("\n")>>>0 || 60)}</span>
             </Link>
         ) as unknown as Link;
