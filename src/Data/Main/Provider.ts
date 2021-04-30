@@ -243,9 +243,12 @@ async function pushBranch(repo: Repository, remote: Remote, localRef: Reference,
             title: "Force push?",
             message: `'${localRef.name()}' is behind the remote '${localRef.name()}'. Force push?`,
             type: "question",
-            buttons: ["No", "Yes"],
+            buttons: ["Cancel", "No", "Yes"],
             cancelId: 0,
         });
+        if (!result.response) {
+            return false;
+        }
         if (result.response === 1) {
             force = true;
         }
