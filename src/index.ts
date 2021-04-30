@@ -25,6 +25,7 @@ const globalAppConfigPath = join(app.getPath("userData"), "git-good.config.json"
 try {
     const configJSON = readFileSync(globalAppConfigPath).toString();
     appConfig = JSON.parse(configJSON);
+    selectedGitProfile = appConfig.profiles[appConfig.selectedProfile];
 } catch (err) {
     console.log("No existing config file. Creating...");
     appConfig = {
