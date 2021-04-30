@@ -670,6 +670,10 @@ async function openRepoDialog() {
 }
 
 async function fetchFrom(repo: Repository, remotes?: Remote[]) {
+    sendEvent(win.webContents, "fetch-status", {
+        done: false,
+        update: false
+    });
     if (!remotes) {
         remotes = await repo.getRemotes();
     }
@@ -702,6 +706,10 @@ async function fetchFrom(repo: Repository, remotes?: Remote[]) {
         }
     } catch (err) {
         dialog.showErrorBox("Fetch failed", err.message);
+        sendEvent(win.webContents, "fetch-status", {
+            done: true,
+            update
+        });
         return false;
     }
     sendEvent(win.webContents, "fetch-status", {

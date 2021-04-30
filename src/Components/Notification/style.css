@@ -1,0 +1,46 @@
+.notifications-container {
+    position: fixed;
+    right: 10px;
+    bottom: 10px;
+    width: 250px;
+    list-style: none;
+    z-index: 999999;
+}
+
+.notification p {
+    margin: 5px 0;
+}
+
+.notification {
+    position: relative;
+    max-height: 200px;
+    overflow: auto;
+    background-color: #111;
+    color: #eee;
+    padding: 11px;
+    padding-top: 0;
+    border: 1px solid #ddd;
+    margin-bottom: 5px;
+}
+.notification.expanded {
+    max-height: 500px;
+}
+.notification:last-child {
+    margin-bottom: 0;
+}
+.notification .toolbar {
+    position: absolute;
+    top: 0;
+    right: 0;
+    display: flex;
+    flex-direction: row;
+    justify-content: flex-end;
+}
+.notification .toolbar > span {
+    padding: 5px;
+    margin: 0 2px;
+    cursor: pointer;
+}
+.notification .toolbar > span:hover {
+    background-color: #222;
+}

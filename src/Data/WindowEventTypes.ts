@@ -16,7 +16,7 @@ export type WindowArguments = {
     "app-lock-ui": Locks
     "app-unlock-ui": Locks
     "begin-compare-revisions": null
-    "fetch-status": {done: true, update: boolean} | {
+    "fetch-status": {done: boolean, update: boolean} | {
         remote: string
         totalDeltas: number
         indexedDeltas: number
