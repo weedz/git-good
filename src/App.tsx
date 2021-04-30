@@ -9,7 +9,7 @@ import { Locks } from "./Data/Actions";
 import Dialog from "./Components/Dialog";
 import FileDiff from "./Components/FileDiff";
 import NewTab from "./Views/NewTab";
-
+import NotificationsContainer from "./Components/NotificationsContainer";
 
 export default class App extends StoreComponent {
     componentDidMount() {
@@ -48,6 +48,7 @@ export default class App extends StoreComponent {
                 </div>
                 <FileDiff />
                 <Main />
+                <NotificationsContainer />
             </div>
         );
     }

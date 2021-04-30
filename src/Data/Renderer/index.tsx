@@ -1,10 +1,12 @@
+import { h } from "preact";
 import { Diff } from "nodegit";
 import { dialog } from "@electron/remote";
 import { unselectLink } from "src/Components/Link";
 import { BranchObj, IpcAction, IpcActionReturn, IpcResponse, Locks, RepoStatus } from "../Actions";
 import { openDialog_CompareRevisions, openDialog_Settings } from "./Dialogs";
 import { addWindowEventListener, registerHandler, ipcSendMessage, ipcGetData } from "./IPC";
-import { Store, clearLock, setLock, updateStore, StoreType, GlobalLinks } from "./store";
+import { Store, clearLock, setLock, updateStore, StoreType, GlobalLinks, notify } from "./store";
+import { Notification } from "src/Components/Notification";
 
 let refreshingWorkdir = false;
 
@@ -98,8 +100,10 @@ export function pull(ref: string | null) {
     ipcSendMessage(IpcAction.PULL, ref);
 }
 
-export function push() {
-    ipcSendMessage(IpcAction.PUSH, null);
+export async function push() {
+    const n = notify("Pushing", <p />);
+    await ipcGetData(IpcAction.PUSH, null);
+    n.setBody(<p>Done!</p>, 3000);
 }
 
 function setStatus(status: RepoStatus) {
@@ -184,16 +188,25 @@ addWindowEventListener("open-settings", openSettings);
 addWindowEventListener("app-lock-ui", setLock);
 addWindowEventListener("app-unlock-ui", clearLock);
 addWindowEventListener("begin-compare-revisions", openDialog_CompareRevisions);
+
+// FIXME: Should probably handle this better..
+let fetchNotification: null | Notification;
 addWindowEventListener("fetch-status", stats => {
+    if (!fetchNotification) {
+        fetchNotification = notify("Fetching", <p />);
+    }
     if ("done" in stats) {
-        console.log(`Fetch all done: ${stats.update ? "refreshing branch/commit list": "no update"}`);
+        if (stats.done) {
+            fetchNotification.setBody(<p>{stats.update ? "Done" : "No update"}</p>, 3000);
+            fetchNotification = null;
+        }
         if (stats.update) {
             loadBranches();
         }
     } else if (stats.receivedObjects == stats.totalObjects) {
-        console.log(`Resolving deltas ${stats.indexedDeltas}/${stats.totalDeltas}`);
+        fetchNotification.setBody(<p>Resolving deltas {stats.indexedDeltas}/{stats.totalDeltas}</p>);
     } else if (stats.totalObjects > 0) {
-        console.log(`Received ${stats.receivedObjects}/${stats.totalObjects} objects (${stats.indexedObjects}) in ${stats.receivedBytes} bytes`);
+        fetchNotification.setBody(<p>Received {stats.receivedObjects}/{stats.totalObjects} objects ({stats.indexedObjects}) in {stats.receivedBytes} bytes</p>);
     }
 });
 

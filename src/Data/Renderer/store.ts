@@ -1,9 +1,10 @@
-import { Component } from "preact";
+import { h, AnyComponent, Component } from "preact";
 import { PureComponent } from "preact/compat";
 import { DialogProps, DialogTypes } from "src/Components/Dialog/types";
 import Link, { unselectLink } from "src/Components/Link";
 import { IpcAction, BranchesObj, BranchObj, PatchObj, Locks, RepoStatus, IpcActionParams, IpcActionReturn, HeadBranchObj } from "../Actions";
 import { registerHandler, ipcSendMessage, ipcGetData } from "./IPC";
+import { Notification } from "src/Components/Notification";
 
 // Glyph properties
 let _glyphWidth = 7.81;
@@ -57,6 +58,7 @@ export type StoreType = {
     diffOptions: {
         ignoreWhitespace: boolean
     }
+    notifications: Map<string, Notification>
 };
 
 const store: StoreType = {
@@ -83,7 +85,8 @@ const store: StoreType = {
     commitMsg: {summary: "", body: ""},
     diffOptions: {
         ignoreWhitespace: true
-    }
+    },
+    notifications: new Map(),
 };
 export type LinkTypes = "commits" | "branches" | "files";
 export const GlobalLinks: {
@@ -122,6 +125,7 @@ const listeners: {
     selectedBranch: [],
     viewChanges: [],
     diffOptions: [],
+    notifications: [],
 };
 
 function subscribe<T extends StoreKeys>(key: T, cb: PartialStoreListener<T>) {
@@ -179,6 +183,26 @@ export function updateStore(newStore: Partial<StoreType>) {
     triggerKeyListeners(newStore);
     Object.assign(store, newStore);
 }
+
+export function deleteNotification(id: string) {
+    if (Store.notifications.delete(id)) {
+        updateStore({
+            notifications: Store.notifications
+        });
+    }
+}
+
+export function notify(title: string, body: AnyComponent | h.JSX.Element, timeMs = 0) {
+    const notification = new Notification(title, body, deleteNotification, timeMs);
+
+    Store.notifications.set(notification.id, notification);
+    updateStore({
+        notifications: Store.notifications
+    });
+
+    return notification;
+}
+
 
 // TODO: Most of these functions should probably be in Renderer/IPC.ts or Renderer/index.ts
 
