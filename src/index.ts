@@ -681,7 +681,9 @@ async function openRepoDialog() {
     });
 
     const opened = !res.canceled && await provider.openRepo(res.filePaths[0]);
-    if (!res.canceled && !opened) {
+    if (opened) {
+        repo = opened;
+    } else if (!res.canceled) {
         dialog.showErrorBox("No repository", `'${res.filePaths[0]}' does not contain a git repository`);
     }
     return {
