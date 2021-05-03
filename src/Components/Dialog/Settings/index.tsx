@@ -109,7 +109,7 @@ export class Settings extends Component<SettingsProps, State> {
                         const result = await dialog.showMessageBox({
                             message: `Delete profile ${selectedProfile.profileName}?`,
                             type: "question",
-                            buttons: ["No", "Yes"],
+                            buttons: ["No", "Delete"],
                             cancelId: 0,
                         });
                         if (result.response === 1) {

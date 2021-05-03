@@ -71,7 +71,7 @@ remoteMenu.append(new MenuItem({
         const result = await dialog.showMessageBox({
             message: `Delete remote ${contextMenuState.data.remote}?`,
             type: "question",
-            buttons: ["Cancel", "Confirm"],
+            buttons: ["Cancel", "Delete"],
             cancelId: 0,
         });
         if (result.response === 1) {
@@ -97,7 +97,7 @@ remoteRefMenu.append(new MenuItem({
         const result = await dialog.showMessageBox({
             message: `Delete branch ${refName}?`,
             type: "question",
-            buttons: ["Cancel", "Confirm"],
+            buttons: ["Cancel", "Delete"],
             cancelId: 0,
         });
         if (result.response === 1) {
@@ -143,7 +143,7 @@ localMenu.append(new MenuItem({
         const result = await dialog.showMessageBox({
             message: `Delete branch ${refName}?`,
             type: "question",
-            buttons: ["Cancel", "Confirm"],
+            buttons: ["Cancel", "Delete"],
             cancelId: 0,
         });
         if (result.response === 1) {
@@ -199,7 +199,7 @@ tagMenu.append(new MenuItem({
         const result = await dialog.showMessageBox({
             message: `Delete tag ${refName}?`,
             type: "question",
-            buttons: ["Cancel", "Confirm"],
+            buttons: ["Cancel", "Delete"],
             cancelId: 0,
             checkboxLabel: "Delete from remote?",
         });

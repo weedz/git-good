@@ -91,10 +91,10 @@ export default class WorkingArea extends StoreComponent<unknown, State> {
         const result = await dialog.showMessageBox({
             message: `Discard changes to "${path}"?`,
             type: "question",
-            buttons: ["Confirm", "Cancel"],
-            cancelId: 1,
+            buttons: ["Cancel", "Discard changes"],
+            cancelId: 0,
         });
-        if (result.response === 0) {
+        if (result.response === 1) {
             ipcSendMessage(IpcAction.DISCARD_FILE, path);
         }
     }

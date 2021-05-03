@@ -253,13 +253,13 @@ async function pushBranch(repo: Repository, remote: Remote, localRef: Reference,
             title: "Force push?",
             message: `'${localRef.name()}' is behind the remote '${localRef.name()}'. Force push?`,
             type: "question",
-            buttons: ["Cancel", "No", "Yes"],
+            buttons: ["Cancel", "No", "Force push"],
             cancelId: 0,
         });
         if (!result.response) {
             return false;
         }
-        if (result.response === 1) {
+        if (result.response === 2) {
             force = true;
         }
     }
@@ -524,10 +524,10 @@ export async function discardChanges(repo: Repository, filePath: string): Promis
         const result = await dialog.showMessageBox({
             message: `Delete untracked file ${filePath}?`,
             type: "question",
-            buttons: ["Confirm", "Cancel"],
-            cancelId: 1,
+            buttons: ["Cancel", "Delete"],
+            cancelId: 0,
         });
-        if (result.response === 0) {
+        if (result.response === 1) {
             await fs.unlink(join(repo.workdir(), filePath));
         }
         return 0;
@@ -744,30 +744,32 @@ export async function resolveConflict(repo: Repository, path: string) {
 
     if (!conflictEntry.our_out) {
         const res = await dialog.showMessageBox({
-            message: `"Our" file deleted. 'Yes' to stage the existing file, 'No' to stage a "delete"?`,
+            title: `"Our" file deleted`,
+            message: "The file was deleted from the source branch.",
             type: "question",
-            buttons: ["Yes", "No", "Cancel"],
-            cancelId: 2,
+            buttons: ["Cancel", "Delete file", "Stage existing file"],
+            cancelId: 0,
         });
-        if (res.response === 2) {
+        if (res.response === 0) {
             return 0;
         }
-        if (res.response === 0) {
+        if (res.response === 2) {
             await index.addByPath(path);
         } else {
             await fs.unlink(join(repo.workdir(), path));
         }
     } else if (!conflictEntry.their_out) {
         const res = await dialog.showMessageBox({
-            message: `"Their" file deleted. 'Yes' to stage a "delete", 'No' to stage the existing file?`,
+            title: `"Their" file deleted`,
+            message: `The file was deleted from the target branch.`,
             type: "question",
-            buttons: ["Yes", "No", "Cancel"],
-            cancelId: 2,
+            buttons: ["Cancel", "Stage existing file", "Delete file"],
+            cancelId: 0,
         });
-        if (res.response === 2) {
+        if (res.response === 0) {
             return 0;
         }
-        if (res.response === 0) {
+        if (res.response === 2) {
             await fs.unlink(join(repo.workdir(), path));
         } else {
             await index.addByPath(path);
@@ -779,10 +781,10 @@ export async function resolveConflict(repo: Repository, path: string) {
                 const res = await dialog.showMessageBox({
                     message: `The file seems to still contain conflict markers. Stage anyway?`,
                     type: "question",
-                    buttons: ["Yes", "No"],
-                    cancelId: 1,
+                    buttons: ["No", "Stage file"],
+                    cancelId: 0,
                 });
-                if (res.response !== 0) {
+                if (res.response !== 1) {
                     return 0;
                 }
             }
