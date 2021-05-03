@@ -110,7 +110,7 @@ export default class ChangedFiles extends Component<Props, {fileFilter?: string}
                     <span>{patch.actualFile.path}</span>
                 </Link>
                 <div className="action-group">
-                    {actions.map(action => <button data-path={patch.actualFile.path} onClick={action.click}>{action.label}</button>)}
+                    {actions.map(action => <button key={patch.actualFile.path} data-path={patch.actualFile.path} onClick={action.click}>{action.label}</button>)}
                 </div>
             </li>
         );

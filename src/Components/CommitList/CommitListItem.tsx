@@ -47,7 +47,7 @@ export default class CommitListItem extends PureComponent<Props> {
                                 } else if (ref.type === RefType.TAG) {
                                     menu = showTagMenu;
                                 }
-                                return <li><Link type="branches" onContextMenu={menu} selectAction={_ => updateStore({diffPaneSrc: null})} selectTarget={GlobalLinks.branches[ref.name]} style={{backgroundColor: HeadColors[this.props.graph[this.props.commit.sha].colorId].background}} data-ref={ref.name}>{ref.normalizedName}</Link></li>
+                                return <li key={ref.name}><Link type="branches" onContextMenu={menu} selectAction={_ => updateStore({diffPaneSrc: null})} selectTarget={GlobalLinks.branches[ref.name]} style={{backgroundColor: HeadColors[this.props.graph[this.props.commit.sha].colorId].background}} data-ref={ref.name}>{ref.normalizedName}</Link></li>
                             })}
                         </ul>
                     }
@@ -56,7 +56,7 @@ export default class CommitListItem extends PureComponent<Props> {
                     <span className={this.props.commit.parents.length > 1 ? "graph-indicator small" : "graph-indicator"} style={{backgroundColor: HeadColors[this.props.graph[this.props.commit.sha].colorId].color}} />
                     {this.props.graph[this.props.commit.sha].descendants.length > 0 &&
                     <ul className="commit-graph">
-                        {this.props.graph[this.props.commit.sha].descendants.map(child => <li><Link selectTarget={GlobalLinks.commits[child.sha]} style={{color: HeadColors[this.props.graph[child.sha].colorId].color}}>{child.sha.substring(0,7)}</Link></li>)}
+                        {this.props.graph[this.props.commit.sha].descendants.map(child => <li key={child.sha}><Link selectTarget={GlobalLinks.commits[child.sha]} style={{color: HeadColors[this.props.graph[child.sha].colorId].color}}>{child.sha.substring(0,7)}</Link></li>)}
                     </ul>
                     }
                 </div>

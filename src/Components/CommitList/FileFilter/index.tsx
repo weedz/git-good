@@ -63,7 +63,7 @@ export default class FileFilter extends StoreComponent<{filterByFile: (file: str
                 {this.state.fileFilter && <button onClick={this.filterByFile}>Reset</button>}
                 {this.state.showFiles && !!this.state.fileResults?.length &&
                     <ul id="file-filter-list">
-                        {this.state.fileResults.map(file => <li onClick={this.filterByFile} data-path={file}>{file}</li>)}
+                        {this.state.fileResults.map(file => <li key={file} onClick={this.filterByFile} data-path={file}>{file}</li>)}
                     </ul>
                 }
             </Fragment>

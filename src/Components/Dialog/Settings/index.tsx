@@ -75,7 +75,7 @@ export class Settings extends Component<SettingsProps, State> {
                         });
                     }}>
                         {this.state.config.profiles.map((profile, idx) => (
-                            <option value={idx} selected={idx === this.state.config.selectedProfile}>{profile.profileName}</option>
+                            <option key={profile.profileName} value={idx} selected={idx === this.state.config.selectedProfile}>{profile.profileName}</option>
                         ))}
                     </select>
                     <button type="button" onClick={() => {
