@@ -36,8 +36,9 @@ jobs:
         with:
           node-version: 15
       - name: Install node dependencies
-        run: npm ci
+        run: npm ci --ignore-scripts
       - name: Build
         env:
           GH_TOKEN: ${{ secrets.github_token }}
+          JOBS: max
         run: npm run build && npm run dist
