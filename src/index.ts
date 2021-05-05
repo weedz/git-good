@@ -11,6 +11,7 @@ import { AppConfig } from "./Data/Config";
 import { sendEvent } from "./Data/Main/WindowEvents";
 import { TransferProgress } from "types/nodegit";
 import { readFileSync, writeFileSync } from "fs";
+import { normalizeLocalName } from "./Data/Branch";
 
 // import { initialize } from "@electron/remote";
 // initialize();
@@ -460,9 +461,13 @@ const eventMap: {
     },
     // TODO: Should we allow renaming remote refs? Can we use the same call for remote refs?
     [IpcAction.RENAME_LOCAL_BRANCH]: async (repo, data) => {
-        const ref = await repo.getReference(data.ref);
-        let renamedRef: Reference | null = null;
+        if (normalizeLocalName(data.ref) === data.name) {
+            return true;
+        }
 
+        const ref = await repo.getReference(data.ref);
+
+        let renamedRef: Reference | null = null;
         if (ref.isBranch() && !ref.isRemote()) {
             // We only allow rename of a local branch (so the name should begin with "refs/heads/")
             renamedRef = await ref.rename(`refs/heads/${data.name}`, 0, "renamed");
