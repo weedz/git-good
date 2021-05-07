@@ -1,4 +1,5 @@
 import { getCurrentWindow, Menu, MenuItem } from "@electron/remote";
+import { clipboard } from "electron";
 import { h } from "preact";
 import { IpcAction } from "src/Data/Actions";
 import { BranchFromType, openDialog_BranchFrom, openDialog_createTag } from "src/Data/Renderer/Dialogs";
@@ -29,6 +30,16 @@ commitMenu.append(new MenuItem({
     label: "Create tag here...",
     click() {
         openDialog_createTag(contextMenuState.data.sha, true);
+    }
+}));
+commitMenu.append(new MenuItem({
+    type: "separator"
+}));
+commitMenu.append(new MenuItem({
+    label: 'Copy sha',
+    click() {
+        const sha = contextMenuState.data.sha;
+        clipboard.writeText(sha);
     }
 }));
 

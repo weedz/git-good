@@ -7,6 +7,7 @@ import { updateStore } from "src/Data/Renderer/store";
 import { formatTimeAgo } from "src/Data/Utils";
 import ScrollContainer from "../ScrollContainer";
 import Link from "../Link";
+import { showFileHistoryCommitMenu } from "./FileHistoryMenu";
 
 const ITEM_HEIGHT = 50;
 const ACTION_ITEM_HEIGHT = 12;
@@ -46,7 +47,7 @@ export default class CommitContainer extends PureComponent<Props> {
                                 style={{position: "absolute", top: `${(start + idx) * ITEM_HEIGHT + extraHeightOffset}px`, height}}
                                 key={commit.sha}
                             >
-                                <Link selectAction={async (_arg) => {
+                                <Link onContextMenu={showFileHistoryCommitMenu} selectAction={async (_arg) => {
                                     const filePatch = await ipcGetData(IpcAction.FILE_DIFF_AT, {file: commit.path, sha: commit.sha});
                                     if (filePatch) {
                                         updateStore({
@@ -56,7 +57,7 @@ export default class CommitContainer extends PureComponent<Props> {
                                             },
                                         });
                                     }
-                                }} title={commit.message} className="flex-column">
+                                }} title={commit.message} className="flex-column" data-sha={commit.sha}>
                                     <div className="flex-row">
                                         <span className="msg">{commit.message.substring(0, commit.message.indexOf("\n")>>>0 || 60)}</span>
                                     </div>

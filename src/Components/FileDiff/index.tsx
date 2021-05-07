@@ -127,10 +127,8 @@ export default class FileDiff extends PureStoreComponent<unknown, State> {
         }
         const patch = Store.currentFile.patch;
 
-        const fullWidth = this.state.fullWidth || !!this.state.fileHistory;
-
         const classes = [];
-        if (fullWidth) {
+        if (this.state.fullWidth) {
             classes.push("full-width");
         }
 
@@ -149,14 +147,12 @@ export default class FileDiff extends PureStoreComponent<unknown, State> {
                     <ul className="file-diff-toolbar flex-row">
                         <li className="btn-group">
                             <button className={this.state.fileHistory ? "active" : undefined} onClick={() => {
-                                if (!this.state.fileHistory) {
-                                    this.setState({fileHistory: []});
-                                    openFileHistory(patch.actualFile.path, Store.currentFile?.commitSHA);
-                                }
-                            }}>History</button>
+                                this.setState({fileHistory: []});
+                                openFileHistory(patch.actualFile.path, Store.currentFile?.commitSHA);
+                            }} disabled={!!this.state.fileHistory}>History</button>
                         </li>
                         <li className="btn-group">
-                            <button className={fullWidth ? "active" : undefined} onClick={() => this.setState({fullWidth: !this.state.fullWidth})} disabled={!!this.state.fileHistory}>Fullscreen</button>
+                            <button className={this.state.fullWidth ? "active" : undefined} onClick={() => this.setState({fullWidth: !this.state.fullWidth})}>Fullscreen</button>
                         </li>
                         <li>
                             <button className={Store.diffOptions.ignoreWhitespace ? "active" : undefined} onClick={() => updateStore({diffOptions: {ignoreWhitespace: !Store.diffOptions.ignoreWhitespace}})}>Ignore whitespace</button>
