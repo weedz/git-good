@@ -1,4 +1,5 @@
 import { Diff } from "nodegit";
+import { unselectLink } from "src/Components/Link";
 import { BranchObj, IpcAction, IpcActionReturn, IpcResponse, Locks, RepoStatus } from "../Actions";
 import { openDialog_CompareRevisions, openDialog_Settings } from "./Dialogs";
 import { addWindowEventListener, registerHandler, ipcSendMessage } from "./IPC";
@@ -111,11 +112,13 @@ function updateCurrentBranch(result: IpcResponse<IpcAction.CHECKOUT_BRANCH>) {
     }
 }
 
-function handleCompareRevisions(data: IpcActionReturn[IpcAction.OPEN_COMPARE_REVISIONS]) {
-    updateStore({
-        comparePatches: data,
-        // selectedBranch: undefined,
-    });
+function handleCompareRevisions(data: IpcResponse<IpcAction.OPEN_COMPARE_REVISIONS>) {
+    if (data) {
+        unselectLink("commits");
+        updateStore({
+            comparePatches: data,
+        });
+    }
 }
 
 function handleNewCommit() {

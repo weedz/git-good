@@ -5,6 +5,7 @@ import { IpcAction } from "src/Data/Actions";
 import { BranchFromType, openDialog_BranchFrom, openDialog_createTag } from "src/Data/Renderer/Dialogs";
 import { ipcSendMessage } from "src/Data/Renderer/IPC";
 import { contextMenuState } from "src/Data/Renderer/store";
+import { unselectLink } from "../Link";
 
 const commitMenu = new Menu();
 commitMenu.append(new MenuItem({
@@ -17,6 +18,7 @@ commitMenu.append(new MenuItem({
 commitMenu.append(new MenuItem({
     label: 'Diff...',
     click() {
+        unselectLink("commits");
         ipcSendMessage(IpcAction.OPEN_COMPARE_REVISIONS, {
             to: "HEAD",
             from: contextMenuState.data.sha
