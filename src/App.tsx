@@ -12,18 +12,11 @@ import NewTab from "./Views/NewTab";
 
 
 export default class App extends StoreComponent {
-    openRecent = true;
     componentDidMount() {
         this.listen("repo", repo => {
             if (repo) {
                 document.title = basename(repo.path);
                 this.setState({});
-            } else if (this.openRecent) {
-                this.openRecent = false;
-                const recentRepo = localStorage.getItem("recent-repo");
-                if (recentRepo) {
-                    openRepo(recentRepo);
-                }
             }
         });
 
@@ -33,7 +26,12 @@ export default class App extends StoreComponent {
             }
         });
 
-        openRepo(process.cwd());
+        if (!Store.repo) {
+            const recentRepo = localStorage.getItem("recent-repo");
+            if (recentRepo) {
+                openRepo(recentRepo);
+            }
+        }
     }
     render() {
         if (!Store.repo) {

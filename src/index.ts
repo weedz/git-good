@@ -78,6 +78,8 @@ const createWindow = () => {
         }
     });
 
+    // win.webContents.openDevTools();
+
     win.loadFile(join(__dirname, "../dist/index.html"));
 
     win.webContents.on("will-navigate", e => {
