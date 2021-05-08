@@ -168,7 +168,8 @@ export abstract class PureStoreComponent<P = unknown, S = unknown> extends PureC
 function triggerKeyListeners(newStore: Partial<StoreType>) {
     for (const key of Object.keys(newStore) as StoreKeys[]) {
         for (const listener of listeners[key]) {
-            (listener as PartialStoreListener<StoreKeys>)(newStore[key]);
+            const data = newStore[key] as StoreType[typeof key];
+            (listener as PartialStoreListener<StoreKeys>)(data);
         }
     }
 }
