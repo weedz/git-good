@@ -159,7 +159,9 @@ export abstract class PureStoreComponent<P = unknown, S = unknown> extends PureC
     }
 
     componentWillUnmount() {
-        this.listeners.forEach(unsubscribe => unsubscribe());
+        for (const unsubscribe of this.listeners) {
+            unsubscribe();
+        }
     }
 }
 
