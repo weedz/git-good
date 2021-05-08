@@ -475,15 +475,11 @@ export async function commit(repo: Repository, params: IpcActionParams[IpcAction
         if (params.amend) {
             const author = parent.author();
             if (gpgKey) {
-                // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-                // @ts-ignore
                 await parent.amendWithSignature("HEAD", author, committer, "utf8", message, oid, onSignature(gpgKey));
             } else {
                 await parent.amend("HEAD", author, committer, "utf8", message, oid);
             }
         } else if (gpgKey) {
-            // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-            // @ts-ignore
             await repo.createCommitWithSignature("HEAD", committer, committer, message, oid, [parent], onSignature(gpgKey));
         } else {
             await repo.createCommit("HEAD", committer, committer, message, oid, [parent]);
@@ -507,8 +503,6 @@ export async function createTag(repo: Repository, data: IpcActionParams[IpcActio
         }
 
         if (gpgKey) {
-            // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-            // @ts-ignore
             await Tag.createWithSignature(repo, data.name, id, tagger, data.annotation, 0, onSignature(gpgKey));
         } else if (data.annotation) {
             await repo.createTag(id, data.name, data.annotation);
@@ -974,8 +968,6 @@ export async function loadCommit(repo: Repository, sha: string | null): Promise<
     }
 
     try {
-        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-        // @ts-ignore
         const commitSignature = await commit.getSignature("gpgsig");
         commitObj.signature = await gpgVerify(commitSignature.signature, commitSignature.signedData)
     } catch (err) {
