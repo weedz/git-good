@@ -4,7 +4,7 @@ import { basename } from "path";
 import Main from "./Views/Main";
 import Changes from "./Components/Changes";
 import BranchList from "./Components/BranchList";
-import { Store, openRepo, StoreComponent } from "./Data/Renderer/store";
+import { Store, openRepo, StoreComponent, NotificationPosition } from "./Data/Renderer/store";
 import { Locks } from "./Data/Actions";
 import Dialog from "./Components/Dialog";
 import FileDiff from "./Components/FileDiff";
@@ -48,7 +48,7 @@ export default class App extends StoreComponent {
                 </div>
                 <FileDiff />
                 <Main />
-                <NotificationsContainer />
+                <NotificationsContainer position={NotificationPosition.DEFAULT} />
             </div>
         );
     }

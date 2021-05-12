@@ -28,6 +28,10 @@ export type DialogWindow = {
     props: DialogProps[DialogTypes]
 }
 
+export enum NotificationPosition {
+    DEFAULT,
+}
+
 export type StoreType = {
     repo: null | {
         path: string
@@ -58,7 +62,9 @@ export type StoreType = {
     diffOptions: {
         ignoreWhitespace: boolean
     }
-    notifications: Map<string, Notification>
+    notifications: {
+        [K in NotificationPosition]: Map<string, Notification>
+    }
 };
 
 const store: StoreType = {
@@ -86,7 +92,9 @@ const store: StoreType = {
     diffOptions: {
         ignoreWhitespace: true
     },
-    notifications: new Map(),
+    notifications: {
+        [NotificationPosition.DEFAULT]: new Map(),
+    }
 };
 export type LinkTypes = "commits" | "branches" | "files";
 export const GlobalLinks: {
@@ -184,23 +192,18 @@ export function updateStore(newStore: Partial<StoreType>) {
     Object.assign(store, newStore);
 }
 
-export function deleteNotification(id: string) {
-    if (Store.notifications.delete(id)) {
-        updateStore({
-            notifications: Store.notifications
-        });
-    }
-}
+export function notify(type: NotificationPosition = NotificationPosition.DEFAULT, title: string, body: AnyComponent | h.JSX.Element, timeMs = 0) {
+    const notification = new Notification(title, body, deleteNotification[type], timeMs);
 
-export function notify(title: string, body: AnyComponent | h.JSX.Element, timeMs = 0) {
-    const notification = new Notification(title, body, deleteNotification, timeMs);
-
-    Store.notifications.set(notification.id, notification);
+    Store.notifications[type].set(notification.id, notification);
     updateStore({
         notifications: Store.notifications
     });
 
     return notification;
+}
+const deleteNotification: {[K in NotificationPosition]: (id: string) => void} = {
+    [NotificationPosition.DEFAULT]: (id) => Store.notifications[NotificationPosition.DEFAULT].delete(id) && updateStore({ notifications: Store.notifications }),
 }
 
 

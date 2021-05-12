@@ -101,7 +101,7 @@ export function pull(ref: string | null) {
 }
 
 export async function push() {
-    const n = notify("Pushing", <p />);
+    const n = notify(undefined, "Pushing", <p />);
     await ipcGetData(IpcAction.PUSH, null);
     n.setBody(<p>Done!</p>, 3000);
 }
@@ -193,7 +193,7 @@ addWindowEventListener("begin-compare-revisions", openDialog_CompareRevisions);
 let fetchNotification: null | Notification;
 addWindowEventListener("fetch-status", stats => {
     if (!fetchNotification) {
-        fetchNotification = notify("Fetching", <p />);
+        fetchNotification = notify(undefined, "Fetching", <p />);
     }
     if ("done" in stats) {
         if (stats.done) {

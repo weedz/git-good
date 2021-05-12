@@ -1,7 +1,7 @@
 import { h } from "preact";
-import { Store, PureStoreComponent } from "src/Data/Renderer/store";
+import { Store, PureStoreComponent, NotificationPosition } from "src/Data/Renderer/store";
 
-export default class NotificationsContainer extends PureStoreComponent {
+export default class NotificationsContainer extends PureStoreComponent<{position: NotificationPosition}> {
     componentDidMount() {
         this.listen("notifications", () => {
             this.forceUpdate()
@@ -10,7 +10,7 @@ export default class NotificationsContainer extends PureStoreComponent {
     render() {
         return (
             <ul className="notifications-container">
-                {Array.from(Store.notifications.values()).map(Notification => Notification.item)}
+                {Array.from(Store.notifications[this.props.position].values()).map(Notification => Notification.item)}
             </ul>
         );
     }
