@@ -150,7 +150,7 @@ export type IpcActionParams = {
 export type IpcActionReturn = {
     [IpcAction.LOAD_COMMITS]: LoadCommitsReturn
     [IpcAction.LOAD_FILE_COMMITS]: LoadFileCommitsReturn
-    [IpcAction.LOAD_BRANCHES]: BranchesObj & {head: BranchObj}
+    [IpcAction.LOAD_BRANCHES]: BranchesObj & {head: HeadBranchObj}
     [IpcAction.OPEN_REPO]: {
         opened: boolean
         path: string
@@ -162,7 +162,7 @@ export type IpcActionReturn = {
         path: string
         hunks: HunkObj[] | false
     }
-    [IpcAction.CHECKOUT_BRANCH]: false | BranchObj
+    [IpcAction.CHECKOUT_BRANCH]: false | HeadBranchObj
     [IpcAction.REFRESH_WORKDIR]: {
         unstaged: number
         staged: number
@@ -278,6 +278,8 @@ export type CommitObj = {
     author: AuthorObj
     committer: AuthorObj
 };
+
+export type HeadBranchObj = BranchObj & {commit: CommitObj}
 
 export enum RefType {
     LOCAL,

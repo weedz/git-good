@@ -407,7 +407,7 @@ export async function getBranches(repo: Repository): Promise<IpcActionReturn[Ipc
     );
 
     const head = await repo.head();
-    const headCommit = await head.peel(Object.TYPE.COMMIT);
+    const headCommit = await repo.getHeadCommit();
     let headUpstream: string | undefined;
     try {
         const upstream = await Branch.upstream(head);
@@ -423,6 +423,7 @@ export async function getBranches(repo: Repository): Promise<IpcActionReturn[Ipc
         head: {
             name: head.name(),
             headSHA: headCommit.id().tostrS(),
+            commit: getCommitObj(headCommit),
             normalizedName: head.name(),
             type: RefType.LOCAL,
             remote: headUpstream
@@ -945,14 +946,7 @@ export async function compareRevisionsPatches() {
     return patches.flat();
 }
 
-export async function loadCommit(repo: Repository, sha: string | null): Promise<IpcActionReturn[IpcAction.LOAD_COMMIT]> {
-    let commit;
-    if (sha) {
-        commit = await commitWithDiff(repo, sha);
-    } else {
-        commit = await repo.getHeadCommit();
-    }
-
+function getCommitObj(commit: Commit): CommitObj {
     const author = commit.author();
     const committer = commit.committer();
 
@@ -960,7 +954,7 @@ export async function loadCommit(repo: Repository, sha: string | null): Promise<
     const msgSummary = msg.substring(0, msg.indexOf("\n") >>> 0);
     const msgBody = msg.substring(msgSummary.length).trim();
 
-    const commitObj: CommitObj = {
+    return {
         parents: commit.parents().map(parent => ({ sha: parent.tostrS() })),
         sha: commit.sha(),
         authorDate: author.when().time(),
@@ -977,7 +971,13 @@ export async function loadCommit(repo: Repository, sha: string | null): Promise<
             name: committer.name(),
             email: committer.email()
         },
-    }
+    };
+}
+
+export async function loadCommit(repo: Repository, sha: string | null): Promise<IpcActionReturn[IpcAction.LOAD_COMMIT]> {
+    const commit = sha ? await commitWithDiff(repo, sha) : await repo.getHeadCommit();
+
+    const commitObj = getCommitObj(commit);
 
     try {
         const commitSignature = await commit.getSignature("gpgsig");
@@ -1003,14 +1003,15 @@ export async function commitWithDiff(repo: Repository, sha: string) {
     return commit;
 }
 
-export async function checkoutBranch(repo: Repository, branch: string) {
+export async function checkoutBranch(repo: Repository, branch: string): Promise<IpcActionReturn[IpcAction.CHECKOUT_BRANCH]> {
     try {
         await repo.checkoutBranch(branch);
         const head = await repo.head();
-        const headCommit = await head.peel(Object.TYPE.COMMIT);
+        const headCommit = await repo.getHeadCommit()
         return {
             name: head.name(),
             headSHA: headCommit.id().tostrS(),
+            commit: getCommitObj(headCommit),
             normalizedName: head.name(),
             type: RefType.LOCAL
         };

@@ -2,7 +2,7 @@ import { Component } from "preact";
 import { PureComponent } from "preact/compat";
 import { DialogProps, DialogTypes } from "src/Components/Dialog/types";
 import Link, { unselectLink } from "src/Components/Link";
-import { IpcAction, BranchesObj, BranchObj, PatchObj, Locks, RepoStatus, IpcActionParams, IpcActionReturn } from "../Actions";
+import { IpcAction, BranchesObj, BranchObj, PatchObj, Locks, RepoStatus, IpcActionParams, IpcActionReturn, HeadBranchObj } from "../Actions";
 import { registerHandler, ipcSendMessage, ipcGetData } from "./IPC";
 
 // Glyph properties
@@ -33,7 +33,7 @@ export type StoreType = {
         status: null | RepoStatus
     }
     branches: BranchesObj
-    head?: BranchObj
+    head?: HeadBranchObj
     remotes: IpcActionReturn[IpcAction.REMOTES]
     heads: {
         [key: string]: BranchObj[]

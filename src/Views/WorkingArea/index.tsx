@@ -1,7 +1,7 @@
 import { h } from "preact";
 
 import "./style.css";
-import { CommitObj, IpcAction, IpcActionReturn, PatchObj } from "src/Data/Actions";
+import { IpcAction, IpcActionReturn, PatchObj } from "src/Data/Actions";
 import { ipcSendMessage } from "src/Data/Renderer/IPC";
 import ChangedFiles from "src/Components/DiffPane/ChangedFiles";
 import { dialog } from "@electron/remote";
@@ -13,7 +13,6 @@ type State = {
     unstaged?: PatchObj[]
     staged?: PatchObj[]
     amend?: boolean
-    head?: CommitObj
     commitMsg: StoreType["commitMsg"]
 };
 
@@ -28,9 +27,6 @@ export default class WorkingArea extends StoreComponent<unknown, State> {
     componentDidMount() {
         this.registerHandler(IpcAction.REFRESH_WORKDIR, this.getChanges);
         this.registerHandler(IpcAction.GET_CHANGES, this.update);
-        this.registerHandler(IpcAction.LOAD_COMMIT, this.setHead);
-        this.registerHandler(IpcAction.COMMIT, this.setHead);
-        this.registerHandler(IpcAction.CHECKOUT_BRANCH, this.updateHead);
 
         this.listen("diffOptions", (diffOptions) => {
             let options = null;
@@ -44,16 +40,7 @@ export default class WorkingArea extends StoreComponent<unknown, State> {
         this.listen("commitMsg", msg => {
             this.setState({commitMsg: msg});
         });
-        this.updateHead();
         this.getChanges();
-    }
-    updateHead = () => {
-        ipcSendMessage(IpcAction.LOAD_COMMIT, null);
-    }
-    setHead = (head: CommitObj) => {
-        this.setState({
-            head
-        });
     }
     getChanges = () => {
         ipcSendMessage(IpcAction.GET_CHANGES, null);
@@ -108,7 +95,7 @@ export default class WorkingArea extends StoreComponent<unknown, State> {
             if (!amend) {
                 newState.commitMsg = Store.commitMsg;
             } else {
-                newState.commitMsg = this.state.head?.message
+                newState.commitMsg = Store.head?.commit.message
             }
             this.setState(newState);
         }
