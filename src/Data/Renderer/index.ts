@@ -39,6 +39,18 @@ function repoOpened(result: IpcActionReturn[IpcAction.OPEN_REPO]) {
     }
 }
 
+function updateRepoStatus(result: {status: RepoStatus})
+{
+    if (Store.repo) {
+        updateStore({
+            repo: {
+                ...Store.repo,
+                status: result.status,
+            },
+        });
+    }
+}
+
 function loadBranches() {
     setLock(Locks.BRANCH_LIST);
     ipcSendMessage(IpcAction.LOAD_BRANCHES, null);
@@ -162,6 +174,7 @@ addWindowEventListener("fetch-status", stats => {
 });
 
 registerHandler(IpcAction.OPEN_REPO, repoOpened);
+registerHandler(IpcAction.REFRESH_WORKDIR, updateRepoStatus);
 registerHandler(IpcAction.LOAD_BRANCHES, branchesLoaded);
 registerHandler(IpcAction.CHECKOUT_BRANCH, updateCurrentBranch);
 registerHandler(IpcAction.LOAD_HUNKS, loadHunks);

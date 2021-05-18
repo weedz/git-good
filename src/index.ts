@@ -385,7 +385,7 @@ const eventMap: {
             return {
                 path,
                 opened: !!opened,
-                status: opened ? repoStatus() : null,
+                status: opened ? provider.repoStatus() : null,
             }
         }
         return openRepoDialog();
@@ -652,14 +652,14 @@ async function abortRebase(repo: Repository): Promise<IpcActionReturn[IpcAction.
     const rebase = await Rebase.open(repo);
     console.log(rebase);
     // rebase.abort();
-    return repoStatus();
+    return provider.repoStatus();
 }
 async function continueRebase(repo: Repository): Promise<IpcActionReturn[IpcAction.CONTINUE_REBASE]> {
     const rebase = await Rebase.open(repo);
     console.log(rebase);
     // const rebaseAction = await rebase.next();
     // console.dir(rebaseAction);
-    return repoStatus();
+    return provider.repoStatus();
 }
 
 async function openRepoDialog() {
@@ -677,18 +677,7 @@ async function openRepoDialog() {
     return {
         path: res.filePaths[0],
         opened: !!opened,
-        status: opened ? repoStatus() : null,
-    };
-}
-
-function repoStatus() {
-    return {
-        empty: repo.isEmpty(),
-        merging: repo.isMerging(),
-        rebasing: repo.isRebasing(),
-        reverting: repo.isReverting(),
-        bisecting: repo.isBisecting(),
-        state: repo.state(),
+        status: opened ? provider.repoStatus() : null,
     };
 }
 

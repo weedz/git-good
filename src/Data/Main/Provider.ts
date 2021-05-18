@@ -49,6 +49,17 @@ export async function openRepo(repoPath: string) {
     return repo;
 }
 
+export function repoStatus() {
+    return {
+        empty: repo.isEmpty(),
+        merging: repo.isMerging(),
+        rebasing: repo.isRebasing(),
+        reverting: repo.isReverting(),
+        bisecting: repo.isBisecting(),
+        state: repo.state(),
+    };
+}
+
 type HistoryCommit = {
     parents: string[]
     sha: string,
@@ -529,7 +540,8 @@ export async function refreshWorkDir(repo: Repository, options: IpcActionParams[
 
     return {
         unstaged: workDirIndexCache.unstagedPatches.length,
-        staged: workDirIndexCache.stagedPatches.length
+        staged: workDirIndexCache.stagedPatches.length,
+        status: repoStatus(),
     };
 }
 

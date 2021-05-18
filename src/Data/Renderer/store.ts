@@ -263,12 +263,12 @@ export function continueRebase() {
     ipcSendMessage(IpcAction.CONTINUE_REBASE, null);
 }
 
-export function setLock(lock: keyof StoreType["locks"]) {
+export function setLock(lock: Locks) {
     const locks = store.locks;
     locks[lock] = true;
     setStoreDeep(["locks", lock], locks[lock]);
 }
-export function clearLock(lock: keyof StoreType["locks"]) {
+export function clearLock(lock: Locks) {
     const locks = store.locks;
     locks[lock] = false;
     setStoreDeep(["locks", lock], locks[lock]);

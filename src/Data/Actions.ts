@@ -166,6 +166,7 @@ export type IpcActionReturn = {
     [IpcAction.REFRESH_WORKDIR]: {
         unstaged: number
         staged: number
+        status: RepoStatus
     }
     [IpcAction.GET_CHANGES]: {
         staged: PatchObj[]
