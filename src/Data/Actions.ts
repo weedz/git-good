@@ -350,4 +350,5 @@ type LoadFileCommitsReturn = {
 export enum Locks {
     MAIN,
     BRANCH_LIST,
+    COMMIT_LIST,
 }

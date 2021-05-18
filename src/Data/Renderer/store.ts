@@ -73,6 +73,7 @@ const store: StoreType = {
     locks: {
         [Locks.MAIN]: false,
         [Locks.BRANCH_LIST]: false,
+        [Locks.COMMIT_LIST]: false,
     },
     dialogWindow: null,
     selectedBranch: {branch: "HEAD"},

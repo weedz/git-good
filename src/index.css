@@ -134,7 +134,6 @@ ul.block-list > li > a:not(.selected):hover {
 
 .disabled {
   pointer-events: none;
-  opacity: 0.4;
 }
 
 .scroll-container {

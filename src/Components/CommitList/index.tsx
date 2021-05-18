@@ -29,20 +29,24 @@ export default class CommitList extends PureStoreComponent<unknown, State> {
     cursor: IpcActionReturn[IpcAction.LOAD_COMMITS]["cursor"];
     color = 0;
 
-    constructor() {
-        super();
-        this.state = {
-            commits: [],
-            filter: undefined,
-            fileResults: [],
-            loading: false,
-        };
-    }
+    state: State = {
+        commits: [],
+        filter: undefined,
+        fileResults: [],
+        loading: false,
+    };
 
     componentDidMount() {
         this.listen("selectedBranch", this.handleProps);
         this.listen("branches", this.handleProps);
         this.registerHandler(IpcAction.LOAD_COMMITS, this.commitsLoaded);
+
+        this.listen("locks", locks => {
+            if (Locks.COMMIT_LIST in locks) {
+                this.forceUpdate();
+            }
+        });
+
         this.getCommits();
     }
     handleProps = () => {
@@ -149,7 +153,7 @@ export default class CommitList extends PureStoreComponent<unknown, State> {
 
     render() {
         return (
-            <div id="commits-pane" className="pane">
+            <div id="commits-pane" className={`pane${Store.locks[Locks.COMMIT_LIST] ? " disabled" : ""}`}>
                 <h4>Commits</h4>
                 <div style="padding: 5px 0; border-bottom: 1px solid #555;">
                     <input type="text" value={this.state.filter} onKeyUp={this.filter} placeholder="sha,message" />
