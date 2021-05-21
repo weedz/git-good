@@ -101,9 +101,9 @@ export function pull(ref: string | null) {
 }
 
 export async function push() {
-    const n = notify(undefined, "Pushing", <p />);
+    const n = notify({title: "Pushing...", time: 0});
     await ipcGetData(IpcAction.PUSH, null);
-    n.setBody(<p>Done!</p>, 3000);
+    n.update({title: "Pushed", body: <p>Done!</p>, time: 3000});
 }
 
 function setStatus(status: RepoStatus) {
@@ -193,20 +193,20 @@ addWindowEventListener("begin-compare-revisions", openDialog_CompareRevisions);
 let fetchNotification: null | Notification;
 addWindowEventListener("fetch-status", stats => {
     if (!fetchNotification) {
-        fetchNotification = notify(undefined, "Fetching", <p />);
+        fetchNotification = notify({title: "Fetching", time: 0});
     }
     if ("done" in stats) {
         if (stats.done) {
-            fetchNotification.setBody(<p>{stats.update ? "Done" : "No update"}</p>, 3000);
+            fetchNotification.update({title: "Fetched", body: <p>{stats.update ? "Done" : "No update"}</p>, time: 3000});
             fetchNotification = null;
         }
         if (stats.update) {
             loadBranches();
         }
     } else if (stats.receivedObjects == stats.totalObjects) {
-        fetchNotification.setBody(<p>Resolving deltas {stats.indexedDeltas}/{stats.totalDeltas}</p>);
+        fetchNotification.update({body: <p>Resolving deltas {stats.indexedDeltas}/{stats.totalDeltas}</p>});
     } else if (stats.totalObjects > 0) {
-        fetchNotification.setBody(<p>Received {stats.receivedObjects}/{stats.totalObjects} objects ({stats.indexedObjects}) in {stats.receivedBytes} bytes</p>);
+        fetchNotification.update({body: <p>Received {stats.receivedObjects}/{stats.totalObjects} objects ({stats.indexedObjects}) in {stats.receivedBytes} bytes</p>});
     }
 });
 

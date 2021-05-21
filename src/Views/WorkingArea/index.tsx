@@ -4,7 +4,7 @@ import "./style.css";
 import { IpcAction, IpcActionReturn, PatchObj } from "src/Data/Actions";
 import { ipcGetData, ipcSendMessage } from "src/Data/Renderer/IPC";
 import ChangedFiles from "src/Components/DiffPane/ChangedFiles";
-import { commit, updateStore, Store, StoreType, StoreComponent } from "src/Data/Renderer/store";
+import { commit, updateStore, Store, StoreType, StoreComponent, notify } from "src/Data/Renderer/store";
 import { triggerAction } from "src/Components/Link";
 import { Diff } from "nodegit";
 import { discardChanges, refreshWorkdir } from "src/Data/Renderer";
@@ -94,8 +94,10 @@ export default class WorkingArea extends StoreComponent<unknown, State> {
             this.setState(newState);
         }
     }
-    commit = (e: h.JSX.TargetedEvent<HTMLInputElement, MouseEvent>) => {
+    commit = async (e: h.JSX.TargetedEvent<HTMLInputElement, MouseEvent>) => {
         e.preventDefault();
+        const amend = this.state.amend;
+        const message =this.state.commitMsg;
         updateStore({
             commitMsg: {
                 body: "",
@@ -105,10 +107,12 @@ export default class WorkingArea extends StoreComponent<unknown, State> {
         this.setState({
             amend: false
         });
-        commit({
-            message: this.state.commitMsg,
-            amend: this.state.amend,
+        const n = notify({title: amend ? "Amending commit..." : "Creating commit...", time: 0});
+        const commitObj = await commit({
+            message,
+            amend,
         });
+        n.update({title: amend ? "Commit amended" : "Commit created", body: <p>New commit sha {commitObj.sha}</p>, time: 3000});
     }
     updateMessage(msg: {summary: string} | {body: string}) {
         const commitMsg = this.state.amend ? this.state.commitMsg : Store.commitMsg;

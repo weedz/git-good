@@ -16,14 +16,18 @@ export class Notification {
         this.item = <NotificationComponent ref={this.ref} key={this.id} body={body} title={title} close={this.delete} clearTimer={this.clearTimer} />;
     }
 
-    setBody(newBody: Props["body"], timeout: number | null = null) {
-        this.ref.current?.setState({body: newBody});
-        this.refreshExpireTime(timeout);
+    update(data: {title?: Props["title"], body?: Props["body"], time?: number | null}) {
+        if (data.title !== undefined) {
+            this.ref.current?.setState({title: data.title});
+        }
+        if (data.body !== undefined) {
+            this.ref.current?.setState({body: data.body});
+        }
+        if (data.time !== undefined) {
+            this.refreshExpireTime(data.time);
+        }
     }
-    setTitle(newTitle: Props["title"], timeout: number | null = null) {
-        this.ref.current?.setState({title: newTitle});
-        this.refreshExpireTime(timeout);
-    }
+
     addClass(className: string) {
         this.ref.current?.addClass(className);
     }
@@ -48,7 +52,7 @@ export class Notification {
 
 interface Props {
     title: string
-    body: AnyComponent | h.JSX.Element
+    body: null | AnyComponent | h.JSX.Element
     close: () => void
     clearTimer: () => void
 }
@@ -86,12 +90,14 @@ class NotificationComponent extends Component<Props, State> {
     render() {
         return (
             <li className={`notification ${Array.from(this.classes.values()).join(" ")}`} onMouseEnter={this.props.clearTimer}>
-                <div className="toolbar">
-                    {/* FIXME: Change "expand" icons */}
-                    <span className="expand" onClick={() => this.toggleClass("expanded")}>{this.classes.has("expanded") ? "-" : "+"}</span>
-                    <span className="close" onClick={this.props.close}>x</span>
-                </div>
-                <h4>{this.state.title}</h4>
+                <header>
+                    <div className="toolbar">
+                        {/* FIXME: Change "expand" icons */}
+                        <span className="expand" onClick={() => this.toggleClass("expanded")}>{this.classes.has("expanded") ? "-" : "+"}</span>
+                        <span className="close" onClick={this.props.close}>x</span>
+                    </div>
+                    <h4>{this.state.title}</h4>
+                </header>
                 {this.state.body}
             </li>
         );
