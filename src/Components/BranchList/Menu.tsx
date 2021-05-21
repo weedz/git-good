@@ -4,7 +4,7 @@ import { IpcAction } from "src/Data/Actions";
 import { pull, push } from "src/Data/Renderer";
 import { BranchFromType, openDialog_BranchFrom, openDialog_SetUpstream, openDialog_RenameRef, BranchType, openDialog_EditRemote, openDialog_AddRemote, openDialog_createTag, openDialog_PushTag } from "src/Data/Renderer/Dialogs";
 import { ipcGetData, ipcSendMessage } from "src/Data/Renderer/IPC";
-import { contextMenuState, checkoutBranch, deleteBranch, deleteRemoteBranch, Store, deleteTag } from "src/Data/Renderer/store";
+import { contextMenuState, checkoutBranch, deleteBranch, deleteRemoteBranch, Store, deleteTag, notify } from "src/Data/Renderer/store";
 
 const setUpstreamMenuItem = new MenuItem({
     label: "Set upstream...",
@@ -101,7 +101,9 @@ remoteRefMenu.append(new MenuItem({
             cancelId: 0,
         });
         if (result.response === 1) {
-            deleteRemoteBranch(refName);
+            const n = notify({ title: "Deleting branch" });
+            await deleteRemoteBranch(refName);
+            n.update({title: "Branch deleted", body: <p>Branch '{refName}' deleted from remote</p>, time: 3000});
         }
     }
 }));
@@ -147,7 +149,9 @@ localMenu.append(new MenuItem({
             cancelId: 0,
         });
         if (result.response === 1) {
-            deleteBranch(refName);
+            const n = notify({ title: "Deleting branch", time: 0 });
+            await deleteBranch(refName);
+            n.update({title: "Branch deleted", body: <p>Branch '{refName}' deleted</p>, time: 3000});
         }
     }
 }));
@@ -183,10 +187,12 @@ tagMenu.append(new MenuItem({
         if (Store.remotes.length > 1) {
             return openDialog_PushTag(contextMenuState.data.ref);
         }
-        ipcSendMessage(IpcAction.PUSH, {
+        const n = notify({ title: "Pushing tag", time: 0 });
+        await ipcGetData(IpcAction.PUSH, {
             remote: Store.remotes[0].name,
             localBranch: contextMenuState.data.ref
         });
+        n.update({body: <p>Tag '{contextMenuState.data.ref}' successfully pushed to remote {Store.remotes[0].name}</p>, time: 3000});
     }
 }));
 tagMenu.append(new MenuItem({
@@ -204,7 +210,9 @@ tagMenu.append(new MenuItem({
             checkboxLabel: "Delete from remote?",
         });
         if (result.response === 1) {
-            deleteTag(refName, result.checkboxChecked);
+            const n = notify({title: "Deleting tag", time: 0});
+            await deleteTag(refName, result.checkboxChecked);
+            n.update({title: "Tag deleted", body: <p>Tag {refName} deleted</p>, time: 3000});
         }
     }
 }));

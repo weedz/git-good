@@ -192,10 +192,11 @@ export function updateStore(newStore: Partial<StoreType>) {
     Object.assign(store, newStore);
 }
 
-export function notify(type: NotificationPosition = NotificationPosition.DEFAULT, title: string, body: AnyComponent | h.JSX.Element, timeMs = 0) {
-    const notification = new Notification(title, body, deleteNotification[type], timeMs);
+export function notify(notificationData: {position?: NotificationPosition, title: string, body?: null | AnyComponent | h.JSX.Element, time?: number}) {
+    const position = notificationData.position || NotificationPosition.DEFAULT;
+    const notification = new Notification(notificationData.title, notificationData.body || null, deleteNotification[position], notificationData.time ?? 5000);
 
-    Store.notifications[type].set(notification.id, notification);
+    Store.notifications[position].set(notification.id, notification);
     updateStore({
         notifications: Store.notifications
     });
@@ -293,7 +294,7 @@ export function createBranchFromRef(ref: string, name: string) {
 }
 export function deleteBranch(name: string) {
     setLock(Locks.BRANCH_LIST);
-    ipcSendMessage(IpcAction.DELETE_REF, {
+    return ipcGetData(IpcAction.DELETE_REF, {
         name
     });
 }
@@ -307,7 +308,7 @@ export function renameLocalBranch(oldName: string, newName: string) {
 
 export function deleteTag(name: string, remote?: boolean) {
     setLock(Locks.BRANCH_LIST);
-    ipcSendMessage(IpcAction.DELETE_TAG, {
+    return ipcGetData(IpcAction.DELETE_TAG, {
         name,
         remote,
     });
@@ -315,7 +316,7 @@ export function deleteTag(name: string, remote?: boolean) {
 
 export function deleteRemoteBranch(name: string) {
     setLock(Locks.BRANCH_LIST);
-    ipcSendMessage(IpcAction.DELETE_REMOTE_REF, name);
+    return ipcGetData(IpcAction.DELETE_REMOTE_REF, name);
 }
 
 export function setUpstream(local: string, remote: string | null) {
@@ -326,7 +327,7 @@ export function setUpstream(local: string, remote: string | null) {
 }
 
 export function commit(params: IpcActionParams[IpcAction.COMMIT]) {
-    ipcSendMessage(IpcAction.COMMIT, params);
+    return ipcGetData(IpcAction.COMMIT, params);
 }
 
 export function openDialogWindow<T extends DialogTypes>(type: T, props: DialogProps[T]) {

@@ -5,6 +5,7 @@
     "strict": true,
     "jsx": "react",
     "jsxFactory": "h",
+    "jsxFragmentFactory": "h.Fragment",
     "sourceMap": true,
     "baseUrl": ".",
     "moduleResolution": "node",
