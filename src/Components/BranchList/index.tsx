@@ -23,7 +23,6 @@ type State = {
     filter: string
     branches: ReturnType<typeof getBranchTree>;
     head: BranchObj | undefined
-    lock: boolean
 }
 
 function branchesToTree(branches: BranchesObj, filter: string | null) {
@@ -39,9 +38,9 @@ function branchesToTree(branches: BranchesObj, filter: string | null) {
 
 export default class BranchList extends PureStoreComponent<unknown, State> {
     componentDidMount() {
-        this.listen("locks", (locks) => {
-            if (Locks.BRANCH_LIST in locks) {
-                this.setState({lock: locks[Locks.BRANCH_LIST]});
+        this.listen("locks", locks => {
+            if (Store.locks[Locks.BRANCH_LIST] !== locks[Locks.BRANCH_LIST]) {
+                this.forceUpdate();
             }
         });
         this.listen("branches", branches => {
@@ -87,7 +86,7 @@ export default class BranchList extends PureStoreComponent<unknown, State> {
 
         return (
             <Fragment>
-                <div id="branch-pane" className={`pane${this.state.lock ? " disabled" : ""}`}>
+                <div id="branch-pane" className={`pane${Store.locks[Locks.BRANCH_LIST] ? " disabled" : ""}`}>
                     <Links.Provider value="branches">
                         <h4>Refs</h4>
                         <ul className="block-list">

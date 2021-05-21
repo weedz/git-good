@@ -21,8 +21,8 @@ export default class App extends StoreComponent {
         });
 
         this.listen("locks", locks => {
-            if (Locks.MAIN in locks) {
-                this.setState({});
+            if (Store.locks[Locks.MAIN] !== locks[Locks.MAIN]) {
+                this.forceUpdate();
             }
         });
 

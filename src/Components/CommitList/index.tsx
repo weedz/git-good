@@ -42,7 +42,7 @@ export default class CommitList extends PureStoreComponent<unknown, State> {
         this.registerHandler(IpcAction.LOAD_COMMITS, this.commitsLoaded);
 
         this.listen("locks", locks => {
-            if (Locks.COMMIT_LIST in locks) {
+            if (Store.locks[Locks.COMMIT_LIST] !== locks[Locks.COMMIT_LIST]) {
                 this.forceUpdate();
             }
         });

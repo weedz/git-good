@@ -180,27 +180,6 @@ export function updateStore(newStore: Partial<StoreType>) {
     Object.assign(store, newStore);
 }
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-function setStoreDeep(paths: Array<string | number>, data: any) {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    let obj = store as any;
-    for (const path of paths.slice(0, paths.length - 1)) {
-        obj = obj[path];
-    }
-
-    const key = paths[paths.length - 1];
-    const newStore = { [key]: data };
-
-    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-    // @ts-ignore
-    for (const listener of listeners[paths[0]]) {
-        listener(newStore);
-    }
-
-    Object.assign(obj[key], newStore);
-}
-
-
 // TODO: Most of these functions should probably be in Renderer/IPC.ts or Renderer/index.ts
 
 export function openRepo(repoPath: IpcActionParams[IpcAction.OPEN_REPO]) {
@@ -265,14 +244,10 @@ export function continueRebase() {
 }
 
 export function setLock(lock: Locks) {
-    const locks = store.locks;
-    locks[lock] = true;
-    setStoreDeep(["locks", lock], locks[lock]);
+    updateStore({locks: {...Store.locks, [lock]: true}});
 }
 export function clearLock(lock: Locks) {
-    const locks = store.locks;
-    locks[lock] = false;
-    setStoreDeep(["locks", lock], locks[lock]);
+    updateStore({locks: {...Store.locks, [lock]: false}});
 }
 
 export function createBranchFromSha(sha: string, name: string) {
