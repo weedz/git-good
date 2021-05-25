@@ -136,9 +136,6 @@ function handleCompareRevisions(data: IpcResponse<IpcAction.OPEN_COMPARE_REVISIO
 function handleNewCommit() {
     refreshWorkdir();
     loadBranches();
-    updateStore({
-        selectedBranch: Store.selectedBranch
-    });
 }
 
 function handleRemotes(remotes: IpcActionReturn[IpcAction.REMOTES]) {
@@ -149,9 +146,6 @@ function handleRemotes(remotes: IpcActionReturn[IpcAction.REMOTES]) {
 
 function handlePullHead(_res: IpcActionReturn[IpcAction.PULL]) {
     loadBranches();
-    updateStore({
-        selectedBranch: Store.selectedBranch
-    });
 }
 
 addWindowEventListener("repo-opened", repoOpened);
