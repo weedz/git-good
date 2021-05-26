@@ -517,7 +517,7 @@ export async function createTag(repo: Repository, data: IpcActionParams[IpcActio
         }
 
         if (gpgKey) {
-            await Tag.createWithSignature(repo, data.name, id, tagger, data.annotation, 0, onSignature(gpgKey));
+            await Tag.createWithSignature(repo, data.name, id, tagger, data.annotation || "", 0, onSignature(gpgKey));
         } else if (data.annotation) {
             await repo.createTag(id, data.name, data.annotation);
         } else {
