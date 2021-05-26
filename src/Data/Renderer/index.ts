@@ -1,18 +1,48 @@
 import { Diff } from "nodegit";
+import { dialog } from "@electron/remote";
 import { unselectLink } from "src/Components/Link";
 import { BranchObj, IpcAction, IpcActionReturn, IpcResponse, Locks, RepoStatus } from "../Actions";
 import { openDialog_CompareRevisions, openDialog_Settings } from "./Dialogs";
-import { addWindowEventListener, registerHandler, ipcSendMessage } from "./IPC";
+import { addWindowEventListener, registerHandler, ipcSendMessage, ipcGetData } from "./IPC";
 import { Store, clearLock, setLock, updateStore, StoreType, GlobalLinks } from "./store";
 
-function refreshWorkdir() {
+let refreshingWorkdir = false;
+
+window.addEventListener("focus", async () => {
+    refreshWorkdir()
+});
+
+export async function refreshWorkdir() {
+    if (refreshingWorkdir) {
+        return;
+    }
+    refreshingWorkdir = true;
     let options = null;
     if (Store.diffOptions.ignoreWhitespace) {
         options = {
             flags: Diff.OPTION.IGNORE_WHITESPACE
         };
     }
-    ipcSendMessage(IpcAction.REFRESH_WORKDIR, options);
+    await ipcGetData(IpcAction.REFRESH_WORKDIR, options);
+    refreshingWorkdir = false;
+}
+
+export async function discardChanges(filePath: string) {
+    refreshingWorkdir = true;
+    const result = await dialog.showMessageBox({
+        message: `Discard changes to "${filePath}"?`,
+        type: "question",
+        buttons: ["Cancel", "Discard changes"],
+        cancelId: 0,
+    });
+    // Need this timeout so the window focus event is fired before IpcAction.DISCARD_FILE
+    setTimeout(async () => {
+        refreshingWorkdir = false;
+        if (result.response === 1) {
+            await ipcGetData(IpcAction.DISCARD_FILE, filePath);
+            refreshWorkdir();
+        }
+    }, 200);
 }
 
 function repoOpened(result: IpcActionReturn[IpcAction.OPEN_REPO]) {

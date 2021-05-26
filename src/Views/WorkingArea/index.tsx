@@ -2,12 +2,12 @@ import { h } from "preact";
 
 import "./style.css";
 import { IpcAction, IpcActionReturn, PatchObj } from "src/Data/Actions";
-import { ipcSendMessage } from "src/Data/Renderer/IPC";
+import { ipcGetData, ipcSendMessage } from "src/Data/Renderer/IPC";
 import ChangedFiles from "src/Components/DiffPane/ChangedFiles";
-import { dialog } from "@electron/remote";
 import { commit, updateStore, Store, StoreType, StoreComponent } from "src/Data/Renderer/store";
 import { triggerAction } from "src/Components/Link";
 import { Diff } from "nodegit";
+import { discardChanges, refreshWorkdir } from "src/Data/Renderer";
 
 type State = {
     unstaged?: PatchObj[]
@@ -55,19 +55,21 @@ export default class WorkingArea extends StoreComponent<unknown, State> {
             }
         });
     }
-    stageFile = (e: h.JSX.TargetedEvent<HTMLButtonElement, MouseEvent>) => {
+    stageFile = async (e: h.JSX.TargetedEvent<HTMLButtonElement, MouseEvent>) => {
         const path = e.currentTarget.dataset.path;
         if (!path) {
             return;
         }
-        ipcSendMessage(IpcAction.STAGE_FILE, path);
+        await ipcGetData(IpcAction.STAGE_FILE, path);
+        refreshWorkdir();
     }
-    unstageFile = (e: h.JSX.TargetedEvent<HTMLButtonElement, MouseEvent>) => {
+    unstageFile = async (e: h.JSX.TargetedEvent<HTMLButtonElement, MouseEvent>) => {
         const path = e.currentTarget.dataset.path;
         if (!path) {
             return;
         }
-        ipcSendMessage(IpcAction.UNSTAGE_FILE, path);
+        await ipcGetData(IpcAction.UNSTAGE_FILE, path);
+        refreshWorkdir();
     }
     discard = async (e: h.JSX.TargetedEvent<HTMLButtonElement, MouseEvent>) => {
         const path = e.currentTarget.dataset.path;
@@ -75,15 +77,7 @@ export default class WorkingArea extends StoreComponent<unknown, State> {
             return;
         }
 
-        const result = await dialog.showMessageBox({
-            message: `Discard changes to "${path}"?`,
-            type: "question",
-            buttons: ["Cancel", "Discard changes"],
-            cancelId: 0,
-        });
-        if (result.response === 1) {
-            ipcSendMessage(IpcAction.DISCARD_FILE, path);
-        }
+        discardChanges(path);
     }
     setAmend = (e: h.JSX.TargetedEvent<HTMLInputElement, MouseEvent>) => {
         const target = e.currentTarget;

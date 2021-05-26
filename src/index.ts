@@ -424,21 +424,9 @@ const eventMap: {
     [IpcAction.CHECKOUT_BRANCH]: provider.checkoutBranch,
     [IpcAction.REFRESH_WORKDIR]: provider.refreshWorkDir,
     [IpcAction.GET_CHANGES]: provider.loadChanges,
-    [IpcAction.STAGE_FILE]: async (repo, data) => {
-        const result = await provider.stageFile(repo, data);
-        sendEvent(win.webContents, "refresh-workdir", null);
-        return result;
-    },
-    [IpcAction.UNSTAGE_FILE]: async (repo, data) => {
-        const result = await provider.unstageFile(repo, data);
-        sendEvent(win.webContents, "refresh-workdir", null);
-        return result;
-    },
-    [IpcAction.DISCARD_FILE]: async (repo, data) => {
-        const result = await provider.discardChanges(repo, data);
-        sendEvent(win.webContents, "refresh-workdir", null);
-        return result;
-    },
+    [IpcAction.STAGE_FILE]: provider.stageFile,
+    [IpcAction.UNSTAGE_FILE]: provider.unstageFile,
+    [IpcAction.DISCARD_FILE]: provider.discardChanges,
     [IpcAction.PULL]: async (repo, data) =>  provider.pull(repo, data, Signature.now(selectedGitProfile.gitName, selectedGitProfile.gitEmail)),
     [IpcAction.CREATE_BRANCH]: async (repo, data) => {
         try {
