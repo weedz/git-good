@@ -192,9 +192,9 @@ export function updateStore(newStore: Partial<StoreType>) {
     Object.assign(store, newStore);
 }
 
-export function notify(notificationData: {position?: NotificationPosition, title: string, body?: null | AnyComponent | h.JSX.Element, time?: number}) {
+export function notify(notificationData: {position?: NotificationPosition, title: string, body?: null | AnyComponent | h.JSX.Element, time?: number, classList?: string[]}) {
     const position = notificationData.position || NotificationPosition.DEFAULT;
-    const notification = new Notification(notificationData.title, notificationData.body || null, deleteNotification[position], notificationData.time ?? 5000);
+    const notification = new Notification(notificationData.title, notificationData.body || null, notificationData.classList || [], deleteNotification[position], notificationData.time ?? 5000);
 
     Store.notifications[position].set(notification.id, notification);
     updateStore({
