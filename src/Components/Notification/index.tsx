@@ -10,10 +10,10 @@ export class Notification {
 
     ref = createRef<NotificationComponent>();
 
-    constructor(title: Props["title"], body: Props["body"], private deleteCallback: (id: string) => void, timeout: number | null = null) {
+    constructor(title: Props["title"], body: Props["body"], classes: string[], private deleteCallback: (id: string) => void, timeout: number | null = null) {
         this.id = uuid();
         this.refreshExpireTime(timeout);
-        this.item = <NotificationComponent ref={this.ref} key={this.id} body={body} title={title} close={this.delete} clearTimer={this.clearTimer} />;
+        this.item = <NotificationComponent ref={this.ref} key={this.id} body={body} title={title} close={this.delete} clearTimer={this.clearTimer} classList={classes} />;
     }
 
     update(data: {title?: Props["title"], body?: Props["body"], time?: number | null}) {
@@ -53,6 +53,7 @@ export class Notification {
 interface Props {
     title: string
     body: null | AnyComponent | h.JSX.Element
+    classList: string[]
     close: () => void
     clearTimer: () => void
 }
@@ -71,6 +72,9 @@ class NotificationComponent extends Component<Props, State> {
             title: props.title,
             body: props.body,
         };
+        for (const className of props.classList) {
+            this.classes.add(className);
+        }
     }
     addClass(className: string) {
         this.classes.add(className);
