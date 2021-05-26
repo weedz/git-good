@@ -266,7 +266,7 @@ const menuTemplate = [
                 label: 'Pull...',
                 async click() {
                     sendEvent(win.webContents, "app-lock-ui", Locks.BRANCH_LIST);
-                    await provider.pull(repo, null);
+                    await provider.pull(repo, null, Signature.now(selectedGitProfile.gitName, selectedGitProfile.gitEmail));
                     sendEvent(win.webContents, "app-unlock-ui", Locks.BRANCH_LIST);
                 }
             },
@@ -439,7 +439,7 @@ const eventMap: {
         sendEvent(win.webContents, "refresh-workdir", null);
         return result;
     },
-    [IpcAction.PULL]: provider.pull,
+    [IpcAction.PULL]: async (repo, data) =>  provider.pull(repo, data, Signature.now(selectedGitProfile.gitName, selectedGitProfile.gitEmail)),
     [IpcAction.CREATE_BRANCH]: async (repo, data) => {
         try {
             const res = await repo.createBranch(data.name, data.sha)

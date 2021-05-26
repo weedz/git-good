@@ -3,7 +3,7 @@ import { promises as fs } from "fs";
 import { dialog, IpcMainEvent } from "electron";
 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
 // @ts-ignore, missing declations for Credential
-import { Credential, Repository, Revwalk, Commit, Diff, ConvenientPatch, ConvenientHunk, DiffLine, Object, Branch, Graph, Index, Reset, Checkout, DiffFindOptions, Reference, Oid, Signature, Merge, Remote, DiffOptions, IndexEntry, Error as NodeGitError, Tag } from "nodegit";
+import { Credential, Repository, Revwalk, Commit, Diff, ConvenientPatch, ConvenientHunk, DiffLine, Object, Branch, Graph, Index, Reset, Checkout, DiffFindOptions, Reference, Oid, Signature, Remote, DiffOptions, IndexEntry, Error as NodeGitError, Tag } from "nodegit";
 import { IpcAction, BranchObj, LineObj, HunkObj, PatchObj, CommitObj, IpcActionParams, IpcActionReturn, RefType } from "../Actions";
 import { normalizeLocalName, normalizeRemoteName, normalizeRemoteNameWithoutRemote, normalizeTagName, remoteName } from "../Branch";
 import { gpgSign, gpgVerify } from "./GPG";
@@ -185,7 +185,7 @@ export async function* getCommits(repo: Repository, branch: string, start: "refs
     };
 }
 
-export async function pull(repo: Repository, branch: string | null): Promise<IpcActionReturn[IpcAction.PULL]> {
+export async function pull(repo: Repository, branch: string | null, signature: Signature): Promise<IpcActionReturn[IpcAction.PULL]> {
     let ref;
     if (branch) {
         try {
@@ -208,7 +208,9 @@ export async function pull(repo: Repository, branch: string | null): Promise<Ipc
         dialog.showErrorBox("Pull failed", "No upstream");
         return false;
     }
-    const result = await repo.mergeBranches(ref, upstream, undefined, Merge.PREFERENCE.FASTFORWARD_ONLY);
+    const result = await repo.rebaseBranches(ref.name(), upstream.name(), upstream.name(), signature, (..._args: unknown[]) => {
+        // console.log("beforeNextFn:", args);
+    });
     return !!result;
 }
 
