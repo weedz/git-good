@@ -97,7 +97,7 @@ function openSettings() {
 }
 
 export function pull(ref: string | null) {
-    ipcSendMessage(IpcAction.PULL, ref);
+    return ipcGetData(IpcAction.PULL, ref);
 }
 
 export async function push() {

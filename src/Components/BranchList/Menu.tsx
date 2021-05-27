@@ -121,9 +121,11 @@ localMenu.append(new MenuItem({
 }));
 localMenu.append(new MenuItem({
     label: "Pull",
-    click() {
+    async click() {
         const refName = contextMenuState.data.ref;
-        pull(refName);
+        const n = notify({title: "Pulling changes..."});
+        await pull(refName);
+        n.update({body: <p>Done!</p>, time: 2000});
     }
 }));
 localMenu.append(setUpstreamMenuItem);

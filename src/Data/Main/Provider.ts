@@ -199,6 +199,8 @@ export async function pull(repo: Repository, branch: string | null, signature: S
         ref = await repo.head();
     }
 
+    const currentBranch = await repo.head();
+
     let upstream: Reference;
     try {
         upstream = await Branch.upstream(ref);
@@ -211,6 +213,13 @@ export async function pull(repo: Repository, branch: string | null, signature: S
     const result = await repo.rebaseBranches(ref.name(), upstream.name(), upstream.name(), signature, (..._args: unknown[]) => {
         // console.log("beforeNextFn:", args);
     });
+
+    if (result) {
+        if (currentBranch.name() !== ref.name()) {
+            await repo.checkoutBranch(currentBranch);
+        }
+    }
+
     return !!result;
 }
 
