@@ -165,8 +165,10 @@ localMenu.append(createTag);
 const headMenu = new Menu();
 headMenu.append(new MenuItem({
     label: "Pull",
-    click() {
-        pull(null);
+    async click() {
+        const n = notify({title: "Pulling changes..."});
+        await pull(null);
+        n.update({body: <p>Done!</p>, time: 2000});
     }
 }));
 headMenu.append(new MenuItem({
