@@ -66,12 +66,12 @@ export class Profile extends Component<Props, State> {
                                 </div>
                                 <div>
                                     <label for="ssh-public-key">SSH Public key:</label>
-                                    <button disabled={this.state.config.sshAgent} id="ssh-public-key" type="file" name="ssh-public-key" onClick={() => selectFile(path => this.setConfigKey("sshPublicKey", path))}>Browse</button>
+                                    <button disabled={this.state.config.sshAgent} id="ssh-public-key" type="button" name="ssh-public-key" onClick={() => selectFile(path => this.setConfigKey("sshPublicKey", path))}>Browse</button>
                                     {!this.state.config.sshAgent && <span>{this.state.config.sshPublicKey}</span>}
                                 </div>
                                 <div>
                                     <label for="ssh-private-key">SSH Private key:</label>
-                                    <button disabled={this.state.config.sshAgent} id="ssh-private-key" type="file" name="ssh-private-key" onClick={() => selectFile(path => this.setConfigKey("sshPrivateKey", path))}>Browse</button>
+                                    <button disabled={this.state.config.sshAgent} id="ssh-private-key" type="button" name="ssh-private-key" onClick={() => selectFile(path => this.setConfigKey("sshPrivateKey", path))}>Browse</button>
                                     {!this.state.config.sshAgent && <span>{this.state.config.sshPrivateKey}</span>}
                                 </div>
                             </div>
