@@ -1,6 +1,6 @@
 import { h, Fragment } from "preact";
 import "./style.css";
-import { BranchesObj, BranchObj, Locks } from "../../Data/Actions";
+import { BranchesObj, Locks } from "../../Data/Actions";
 import { Store, PureStoreComponent } from "../../Data/Renderer/store";
 import { getBranchTree, filterBranches } from "./Utils";
 import BranchList from "./BranchList";
@@ -8,7 +8,6 @@ import BranchList from "./BranchList";
 type State = {
     filter: string
     branches: ReturnType<typeof getBranchTree>;
-    head: BranchObj | undefined
 }
 
 function branchesToTree(branches: BranchesObj, filter: string | null) {

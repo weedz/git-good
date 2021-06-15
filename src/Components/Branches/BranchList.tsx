@@ -18,17 +18,13 @@ function selectHead() {
     updateStore({selectedBranch: {branch: "HEAD"}})
 }
 
-interface State {
-    filter: string
-}
-
 interface Props {
     branches: ReturnType<typeof getBranchTree>;
 }
 
-export default class BranchList extends PureStoreComponent<Props, State> {
+export default class BranchList extends PureStoreComponent<Props> {
     componentDidMount() {
-        this.listen("head", _head => {
+        this.listen("head", () => {
             this.forceUpdate();
         });
     }
