@@ -3,7 +3,7 @@ import { basename } from "path";
 
 import Main from "./Views/Main";
 import Changes from "./Components/Changes";
-import BranchList from "./Components/BranchList";
+import Branches from "./Components/Branches";
 import { Store, openRepo, StoreComponent, NotificationPosition } from "./Data/Renderer/store";
 import { Locks } from "./Data/Actions";
 import Dialog from "./Components/Dialog";
@@ -44,7 +44,7 @@ export default class App extends StoreComponent {
                 <Dialog />
                 <div id="left-pane">
                     <Changes />
-                    <BranchList />
+                    <Branches />
                 </div>
                 <FileDiff />
                 <Main />

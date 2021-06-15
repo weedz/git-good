@@ -1,7 +1,7 @@
 import { h, AnyComponent, Component } from "preact";
 import { PureComponent } from "preact/compat";
 import { DialogProps, DialogTypes } from "src/Components/Dialog/types";
-import Link, { unselectLink } from "src/Components/Link";
+import { unselectLink } from "src/Components/Link";
 import { IpcAction, BranchesObj, BranchObj, PatchObj, Locks, RepoStatus, IpcActionParams, IpcActionReturn, HeadBranchObj } from "../Actions";
 import { registerHandler, ipcSendMessage, ipcGetData } from "./IPC";
 import { Notification } from "src/Components/Notification";
@@ -96,16 +96,7 @@ const store: StoreType = {
         [NotificationPosition.DEFAULT]: new Map(),
     }
 };
-export type LinkTypes = "commits" | "branches" | "files";
-export const GlobalLinks: {
-    [key in LinkTypes]: {
-        [key: string]: Link
-    }
-} = {
-    commits: {},
-    branches: {},
-    files: {}
- };
+
 export const Store = store as Readonly<StoreType>
 
 export const contextMenuState: {data: {[name: string]: string}} = {

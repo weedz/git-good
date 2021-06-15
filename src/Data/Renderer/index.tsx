@@ -5,7 +5,7 @@ import { unselectLink } from "src/Components/Link";
 import { BranchObj, IpcAction, IpcActionReturn, IpcResponse, Locks, RepoStatus } from "../Actions";
 import { openDialog_CompareRevisions, openDialog_Settings } from "./Dialogs";
 import { addWindowEventListener, registerHandler, ipcSendMessage, ipcGetData } from "./IPC";
-import { Store, clearLock, setLock, updateStore, StoreType, GlobalLinks, notify } from "./store";
+import { Store, clearLock, setLock, updateStore, StoreType, notify } from "./store";
 import { Notification } from "src/Components/Notification";
 
 let refreshingWorkdir = false;
@@ -137,8 +137,6 @@ function mapHeads(heads: StoreType["heads"], refs: BranchObj[]) {
 function branchesLoaded(result: IpcActionReturn[IpcAction.LOAD_BRANCHES]) {
     clearLock(Locks.BRANCH_LIST);
     const heads: StoreType["heads"] = {};
-
-    GlobalLinks.branches = {};
 
     mapHeads(heads, result.local);
     mapHeads(heads, result.remote);

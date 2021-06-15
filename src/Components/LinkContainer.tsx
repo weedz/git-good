@@ -2,4 +2,6 @@
 
 import { createContext } from "preact";
 
-export const Links = createContext<"commits"|"branches"|"files">("branches");
+export type LinkTypes = "commits" | "branches" | "files";
+
+export const Links = createContext<LinkTypes>("branches");

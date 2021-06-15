@@ -1,8 +1,7 @@
 import { h } from "preact";
 import { CommitObj } from "src/Data/Actions";
 import { formatTimeAgo } from "src/Data/Utils";
-import { GlobalLinks } from "src/Data/Renderer/store";
-import Link from "../Link";
+import Link, { GlobalLinks } from "../Link";
 import { clipboard } from "electron";
 
 export default function CommitMessage(props: {commit: CommitObj}) {
@@ -28,7 +27,7 @@ export default function CommitMessage(props: {commit: CommitObj}) {
             <p>
                 <span>Parents:</span>
                 <ul className="parent-list">
-                    {props.commit.parents.map(parent => <li key={parent.sha}><Link type="commits" selectTarget={GlobalLinks.commits[parent.sha]}>{parent.sha.substring(0,7)}</Link></li>)}
+                    {props.commit.parents.map(parent => <li key={parent.sha}><Link type="commits" selectTarget={() => GlobalLinks.commits[parent.sha]}>{parent.sha.substring(0,7)}</Link></li>)}
                 </ul>
             </p>
             <p className="date">Date: {commitDate.toISOString().substring(0, 19)}Z ({formatTimeAgo(commitDate)})</p>

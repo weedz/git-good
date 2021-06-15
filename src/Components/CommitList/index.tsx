@@ -1,13 +1,14 @@
 import { h } from "preact";
 import { ipcSendMessage } from "src/Data/Renderer/IPC";
 import { IpcAction, IpcActionReturn, LoadCommitReturn, IpcActionParams, Locks } from "src/Data/Actions";
-import { clearLock, GlobalLinks, openFileHistory, PureStoreComponent, setLock, Store } from "src/Data/Renderer/store";
+import { clearLock, openFileHistory, PureStoreComponent, setLock, Store } from "src/Data/Renderer/store";
 
 import "./style.css";
 import FileFilter from "./FileFilter";
 import HeadColors from "./HeadColors";
 import { Links } from "../LinkContainer";
 import CommitContainer from "./CommitContainer";
+import { GlobalLinks } from "../Link";
 
 type State = {
     commits: IpcActionReturn[IpcAction.LOAD_COMMITS]["commits"]

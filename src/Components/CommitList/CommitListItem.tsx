@@ -1,9 +1,9 @@
 import { h } from "preact";
 import { PureComponent } from "preact/compat";
 import { LoadCommitReturn, RefType } from "src/Data/Actions";
-import { GlobalLinks, updateStore, Store } from "src/Data/Renderer/store";
-import { showLocalMenu, showRemoteRefMenu, showTagMenu } from "../BranchList/Menu";
-import Link from "../Link";
+import { updateStore, Store } from "src/Data/Renderer/store";
+import { showLocalMenu, showRemoteRefMenu, showTagMenu } from "../Branches/Menu";
+import Link, { GlobalLinks } from "../Link";
 import HeadColors from "./HeadColors";
 import { showCommitMenu } from "./Menu";
 
@@ -26,13 +26,6 @@ function selectCommit(c: Link<string>) {
 // eslint-disable-next-line react/prefer-stateless-function
 export default class CommitListItem extends PureComponent<Props> {
     render() {
-        const commitLink = (
-            <Link selectAction={selectCommit} linkData={this.props.commit.sha} data-sha={this.props.commit.sha} onContextMenu={showCommitMenu} title={this.props.commit.message}>
-                <span className="msg">{this.props.commit.message.substring(0, this.props.commit.message.indexOf("\n")>>>0 || 60)}</span>
-            </Link>
-        ) as unknown as Link;
-        GlobalLinks.commits[this.props.commit.sha] = commitLink;
-        
         return (
             <li className="short" style={this.props.style}>
                 <div className="commit-refs-container">
@@ -47,7 +40,7 @@ export default class CommitListItem extends PureComponent<Props> {
                                 } else if (ref.type === RefType.TAG) {
                                     menu = showTagMenu;
                                 }
-                                return <li key={ref.name}><Link type="branches" onContextMenu={menu} selectAction={_ => updateStore({diffPaneSrc: null})} selectTarget={GlobalLinks.branches[ref.name]} style={{backgroundColor: HeadColors[this.props.graph[this.props.commit.sha].colorId].background}} data-ref={ref.name}>{ref.normalizedName}</Link></li>
+                                return <li key={ref.name}><Link type="branches" onContextMenu={menu} selectAction={_ => updateStore({diffPaneSrc: null})} selectTarget={() => GlobalLinks.branches[ref.name]} style={{backgroundColor: HeadColors[this.props.graph[this.props.commit.sha].colorId].background}} data-ref={ref.name}>{ref.normalizedName}</Link></li>
                             })}
                         </ul>
                     }
@@ -56,11 +49,13 @@ export default class CommitListItem extends PureComponent<Props> {
                     <span className={this.props.commit.parents.length > 1 ? "graph-indicator small" : "graph-indicator"} style={{backgroundColor: HeadColors[this.props.graph[this.props.commit.sha].colorId].color}} />
                     {this.props.graph[this.props.commit.sha].descendants.length > 0 &&
                     <ul className="commit-graph">
-                        {this.props.graph[this.props.commit.sha].descendants.map(child => <li key={child.sha}><Link selectTarget={GlobalLinks.commits[child.sha]} style={{color: HeadColors[this.props.graph[child.sha].colorId].color}}>{child.sha.substring(0,7)}</Link></li>)}
+                        {this.props.graph[this.props.commit.sha].descendants.map(child => <li key={child.sha}><Link selectTarget={() => GlobalLinks.commits[child.sha]} style={{color: HeadColors[this.props.graph[child.sha].colorId].color}}>{child.sha.substring(0,7)}</Link></li>)}
                     </ul>
                     }
                 </div>
-                {commitLink}
+                <Link selectAction={selectCommit} linkId={this.props.commit.sha} linkData={this.props.commit.sha} data-sha={this.props.commit.sha} onContextMenu={showCommitMenu} title={this.props.commit.message}>
+                    <span className="msg">{this.props.commit.message.substring(0, this.props.commit.message.indexOf("\n")>>>0 || 60)}</span>
+                </Link>
             </li>
         );
     }

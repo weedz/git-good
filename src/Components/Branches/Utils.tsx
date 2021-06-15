@@ -1,7 +1,7 @@
 import { h } from "preact";
 import { PureComponent } from "preact/compat";
 import { BranchObj, BranchesObj } from "src/Data/Actions";
-import { GlobalLinks, updateStore } from "src/Data/Renderer/store";
+import { updateStore } from "src/Data/Renderer/store";
 import Link from "../Link";
 
 export type BranchTree = {
@@ -65,14 +65,12 @@ export class RenderBranchTree extends PureComponent<{
         }
         if (this.props.branches.items) {
             for (const branch of this.props.branches.items) {
-                const link = (
-                    <Link style={{textIndent: `${this.props.indent}em`}} selectAction={selectAction} onDblClick={this.props.dblClick} onContextMenu={this.props.contextMenu} data-ref={branch.ref.name} data-remote={branch.ref.remote} linkData={branch.ref.name}>
-                        {branch.name}&nbsp;{branchesAheadBehind(branch.ref)}
-                    </Link>
-                ) as unknown as Link;
-                GlobalLinks.branches[branch.ref.name] = link;
                 items.push(
-                    <li key={branch.ref.headSHA}>{link}</li>
+                    <li key={branch.ref.headSHA}>
+                        <Link style={{textIndent: `${this.props.indent}em`}} linkId={branch.ref.name} selectAction={selectAction} onDblClick={this.props.dblClick} onContextMenu={this.props.contextMenu} data-ref={branch.ref.name} data-remote={branch.ref.remote} linkData={branch.ref.name}>
+                            {branch.name}&nbsp;{branchesAheadBehind(branch.ref)}
+                        </Link>
+                    </li>
                 );
             }
         }

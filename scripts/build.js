@@ -5,9 +5,12 @@ const rollup = require("rollup");
 const loadConfigFile = require('rollup/dist/loadConfigFile');
 
 (async () => {
-    if (fs.existsSync(path.resolve("dist"))) {
-        fs.rmSync(path.resolve("dist"), { recursive: true });
+    const distDir = path.resolve("dist");
+    if (fs.existsSync(distDir)) {
+        fs.rmSync(distDir, { recursive: true });
     }
+    fs.mkdirSync(distDir);
+    fs.copyFileSync(path.resolve("static/index.html"), path.join(distDir, "index.html"));
     
     const rollupConfig = await loadConfigFile(path.resolve("rollup.config.js"));
 
@@ -27,7 +30,5 @@ const loadConfigFile = require('rollup/dist/loadConfigFile');
         await Promise.all(optionsObj.output.map(bundle.write));
         await bundle.close();
     }
-
-    fs.copyFileSync(path.resolve("static/index.html"), path.resolve("dist/index.html"));
 })();
 
