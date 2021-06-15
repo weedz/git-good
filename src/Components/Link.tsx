@@ -78,11 +78,7 @@ class Link<T = unknown> extends PureComponent<Props<T>, State> {
     triggerAction(alwaysTrigger = false) {
         const prevLink = selectedLinks[this.type];
 
-        if (this.props.selectTarget) {
-            selectedLinks[this.type] = this.props.selectTarget() as Link<unknown>;
-        } else {
-            selectedLinks[this.type] = this as Link<unknown>;
-        }
+        selectedLinks[this.type] = (this.props.selectTarget ? this.props.selectTarget() : this) as Link<unknown>;
 
         const selectedLink = selectedLinks[this.type];
         if (prevLink && prevLink.ref && prevLink !== selectedLink) {
