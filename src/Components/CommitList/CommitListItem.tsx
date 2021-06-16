@@ -40,7 +40,7 @@ export default class CommitListItem extends PureComponent<Props> {
                                 } else if (ref.type === RefType.TAG) {
                                     menu = showTagMenu;
                                 }
-                                return <li key={ref.name}><Link type="branches" onContextMenu={menu} selectAction={_ => updateStore({diffPaneSrc: null})} selectTarget={() => GlobalLinks.branches[ref.name]} style={{backgroundColor: HeadColors[this.props.graph[this.props.commit.sha].colorId].background}} data-ref={ref.name}>{ref.normalizedName}</Link></li>
+                                return <li key={ref.name}><Link type="branches" onContextMenu={menu} selectTarget={() => GlobalLinks.branches[ref.name]} style={{backgroundColor: HeadColors[this.props.graph[this.props.commit.sha].colorId].background}} data-ref={ref.name}>{ref.normalizedName}</Link></li>
                             })}
                         </ul>
                     }

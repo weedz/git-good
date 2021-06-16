@@ -51,12 +51,12 @@ export default class CommitList extends PureStoreComponent<unknown, State> {
         this.getCommits();
     }
     handleProps = () => {
-        GlobalLinks.commits = {};
         this.cursor = undefined;
         this.color = 0;
         this.getCommits();
     }
     getCommits = () => {
+        GlobalLinks.commits = {};
         this.graph = {};
         if (!this.state.loading) {
             this.setState({

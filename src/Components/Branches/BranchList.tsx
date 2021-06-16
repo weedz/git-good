@@ -4,7 +4,7 @@ import { normalizeLocalName } from "../../Data/Branch";
 import { Store, checkoutBranch, updateStore, PureStoreComponent } from "../../Data/Renderer/store";
 import { showHeadMenu, showLocalMenu, showRemoteMenu, showRemoteRefMenu, showRemotesMenu, showTagMenu } from "./Menu";
 import { branchesAheadBehind, toggleTreeItem, getBranchTree, RenderBranchTree, RenderRemotes } from "./Utils";
-import Link, { GlobalLinks } from "../Link";
+import Link from "../Link";
 import { Links } from "../LinkContainer";
 
 function triggerCheckoutBranch(e: h.JSX.TargetedMouseEvent<HTMLAnchorElement>) {
@@ -33,8 +33,6 @@ export default class BranchList extends PureStoreComponent<Props> {
         if (!this.props.branches) {
             return <p>Loading...</p>
         }
-
-        GlobalLinks.branches = {};
 
         const headRef: h.JSX.Element[] = [];
         if (Store.head) {

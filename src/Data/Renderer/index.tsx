@@ -1,7 +1,7 @@
 import { h } from "preact";
 import { Diff } from "nodegit";
 import { dialog } from "@electron/remote";
-import { unselectLink } from "src/Components/Link";
+import { GlobalLinks, unselectLink } from "src/Components/Link";
 import { BranchObj, IpcAction, IpcActionReturn, IpcResponse, Locks, RepoStatus } from "../Actions";
 import { openDialog_CompareRevisions, openDialog_Settings } from "./Dialogs";
 import { addWindowEventListener, registerHandler, ipcSendMessage, ipcGetData } from "./IPC";
@@ -51,6 +51,8 @@ function repoOpened(result: IpcActionReturn[IpcAction.OPEN_REPO]) {
     // FIXME: error handler??
     clearLock(Locks.MAIN);
     if (result.opened) {
+        GlobalLinks.branches = {};
+
         localStorage.setItem("recent-repo", result.path);
         loadBranches();
         refreshWorkdir();
