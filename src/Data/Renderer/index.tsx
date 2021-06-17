@@ -11,11 +11,11 @@ import { Notification } from "src/Components/Notification";
 let refreshingWorkdir = false;
 
 window.addEventListener("focus", async () => {
-    refreshWorkdir()
+    refreshWorkdir();
 });
 
 export async function refreshWorkdir() {
-    if (refreshingWorkdir) {
+    if (!Store.repo || refreshingWorkdir) {
         return;
     }
     refreshingWorkdir = true;
@@ -55,7 +55,6 @@ function repoOpened(result: IpcActionReturn[IpcAction.OPEN_REPO]) {
 
         localStorage.setItem("recent-repo", result.path);
         loadBranches();
-        refreshWorkdir();
         loadRemotes();
         updateStore({
             repo: {
@@ -66,6 +65,7 @@ function repoOpened(result: IpcActionReturn[IpcAction.OPEN_REPO]) {
                 branch: "HEAD"
             },
         });
+        refreshWorkdir();
     } else {
         updateStore({
             repo: null
