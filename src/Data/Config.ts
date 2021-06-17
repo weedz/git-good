@@ -1,3 +1,23 @@
+type SshConfig = {
+    authType: "ssh"
+} &
+(
+    {
+        sshAgent: true
+    } | {
+        sshAgent: false
+        sshPrivateKey: string
+        sshPublicKey: string
+        sshPassphrase?: string
+    }
+);
+
+export type AuthConfig = SshConfig | {
+    authType: "userpass"
+    username: string
+    password: string
+};
+
 export type AppConfig = {
     profiles: Array<{
         profileName: string
@@ -8,6 +28,7 @@ export type AppConfig = {
         gitName: string
         sshPrivateKey?: string
         sshPublicKey?: string
+        sshPassphrase?: string
         sshAgent: boolean
         gpg?: GpgConfig
     }>

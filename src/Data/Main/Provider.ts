@@ -7,6 +7,7 @@ import { Credential, Repository, Revwalk, Commit, Diff, ConvenientPatch, Conveni
 import { IpcAction, BranchObj, LineObj, HunkObj, PatchObj, CommitObj, IpcActionParams, IpcActionReturn, RefType } from "../Actions";
 import { normalizeLocalName, normalizeRemoteName, normalizeRemoteNameWithoutRemote, normalizeTagName, remoteName } from "../Branch";
 import { gpgSign, gpgVerify } from "./GPG";
+import { AuthConfig } from "../Config";
 
 export const actionLock: {
     [key in IpcAction]?: {
@@ -32,10 +33,13 @@ export function eventReply<T extends IpcAction>(event: IpcMainEvent, action: T, 
     });
 }
 
-export function authenticate(username: string, auth: Auth) {
-    if (auth.type === "ssh") {
-        return Credential.sshKeyFromAgent(username || "git");
-    } else if (auth.type === "userpass") {
+export function authenticate(username: string, auth: AuthConfig) {
+    if (auth.authType === "ssh") {
+        if (auth.sshAgent) {
+            return Credential.sshKeyFromAgent(username || "git");
+        }
+        return Credential.sshKeyNew(username, auth.sshPublicKey, auth.sshPrivateKey, auth.sshPassphrase || "");
+    } else if (auth.authType === "userpass") {
         return Credential.userpassPlaintextNew(auth.username, auth.password);
     }
 }
@@ -223,7 +227,7 @@ export async function pull(repo: Repository, branch: string | null, signature: S
     return !!result;
 }
 
-async function pushHead(repo: Repository, auth: Auth) {
+async function pushHead(repo: Repository, auth: AuthConfig) {
     const head = await repo.head();
     let upstream;
     try {
@@ -239,7 +243,7 @@ async function pushHead(repo: Repository, auth: Auth) {
     return pushBranch(repo, remote, head, auth);
 }
 
-export async function push(repo: Repository, data: IpcActionParams[IpcAction.PUSH], auth: Auth) {
+export async function push(repo: Repository, data: IpcActionParams[IpcAction.PUSH], auth: AuthConfig) {
     if (!data) {
         return pushHead(repo, auth);
     }
@@ -257,7 +261,7 @@ export async function push(repo: Repository, data: IpcActionParams[IpcAction.PUS
     return false;
 }
 
-async function pushBranch(repo: Repository, remote: Remote, localRef: Reference, auth: Auth, force = false) {
+async function pushBranch(repo: Repository, remote: Remote, localRef: Reference, auth: AuthConfig, force = false) {
     let remoteRefName: string;
     let status: { ahead: number, behind: number };
     try {
@@ -290,12 +294,12 @@ async function pushBranch(repo: Repository, remote: Remote, localRef: Reference,
     return doPush(remote, localRef.name(), `heads/${remoteRefName}`, auth, force);
 }
 
-async function pushTag(remote: Remote, localRef: Reference, auth: Auth, remove = false) {
+async function pushTag(remote: Remote, localRef: Reference, auth: AuthConfig, remove = false) {
     // We can pass an empty localref to delete a remote ref
     return doPush(remote, remove ? "" : localRef.name(), `tags/${normalizeTagName(localRef.name())}`, auth);
 }
 
-async function doPush(remote: Remote, localName: string, remoteName: string, auth: Auth, forcePush = false) {
+async function doPush(remote: Remote, localName: string, remoteName: string, auth: AuthConfig, forcePush = false) {
     // something with pathspec, https://github.com/nodegit/nodegit/issues/1270#issuecomment-293742772
     const force = forcePush ? "+" : "";
     try {
@@ -334,7 +338,7 @@ export async function setUpstream(repo: Repository, local: string, remoteRefName
     return result;
 }
 
-export async function deleteRemoteRef(repo: Repository, refName: string, auth: Auth) {
+export async function deleteRemoteRef(repo: Repository, refName: string, auth: AuthConfig) {
     const ref = await repo.getReference(refName);
 
     if (ref.isRemote()) {
@@ -360,7 +364,7 @@ export async function deleteRemoteRef(repo: Repository, refName: string, auth: A
 }
 
 // tagName must contain full path for tag (eg. refs/tags/[tag])
-export async function deleteRemoteTag(remote: Remote, tagName: string, auth: Auth) {
+export async function deleteRemoteTag(remote: Remote, tagName: string, auth: AuthConfig) {
     try {
         await remote.push([`:${tagName}`], {
             callbacks: {
@@ -1030,15 +1034,6 @@ export async function checkoutBranch(repo: Repository, branch: string): Promise<
         return err;
     }
 }
-
-export type Auth = {
-    type: "ssh"
-    agent: boolean
-} | {
-    type: "userpass"
-    username: string
-    password: string
-};
 
 let currentCommit: string;
 let commitObjectCache: {

@@ -7,7 +7,7 @@ import { Branch, Commit, Object, Oid, Rebase, Reference, Remote, Repository, Sig
 import * as provider from "./Data/Main/Provider";
 import { IpcAction, IpcActionParams, IpcActionReturn, Locks } from "./Data/Actions";
 import { formatTimeAgo } from "./Data/Utils";
-import { AppConfig } from "./Data/Config";
+import { AppConfig, AuthConfig } from "./Data/Config";
 import { sendEvent } from "./Data/Main/WindowEvents";
 import { TransferProgress } from "types/nodegit";
 import { readFileSync, writeFileSync } from "fs";
@@ -775,16 +775,25 @@ function loadHunks(repo: Repository, params: IpcActionParams[IpcAction.LOAD_HUNK
     return provider.getWorkdirHunks(params.path, params.type);
 }
 
-function getAuth() {
+function getAuth(): AuthConfig | false {
     if (selectedGitProfile.authType === "ssh") {
+        if (selectedGitProfile.sshAgent) {
+            return {
+                sshAgent: selectedGitProfile.sshAgent,
+                authType: selectedGitProfile.authType,
+            }
+        }
         return {
-            agent: selectedGitProfile.sshAgent,
-            type: selectedGitProfile.authType
+            sshAgent: false,
+            authType: selectedGitProfile.authType,
+            sshPublicKey: selectedGitProfile.sshPublicKey || "",
+            sshPrivateKey: selectedGitProfile.sshPrivateKey || "",
+            sshPassphrase: selectedGitProfile.sshPassphrase
         }
     }
     if (selectedGitProfile.username && selectedGitProfile.password) {
         return {
-            type: selectedGitProfile.authType,
+            authType: selectedGitProfile.authType,
             username: selectedGitProfile.username,
             password: selectedGitProfile.password,
         }

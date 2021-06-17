@@ -74,6 +74,11 @@ export class Profile extends Component<Props, State> {
                                     <button disabled={this.state.config.sshAgent} id="ssh-private-key" type="button" name="ssh-private-key" onClick={() => selectFile(path => this.setConfigKey("sshPrivateKey", path))}>Browse</button>
                                     {!this.state.config.sshAgent && <span>{this.state.config.sshPrivateKey}</span>}
                                 </div>
+                                <div>
+                                    <label for="ssh-passphrase">SSH passphrase:</label>
+                                    <input disabled={this.state.config.sshAgent} type="text" id="ssh-passphrase" name="ssh-passphrase" value={this.state.config.sshPassphrase} onKeyUp={e => this.setConfigKey("sshPassphrase", e.currentTarget.value)} />
+                                    {!this.state.config.sshAgent && <span>{this.state.config.sshPassphrase}</span>}
+                                </div>
                             </div>
                         )}
                     </div>
