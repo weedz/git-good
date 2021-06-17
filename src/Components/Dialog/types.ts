@@ -36,7 +36,7 @@ export type CompareProps = {
 export type RemoteProps = {
     data: {
         pullFrom: string
-        pushTo?: string
+        pushTo: string | null
         name: string
     }
     confirmCb: (data: RemoteProps["data"]) => void
@@ -44,7 +44,7 @@ export type RemoteProps = {
 };
 
 export type BranchProps = {
-    defaultValue?: string
+    defaultValue: string | undefined
     confirmCb: (branchName: string) => void
     cancelCb: () => void
 };

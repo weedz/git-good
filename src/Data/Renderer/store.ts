@@ -38,13 +38,13 @@ export type StoreType = {
         status: null | RepoStatus
     }
     branches: BranchesObj
-    head?: HeadBranchObj
+    head: HeadBranchObj | undefined
     remotes: IpcActionReturn[IpcAction.REMOTES]
     heads: {
         [key: string]: BranchObj[]
     }
     currentFile: null | {
-        commitSHA?: string
+        commitSHA?: string | undefined
         patch: PatchObj
     }
     locks: {

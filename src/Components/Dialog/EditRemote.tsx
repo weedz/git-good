@@ -20,7 +20,7 @@ export function EditRemote(dialog: RemoteProps) {
             </label>
             <label>
                 <p>Push to:</p>
-                <input type="text" name="push" onChange={e => data.pushTo = e.currentTarget.value} value={data.pushTo} />
+                <input type="text" name="push" onChange={e => data.pushTo = e.currentTarget.value} value={data.pushTo || ""} />
             </label>
             <br />
             <button type="submit">Confirm</button>

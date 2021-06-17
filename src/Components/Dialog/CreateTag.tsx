@@ -3,8 +3,9 @@ import { CreateTagProps } from "./types";
 
 
 export function CreateTag(dialog: CreateTagProps) {
-    const data: {name: string, annotation?: string} = {
-        name: ""
+    const data: {name: string, annotation: string} = {
+        name: "",
+        annotation: "",
     };
     return <div className="dialog-window">
         <form onSubmit={e => {

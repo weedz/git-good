@@ -41,14 +41,16 @@ export function toggleTreeItem(e: h.JSX.TargetedMouseEvent<HTMLAnchorElement>) {
 }
 
 function selectAction(c: Link<string>) {
-    updateStore({selectedBranch: {branch: c.props.linkData}})
+    if (c.props.linkData) {
+        updateStore({selectedBranch: {branch: c.props.linkData}});
+    }
 }
 
 // eslint-disable-next-line react/prefer-stateless-function
 export class RenderBranchTree extends PureComponent<{
     branches: BranchTree
-    contextMenu?: (event: h.JSX.TargetedMouseEvent<HTMLAnchorElement>) => void
-    dblClick?: (event: h.JSX.TargetedMouseEvent<HTMLAnchorElement>) => void
+    contextMenu?: ((event: h.JSX.TargetedMouseEvent<HTMLAnchorElement>) => void) | undefined
+    dblClick?: ((event: h.JSX.TargetedMouseEvent<HTMLAnchorElement>) => void) | undefined
     indent: number
 }> {
     render() {

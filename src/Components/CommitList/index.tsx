@@ -83,10 +83,11 @@ export default class CommitList extends PureStoreComponent<unknown, State> {
             };
         }
 
-        ipcSendMessage(IpcAction.LOAD_COMMITS, {
-            cursor: this.cursor,
-            ...options
-        });
+        if (this.cursor) {
+            options.cursor = this.cursor;
+        }
+
+        ipcSendMessage(IpcAction.LOAD_COMMITS, options);
     }
     handleCommits(fetched: IpcActionReturn[IpcAction.LOAD_COMMITS]) {
         if (fetched.branch === "history") {

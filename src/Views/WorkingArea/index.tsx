@@ -88,8 +88,8 @@ export default class WorkingArea extends StoreComponent<unknown, State> {
             };
             if (!amend) {
                 newState.commitMsg = Store.commitMsg;
-            } else {
-                newState.commitMsg = Store.head?.commit.message
+            } else if (Store.head) {
+                newState.commitMsg = Store.head.commit.message;
             }
             this.setState(newState);
         }

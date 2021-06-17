@@ -532,7 +532,7 @@ const eventMap: {
         try {
             remote = await Remote.create(repo, data.name, data.pullFrom);
         } catch (err) {
-            return err;
+            return err as Error;
         }
 
         if (data.pushTo) {
@@ -554,7 +554,7 @@ const eventMap: {
         try {
             await Remote.delete(repo, data.name);
         } catch (err) {
-            return err;
+            return err as Error;
         }
 
         provider.eventReply(event, IpcAction.REMOTES, await provider.remotes(repo));
@@ -572,7 +572,9 @@ const eventMap: {
             writeFileSync(globalAppConfigPath, JSON.stringify(data));
             return true;
         } catch (err) {
-            dialog.showErrorBox("Failed to save settings", err.message);
+            if (err instanceof Error) {
+                dialog.showErrorBox("Failed to save settings", err.message);
+            }
         }
         return false;
     },
@@ -596,7 +598,9 @@ const eventMap: {
         try {
             await repo.deleteTagByName(data.name);
         } catch (err) {
-            dialog.showErrorBox("Could not delete tag", err.toString());
+            if (err instanceof Error) {
+                dialog.showErrorBox("Could not delete tag", err.toString());
+            }
         }
 
         return true;
@@ -705,7 +709,9 @@ async function fetchFrom(repo: Repository, remotes?: Remote[]) {
             }, "");
         }
     } catch (err) {
-        dialog.showErrorBox("Fetch failed", err.message);
+        if (err instanceof Error) {
+            dialog.showErrorBox("Fetch failed", err.message);
+        }
         sendEvent(win.webContents, "fetch-status", {
             done: true,
             update
@@ -786,9 +792,9 @@ function getAuth(): AuthConfig | false {
         return {
             sshAgent: false,
             authType: selectedGitProfile.authType,
-            sshPublicKey: selectedGitProfile.sshPublicKey || "",
-            sshPrivateKey: selectedGitProfile.sshPrivateKey || "",
-            sshPassphrase: selectedGitProfile.sshPassphrase
+            sshPublicKey: selectedGitProfile.sshPublicKey as string,
+            sshPrivateKey: selectedGitProfile.sshPrivateKey as string,
+            sshPassphrase: selectedGitProfile.sshPassphrase || "",
         }
     }
     if (selectedGitProfile.username && selectedGitProfile.password) {

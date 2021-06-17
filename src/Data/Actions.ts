@@ -60,7 +60,7 @@ export type IpcActionParams = {
     [IpcAction.LOAD_COMMIT]: string | null
     [IpcAction.LOAD_PATCHES_WITHOUT_HUNKS]: {
         sha: string
-        options?: DiffOptions
+        options: DiffOptions | undefined
     }
     [IpcAction.LOAD_HUNKS]: (
         {
@@ -84,7 +84,7 @@ export type IpcActionParams = {
     [IpcAction.UNSTAGE_FILE]: string
     [IpcAction.DISCARD_FILE]: string
     [IpcAction.COMMIT]: {
-        amend?: boolean
+        amend: boolean | undefined
         message: {
             summary: string
             body: string
@@ -124,8 +124,8 @@ export type IpcActionParams = {
     [IpcAction.OPEN_COMPARE_REVISIONS]: {from: string, to: string}
     [IpcAction.REMOTES]: null
     [IpcAction.RESOLVE_CONFLICT]: {path: string}
-    [IpcAction.EDIT_REMOTE]: {oldName: string, name: string, pullFrom: string, pushTo?: string}
-    [IpcAction.NEW_REMOTE]: {name: string, pullFrom: string, pushTo?: string}
+    [IpcAction.EDIT_REMOTE]: {oldName: string, name: string, pullFrom: string, pushTo: string | null}
+    [IpcAction.NEW_REMOTE]: {name: string, pullFrom: string, pushTo: string | null}
     [IpcAction.REMOVE_REMOTE]: {name: string}
     [IpcAction.FETCH]: null | {remote: string}
     [IpcAction.SAVE_SETTINGS]: AppConfig
@@ -143,7 +143,7 @@ export type IpcActionParams = {
     }
     [IpcAction.DELETE_TAG]: {
         name: string
-        remote?: boolean
+        remote: boolean | undefined
     }
 };
 
@@ -190,7 +190,7 @@ export type IpcActionReturn = {
     [IpcAction.OPEN_COMPARE_REVISIONS]: PatchObj[]
     [IpcAction.REMOTES]: {
         name: string
-        pushTo?: string
+        pushTo: string | null
         pullFrom: string
     }[]
     [IpcAction.RESOLVE_CONFLICT]: boolean
@@ -296,7 +296,7 @@ export type BranchObj = {
         ahead: number
         behind: number
     }
-    remote?: string
+    remote?: string | undefined
     type: RefType
 };
 
@@ -313,7 +313,7 @@ interface LoadCommitsParamBranch {
 }
 type LoadFileCommitsParam = {
     /** SHA of last fetched commit */
-    cursor?: string
+    cursor: string | undefined
     startAtCursor?: boolean
     num?: number
     file: string
@@ -337,7 +337,7 @@ export type LoadCommitReturn = {
 type LoadCommitsReturn = {
     commits: LoadCommitReturn[]
     branch: string
-    cursor?: string
+    cursor?: string | undefined
 };
 type LoadFileCommitsReturn = {
     commits: Array<LoadCommitReturn & {

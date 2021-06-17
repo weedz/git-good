@@ -30,7 +30,7 @@ export type AppConfig = {
         sshPublicKey?: string
         sshPassphrase?: string
         sshAgent: boolean
-        gpg?: GpgConfig
+        gpg?: GpgConfig | undefined
     }>
     selectedProfile: number
 };

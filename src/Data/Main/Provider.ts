@@ -195,8 +195,10 @@ export async function pull(repo: Repository, branch: string | null, signature: S
         try {
             ref = await repo.getReference(branch);
         } catch (err) {
-            // invalid ref
-            dialog.showErrorBox("Pull failed", `Invalid reference '${branch}'\n${err.message}`);
+            if (err instanceof Error) {
+                // invalid ref
+                dialog.showErrorBox("Pull failed", `Invalid reference '${branch}'\n${err.message}`);
+            }
             return false;
         }
     } else {
@@ -234,7 +236,9 @@ async function pushHead(repo: Repository, auth: AuthConfig) {
         upstream = await Branch.upstream(head);
     }
     catch (err) {
-        dialog.showErrorBox("Missing upstream", err.message);
+        if (err instanceof Error) {
+            dialog.showErrorBox("Missing upstream", err.message);
+        }
         return false;
     }
 
@@ -271,7 +275,9 @@ async function pushBranch(repo: Repository, remote: Remote, localRef: Reference,
 
         status = await Graph.aheadBehind(repo, localRef.target(), upstream.target()) as unknown as { ahead: number, behind: number };
     } catch (err) {
-        dialog.showErrorBox("Push failed", `Invalid upstream: ${err.message}`);
+        if (err instanceof Error) {
+            dialog.showErrorBox("Push failed", `Invalid upstream: ${err.message}`);
+        }
         return false;
     }
 
@@ -318,8 +324,10 @@ async function doPush(remote: Remote, localName: string, remoteName: string, aut
         return !pushResult;
     } catch (err) {
         // invalid authentication?
-        // FIXME: return error message instead of displaying error dialog here
-        dialog.showErrorBox("Push failed", err.message);
+        if (err instanceof Error) {
+            // FIXME: return error message instead of displaying error dialog here
+            dialog.showErrorBox("Push failed", err.message);
+        }
     }
     return false;
 }
@@ -356,7 +364,9 @@ export async function deleteRemoteRef(repo: Repository, refName: string, auth: A
                 }
             });
         } catch (err) {
-            dialog.showErrorBox("No remote ref found", err.message);
+            if (err instanceof Error) {
+                dialog.showErrorBox("No remote ref found", err.message);
+            }
         }
         ref.delete();
     }
@@ -512,7 +522,7 @@ export async function commit(repo: Repository, params: IpcActionParams[IpcAction
             await repo.createCommit("HEAD", committer, committer, message, oid, [parent]);
         }
     } catch (err) {
-        return err;
+        return err as Error;
     }
 
     return loadCommit(repo, null);
@@ -537,7 +547,9 @@ export async function createTag(repo: Repository, data: IpcActionParams[IpcActio
             await repo.createLightweightTag(id, data.name);
         }
     } catch (err) {
-        dialog.showErrorBox("Failed to create tag", err.toString());
+        if (err instanceof Error) {
+            dialog.showErrorBox("Failed to create tag", err.toString());
+        }
     }
 
     return true;
@@ -1018,7 +1030,7 @@ export async function commitWithDiff(repo: Repository, sha: string) {
     return commit;
 }
 
-export async function checkoutBranch(repo: Repository, branch: string): Promise<IpcActionReturn[IpcAction.CHECKOUT_BRANCH]> {
+export async function checkoutBranch(repo: Repository, branch: string) {
     try {
         await repo.checkoutBranch(branch);
         const head = await repo.head();
@@ -1029,9 +1041,9 @@ export async function checkoutBranch(repo: Repository, branch: string): Promise<
             commit: getCommitObj(headCommit),
             normalizedName: head.name(),
             type: RefType.LOCAL
-        };
+        } as IpcActionReturn[IpcAction.CHECKOUT_BRANCH];
     } catch (err) {
-        return err;
+        return err as Error;
     }
 }
 

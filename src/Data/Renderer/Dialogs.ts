@@ -4,7 +4,7 @@ import { normalizeLocalName, normalizeRemoteNameWithoutRemote, normalizeTagName,
 import { ipcGetData, ipcSendMessage } from "./IPC";
 import { closeDialogWindow, createBranchFromSha, createBranchFromRef, openDialogWindow, setUpstream, renameLocalBranch } from "./store";
 
-export function openDialog_EditRemote(data: {name: string, pullFrom: string, pushTo?: string}) {
+export function openDialog_EditRemote(data: {name: string, pullFrom: string, pushTo: string | null}) {
     const oldName = data.name;
     openDialogWindow(DialogTypes.EDIT_REMOTE, {
         data,

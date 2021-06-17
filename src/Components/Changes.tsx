@@ -3,15 +3,21 @@ import { IpcAction, IpcActionReturn } from "src/Data/Actions";
 import { updateStore, Store, PureStoreComponent } from "../Data/Renderer/store";
 import Link from "./Link";
 
-export default class Changes extends PureStoreComponent<unknown, {staged: number, unstaged: number, repoPath: string}> {
-    state = {
+interface State {
+    staged: number
+    unstaged: number
+}
+
+export default class Changes extends PureStoreComponent<unknown, State> {
+    state: Readonly<State> = {
         staged: 0,
         unstaged: 0,
-        repoPath: "",
     };
     componentDidMount() {
         this.listen("repo", (repo) => {
-            this.setState({repoPath: repo?.path});
+            if (repo?.path !== Store.repo?.path) {
+                this.forceUpdate();
+            }
         });
         this.registerHandler(IpcAction.REFRESH_WORKDIR, (changes: IpcActionReturn[IpcAction.REFRESH_WORKDIR]) => {
             this.setState({

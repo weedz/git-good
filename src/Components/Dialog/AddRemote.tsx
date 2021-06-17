@@ -6,6 +6,7 @@ export function AddRemote(dialog: DialogProps[DialogTypes.ADD_REMOTE]) {
     const data: RemoteProps["data"] = {
         name: "",
         pullFrom: "",
+        pushTo: null,
     };
     return <div className="dialog-window">
         <form onSubmit={e => {

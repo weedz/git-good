@@ -19,7 +19,9 @@ type Props = {
 };
 
 function selectCommit(c: Link<string>) {
-    updateStore({diffPaneSrc: c.props.linkData});
+    if (c.props.linkData) {
+        updateStore({diffPaneSrc: c.props.linkData});
+    }
 }
 
 // prefer-stateless-function is disabled for PureComponents from react but is not recognized from preact.
