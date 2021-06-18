@@ -14,16 +14,12 @@ import { sendEvent } from "./Data/Main/WindowEvents";
 import { TransferProgress } from "types/nodegit";
 import { normalizeLocalName } from "./Data/Branch";
 
-// import { initialize } from "@electron/remote";
-// initialize();
+// eslint-disable-next-line import/no-unresolved
+import { lastCommit, buildTimestamp } from "build-env";
 
-// eslint-disable-next-line @typescript-eslint/no-var-requires
-require('@electron/remote/main').initialize();
+import { initialize } from "@electron/remote/main";
+initialize();
 
-
-// constants from rollup
-declare const __build_date__: number;
-// declare const __last_comit__: string;
 
 let win: BrowserWindow;
 const createWindow = () => {
@@ -295,10 +291,10 @@ const menuTemplate = [
             {
                 label: "About",
                 async click() {
-                    const buildDate = new Date(__build_date__);
+                    const buildDate = new Date(buildTimestamp);
                     const versionsString = `Version: ${app.getVersion()}\n` +
                         `Date: ${buildDate.toISOString()} (${formatTimeAgo(buildDate)})\n` +
-                        `Commit: __last_comit__\n` +
+                        `Commit: ${lastCommit}\n` +
                         `Electron: ${process.versions.electron}\n` +
                         `Chrome: ${process.versions.chrome}\n` +
                         `Node: ${process.versions.node}\n` +

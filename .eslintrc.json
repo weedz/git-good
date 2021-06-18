@@ -12,7 +12,6 @@
     "plugin:import/warnings",
     "preact"
   ],
-  "ignorePatterns": "/scripts",
   "rules": {
     "@typescript-eslint/explicit-module-boundary-types": "off",
     "no-unused-vars": "off",
