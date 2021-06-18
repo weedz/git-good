@@ -14,12 +14,8 @@ import { sendEvent } from "./Data/Main/WindowEvents";
 import { TransferProgress } from "types/nodegit";
 import { normalizeLocalName } from "./Data/Branch";
 
-// import { initialize } from "@electron/remote";
-// initialize();
-
-// eslint-disable-next-line @typescript-eslint/no-var-requires
-require('@electron/remote/main').initialize();
-
+import { initialize } from "@electron/remote/main";
+initialize();
 
 // constants from rollup
 declare const __build_date__: number;

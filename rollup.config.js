@@ -16,7 +16,8 @@ const external = [
     "fs",
     "child_process",
     "electron",
-    "@electron/remote"
+    "@electron/remote",
+    "@electron/remote/main",
 ];
 
 const plugins = [
