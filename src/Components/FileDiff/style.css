@@ -28,6 +28,8 @@
 }
 #file-diff h2 > a {
     padding: 0 10px;
+    line-height: 24px;
+    font-size: 30px;
 }
 #file-diff h2,
 #file-diff > p {

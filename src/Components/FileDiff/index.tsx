@@ -141,7 +141,7 @@ export default class FileDiff extends PureStoreComponent<unknown, State> {
                     openFileHistory(path);
                 }} fileHistory={this.state.fileHistory} />}
                 <div id="file-diff" className="pane">
-                    <h2>{patch.actualFile.path}<a href="#" onClick={this.closeActiveFileDiff}>&#x1f5d9;</a></h2>
+                    <h2>{patch.actualFile.path}<a href="#" onClick={this.closeActiveFileDiff}>&times;</a></h2>
                     {patch.status === DELTA.RENAMED && <h4>{patch.oldFile.path} &rArr; {patch.newFile.path} ({patch.similarity}%)</h4>}
                     <p>{patch.hunks?.length} chunks,&nbsp;<span className="added">+{patch.lineStats.total_additions}</span>&nbsp;<span className="deleted">-{patch.lineStats.total_deletions}</span></p>
                     <ul className="file-diff-toolbar flex-row">
