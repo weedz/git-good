@@ -1,16 +1,18 @@
 import { join } from "path";
-import { app, BrowserWindow, ipcMain, Menu, dialog, shell, MenuItemConstructorOptions, IpcMainEvent, screen, clipboard } from "electron";
 import { exec, spawn } from "child_process";
+import { app, BrowserWindow, ipcMain, Menu, dialog, shell, MenuItemConstructorOptions, IpcMainEvent, screen, clipboard } from "electron";
 
 import { Branch, Commit, Object, Oid, Rebase, Reference, Remote, Repository, Signature } from "nodegit";
+
+import { isMac, isWindows } from "./Data/Main/Utils";
+import { currentProfile, getAppConfig, saveAppConfig, setCurrentProfile } from "./Data/Main/Config";
 
 import * as provider from "./Data/Main/Provider";
 import { IpcAction, IpcActionParams, IpcActionReturn, Locks } from "./Data/Actions";
 import { formatTimeAgo } from "./Data/Utils";
-import { AppConfig, AuthConfig } from "./Data/Config";
+import { AuthConfig } from "./Data/Config";
 import { sendEvent } from "./Data/Main/WindowEvents";
 import { TransferProgress } from "types/nodegit";
-import { readFileSync, writeFileSync } from "fs";
 import { normalizeLocalName } from "./Data/Branch";
 
 // import { initialize } from "@electron/remote";
@@ -19,39 +21,10 @@ import { normalizeLocalName } from "./Data/Branch";
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 require('@electron/remote/main').initialize();
 
-let appConfig: AppConfig;
-let selectedGitProfile: AppConfig["profiles"][0];
-const globalAppConfigPath = join(app.getPath("userData"), "git-good.config.json");
-
-try {
-    const configJSON = readFileSync(globalAppConfigPath).toString();
-    appConfig = JSON.parse(configJSON);
-    selectedGitProfile = appConfig.profiles[appConfig.selectedProfile];
-} catch (err) {
-    console.log("No existing config file. Creating...");
-    appConfig = {
-        profiles: [
-            {
-                profileName: "default",
-                authType: "ssh",
-                gitEmail: "",
-                gitName: "",
-                sshAgent: true,
-                gpg: undefined,
-            }
-        ],
-        selectedProfile: 0
-    };
-    writeFileSync(globalAppConfigPath, JSON.stringify(appConfig));
-}
 
 // constants from rollup
 declare const __build_date__: number;
 // declare const __last_comit__: string;
-
-const isMac = process.platform === "darwin";
-// const isLinux = process.platform === "linux";
-const isWindows = process.platform === "win32";
 
 let win: BrowserWindow;
 const createWindow = () => {
@@ -266,7 +239,7 @@ const menuTemplate = [
                 label: 'Pull...',
                 async click() {
                     sendEvent(win.webContents, "app-lock-ui", Locks.BRANCH_LIST);
-                    await provider.pull(repo, null, Signature.now(selectedGitProfile.gitName, selectedGitProfile.gitEmail));
+                    await provider.pull(repo, null, Signature.now(currentProfile().gitName, currentProfile().gitEmail));
                     sendEvent(win.webContents, "app-unlock-ui", Locks.BRANCH_LIST);
                 }
             },
@@ -427,7 +400,7 @@ const eventMap: {
     [IpcAction.STAGE_FILE]: provider.stageFile,
     [IpcAction.UNSTAGE_FILE]: provider.unstageFile,
     [IpcAction.DISCARD_FILE]: provider.discardChanges,
-    [IpcAction.PULL]: async (repo, data) =>  provider.pull(repo, data, Signature.now(selectedGitProfile.gitName, selectedGitProfile.gitEmail)),
+    [IpcAction.PULL]: async (repo, data) =>  provider.pull(repo, data, Signature.now(currentProfile().gitName, currentProfile().gitEmail)),
     [IpcAction.CREATE_BRANCH]: async (repo, data) => {
         try {
             const res = await repo.createBranch(data.name, data.sha)
@@ -494,10 +467,11 @@ const eventMap: {
         return !result;
     },
     [IpcAction.COMMIT]: async (repo, data) => {
-        if (!selectedGitProfile.gitName || !selectedGitProfile.gitEmail) {
+        const profile = currentProfile();
+        if (!profile.gitName || !profile.gitEmail) {
             return Error("Invalid name/email");
         }
-        return await provider.commit(repo, data, Signature.now(selectedGitProfile.gitName, selectedGitProfile.gitEmail), selectedGitProfile.gpg?.commit ? selectedGitProfile.gpg.key : undefined);
+        return await provider.commit(repo, data, Signature.now(profile.gitName, profile.gitEmail), profile.gpg?.commit ? profile.gpg.key : undefined);
     },
     [IpcAction.REMOTES]: provider.remotes,
     [IpcAction.RESOLVE_CONFLICT]: async (repo, {path}) => {
@@ -564,12 +538,9 @@ const eventMap: {
     },
     [IpcAction.FETCH]: async (repo, data) => fetchFrom(repo, data?.remote ? [await repo.getRemote(data.remote)] : undefined),
     [IpcAction.SAVE_SETTINGS]: async (_, data) => {
-        appConfig = data;
-        if (appConfig.profiles[data.selectedProfile]) {
-            selectedGitProfile = appConfig.profiles[data.selectedProfile];
-        }
+        setCurrentProfile(data.selectedProfile);
         try {
-            writeFileSync(globalAppConfigPath, JSON.stringify(data));
+            saveAppConfig(data);
             return true;
         } catch (err) {
             if (err instanceof Error) {
@@ -579,10 +550,11 @@ const eventMap: {
         return false;
     },
     [IpcAction.GET_SETTINGS]: async (_, _data) => {
-        return appConfig;
+        return getAppConfig();
     },
     [IpcAction.CREATE_TAG]: async (repo, data) => {
-        return provider.createTag(repo, data, Signature.now(selectedGitProfile.gitName, selectedGitProfile.gitEmail), selectedGitProfile.gpg?.tag ? selectedGitProfile.gpg.key : undefined);
+        const profile = currentProfile();
+        return provider.createTag(repo, data, Signature.now(profile.gitName, profile.gitEmail), profile.gpg?.tag ? profile.gpg.key : undefined);
     },
     [IpcAction.DELETE_TAG]: async (repo, data) => {
         if (data.remote) {
@@ -782,26 +754,27 @@ function loadHunks(repo: Repository, params: IpcActionParams[IpcAction.LOAD_HUNK
 }
 
 function getAuth(): AuthConfig | false {
-    if (selectedGitProfile.authType === "ssh") {
-        if (selectedGitProfile.sshAgent) {
+    const profile = currentProfile();
+    if (profile.authType === "ssh") {
+        if (profile.sshAgent) {
             return {
-                sshAgent: selectedGitProfile.sshAgent,
-                authType: selectedGitProfile.authType,
+                sshAgent: profile.sshAgent,
+                authType: profile.authType,
             }
         }
         return {
             sshAgent: false,
-            authType: selectedGitProfile.authType,
-            sshPublicKey: selectedGitProfile.sshPublicKey as string,
-            sshPrivateKey: selectedGitProfile.sshPrivateKey as string,
-            sshPassphrase: selectedGitProfile.sshPassphrase || "",
+            authType: profile.authType,
+            sshPublicKey: profile.sshPublicKey as string,
+            sshPrivateKey: profile.sshPrivateKey as string,
+            sshPassphrase: profile.sshPassphrase || "",
         }
     }
-    if (selectedGitProfile.username && selectedGitProfile.password) {
+    if (profile.username && profile.password) {
         return {
-            authType: selectedGitProfile.authType,
-            username: selectedGitProfile.username,
-            password: selectedGitProfile.password,
+            authType: profile.authType,
+            username: profile.username,
+            password: profile.password,
         }
     }
     return false;

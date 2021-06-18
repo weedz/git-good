@@ -8,6 +8,7 @@ import { IpcAction, BranchObj, LineObj, HunkObj, PatchObj, CommitObj, IpcActionP
 import { normalizeLocalName, normalizeRemoteName, normalizeRemoteNameWithoutRemote, normalizeTagName, remoteName } from "../Branch";
 import { gpgSign, gpgVerify } from "./GPG";
 import { AuthConfig } from "../Config";
+import { currentProfile } from "./Config";
 
 export const actionLock: {
     [key in IpcAction]?: {
@@ -511,12 +512,12 @@ export async function commit(repo: Repository, params: IpcActionParams[IpcAction
     try {
         if (params.amend) {
             const author = parent.author();
-            if (gpgKey) {
+            if (gpgKey && currentProfile().gpg) {
                 await parent.amendWithSignature("HEAD", author, committer, "utf8", message, oid, onSignature(gpgKey));
             } else {
                 await parent.amend("HEAD", author, committer, "utf8", message, oid);
             }
-        } else if (gpgKey) {
+        } else if (gpgKey && currentProfile().gpg) {
             await repo.createCommitWithSignature("HEAD", committer, committer, message, oid, [parent], onSignature(gpgKey));
         } else {
             await repo.createCommit("HEAD", committer, committer, message, oid, [parent]);
@@ -539,7 +540,7 @@ export async function createTag(repo: Repository, data: IpcActionParams[IpcActio
             id = refAt.id().tostrS();
         }
 
-        if (gpgKey) {
+        if (gpgKey && currentProfile().gpg) {
             await Tag.createWithSignature(repo, data.name, id, tagger, data.annotation || "", 0, onSignature(gpgKey));
         } else if (data.annotation) {
             await repo.createTag(id, data.name, data.annotation);
@@ -1006,11 +1007,13 @@ export async function loadCommit(repo: Repository, sha: string | null): Promise<
 
     const commitObj = getCommitObj(commit);
 
-    try {
-        const commitSignature = await commit.getSignature("gpgsig");
-        commitObj.signature = await gpgVerify(commitSignature.signature, commitSignature.signedData)
-    } catch (err) {
-        // Commit is probably not signed.
+    if (currentProfile().gpg) {
+        try {
+            const commitSignature = await commit.getSignature("gpgsig");
+            commitObj.signature = await gpgVerify(commitSignature.signature, commitSignature.signedData)
+        } catch (err) {
+            // Commit is probably not signed.
+        }
     }
 
     return commitObj;
