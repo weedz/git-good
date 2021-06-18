@@ -8,7 +8,7 @@ import { IpcAction, BranchObj, LineObj, HunkObj, PatchObj, CommitObj, IpcActionP
 import { normalizeLocalName, normalizeRemoteName, normalizeRemoteNameWithoutRemote, normalizeTagName, remoteName } from "../Branch";
 import { gpgSign, gpgVerify } from "./GPG";
 import { AuthConfig } from "../Config";
-import { currentProfile } from "./Config";
+import { currentProfile, getAuth } from "./Config";
 
 export const actionLock: {
     [key in IpcAction]?: {
@@ -248,7 +248,11 @@ async function pushHead(repo: Repository, auth: AuthConfig) {
     return pushBranch(repo, remote, head, auth);
 }
 
-export async function push(repo: Repository, data: IpcActionParams[IpcAction.PUSH], auth: AuthConfig) {
+export async function push(repo: Repository, data: IpcActionParams[IpcAction.PUSH]) {
+    const auth = getAuth();
+    if (!auth) {
+        return Error("No git credentials");
+    }
     if (!data) {
         return pushHead(repo, auth);
     }
@@ -347,7 +351,12 @@ export async function setUpstream(repo: Repository, local: string, remoteRefName
     return result;
 }
 
-export async function deleteRemoteRef(repo: Repository, refName: string, auth: AuthConfig) {
+export async function deleteRemoteRef(repo: Repository, refName: string) {
+    const auth = getAuth();
+    if (!auth) {
+        return false;
+    }
+
     const ref = await repo.getReference(refName);
 
     if (ref.isRemote()) {
@@ -375,7 +384,11 @@ export async function deleteRemoteRef(repo: Repository, refName: string, auth: A
 }
 
 // tagName must contain full path for tag (eg. refs/tags/[tag])
-export async function deleteRemoteTag(remote: Remote, tagName: string, auth: AuthConfig) {
+export async function deleteRemoteTag(remote: Remote, tagName: string) {
+    const auth = getAuth();
+    if (!auth) {
+        return false;
+    }
     try {
         await remote.push([`:${tagName}`], {
             callbacks: {

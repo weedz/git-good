@@ -1,7 +1,7 @@
 import { app } from "electron";
 import { readFileSync, writeFileSync } from "fs";
 import { join } from "path";
-import { AppConfig } from "../Config";
+import { AppConfig, AuthConfig } from "../Config";
 
 
 let appConfig: AppConfig;
@@ -13,7 +13,7 @@ try {
     appConfig = JSON.parse(configJSON);
     selectedGitProfile = appConfig.profiles[appConfig.selectedProfile];
 } catch (err) {
-    console.log("No existing config file. Creating...");
+    console.log("Invalid or not existing config file. Creating...");
     appConfig = {
         profiles: [
             {
@@ -33,6 +33,34 @@ try {
 export function currentProfile() {
     return selectedGitProfile;
 }
+
+export function getAuth(): AuthConfig | false {
+    const profile = currentProfile();
+    if (profile.authType === "ssh") {
+        if (profile.sshAgent) {
+            return {
+                sshAgent: profile.sshAgent,
+                authType: profile.authType,
+            }
+        }
+        return {
+            sshAgent: false,
+            authType: profile.authType,
+            sshPublicKey: profile.sshPublicKey as string,
+            sshPrivateKey: profile.sshPrivateKey as string,
+            sshPassphrase: profile.sshPassphrase || "",
+        }
+    }
+    if (profile.username && profile.password) {
+        return {
+            authType: profile.authType,
+            username: profile.username,
+            password: profile.password,
+        }
+    }
+    return false;
+}
+
 
 export function setCurrentProfile(profileId: number) {
     if (appConfig.profiles[profileId]) {

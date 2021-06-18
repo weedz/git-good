@@ -5,12 +5,11 @@ import { app, BrowserWindow, ipcMain, Menu, dialog, shell, MenuItemConstructorOp
 import { Branch, Commit, Object, Oid, Rebase, Reference, Remote, Repository, Signature } from "nodegit";
 
 import { isMac, isWindows } from "./Data/Main/Utils";
-import { currentProfile, getAppConfig, saveAppConfig, setCurrentProfile } from "./Data/Main/Config";
+import { currentProfile, getAppConfig, getAuth, saveAppConfig, setCurrentProfile } from "./Data/Main/Config";
 
 import * as provider from "./Data/Main/Provider";
 import { IpcAction, IpcActionParams, IpcActionReturn, Locks } from "./Data/Actions";
 import { formatTimeAgo } from "./Data/Utils";
-import { AuthConfig } from "./Data/Config";
 import { sendEvent } from "./Data/Main/WindowEvents";
 import { TransferProgress } from "types/nodegit";
 import { normalizeLocalName } from "./Data/Branch";
@@ -247,11 +246,9 @@ const menuTemplate = [
                 label: 'Push...',
                 async click() {
                     sendEvent(win.webContents, "app-lock-ui", Locks.BRANCH_LIST);
-                    const auth = getAuth();
-                    if (auth) {
-                        await provider.push(repo, null, auth);
-                    } else {
-                        dialog.showErrorBox("Failed to push", "No git credentials");
+                    const result = await provider.push(repo, null);
+                    if (result instanceof Error) {
+                        dialog.showErrorBox("Failed to push", result.message);
                     }
                     sendEvent(win.webContents, "app-unlock-ui", Locks.BRANCH_LIST);
                 }
@@ -442,13 +439,7 @@ const eventMap: {
         const res = Branch.delete(ref);
         return !res
     },
-    [IpcAction.DELETE_REMOTE_REF]: async (repo, data) => {
-        const auth = getAuth();
-        if (auth) {
-            return await provider.deleteRemoteRef(repo, data, auth);
-        }
-        return false
-    },
+    [IpcAction.DELETE_REMOTE_REF]: provider.deleteRemoteRef,
     [IpcAction.FIND_FILE]: provider.findFile,
     [IpcAction.ABORT_REBASE]: abortRebase,
     [IpcAction.CONTINUE_REBASE]: continueRebase,
@@ -459,8 +450,11 @@ const eventMap: {
         return Error("Revisions not found");
     },
     [IpcAction.PUSH]: async (repo, data) => {
-        const auth = getAuth();
-        return auth ? await provider.push(repo, data, auth) : false;
+        try {
+            return provider.push(repo, data);
+        } catch (e) {
+            return e;
+        }
     },
     [IpcAction.SET_UPSTREAM]: async (repo, data) => {
         const result = await provider.setUpstream(repo, data.local, data.remote);
@@ -558,12 +552,9 @@ const eventMap: {
     },
     [IpcAction.DELETE_TAG]: async (repo, data) => {
         if (data.remote) {
-            const auth = getAuth();
-            if (auth) {
-                // FIXME: Do we really need to check every remote?
-                for (const remote of await repo.getRemotes()) {
-                    await provider.deleteRemoteTag(remote, data.name, auth);
-                }
+            // FIXME: Do we really need to check every remote?
+            for (const remote of await repo.getRemotes()) {
+                await provider.deleteRemoteTag(remote, data.name);
             }
         }
 
@@ -655,12 +646,12 @@ async function fetchFrom(repo: Repository, remotes?: Remote[]) {
     }
     let update = false;
     try {
+        const auth = getAuth();
         for (const remote of remotes) {
             await remote.fetch([], {
                 prune: 1,
                 callbacks: {
                     credentials: (_url: string, username: string) => {
-                        const auth = getAuth();
                         if (auth) {
                             return provider.authenticate(username, auth);
                         }
@@ -751,31 +742,4 @@ function loadHunks(repo: Repository, params: IpcActionParams[IpcAction.LOAD_HUNK
         return provider.hunksFromCompare(params.path);
     }
     return provider.getWorkdirHunks(params.path, params.type);
-}
-
-function getAuth(): AuthConfig | false {
-    const profile = currentProfile();
-    if (profile.authType === "ssh") {
-        if (profile.sshAgent) {
-            return {
-                sshAgent: profile.sshAgent,
-                authType: profile.authType,
-            }
-        }
-        return {
-            sshAgent: false,
-            authType: profile.authType,
-            sshPublicKey: profile.sshPublicKey as string,
-            sshPrivateKey: profile.sshPrivateKey as string,
-            sshPassphrase: profile.sshPassphrase || "",
-        }
-    }
-    if (profile.username && profile.password) {
-        return {
-            authType: profile.authType,
-            username: profile.username,
-            password: profile.password,
-        }
-    }
-    return false;
 }
