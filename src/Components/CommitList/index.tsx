@@ -118,7 +118,7 @@ export default class CommitList extends PureStoreComponent<unknown, State> {
         }
 
         // sent on last event
-        if (fetched.cursor) {
+        if ("cursor" in fetched) {
             clearLock(Locks.BRANCH_LIST);
             this.cursor = fetched.cursor;
         }

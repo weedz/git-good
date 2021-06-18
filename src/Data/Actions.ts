@@ -16,6 +16,8 @@ export enum IpcAction {
     LOAD_COMMITS,
     LOAD_FILE_COMMITS,
     LOAD_BRANCHES,
+    LOAD_HEAD,
+    LOAD_UPSTREAMS,
     OPEN_REPO,
     LOAD_COMMIT,
     LOAD_PATCHES_WITHOUT_HUNKS,
@@ -56,6 +58,8 @@ export type IpcActionParams = {
     [IpcAction.LOAD_COMMITS]: LoadCommitsParam
     [IpcAction.LOAD_FILE_COMMITS]: LoadFileCommitsParam
     [IpcAction.LOAD_BRANCHES]: null
+    [IpcAction.LOAD_HEAD]: null
+    [IpcAction.LOAD_UPSTREAMS]: null
     [IpcAction.OPEN_REPO]: string | null
     [IpcAction.LOAD_COMMIT]: string | null
     [IpcAction.LOAD_PATCHES_WITHOUT_HUNKS]: {
@@ -78,7 +82,9 @@ export type IpcActionParams = {
         path: string
     }
     [IpcAction.CHECKOUT_BRANCH]: string
-    [IpcAction.REFRESH_WORKDIR]: DiffOptions | null
+    [IpcAction.REFRESH_WORKDIR]: null | {
+        flags?: DiffOptions["flags"]
+    }
     [IpcAction.GET_CHANGES]: null
     [IpcAction.STAGE_FILE]: string
     [IpcAction.UNSTAGE_FILE]: string
@@ -150,7 +156,16 @@ export type IpcActionParams = {
 export type IpcActionReturn = {
     [IpcAction.LOAD_COMMITS]: LoadCommitsReturn
     [IpcAction.LOAD_FILE_COMMITS]: LoadFileCommitsReturn
-    [IpcAction.LOAD_BRANCHES]: BranchesObj & {head: HeadBranchObj}
+    [IpcAction.LOAD_BRANCHES]: BranchesObj
+    [IpcAction.LOAD_HEAD]: HeadBranchObj
+    [IpcAction.LOAD_UPSTREAMS]: Array<{
+        status: {
+            ahead: number
+            behind: number
+        }
+        remote: string | undefined
+        name: string
+    }>
     [IpcAction.OPEN_REPO]: {
         opened: boolean
         path: string

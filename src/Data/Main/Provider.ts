@@ -402,6 +402,55 @@ export async function deleteRemoteTag(remote: Remote, tagName: string) {
     return true;
 }
 
+export async function getHEAD(repo: Repository): Promise<IpcActionReturn[IpcAction.LOAD_HEAD]> {
+    const head = await repo.head();
+    const headCommit = await repo.getHeadCommit();
+
+    let headUpstream: string | undefined;
+    try {
+        const upstream = await Branch.upstream(head);
+        headUpstream = upstream.name();
+    } catch (_) {
+        // no upstream for "head"
+    }
+    return {
+        name: head.name(),
+        headSHA: headCommit.id().tostrS(),
+        commit: getCommitObj(headCommit),
+        normalizedName: head.name(),
+        type: RefType.LOCAL,
+        remote: headUpstream
+    }
+}
+
+export async function getUpstreamRefs(repo: Repository): Promise<IpcActionReturn[IpcAction.LOAD_UPSTREAMS]> {
+    const refs = await repo.getReferences();
+
+    const upstreams: IpcActionReturn[IpcAction.LOAD_UPSTREAMS] = [];
+
+    for (const ref of refs) {
+        if (ref.isBranch()) {
+            const headCommit = await ref.peel(Object.TYPE.COMMIT);
+            try {
+                const upstream = await Branch.upstream(ref);
+                const upstreamHead = await upstream.peel(Object.TYPE.COMMIT);
+
+                const upstreamObj: IpcActionReturn[IpcAction.LOAD_UPSTREAMS][0] = {
+                    status: await Graph.aheadBehind(repo, headCommit.id(), upstreamHead.id()) as unknown as { ahead: number, behind: number },
+                    remote: upstream.name(),
+                    name: ref.name(),
+                };
+
+                upstreams.push(upstreamObj);
+            } catch (_) {
+                // missing upstream
+            }
+        }
+    }
+
+    return upstreams;
+}
+
 // {local: Branch[], remote: Branch[], tags: Branch[]}
 export async function getBranches(repo: Repository): Promise<IpcActionReturn[IpcAction.LOAD_BRANCHES]> {
     const refs = await repo.getReferences();
@@ -422,15 +471,6 @@ export async function getBranches(repo: Repository): Promise<IpcActionReturn[Ipc
             };
 
             if (ref.isBranch()) {
-                try {
-                    const upstream = await Branch.upstream(ref);
-                    const upstreamHead = await upstream.peel(Object.TYPE.COMMIT);
-                    refObj.remote = upstream.name();
-                    refObj.status = await Graph.aheadBehind(repo, headCommit.id(), upstreamHead.id()) as unknown as { ahead: number, behind: number };
-                } catch (_) {
-                    // missing upstream
-                }
-
                 refObj.normalizedName = normalizeLocalName(refObj.name);
                 local.push(refObj);
             } else if (ref.isRemote()) {
@@ -445,28 +485,10 @@ export async function getBranches(repo: Repository): Promise<IpcActionReturn[Ipc
         })
     );
 
-    const head = await repo.head();
-    const headCommit = await repo.getHeadCommit();
-    let headUpstream: string | undefined;
-    try {
-        const upstream = await Branch.upstream(head);
-        headUpstream = upstream.name();
-    } catch (_) {
-        // no upstream for "head"
-    }
-
     return {
         local,
         remote,
         tags,
-        head: {
-            name: head.name(),
-            headSHA: headCommit.id().tostrS(),
-            commit: getCommitObj(headCommit),
-            normalizedName: head.name(),
-            type: RefType.LOCAL,
-            remote: headUpstream
-        }
     };
 }
 
@@ -569,16 +591,37 @@ export async function createTag(repo: Repository, data: IpcActionParams[IpcActio
     return true;
 }
 
+async function getUnstagedPatches(repo: Repository, flags: Diff.OPTION) {
+    const unstagedDiff = await Diff.indexToWorkdir(repo, index, {
+        flags: Diff.OPTION.SHOW_UNTRACKED_CONTENT | Diff.OPTION.RECURSE_UNTRACKED_DIRS | flags
+    });
+    const diffOpts: DiffFindOptions = {
+        flags: Diff.FIND.RENAMES,
+    };
+    await unstagedDiff.findSimilar(diffOpts);
+    return unstagedDiff.patches();
+}
+
+async function getStagedPatches(repo: Repository, flags: Diff.OPTION) {
+    const head = await repo.getHeadCommit();
+    const stagedDiff = await Diff.treeToIndex(repo, await head.getTree(), index, {
+        flags
+    });
+    const diffOpts: DiffFindOptions = {
+        flags: Diff.FIND.RENAMES,
+    };
+    await stagedDiff.findSimilar(diffOpts);
+    return stagedDiff.patches();
+}
+
 export async function refreshWorkDir(repo: Repository, options: IpcActionParams[IpcAction.REFRESH_WORKDIR]): Promise<IpcActionReturn[IpcAction.REFRESH_WORKDIR]> {
     index = await repo.refreshIndex();
 
     const flags = options?.flags || 0;
-    const changes = await Promise.all([getUnstagedPatches(repo, flags), getStagedPatches(repo, flags)]);
 
-    workDirIndexCache = {
-        unstagedPatches: changes[0],
-        stagedPatches: changes[1],
-    };
+    // TODO: This is slow. Find a better way to determine when to query unstaged changed
+    workDirIndexCache.unstagedPatches = await getUnstagedPatches(repo, flags);
+    workDirIndexCache.stagedPatches = await getStagedPatches(repo, flags);
 
     return {
         unstaged: workDirIndexCache.unstagedPatches.length,
@@ -637,29 +680,6 @@ export async function discardChanges(repo: Repository, filePath: string): Promis
     }
 
     return 0;
-}
-
-async function getUnstagedPatches(repo: Repository, flags: Diff.OPTION) {
-    const unstagedDiff = await Diff.indexToWorkdir(repo, undefined, {
-        flags: Diff.OPTION.SHOW_UNTRACKED_CONTENT | Diff.OPTION.RECURSE_UNTRACKED_DIRS | flags
-    });
-    const diffOpts: DiffFindOptions = {
-        flags: Diff.FIND.RENAMES,
-    };
-    await unstagedDiff.findSimilar(diffOpts);
-    return unstagedDiff.patches();
-}
-
-async function getStagedPatches(repo: Repository, flags: Diff.OPTION) {
-    const head = await repo.getHeadCommit();
-    const stagedDiff = await Diff.treeToIndex(repo, await head.getTree(), undefined, {
-        flags
-    });
-    const diffOpts: DiffFindOptions = {
-        flags: Diff.FIND.RENAMES,
-    };
-    await stagedDiff.findSimilar(diffOpts);
-    return stagedDiff.patches();
 }
 
 export async function loadChanges(): Promise<IpcActionReturn[IpcAction.GET_CHANGES]> {
@@ -1083,9 +1103,12 @@ let compareObjCache: {
 let fileHistoryCache: {
     [sha: string]: Revwalk.HistoryEntry
 } = {};
-let workDirIndexCache: {
+const workDirIndexCache: {
     unstagedPatches: ConvenientPatch[]
     stagedPatches: ConvenientPatch[]
+} = {
+    unstagedPatches: [],
+    stagedPatches: []
 };
 let workDirIndexPathMap: {
     staged: { [path: string]: ConvenientPatch },

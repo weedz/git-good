@@ -361,9 +361,11 @@ const eventMap: {
         return openRepoDialog();
     },
     [IpcAction.LOAD_BRANCHES]: provider.getBranches,
+    [IpcAction.LOAD_HEAD]: provider.getHEAD,
+    [IpcAction.LOAD_UPSTREAMS]: provider.getUpstreamRefs,
     [IpcAction.LOAD_COMMIT]: provider.loadCommit,
     async *[IpcAction.LOAD_COMMITS](repo, params) {
-        const arg = await initGetComits(repo, params);
+        const arg = await initGetCommits(repo, params);
         if (!arg) {
             yield {commits: [], branch: "", cursor: params.cursor};
         } else {
@@ -373,7 +375,7 @@ const eventMap: {
         }
     },
     [IpcAction.LOAD_FILE_COMMITS]: async (repo, params) => {
-        const arg = await initGetComits(repo, params);
+        const arg = await initGetCommits(repo, params);
         if (!arg) {
             return Error("Invalid params");
         }
@@ -688,7 +690,7 @@ async function fetchFrom(repo: Repository, remotes?: Remote[]) {
     return true;
 }
 
-async function initGetComits(repo: Repository, params: IpcActionParams[IpcAction.LOAD_COMMITS] | IpcActionParams[IpcAction.LOAD_FILE_COMMITS]) {
+async function initGetCommits(repo: Repository, params: IpcActionParams[IpcAction.LOAD_COMMITS] | IpcActionParams[IpcAction.LOAD_FILE_COMMITS]) {
     let branch = "HEAD";
     let revwalkStart: "refs/*" | Oid;
     // FIXME: organize this...

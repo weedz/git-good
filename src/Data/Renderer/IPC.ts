@@ -47,6 +47,8 @@ const handlers: {[T in IpcAction]: HandlerCallback[]} = {
     [IpcAction.LOAD_COMMITS]: [],
     [IpcAction.LOAD_FILE_COMMITS]: [],
     [IpcAction.LOAD_BRANCHES]: [],
+    [IpcAction.LOAD_HEAD]: [],
+    [IpcAction.LOAD_UPSTREAMS]: [],
     [IpcAction.OPEN_REPO]: [],
     [IpcAction.LOAD_COMMIT]: [],
     [IpcAction.LOAD_PATCHES_WITHOUT_HUNKS]: [],

@@ -6,7 +6,6 @@ import { ipcGetData, ipcSendMessage } from "src/Data/Renderer/IPC";
 import ChangedFiles from "src/Components/DiffPane/ChangedFiles";
 import { commit, updateStore, Store, StoreType, StoreComponent, notify } from "src/Data/Renderer/store";
 import { triggerAction } from "src/Components/Link";
-import { Diff } from "nodegit";
 import { discardChanges, refreshWorkdir } from "src/Data/Renderer";
 
 type State = {
@@ -28,14 +27,8 @@ export default class WorkingArea extends StoreComponent<unknown, State> {
         this.registerHandler(IpcAction.REFRESH_WORKDIR, this.getChanges);
         this.registerHandler(IpcAction.GET_CHANGES, this.update);
 
-        this.listen("diffOptions", (diffOptions) => {
-            let options = null;
-            if (diffOptions.ignoreWhitespace) {
-                options = {
-                    flags: Diff.OPTION.IGNORE_WHITESPACE
-                };
-            }
-            ipcSendMessage(IpcAction.REFRESH_WORKDIR, options);
+        this.listen("diffOptions", (_diffOptions) => {
+            setTimeout(() => refreshWorkdir());
         });
         this.listen("commitMsg", msg => {
             this.setState({commitMsg: msg});

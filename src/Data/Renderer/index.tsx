@@ -65,7 +65,9 @@ function repoOpened(result: IpcActionReturn[IpcAction.OPEN_REPO]) {
                 branch: "HEAD"
             },
         });
-        refreshWorkdir();
+        setTimeout(() => {
+            refreshWorkdir();
+        }, 500);
     } else {
         updateStore({
             repo: null
@@ -128,26 +130,53 @@ function loadHunks(data: IpcActionReturn[IpcAction.LOAD_HUNKS]) {
     }
 }
 
+let branchMap: Record<string, BranchObj> = {};
+
 function mapHeads(heads: StoreType["heads"], refs: BranchObj[]) {
     for (const ref of refs) {
+        branchMap[ref.name] = ref;
         if (!heads[ref.headSHA]) {
             heads[ref.headSHA] = [];
         }
         heads[ref.headSHA].push(ref);
     }
 }
+async function loadHEAD() {
+    const head = await ipcGetData(IpcAction.LOAD_HEAD, null);
+    updateStore({
+        head
+    });
+}
+async function loadUpstreams() {
+    const upstreams = await ipcGetData(IpcAction.LOAD_UPSTREAMS, null);
+
+    for (const upstream of upstreams) {
+        if (upstream.name in branchMap) {
+            branchMap[upstream.name].remote = upstream.remote;
+            branchMap[upstream.name].status = upstream.status;
+        }
+    }
+
+    updateStore({
+        branches: Store.branches
+    });
+}
 function branchesLoaded(result: IpcActionReturn[IpcAction.LOAD_BRANCHES]) {
     clearLock(Locks.BRANCH_LIST);
     const heads: StoreType["heads"] = {};
+
+    branchMap = {};
 
     mapHeads(heads, result.local);
     mapHeads(heads, result.remote);
     mapHeads(heads, result.tags);
     updateStore({
         branches: result,
-        head: result.head,
         heads
     });
+
+    loadHEAD();
+    loadUpstreams();
 }
 function updateCurrentBranch(result: IpcResponse<IpcAction.CHECKOUT_BRANCH>) {
     clearLock(Locks.MAIN);

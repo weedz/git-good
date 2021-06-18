@@ -40,16 +40,12 @@ export type StoreType = {
     branches: BranchesObj
     head: HeadBranchObj | undefined
     remotes: IpcActionReturn[IpcAction.REMOTES]
-    heads: {
-        [key: string]: BranchObj[]
-    }
+    heads: Record<string, BranchObj[]>
     currentFile: null | {
         commitSHA?: string | undefined
         patch: PatchObj
     }
-    locks: {
-        [key in Locks]: boolean
-    }
+    locks: Record<Locks, boolean>
     dialogWindow: null | DialogWindow
     selectedBranch: {branch?: string, history?: boolean}
     diffPaneSrc: string | null
@@ -62,9 +58,7 @@ export type StoreType = {
     diffOptions: {
         ignoreWhitespace: boolean
     }
-    notifications: {
-        [K in NotificationPosition]: Map<string, Notification>
-    }
+    notifications: Record<NotificationPosition, Map<string, Notification>>
 };
 
 const store: StoreType = {
@@ -97,9 +91,9 @@ const store: StoreType = {
     }
 };
 
-export const Store = store as Readonly<StoreType>
+export const Store = store as Readonly<StoreType>;
 
-export const contextMenuState: {data: {[name: string]: string}} = {
+export const contextMenuState: {data: Record<string, string>} = {
     data: {}
 };
 
