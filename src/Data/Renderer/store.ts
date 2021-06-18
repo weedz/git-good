@@ -121,7 +121,7 @@ const listeners: {
     notifications: [],
 };
 
-function subscribe<T extends StoreKeys>(key: T, cb: PartialStoreListener<T>) {
+export function subscribe<T extends StoreKeys>(key: T, cb: PartialStoreListener<T>) {
     listeners[key].push(cb as PartialStoreListener<StoreKeys>);
     return () => unsubscribe(key, cb);
 }
