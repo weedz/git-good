@@ -1,6 +1,6 @@
 import resolve from "@rollup/plugin-node-resolve";
 import typescript from "@rollup/plugin-typescript";
-import postcss from "rollup-plugin-postcss";
+import css from "rollup-plugin-import-css";
 import { terser } from "rollup-plugin-terser";
 // import { visualizer } from "rollup-plugin-visualizer";
 import replace from "@rollup/plugin-replace"
@@ -25,8 +25,9 @@ const plugins = [
     resolve({
         extensions
     }),
-    postcss({
-        minimize: production
+    css({
+        output: "style.css",
+        minify: production
     }),
     replace({
         preventAssignment: true,
