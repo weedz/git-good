@@ -2,7 +2,6 @@ import resolve from "@rollup/plugin-node-resolve";
 import typescript from "@rollup/plugin-typescript";
 import css from "rollup-plugin-import-css";
 import { terser } from "rollup-plugin-terser";
-// import { visualizer } from "rollup-plugin-visualizer";
 import replace from "@rollup/plugin-replace"
 import { execSync } from "child_process";
 
@@ -35,7 +34,6 @@ const plugins = [
         __last_comit__: () => execSync("git rev-parse HEAD").toString("utf8").trim(),
     }),
     production && terser(),
-    // visualizer(),
 ];
 
 export default {
