@@ -4,6 +4,7 @@ import { BranchesObj, Locks } from "../../Data/Actions";
 import { Store, PureStoreComponent } from "../../Data/Renderer/store";
 import { getBranchTree, filterBranches } from "./Utils";
 import BranchList from "./BranchList";
+import { loadUpstreams } from "src/Data/Renderer";
 
 type State = {
     filter: string
@@ -28,9 +29,15 @@ export default class Branches extends PureStoreComponent<unknown, State> {
                 this.forceUpdate();
             }
         });
-        this.listen("branches", branches => {
+        this.listen("branches", async branches => {
+            // Renders branches without upstream "graph" (ahead/behind)
             this.setState({
                 branches: branchesToTree(branches, this.state.filter),
+            });
+
+            await loadUpstreams();
+            this.setState({
+                branches: branchesToTree(Store.branches, this.state.filter),
             });
         });
     }

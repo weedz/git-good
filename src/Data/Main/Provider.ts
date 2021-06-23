@@ -217,17 +217,21 @@ export async function pull(repo: Repository, branch: string | null, signature: S
         dialog.showErrorBox("Pull failed", "No upstream");
         return false;
     }
-    const result = await repo.rebaseBranches(ref.name(), upstream.name(), upstream.name(), signature, (..._args: unknown[]) => {
-        // console.log("beforeNextFn:", args);
-    });
 
-    if (result) {
-        if (currentBranch.name() !== ref.name()) {
-            await repo.checkoutBranch(currentBranch);
+    try {
+        const result = await repo.rebaseBranches(ref.name(), upstream.name(), upstream.name(), signature, (..._args: unknown[]) => {
+            // console.log("beforeNextFn:", args);
+        });
+    
+        if (result) {
+            if (currentBranch.name() !== ref.name()) {
+                await repo.checkoutBranch(currentBranch);
+            }
         }
+        return !!result;
+    } catch (err) {
+        return err;
     }
-
-    return !!result;
 }
 
 async function pushHead(repo: Repository, auth: AuthConfig) {

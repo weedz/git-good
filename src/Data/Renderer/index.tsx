@@ -147,7 +147,7 @@ async function loadHEAD() {
         head
     });
 }
-async function loadUpstreams() {
+export async function loadUpstreams() {
     const upstreams = await ipcGetData(IpcAction.LOAD_UPSTREAMS, null);
 
     for (const upstream of upstreams) {
@@ -156,10 +156,6 @@ async function loadUpstreams() {
             branchMap[upstream.name].status = upstream.status;
         }
     }
-
-    updateStore({
-        branches: Store.branches
-    });
 }
 function branchesLoaded(result: IpcActionReturn[IpcAction.LOAD_BRANCHES]) {
     clearLock(Locks.BRANCH_LIST);
@@ -176,7 +172,6 @@ function branchesLoaded(result: IpcActionReturn[IpcAction.LOAD_BRANCHES]) {
     });
 
     loadHEAD();
-    loadUpstreams();
 }
 function updateCurrentBranch(result: IpcResponse<IpcAction.CHECKOUT_BRANCH>) {
     clearLock(Locks.MAIN);
@@ -207,8 +202,10 @@ function handleRemotes(remotes: IpcActionReturn[IpcAction.REMOTES]) {
     });
 }
 
-function handlePullHead(_res: IpcActionReturn[IpcAction.PULL]) {
-    loadBranches();
+function handlePullHead(res: IpcActionReturn[IpcAction.PULL]) {
+    if (res) {
+        loadBranches();
+    }
 }
 
 // Lock CommitList UI when loading commit info

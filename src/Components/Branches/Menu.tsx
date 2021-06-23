@@ -6,6 +6,19 @@ import { BranchFromType, openDialog_BranchFrom, openDialog_SetUpstream, openDial
 import { ipcGetData, ipcSendMessage } from "src/Data/Renderer/IPC";
 import { contextMenuState, checkoutBranch, deleteBranch, deleteRemoteBranch, Store, deleteTag, notify } from "src/Data/Renderer/store";
 
+
+async function menuActionPullChanges(refName: string | null) {
+    const n = notify({title: "Pulling changes..."});
+
+    const pullResult = await pull(refName);
+
+    if (pullResult) {
+        n.update({body: <p>Done!</p>, time: 2000});
+    } else {
+        n.update({body: <p>Failed...</p>, time: 2000});
+    }
+}
+
 const setUpstreamMenuItem = new MenuItem({
     label: "Set upstream...",
     click() {
@@ -121,11 +134,8 @@ localMenu.append(new MenuItem({
 }));
 localMenu.append(new MenuItem({
     label: "Pull",
-    async click() {
-        const refName = contextMenuState.data.ref;
-        const n = notify({title: "Pulling changes..."});
-        await pull(refName);
-        n.update({body: <p>Done!</p>, time: 2000});
+    click() {
+        menuActionPullChanges(contextMenuState.data.ref);
     }
 }));
 localMenu.append(setUpstreamMenuItem);
@@ -165,10 +175,8 @@ localMenu.append(createTag);
 const headMenu = new Menu();
 headMenu.append(new MenuItem({
     label: "Pull",
-    async click() {
-        const n = notify({title: "Pulling changes..."});
-        await pull(null);
-        n.update({body: <p>Done!</p>, time: 2000});
+    click() {
+        menuActionPullChanges(null);
     }
 }));
 headMenu.append(new MenuItem({
