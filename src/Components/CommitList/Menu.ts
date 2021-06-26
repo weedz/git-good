@@ -1,10 +1,10 @@
 import { getCurrentWindow, Menu, MenuItem } from "@electron/remote";
 import { clipboard } from "electron";
 import { h } from "preact";
-import { IpcAction } from "src/Data/Actions";
-import { BranchFromType, openDialog_BranchFrom, openDialog_createTag } from "src/Data/Renderer/Dialogs";
-import { ipcSendMessage } from "src/Data/Renderer/IPC";
-import { contextMenuState } from "src/Data/Renderer/store";
+import { IpcAction } from "../../Data/Actions";
+import { BranchFromType, openDialog_BranchFrom, openDialog_createTag } from "../../Data/Renderer/Dialogs";
+import { ipcSendMessage } from "../../Data/Renderer/IPC";
+import { contextMenuState } from "../../Data/Renderer/store";
 import { unselectLink } from "../Link";
 
 const commitMenu = new Menu();

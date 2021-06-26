@@ -11,7 +11,7 @@ import * as provider from "./Data/Main/Provider";
 import { IpcAction, IpcActionParams, IpcActionReturn, Locks } from "./Data/Actions";
 import { formatTimeAgo } from "./Data/Utils";
 import { sendEvent } from "./Data/Main/WindowEvents";
-import { TransferProgress } from "types/nodegit";
+import { TransferProgress } from "../types/nodegit";
 import { normalizeLocalName } from "./Data/Branch";
 
 import { initialize } from "@electron/remote/main";
@@ -49,6 +49,7 @@ const createWindow = () => {
     // win.webContents.openDevTools();
 
     win.loadFile(join(__dirname, "../dist/index.html"));
+    // win.loadURL("http://localhost:5000");
 
     win.webContents.on("will-navigate", e => {
         e.preventDefault();

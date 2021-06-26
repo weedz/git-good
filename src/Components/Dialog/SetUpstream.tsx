@@ -1,5 +1,5 @@
 import { h } from "preact";
-import { Store } from "src/Data/Renderer/store";
+import { Store } from "../../Data/Renderer/store";
 import { SetUpstreamProps } from "./types";
 
 

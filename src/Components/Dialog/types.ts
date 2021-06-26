@@ -1,4 +1,4 @@
-import { AppConfig } from "src/Data/Config";
+import { AppConfig } from "../../Data/Config";
 
 export enum DialogTypes {
     NEW_BRANCH,

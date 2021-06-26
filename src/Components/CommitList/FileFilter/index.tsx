@@ -1,7 +1,7 @@
 import { h, Fragment } from "preact";
-import { IpcAction, IpcActionReturn } from "src/Data/Actions";
-import { ipcSendMessage } from "src/Data/Renderer/IPC";
-import { StoreComponent } from "src/Data/Renderer/store";
+import { IpcAction, IpcActionReturn } from "../../../Data/Actions";
+import { ipcSendMessage } from "../../../Data/Renderer/IPC";
+import { StoreComponent } from "../../../Data/Renderer/store";
 
 import "./style.css";
 

@@ -1,9 +1,10 @@
+import { execSync } from "child_process";
+
 import resolve from "@rollup/plugin-node-resolve";
 import typescript from "@rollup/plugin-typescript";
 import css from "rollup-plugin-import-css";
 import { terser } from "rollup-plugin-terser";
 import replace from "@rollup/plugin-replace"
-import { execSync } from "child_process";
 
 const production = !process.env.ROLLUP_WATCH;
 
@@ -38,7 +39,10 @@ const plugins = [
 
 export default {
     external,
-    input: ["src/renderer.tsx", "src/index.ts"],
+    input: [
+        "src/renderer.tsx",
+        "src/main.ts"
+    ],
     output: {
         sourcemap: !production,
         format: "cjs",

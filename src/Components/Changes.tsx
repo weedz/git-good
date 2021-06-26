@@ -1,5 +1,5 @@
 import { h } from "preact";
-import { IpcAction, IpcActionReturn } from "src/Data/Actions";
+import { IpcAction, IpcActionReturn } from "../Data/Actions";
 import { updateStore, Store, PureStoreComponent } from "../Data/Renderer/store";
 import Link from "./Link";
 

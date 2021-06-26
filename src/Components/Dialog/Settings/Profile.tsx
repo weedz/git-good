@@ -1,6 +1,6 @@
 import { Component, Fragment, h } from "preact";
-import { AppConfig, GpgConfig } from "src/Data/Config";
-import { selectFile } from "src/Data/Renderer/Utility";
+import { AppConfig, GpgConfig } from "../../../Data/Config";
+import { selectFile } from "../../../Data/Renderer/Utility";
 
 type State = {
     showUserPass: boolean

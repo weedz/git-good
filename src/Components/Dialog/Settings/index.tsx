@@ -1,8 +1,8 @@
 import { dialog } from "@electron/remote";
 import { Component, Fragment, h } from "preact";
-import { IpcAction } from "src/Data/Actions";
-import { AppConfig } from "src/Data/Config";
-import { ipcGetData } from "src/Data/Renderer/IPC";
+import { IpcAction } from "../../../Data/Actions";
+import { AppConfig } from "../../../Data/Config";
+import { ipcGetData } from "../../../Data/Renderer/IPC";
 import { SettingsProps } from "../types";
 import { Profile } from "./Profile";
 

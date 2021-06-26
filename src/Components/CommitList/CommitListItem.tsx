@@ -1,7 +1,7 @@
 import { h } from "preact";
 import { PureComponent } from "preact/compat";
-import { LoadCommitReturn, RefType } from "src/Data/Actions";
-import { updateStore, Store } from "src/Data/Renderer/store";
+import { LoadCommitReturn, RefType } from "../../Data/Actions";
+import { updateStore, Store } from "../../Data/Renderer/store";
 import { showLocalMenu, showRemoteRefMenu, showTagMenu } from "../Branches/Menu";
 import Link, { GlobalLinks } from "../Link";
 import HeadColors from "./HeadColors";

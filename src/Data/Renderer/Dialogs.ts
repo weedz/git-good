@@ -1,4 +1,4 @@
-import { DialogTypes } from "src/Components/Dialog/types";
+import { DialogTypes } from "../../Components/Dialog/types";
 import { IpcAction } from "../Actions";
 import { normalizeLocalName, normalizeRemoteNameWithoutRemote, normalizeTagName, remoteName } from "../Branch";
 import { ipcGetData, ipcSendMessage } from "./IPC";

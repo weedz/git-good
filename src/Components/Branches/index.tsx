@@ -4,7 +4,7 @@ import { BranchesObj, Locks } from "../../Data/Actions";
 import { Store, PureStoreComponent } from "../../Data/Renderer/store";
 import { getBranchTree, filterBranches } from "./Utils";
 import BranchList from "./BranchList";
-import { loadUpstreams } from "src/Data/Renderer";
+import { loadUpstreams } from "../../Data/Renderer";
 
 type State = {
     filter: string

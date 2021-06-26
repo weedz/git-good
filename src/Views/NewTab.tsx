@@ -1,5 +1,5 @@
 import { h } from "preact";
-import { openRepo } from "src/Data/Renderer/store";
+import { openRepo } from "../Data/Renderer/store";
 
 export default function NewTab() {
     return (

@@ -1,12 +1,12 @@
 import { h } from "preact";
 import { Diff } from "nodegit";
 import { dialog } from "@electron/remote";
-import { GlobalLinks, unselectLink } from "src/Components/Link";
+import { GlobalLinks, unselectLink } from "../../Components/Link";
 import { BranchObj, IpcAction, IpcActionReturn, IpcResponse, Locks, RepoStatus } from "../Actions";
 import { openDialog_CompareRevisions, openDialog_Settings } from "./Dialogs";
 import { addWindowEventListener, registerHandler, ipcSendMessage, ipcGetData } from "./IPC";
 import { Store, clearLock, setLock, updateStore, StoreType, notify, subscribe } from "./store";
-import { Notification } from "src/Components/Notification";
+import { Notification } from "../../Components/Notification";
 
 let refreshingWorkdir = false;
 

@@ -1,10 +1,10 @@
-import { Menu, MenuItem, dialog, getCurrentWindow } from "@electron/remote";
+import { dialog, getCurrentWindow, Menu, MenuItem } from "@electron/remote";
 import { h } from "preact";
-import { IpcAction } from "src/Data/Actions";
-import { pull, push } from "src/Data/Renderer";
-import { BranchFromType, openDialog_BranchFrom, openDialog_SetUpstream, openDialog_RenameRef, BranchType, openDialog_EditRemote, openDialog_AddRemote, openDialog_createTag, openDialog_PushTag } from "src/Data/Renderer/Dialogs";
-import { ipcGetData, ipcSendMessage } from "src/Data/Renderer/IPC";
-import { contextMenuState, checkoutBranch, deleteBranch, deleteRemoteBranch, Store, deleteTag, notify } from "src/Data/Renderer/store";
+import { IpcAction } from "../../Data/Actions";
+import { pull, push } from "../../Data/Renderer";
+import { BranchFromType, BranchType, openDialog_AddRemote, openDialog_BranchFrom, openDialog_createTag, openDialog_EditRemote, openDialog_PushTag, openDialog_RenameRef, openDialog_SetUpstream } from "../../Data/Renderer/Dialogs";
+import { ipcGetData, ipcSendMessage } from "../../Data/Renderer/IPC";
+import { checkoutBranch, contextMenuState, deleteBranch, deleteRemoteBranch, deleteTag, notify, Store } from "../../Data/Renderer/store";
 
 
 async function menuActionPullChanges(refName: string | null) {

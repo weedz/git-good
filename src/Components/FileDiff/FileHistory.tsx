@@ -1,10 +1,10 @@
 import { Diff } from "nodegit";
 import { h } from "preact";
 import { PureComponent } from "preact/compat";
-import { ipcGetData } from "src/Data/Renderer/IPC";
-import { IpcActionReturn, IpcAction } from "src/Data/Actions";
-import { updateStore } from "src/Data/Renderer/store";
-import { formatTimeAgo } from "src/Data/Utils";
+import { ipcGetData } from "../../Data/Renderer/IPC";
+import { IpcActionReturn, IpcAction } from "../../Data/Actions";
+import { updateStore } from "../../Data/Renderer/store";
+import { formatTimeAgo } from "../../Data/Utils";
 import ScrollContainer from "../ScrollContainer";
 import Link from "../Link";
 import { showFileHistoryCommitMenu } from "./FileHistoryMenu";

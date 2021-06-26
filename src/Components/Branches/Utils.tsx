@@ -1,7 +1,7 @@
 import { h } from "preact";
 import { PureComponent } from "preact/compat";
-import { BranchObj, BranchesObj } from "src/Data/Actions";
-import { updateStore } from "src/Data/Renderer/store";
+import { BranchObj, BranchesObj } from "../../Data/Actions";
+import { updateStore } from "../../Data/Renderer/store";
 import Link from "../Link";
 
 export type BranchTree = {

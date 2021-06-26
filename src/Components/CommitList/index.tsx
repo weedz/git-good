@@ -1,7 +1,7 @@
 import { h } from "preact";
-import { ipcSendMessage } from "src/Data/Renderer/IPC";
-import { IpcAction, IpcActionReturn, LoadCommitReturn, IpcActionParams, Locks } from "src/Data/Actions";
-import { clearLock, openFileHistory, PureStoreComponent, setLock, Store } from "src/Data/Renderer/store";
+import { ipcSendMessage } from "../../Data/Renderer/IPC";
+import { IpcAction, IpcActionReturn, LoadCommitReturn, IpcActionParams, Locks } from "../../Data/Actions";
+import { clearLock, openFileHistory, PureStoreComponent, setLock, Store } from "../../Data/Renderer/store";
 
 import "./style.css";
 import FileFilter from "./FileFilter";

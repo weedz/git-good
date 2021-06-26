@@ -1,5 +1,5 @@
 import { h, Fragment } from "preact";
-import { StoreComponent } from "src/Data/Renderer/store";
+import { StoreComponent } from "../../Data/Renderer/store";
 import { DialogTypes } from "./types";
 import { NewBranch, RenameBranch } from "./Branch";
 import { SetUpstream } from "./SetUpstream";

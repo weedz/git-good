@@ -1,11 +1,11 @@
 import { h } from "preact";
-import { ipcSendMessage } from "src/Data/Renderer/IPC";
-import { IpcAction, CommitObj, PatchObj, IpcActionReturn } from "src/Data/Actions";
+import { ipcSendMessage } from "../../Data/Renderer/IPC";
+import { IpcAction, CommitObj, PatchObj, IpcActionReturn } from "../../Data/Actions";
 
 import "./style.css";
 import CommitMessage from "./CommitMessage";
 import ChangedFiles from "./ChangedFiles";
-import { Store, StoreComponent } from "src/Data/Renderer/store";
+import { Store, StoreComponent } from "../../Data/Renderer/store";
 import { Diff } from "nodegit";
 import { triggerAction } from "../Link";
 

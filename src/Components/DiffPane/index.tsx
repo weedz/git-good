@@ -1,8 +1,8 @@
 import { h } from "preact";
-import { PureStoreComponent } from "src/Data/Renderer/store";
-import Commit from "src/Components/DiffPane/Commit";
-import WorkingArea from "src/Views/WorkingArea";
-import Compare from "src/Views/Compare";
+import { PureStoreComponent } from "../../Data/Renderer/store";
+import Commit from "../../Components/DiffPane/Commit";
+import WorkingArea from "../../Views/WorkingArea";
+import Compare from "../../Views/Compare";
 
 type State = {
     view: h.JSX.Element | null

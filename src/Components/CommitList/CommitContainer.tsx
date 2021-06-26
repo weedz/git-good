@@ -1,6 +1,6 @@
 import { h } from "preact";
 import { PureComponent } from "preact/compat";
-import { LoadCommitReturn } from "src/Data/Actions";
+import { LoadCommitReturn } from "../../Data/Actions";
 import ScrollContainer from "../ScrollContainer";
 import CommitListItem from "./CommitListItem";
 

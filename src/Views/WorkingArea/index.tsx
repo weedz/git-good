@@ -1,12 +1,11 @@
 import { h } from "preact";
-
 import "./style.css";
-import { IpcAction, IpcActionReturn, PatchObj } from "src/Data/Actions";
-import { ipcGetData, ipcSendMessage } from "src/Data/Renderer/IPC";
-import ChangedFiles from "src/Components/DiffPane/ChangedFiles";
-import { commit, updateStore, Store, StoreType, StoreComponent, notify } from "src/Data/Renderer/store";
-import { triggerAction } from "src/Components/Link";
-import { discardChanges, refreshWorkdir } from "src/Data/Renderer";
+import { IpcAction, IpcActionReturn, PatchObj } from "../../Data/Actions";
+import { ipcGetData, ipcSendMessage } from "../../Data/Renderer/IPC";
+import ChangedFiles from "../../Components/DiffPane/ChangedFiles";
+import { commit, updateStore, Store, StoreType, StoreComponent, notify } from "../../Data/Renderer/store";
+import { triggerAction } from "../../Components/Link";
+import { discardChanges, refreshWorkdir } from "../../Data/Renderer";
 
 type State = {
     unstaged?: PatchObj[]

@@ -3,11 +3,12 @@
     "module": "ESNext",
     "target": "ESNext",
     "strict": true,
+    "forceConsistentCasingInFileNames": true,
+    "noEmit": true,
     "jsx": "react",
     "jsxFactory": "h",
-    "jsxFragmentFactory": "h.Fragment",
+    "jsxFragmentFactory": "Fragment",
     "sourceMap": true,
-    "baseUrl": ".",
     "moduleResolution": "node",
     "resolveJsonModule": true,
     "typeRoots": [
@@ -16,7 +17,5 @@
     ],
     "useDefineForClassFields": true
   },
-  "include": [
-    "src/"
-  ]
+  "include": ["./src"]
 }

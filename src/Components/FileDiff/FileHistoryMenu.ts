@@ -1,7 +1,7 @@
 import { getCurrentWindow, Menu, MenuItem } from "@electron/remote";
 import { clipboard } from "electron";
 import { h } from "preact";
-import { contextMenuState, updateStore } from "src/Data/Renderer/store";
+import { contextMenuState, updateStore } from "../../Data/Renderer/store";
 
 const commitMenu = new Menu();
 commitMenu.append(new MenuItem({

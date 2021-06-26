@@ -1,7 +1,7 @@
 import { h, Component } from "preact";
-import { PatchObj, CommitObj } from "src/Data/Actions";
-import { openFile, resolveConflict } from "src/Data/Renderer/store";
-import { getType, DELTA } from "src/Data/Utils";
+import { PatchObj, CommitObj } from "../../Data/Actions";
+import { openFile, resolveConflict } from "../../Data/Renderer/store";
+import { getType, DELTA } from "../../Data/Utils";
 import Link from "../Link";
 import { Links } from "../LinkContainer";
 import { showFileMenu } from "./FileMenu";

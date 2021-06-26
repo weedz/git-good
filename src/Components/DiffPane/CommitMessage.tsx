@@ -1,6 +1,6 @@
 import { h } from "preact";
-import { CommitObj } from "src/Data/Actions";
-import { formatTimeAgo } from "src/Data/Utils";
+import { CommitObj } from "../../Data/Actions";
+import { formatTimeAgo } from "../../Data/Utils";
 import Link, { GlobalLinks } from "../Link";
 import { clipboard } from "electron";
 

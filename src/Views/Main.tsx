@@ -1,6 +1,6 @@
 import { h } from "preact";
-import CommitList from "src/Components/CommitList";
-import DiffPane from "src/Components/DiffPane";
+import CommitList from "../Components/CommitList";
+import DiffPane from "../Components/DiffPane";
 
 export default function Main() {
     return (

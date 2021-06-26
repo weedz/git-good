@@ -1,10 +1,10 @@
-import { h, AnyComponent, Component } from "preact";
+import { AnyComponent, Component, JSX } from "preact";
 import { PureComponent } from "preact/compat";
-import { DialogProps, DialogTypes } from "src/Components/Dialog/types";
-import { unselectLink } from "src/Components/Link";
+import { DialogProps, DialogTypes } from "../../Components/Dialog/types";
+import { unselectLink } from "../../Components/Link";
 import { IpcAction, BranchesObj, BranchObj, PatchObj, Locks, RepoStatus, IpcActionParams, IpcActionReturn, HeadBranchObj } from "../Actions";
 import { registerHandler, ipcSendMessage, ipcGetData } from "./IPC";
-import { Notification } from "src/Components/Notification";
+import { Notification } from "../../Components/Notification";
 
 // Glyph properties
 let _glyphWidth = 7.81;
@@ -177,7 +177,7 @@ export function updateStore(newStore: Partial<StoreType>) {
     Object.assign(store, newStore);
 }
 
-export function notify(notificationData: {position?: NotificationPosition, title: string, body?: null | AnyComponent | h.JSX.Element, time?: number, classList?: string[]}) {
+export function notify(notificationData: {position?: NotificationPosition, title: string, body?: null | AnyComponent | JSX.Element, time?: number, classList?: string[]}) {
     const position = notificationData.position || NotificationPosition.DEFAULT;
     const notification = new Notification(notificationData.title, notificationData.body || null, notificationData.classList || [], deleteNotification[position], notificationData.time ?? 5000);
 

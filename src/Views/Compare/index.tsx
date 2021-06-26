@@ -1,7 +1,7 @@
 import { h } from "preact";
 
-import ChangedFiles from "src/Components/DiffPane/ChangedFiles";
-import { PatchObj } from "src/Data/Actions";
+import ChangedFiles from "../../Components/DiffPane/ChangedFiles";
+import { PatchObj } from "../../Data/Actions";
 
 type Props = {
     patches: PatchObj[]
