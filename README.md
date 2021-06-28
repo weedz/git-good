@@ -25,17 +25,17 @@ Install https://github.com/Microsoft/vcpkg (C and C++ package manager for window
 
 Install node modules:
 ```bash
-$ npm install
+$ pnpm install
 ```
 
 Then run
 ```bash
-$ npm run build
+$ pnpm run build
 ```
 to bundle javascript-files and move assets to the `dist/` directory.
 
 Now run
 ```bash
-$ npm run dist
+$ pnpm run dist
 ```
-to compile all the native dependencies etc. You can run this with `CC="ccache gcc" JOBS=max npm run dist` (omit `CC="ccache gcc"` if you don't have `ccache` installed) to speed up compile time.
+to compile all the native dependencies etc. You can run this with `CC="ccache gcc" JOBS=max pnpm run dist` (omit `CC="ccache gcc"` if you don't have `ccache` installed) to speed up compile time.
