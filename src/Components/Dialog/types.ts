@@ -10,6 +10,7 @@ export enum DialogTypes {
     SETTINGS,
     CREATE_TAG,
     PUSH_TAG,
+    VIEW_COMMIT,
 }
 
 export type DialogProps = {
@@ -22,52 +23,57 @@ export type DialogProps = {
     [DialogTypes.SETTINGS]: SettingsProps
     [DialogTypes.CREATE_TAG]: CreateTagProps
     [DialogTypes.PUSH_TAG]: PushTagProps
+    [DialogTypes.VIEW_COMMIT]: PushTagProps
 }
 
-export type CompareProps = {
+interface DialogBaseProps {
+    cancelCb: () => void
+}
+
+export interface CompareProps extends DialogBaseProps {
     default?: {
         from: string
         to: string
     }
     confirmCb: (from: string, to: string) => void
-    cancelCb: () => void
 }
 
-export type RemoteProps = {
+export interface ViewCommitProps extends DialogBaseProps {
+    default?: {
+        sha: string
+    }
+    confirmCb: (sha: string) => void
+}
+
+export interface RemoteProps extends DialogBaseProps {
     data: {
         pullFrom: string
         pushTo: string | null
         name: string
     }
     confirmCb: (data: RemoteProps["data"]) => void
-    cancelCb: () => void
-};
+}
 
-export type BranchProps = {
-    defaultValue: string | undefined
+export interface BranchProps extends DialogBaseProps {
+    default: string | undefined
     confirmCb: (branchName: string) => void
-    cancelCb: () => void
-};
+}
 
-export type SetUpstreamProps = {
+export interface SetUpstreamProps extends DialogBaseProps {
     default: {
         remote: string
         branch: string
     }
     confirmCb: (remote: string, upstream: string) => void
-    cancelCb: () => void
-};
+}
 
-export type SettingsProps = {
+export interface SettingsProps extends DialogBaseProps {
     confirmCb: (settings: AppConfig) => void
-    cancelCb: () => void
 }
 
-export type CreateTagProps = {
+export interface CreateTagProps extends DialogBaseProps {
     confirmCb: (tag: {name: string, annotation?: string}) => void
-    cancelCb: () => void
 }
-export type PushTagProps = {
+export interface PushTagProps extends DialogBaseProps {
     confirmCb: (remote: string) => void
-    cancelCb: () => void
 }

@@ -2,7 +2,7 @@ import { DialogTypes } from "../../Components/Dialog/types";
 import { IpcAction } from "../Actions";
 import { normalizeLocalName, normalizeRemoteNameWithoutRemote, normalizeTagName, remoteName } from "../Branch";
 import { ipcGetData, ipcSendMessage } from "./IPC";
-import { closeDialogWindow, createBranchFromSha, createBranchFromRef, openDialogWindow, setUpstream, renameLocalBranch } from "./store";
+import { closeDialogWindow, createBranchFromSha, createBranchFromRef, openDialogWindow, setUpstream, renameLocalBranch, updateStore } from "./store";
 
 export function openDialog_EditRemote(data: {name: string, pullFrom: string, pushTo: string | null}) {
     const oldName = data.name;
@@ -49,6 +49,25 @@ export function openDialog_CompareRevisions() {
     });
 }
 
+export function openDialog_ViewCommit() {
+    openDialogWindow(DialogTypes.VIEW_COMMIT, {
+        async confirmCb(sha) {
+            closeDialogWindow();
+            if (sha) {
+                try {
+                    sha = await ipcGetData(IpcAction.PARSE_REVSPEC, sha);
+                    updateStore({diffPaneSrc: sha});
+                } catch (e) {
+                    // Invalid revspec
+                }
+            }
+        },
+        cancelCb() {
+            closeDialogWindow();
+        },
+    });
+}
+
 export enum BranchFromType {
     REF,
     COMMIT,
@@ -66,7 +85,7 @@ export function openDialog_BranchFrom(sha: string, type: BranchFromType) {
         }
     }
     openDialogWindow(DialogTypes.NEW_BRANCH, {
-        defaultValue,
+        default: defaultValue,
         cancelCb() {
             closeDialogWindow();
         },
@@ -100,7 +119,7 @@ export function openDialog_RenameRef(sha: string, type: BranchType) {
         }
     }
     openDialogWindow(DialogTypes.RENAME_BRANCH, {
-        defaultValue: currentName,
+        default: currentName,
         cancelCb() {
             closeDialogWindow();
         },

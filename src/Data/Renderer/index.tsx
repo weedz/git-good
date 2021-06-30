@@ -3,7 +3,7 @@ import { Diff } from "nodegit";
 import { dialog } from "@electron/remote";
 import { GlobalLinks, unselectLink } from "../../Components/Link";
 import { BranchObj, IpcAction, IpcActionReturn, IpcResponse, Locks, RepoStatus } from "../Actions";
-import { openDialog_CompareRevisions, openDialog_Settings } from "./Dialogs";
+import { openDialog_CompareRevisions, openDialog_Settings, openDialog_ViewCommit } from "./Dialogs";
 import { addWindowEventListener, registerHandler, ipcSendMessage, ipcGetData } from "./IPC";
 import { Store, clearLock, setLock, updateStore, StoreType, notify, subscribe } from "./store";
 import { Notification } from "../../Components/Notification";
@@ -221,6 +221,7 @@ addWindowEventListener("open-settings", openSettings);
 addWindowEventListener("app-lock-ui", setLock);
 addWindowEventListener("app-unlock-ui", clearLock);
 addWindowEventListener("begin-compare-revisions", openDialog_CompareRevisions);
+addWindowEventListener("begin-view-commit", openDialog_ViewCommit);
 
 // FIXME: Should probably handle this better..
 let fetchNotification: null | Notification;
