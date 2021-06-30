@@ -4,7 +4,7 @@ import { BranchProps } from "./types";
 
 function BranchDialog(dialog: BranchProps & {title: string}) {
     const data = {
-        branchName: dialog.defaultValue || ""
+        branchName: dialog.default || ""
     };
     return <div className="dialog-window">
         <form onSubmit={e => {

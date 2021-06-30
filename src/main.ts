@@ -258,7 +258,13 @@ const menuTemplate = [
                 click() {
                     sendEvent(win.webContents, "begin-compare-revisions", null);
                 }
-            }
+            },
+            {
+                label: "View commit...",
+                click() {
+                    sendEvent(win.webContents, "begin-view-commit", null);
+                }
+            },
         ]
     },
     // { role: 'windowMenu' }
@@ -383,8 +389,8 @@ const eventMap: {
         return result;
     },
     [IpcAction.LOAD_PATCHES_WITHOUT_HUNKS]: async (_, args) => provider.getCommitPatches(args.sha, args.options),
-    [IpcAction.FILE_DIFF_AT]: async (_, args) => provider.diff_file_at_commit(repo, args.file, args.sha),
-    [IpcAction.LOAD_HUNKS]: async (_, arg) => {
+    [IpcAction.FILE_DIFF_AT]: async (repo, args) => provider.diff_file_at_commit(repo, args.file, args.sha),
+    [IpcAction.LOAD_HUNKS]: async (repo, arg) => {
         return {
             path: arg.path,
             hunks: await loadHunks(repo, arg)
@@ -567,6 +573,13 @@ const eventMap: {
 
         return true;
     },
+    [IpcAction.PARSE_REVSPEC]: async (repo, sha) => {
+        const oid = await provider.parseRevspec(repo, sha);
+        if (oid instanceof Error) {
+            return oid;
+        }
+        return oid.tostrS();
+    }
 }
 
 ipcMain.on("asynchronous-message", async (event, arg: EventArgs) => {

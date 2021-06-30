@@ -11,6 +11,7 @@ import { CreateTag } from "./CreateTag";
 import { PushTag } from "./PushTag";
 
 import "./style.css";
+import { ViewCommit } from "./ViewCommit";
 
 const dialogTypes = {
     [DialogTypes.NEW_BRANCH]: NewBranch,
@@ -22,6 +23,7 @@ const dialogTypes = {
     [DialogTypes.SETTINGS]: Settings,
     [DialogTypes.CREATE_TAG]: CreateTag,
     [DialogTypes.PUSH_TAG]: PushTag,
+    [DialogTypes.VIEW_COMMIT]: ViewCommit,
 };
 
 type State = {

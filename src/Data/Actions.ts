@@ -52,6 +52,7 @@ export enum IpcAction {
     FILE_DIFF_AT,
     CREATE_TAG,
     DELETE_TAG,
+    PARSE_REVSPEC,
 }
 
 export type IpcActionParams = {
@@ -151,6 +152,7 @@ export type IpcActionParams = {
         name: string
         remote: boolean | undefined
     }
+    [IpcAction.PARSE_REVSPEC]: string
 };
 
 export type IpcActionReturn = {
@@ -218,6 +220,7 @@ export type IpcActionReturn = {
     [IpcAction.FILE_DIFF_AT]: PatchObj | false
     [IpcAction.CREATE_TAG]: boolean
     [IpcAction.DELETE_TAG]: boolean
+    [IpcAction.PARSE_REVSPEC]: string
 };
 
 export type IpcActionReturnError = {

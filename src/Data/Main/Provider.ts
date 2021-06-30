@@ -3,7 +3,7 @@ import { promises as fs } from "fs";
 import { dialog, IpcMainEvent } from "electron";
 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
 // @ts-ignore, missing declations for Credential
-import { Credential, Repository, Revwalk, Commit, Diff, ConvenientPatch, ConvenientHunk, DiffLine, Object, Branch, Graph, Index, Reset, Checkout, DiffFindOptions, Reference, Oid, Signature, Remote, DiffOptions, IndexEntry, Error as NodeGitError, Tag } from "nodegit";
+import { Revparse, Credential, Repository, Revwalk, Commit, Diff, ConvenientPatch, ConvenientHunk, DiffLine, Object, Branch, Graph, Index, Reset, Checkout, DiffFindOptions, Reference, Oid, Signature, Remote, DiffOptions, IndexEntry, Error as NodeGitError, Tag } from "nodegit";
 import { IpcAction, BranchObj, LineObj, HunkObj, PatchObj, CommitObj, IpcActionParams, IpcActionReturn, RefType } from "../Actions";
 import { normalizeLocalName, normalizeRemoteName, normalizeRemoteNameWithoutRemote, normalizeTagName, remoteName } from "../Branch";
 import { gpgSign, gpgVerify } from "./GPG";
@@ -1039,8 +1039,12 @@ function getCommitObj(commit: Commit): CommitObj {
     };
 }
 
-export async function loadCommit(repo: Repository, sha: string | null): Promise<IpcActionReturn[IpcAction.LOAD_COMMIT]> {
+export async function loadCommit(repo: Repository, sha: string | null) {
     const commit = sha ? await commitWithDiff(repo, sha) : await repo.getHeadCommit();
+    if (commit instanceof Error) {
+        // Probably an invalid revspec path
+        return commit;
+    }
 
     const commitObj = getCommitObj(commit);
 
@@ -1056,12 +1060,25 @@ export async function loadCommit(repo: Repository, sha: string | null): Promise<
     return commitObj;
 }
 
-export async function commitWithDiff(repo: Repository, sha: string) {
-    currentCommit = sha;
+export async function parseRevspec(repo: Repository, sha: string) {
+    try {
+        const revspec = await Revparse.single(repo, sha);
+        return revspec.id();
+    } catch (e) {
+        return e as Error;
+    }
+}
 
-    const commit = await repo.getCommit(sha);
+export async function commitWithDiff(repo: Repository, sha: string) {
+    const oid = await parseRevspec(repo, sha);
+    if (oid instanceof Error) {
+        return oid;
+    }
+    currentCommit = oid.tostrS();
+
+    const commit = await repo.getCommit(oid);
     commitObjectCache = {
-        [sha]: {
+        [currentCommit]: {
             commit,
             patches: {},
         }
