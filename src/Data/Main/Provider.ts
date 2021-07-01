@@ -466,10 +466,21 @@ export async function getBranches(repo: Repository): Promise<IpcActionReturn[Ipc
     // FIXME: Why do we get 2 references for "refs/remotes/origin/master"
     await Promise.all(
         refs.map(async (ref) => {
-            const headCommit = await ref.peel(Object.TYPE.COMMIT);
+            let oid;
+            try {
+                const headCommit = await ref.peel(Object.TYPE.COMMIT);
+                oid = headCommit.id();
+            } catch (e) {
+                console.warn(e);
+                console.log(`Cannot find head of ref '${ref.name()}'`);
+            }
+            if (!oid) {
+                return;
+            }
+
             const refObj: BranchObj = {
                 name: ref.name(),
-                headSHA: headCommit.id().tostrS(),
+                headSHA: oid.tostrS(),
                 normalizedName: "",
                 type: RefType.LOCAL,
             };
