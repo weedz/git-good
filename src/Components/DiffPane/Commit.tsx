@@ -34,18 +34,18 @@ export default class Commit extends StoreComponent<Props, State> {
         this.resetView();
         ipcSendMessage(IpcAction.LOAD_COMMIT, this.props.sha);
         
-        this.listen("diffOptions", () => this.state.commit && this.loadCommit(this.state.commit));
-        this.registerHandler(IpcAction.LOAD_COMMIT, this.loadCommit);
+        this.listen("diffOptions", diffOptions => this.state.commit && this.loadCommit(this.state.commit, diffOptions));
+        this.registerHandler(IpcAction.LOAD_COMMIT, commit => this.loadCommit(commit, Store.diffOptions));
         this.registerHandler(IpcAction.LOAD_PATCHES_WITHOUT_HUNKS, this.handlePatch);
     }
-    loadCommit = (commit: IpcResponse<IpcAction.LOAD_COMMIT>) => {
+    loadCommit = (commit: IpcResponse<IpcAction.LOAD_COMMIT>, diffOptions: typeof Store["diffOptions"]) => {
         if (!commit) {
             // FIXME: clearLock should not be called here.
             clearLock(Locks.COMMIT_LIST);
             return;
         }
         let options;
-        if (Store.diffOptions.ignoreWhitespace) {
+        if (diffOptions.ignoreWhitespace) {
             options = {
                 flags: Diff.OPTION.IGNORE_WHITESPACE
             };
