@@ -177,7 +177,7 @@ export function updateStore(newStore: Partial<StoreType>) {
     Object.assign(store, newStore);
 }
 
-export function notify(notificationData: {position?: NotificationPosition, title: string, body?: null | AnyComponent | JSX.Element, time?: number, classList?: string[]}) {
+export function notify(notificationData: {position?: NotificationPosition, title: string, body?: null | string | AnyComponent | JSX.Element, time?: number, classList?: string[]}) {
     const position = notificationData.position || NotificationPosition.DEFAULT;
     const notification = new Notification(notificationData.title, notificationData.body || null, notificationData.classList || [], deleteNotification[position], notificationData.time ?? 5000);
 

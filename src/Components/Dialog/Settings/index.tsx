@@ -2,7 +2,7 @@ import { dialog } from "@electron/remote";
 import { Component, Fragment, h } from "preact";
 import { IpcAction } from "../../../Data/Actions";
 import { AppConfig } from "../../../Data/Config";
-import { ipcGetData } from "../../../Data/Renderer/IPC";
+import { ipcGetData, ipcSendMessage } from "../../../Data/Renderer/IPC";
 import { SettingsProps } from "../types";
 import { Profile } from "./Profile";
 
@@ -80,6 +80,12 @@ export class Settings extends Component<SettingsProps, State> {
                             editProfile: true
                         });
                     }}>Edit</button>
+                    <button type="button" onClick={() => {
+                        ipcSendMessage(IpcAction.REPO_PROFILE, {
+                            action: "save",
+                            profileId: this.state.config.selectedProfile
+                        });
+                    }}>Always use in current repository</button>
                     <button type="button" onClick={() => {
                         const profiles = this.state.config.profiles;
                         profiles.push({

@@ -5,7 +5,7 @@ import { app, BrowserWindow, ipcMain, Menu, dialog, shell, MenuItemConstructorOp
 import { Branch, Commit, Object, Oid, Rebase, Reference, Remote, Repository, Signature } from "nodegit";
 
 import { isMac, isWindows } from "./Data/Main/Utils";
-import { currentProfile, getAppConfig, getAuth, saveAppConfig, setCurrentProfile } from "./Data/Main/Config";
+import { clearRepoProfile, currentProfile, getAppConfig, getAuth, getRepoProfile, saveAppConfig, setCurrentProfile, setRepoProfile } from "./Data/Main/Config";
 
 import * as provider from "./Data/Main/Provider";
 import { IpcAction, IpcActionParams, IpcActionReturn, Locks } from "./Data/Actions";
@@ -113,7 +113,7 @@ const menuTemplate = [
                 accelerator: 'CmdOrCtrl+O',
                 async click() {
                     const result = await openRepoDialog();
-                    if (result.opened) {
+                    if (result?.opened) {
                         sendEvent(win.webContents, "repo-opened", result);
                     }
                 }
@@ -351,15 +351,7 @@ const eventMap: {
 } = {
     [IpcAction.OPEN_REPO]: async (_, path) => {
         if (path) {
-            const opened = await provider.openRepo(path);
-            if (opened) {
-                repo = opened;
-            }
-            return {
-                path,
-                opened: !!opened,
-                status: opened ? provider.repoStatus() : null,
-            }
+            return openRepo(path);
         }
         return openRepoDialog();
     },
@@ -548,6 +540,14 @@ const eventMap: {
         }
         return false;
     },
+    [IpcAction.REPO_PROFILE]: async (repo, data) => {
+        if (data.action === "remove") {
+            clearRepoProfile(repo);
+            return true;
+        }
+
+        return setRepoProfile(repo, data.profileId);
+    },
     [IpcAction.GET_SETTINGS]: async (_, _data) => {
         return getAppConfig();
     },
@@ -634,15 +634,33 @@ async function openRepoDialog() {
         properties: ["openDirectory"],
         title: "Select a repository"
     });
+    if (res.canceled) {
+        return null;
+    }
 
-    const opened = !res.canceled && await provider.openRepo(res.filePaths[0]);
+    return openRepo(res.filePaths[0]);
+}
+
+async function openRepo(repoPath: string) {
+    const opened = await provider.openRepo(repoPath);
+
     if (opened) {
         repo = opened;
-    } else if (!res.canceled) {
-        dialog.showErrorBox("No repository", `'${res.filePaths[0]}' does not contain a git repository`);
+        const repoProfile = await getRepoProfile(repo);
+
+        let body;
+
+        if (repoProfile !== false) {
+            const profile = setCurrentProfile(repoProfile);
+            body = `Profile set to '${profile?.profileName}'`;
+        }
+        sendEvent(win.webContents, "notify", {title: `Repo opened`, body});
+    } else {
+        dialog.showErrorBox("No repository", `'${repoPath}' does not contain a git repository`);
     }
+
     return {
-        path: res.filePaths[0],
+        path: repoPath,
         opened: !!opened,
         status: opened ? provider.repoStatus() : null,
     };

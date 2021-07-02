@@ -48,6 +48,7 @@ export enum IpcAction {
     REMOVE_REMOTE,
     FETCH,
     SAVE_SETTINGS,
+    REPO_PROFILE,
     GET_SETTINGS,
     FILE_DIFF_AT,
     CREATE_TAG,
@@ -137,6 +138,7 @@ export type IpcActionParams = {
     [IpcAction.FETCH]: null | {remote: string}
     [IpcAction.SAVE_SETTINGS]: AppConfig
     [IpcAction.GET_SETTINGS]: string | null
+    [IpcAction.REPO_PROFILE]: {action: "save" | "remove", profileId: number}
     [IpcAction.FILE_DIFF_AT]: {
         file: string
         sha: string
@@ -172,7 +174,7 @@ export type IpcActionReturn = {
         opened: boolean
         path: string
         status: null | RepoStatus
-    }
+    } | null
     [IpcAction.LOAD_COMMIT]: CommitObj
     [IpcAction.LOAD_PATCHES_WITHOUT_HUNKS]: PatchObj[]
     [IpcAction.LOAD_HUNKS]: {
@@ -217,6 +219,7 @@ export type IpcActionReturn = {
     [IpcAction.FETCH]: boolean
     [IpcAction.SAVE_SETTINGS]: boolean
     [IpcAction.GET_SETTINGS]: AppConfig
+    [IpcAction.REPO_PROFILE]: boolean
     [IpcAction.FILE_DIFF_AT]: PatchObj | false
     [IpcAction.CREATE_TAG]: boolean
     [IpcAction.DELETE_TAG]: boolean

@@ -1,5 +1,7 @@
 import { app } from "electron";
-import { readFileSync, writeFileSync } from "fs";
+import { readFileSync, unlinkSync, writeFileSync } from "fs";
+import { readFile } from "fs/promises";
+import { Repository } from "nodegit";
 import { join } from "path";
 import { AppConfig, AuthConfig } from "../Config";
 
@@ -65,7 +67,35 @@ export function getAuth(): AuthConfig | false {
 export function setCurrentProfile(profileId: number) {
     if (appConfig.profiles[profileId]) {
         selectedGitProfile = appConfig.profiles[profileId];
+        appConfig.selectedProfile = profileId;
+        return selectedGitProfile;
     }
+}
+
+export function setRepoProfile(repo: Repository, profileId: number) {
+    if (!appConfig.profiles[profileId]) {
+        return false;
+    }
+
+    writeFileSync(join(repo.path(), "git-good.profile"), profileId.toString(10));
+
+    return true;
+}
+export async function getRepoProfile(repo: Repository) {
+    try {
+        const repoProfile = await readFile(join(repo.path(), "git-good.profile"));
+        const profileId = parseInt(repoProfile.toString("utf8").trim(), 10);
+        if (appConfig.profiles[profileId]) {
+            return profileId;
+        }
+    } catch (e) {
+        // noop
+    }
+    return false;
+}
+
+export function clearRepoProfile(repo: Repository) {
+    unlinkSync(join(repo.path(), "git-good.profile"));
 }
 
 export function saveAppConfig(data: AppConfig) {

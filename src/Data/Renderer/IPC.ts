@@ -80,6 +80,7 @@ const handlers: {[T in IpcAction]: HandlerCallback[]} = {
     [IpcAction.FETCH]: [],
     [IpcAction.SAVE_SETTINGS]: [],
     [IpcAction.GET_SETTINGS]: [],
+    [IpcAction.REPO_PROFILE]: [],
     [IpcAction.FILE_DIFF_AT]: [],
     [IpcAction.CREATE_TAG]: [],
     [IpcAction.DELETE_TAG]: [],

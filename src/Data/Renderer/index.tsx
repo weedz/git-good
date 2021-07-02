@@ -48,31 +48,30 @@ export async function discardChanges(filePath: string) {
 }
 
 function repoOpened(result: IpcActionReturn[IpcAction.OPEN_REPO]) {
-    // FIXME: error handler??
     clearLock(Locks.MAIN);
-    if (result.opened) {
-        GlobalLinks.branches = {};
-
-        localStorage.setItem("recent-repo", result.path);
-        loadBranches();
-        loadRemotes();
-        updateStore({
-            repo: {
-                path: result.path,
-                status: result.status
-            },
-            selectedBranch: {
-                branch: "HEAD"
-            },
-        });
-        setTimeout(() => {
-            refreshWorkdir();
-        }, 500);
-    } else {
-        updateStore({
+    if (!result || !result.opened) {
+        return updateStore({
             repo: null
         });
     }
+
+    GlobalLinks.branches = {};
+
+    localStorage.setItem("recent-repo", result.path);
+    loadBranches();
+    loadRemotes();
+    updateStore({
+        repo: {
+            path: result.path,
+            status: result.status
+        },
+        selectedBranch: {
+            branch: "HEAD"
+        },
+    });
+    setTimeout(() => {
+        refreshWorkdir();
+    }, 500);
 }
 
 function updateRepoStatus(result: {status: RepoStatus})
@@ -222,6 +221,7 @@ addWindowEventListener("app-lock-ui", setLock);
 addWindowEventListener("app-unlock-ui", clearLock);
 addWindowEventListener("begin-compare-revisions", openDialog_CompareRevisions);
 addWindowEventListener("begin-view-commit", openDialog_ViewCommit);
+addWindowEventListener("notify", notify);
 
 // FIXME: Should probably handle this better..
 let fetchNotification: null | Notification;

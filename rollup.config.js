@@ -14,6 +14,7 @@ const external = [
     "nodegit",
     "path",
     "fs",
+    "fs/promises",
     "child_process",
     "electron",
     "@electron/remote",

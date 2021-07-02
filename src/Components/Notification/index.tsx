@@ -52,7 +52,7 @@ export class Notification {
 
 interface Props {
     title: string
-    body: null | AnyComponent | h.JSX.Element
+    body: null | string | AnyComponent | h.JSX.Element
     classList: string[]
     close: () => void
     clearTimer: () => void
