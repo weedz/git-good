@@ -1,11 +1,11 @@
-import { join } from "path";
+import { basename, join } from "path";
 import { exec, spawn } from "child_process";
 import { app, BrowserWindow, ipcMain, Menu, dialog, shell, MenuItemConstructorOptions, IpcMainEvent, screen, clipboard } from "electron";
 
 import { Branch, Commit, Object, Oid, Rebase, Reference, Remote, Repository, Signature } from "nodegit";
 
 import { isMac, isWindows } from "./Data/Main/Utils";
-import { clearRepoProfile, currentProfile, getAppConfig, getAuth, getRepoProfile, saveAppConfig, setCurrentProfile, setRepoProfile } from "./Data/Main/Config";
+import { addRecentRepository, clearRepoProfile, currentProfile, getAppConfig, getAuth, getRecentRepositories, getRepoProfile, saveAppConfig, setCurrentProfile, setRepoProfile } from "./Data/Main/Config";
 
 import * as provider from "./Data/Main/Provider";
 import { IpcAction, IpcActionParams, IpcActionReturn, Locks } from "./Data/Actions";
@@ -87,245 +87,265 @@ app.on('window-all-closed', () => {
     }
 });
 
+function buildOpenRepoMenuItem(path: string): MenuItemConstructorOptions {
+    const repoName = basename(path);
+    return {
+        label: `${repoName} - ${path.substr(-60 + repoName.length)}`,
+        async click() {
+            const result = await openRepo(path);
+            if (result.opened) {
+                sendEvent(win.webContents, "repo-opened", result);
+            }
+        }
+    }
+}
 
-const menuTemplate = [
-    // { role: 'appMenu' }
-    ...(isMac ? [{
-        label: app.name,
-        submenu: [
-            { role: 'about' },
-            { type: 'separator' },
-            { role: 'services' },
-            { type: 'separator' },
-            { role: 'hide' },
-            { role: 'hideothers' },
-            { role: 'unhide' },
-            { type: 'separator' },
-            { role: 'quit' }
-        ]
-    }] : []),
-    // { role: 'fileMenu' }
-    {
-        label: 'File',
-        submenu: [
-            {
-                label: 'Open repository...',
-                accelerator: 'CmdOrCtrl+O',
-                async click() {
-                    const result = await openRepoDialog();
-                    if (result?.opened) {
-                        sendEvent(win.webContents, "repo-opened", result);
+function applyAppMenu() {
+    // FIXME: Do we really need to redefine menuTemplate every time we update a menu item?
+    const menuTemplate = [
+        // { role: 'appMenu' }
+        ...(isMac ? [{
+            label: app.name,
+            submenu: [
+                { role: 'about' },
+                { type: 'separator' },
+                { role: 'services' },
+                { type: 'separator' },
+                { role: 'hide' },
+                { role: 'hideothers' },
+                { role: 'unhide' },
+                { type: 'separator' },
+                { role: 'quit' }
+            ]
+        }] : []),
+        // { role: 'fileMenu' }
+        {
+            label: 'File',
+            submenu: [
+                {
+                    label: 'Open repository...',
+                    accelerator: 'CmdOrCtrl+O',
+                    async click() {
+                        const result = await openRepoDialog();
+                        if (result?.opened) {
+                            sendEvent(win.webContents, "repo-opened", result);
+                        }
                     }
-                }
-            },
-            {
-                type: "separator"
-            },
-            {
-                label: "Open in Terminal",
-                accelerator: 'CmdOrCtrl+Shift+C',
-                click() {
-                    if (repo) {
-                        let process;
-                        // TODO: configure different terminals?
-                        if (isWindows) {
-                            process = exec("start cmd.exe", {
-                                cwd: repo.workdir()
-                            });
-                        } else if (isMac) {
-                            process = spawn("open", ["-a", "Terminal", "."], {
-                                cwd: repo.workdir()
-                            });
-                        } else {
-                            process = spawn("x-terminal-emulator", {
-                                cwd: repo.workdir()
+                },
+                {
+                    label: "Recent...",
+                    type: "submenu",
+                    submenu: getRecentRepositories().map(buildOpenRepoMenuItem)
+                },
+                {
+                    type: "separator"
+                },
+                {
+                    label: "Open in Terminal",
+                    accelerator: 'CmdOrCtrl+Shift+C',
+                    click() {
+                        if (repo) {
+                            let process;
+                            // TODO: configure different terminals?
+                            if (isWindows) {
+                                process = exec("start cmd.exe", {
+                                    cwd: repo.workdir()
+                                });
+                            } else if (isMac) {
+                                process = spawn("open", ["-a", "Terminal", "."], {
+                                    cwd: repo.workdir()
+                                });
+                            } else {
+                                process = spawn("x-terminal-emulator", {
+                                    cwd: repo.workdir()
+                                });
+                            }
+                            process.on("error", (err) => {
+                                console.log(err);
                             });
                         }
-                        process.on("error", (err) => {
-                            console.log(err);
-                        });
                     }
-                }
-            },
-            {
-                label: "Open in File Manager",
-                click() {
-                    repo && shell.openPath(repo.workdir());
-                }
-            },
-            {
-                type: 'separator'
-            },
-            {
-                label: "Preferences...",
-                accelerator: 'CmdOrCtrl+,',
-                click() {
-                    sendEvent(win.webContents, "open-settings", null);
-                }
-            },
-            {
-                type: 'separator'
-            },
-            isMac ? { role: 'close' } : { role: 'quit' },
-        ]
-    },
-    // { role: 'editMenu' }
-    {
-        label: 'Edit',
-        submenu: [
-            { role: 'undo' },
-            { role: 'redo' },
-            { type: 'separator' },
-            { role: 'cut' },
-            { role: 'copy' },
-            { role: 'paste' },
-            ...(isMac ? [
-                { role: 'pasteAndMatchStyle' },
-                { role: 'delete' },
-                { role: 'selectAll' },
-                { type: 'separator' },
+                },
                 {
-                    label: 'Speech',
-                    submenu: [
-                        { role: 'startspeaking' },
-                        { role: 'stopspeaking' }
-                    ]
-                }
-            ] : [
-                { role: 'delete' },
-                { type: 'separator' },
-                { role: 'selectAll' }
-            ])
-        ]
-    },
-    // { role: 'viewMenu' }
-    {
-        label: 'View',
-        submenu: [
-            { role: 'reload' },
-            { role: 'forcereload' },
-            { role: 'toggledevtools' },
-            { type: 'separator' },
-            { role: 'resetzoom' },
-            { role: 'zoomin' },
-            { role: 'zoomout' },
-            { type: 'separator' },
-            { role: 'togglefullscreen' }
-        ]
-    },
-    {
-        label: 'Repository',
-        submenu: [
-            {
-                label: 'Fetch all',
-                async click() {
-                    if (!repo) {
-                        return dialog.showErrorBox(`Error`, "Not in a repository");
+                    label: "Open in File Manager",
+                    click() {
+                        repo && shell.openPath(repo.workdir());
                     }
-                    fetchFrom(repo);
-                }
-            },
-            {
-                label: "Refresh",
-                click() {
-                    sendEvent(win.webContents, "refresh-workdir", null);
-                }
-            },
-            {
-                label: 'Pull...',
-                async click() {
-                    sendEvent(win.webContents, "app-lock-ui", Locks.BRANCH_LIST);
-                    await provider.pull(repo, null, Signature.now(currentProfile().gitName, currentProfile().gitEmail));
-                    sendEvent(win.webContents, "app-unlock-ui", Locks.BRANCH_LIST);
-                }
-            },
-            {
-                label: 'Push...',
-                async click() {
-                    sendEvent(win.webContents, "app-lock-ui", Locks.BRANCH_LIST);
-                    const result = await provider.push(repo, null);
-                    if (result instanceof Error) {
-                        dialog.showErrorBox("Failed to push", result.message);
+                },
+                {
+                    type: 'separator'
+                },
+                {
+                    label: "Preferences...",
+                    accelerator: 'CmdOrCtrl+,',
+                    click() {
+                        sendEvent(win.webContents, "open-settings", null);
                     }
-                    sendEvent(win.webContents, "app-unlock-ui", Locks.BRANCH_LIST);
-                }
-            },
-            {
-                type: "separator"
-            },
-            {
-                label: "Compare revisions...",
-                click() {
-                    sendEvent(win.webContents, "begin-compare-revisions", null);
-                }
-            },
-            {
-                label: "View commit...",
-                click() {
-                    sendEvent(win.webContents, "begin-view-commit", null);
-                }
-            },
-        ]
-    },
-    // { role: 'windowMenu' }
-    {
-        label: 'Window',
-        submenu: [
-            { role: 'minimize' },
-            { role: 'zoom' },
-            ...(isMac ? [
+                },
+                {
+                    type: 'separator'
+                },
+                isMac ? { role: 'close' } : { role: 'quit' },
+            ]
+        },
+        // { role: 'editMenu' }
+        {
+            label: 'Edit',
+            submenu: [
+                { role: 'undo' },
+                { role: 'redo' },
                 { type: 'separator' },
-                { role: 'front' },
-                { type: 'separator' },
-                { role: 'window' }
-            ] : [
-                { role: 'close' }
-            ])
-        ]
-    },
-    {
-        role: 'help',
-        submenu: [
-            {
-                label: "Homepage",
-                async click() {
-                    shell.openExternal("https://github.com/weedz/git-good");
-                }
-            },
-            {
-                type: "separator"
-            },
-            {
-                label: "About",
-                async click() {
-                    const buildDate = new Date(__build_date__);
-                    const versionsString = `Version: ${app.getVersion()}\n` +
-                        `Date: ${buildDate.toISOString()} (${formatTimeAgo(buildDate)})\n` +
-                        `Commit: __last_comit__\n` +
-                        `Electron: ${process.versions.electron}\n` +
-                        `Chrome: ${process.versions.chrome}\n` +
-                        `Node: ${process.versions.node}\n` +
-                        `V8: ${process.versions.v8}\n` +
-                        `OS: ${process.getSystemVersion()}`;
-                    const response = await dialog.showMessageBox(win, {
-                        type: "info",
-                        title: "Git-good",
-                        message: versionsString,
-                        buttons: ["Copy", "OK"],
-                        defaultId: 1,
-                    });
-                    if (response.response === 0) {
-                        clipboard.writeText(versionsString);
+                { role: 'cut' },
+                { role: 'copy' },
+                { role: 'paste' },
+                ...(isMac ? [
+                    { role: 'pasteAndMatchStyle' },
+                    { role: 'delete' },
+                    { role: 'selectAll' },
+                    { type: 'separator' },
+                    {
+                        label: 'Speech',
+                        submenu: [
+                            { role: 'startspeaking' },
+                            { role: 'stopspeaking' }
+                        ]
                     }
-                }
-            },
-        ]
-    }
-] as Array<MenuItemConstructorOptions>;
+                ] : [
+                    { role: 'delete' },
+                    { type: 'separator' },
+                    { role: 'selectAll' }
+                ])
+            ]
+        },
+        // { role: 'viewMenu' }
+        {
+            label: 'View',
+            submenu: [
+                { role: 'reload' },
+                { role: 'forcereload' },
+                { role: 'toggledevtools' },
+                { type: 'separator' },
+                { role: 'resetzoom' },
+                { role: 'zoomin' },
+                { role: 'zoomout' },
+                { type: 'separator' },
+                { role: 'togglefullscreen' }
+            ]
+        },
+        {
+            label: 'Repository',
+            submenu: [
+                {
+                    label: 'Fetch all',
+                    async click() {
+                        if (!repo) {
+                            return dialog.showErrorBox(`Error`, "Not in a repository");
+                        }
+                        fetchFrom(repo);
+                    }
+                },
+                {
+                    label: "Refresh",
+                    click() {
+                        sendEvent(win.webContents, "refresh-workdir", null);
+                    }
+                },
+                {
+                    label: 'Pull...',
+                    async click() {
+                        sendEvent(win.webContents, "app-lock-ui", Locks.BRANCH_LIST);
+                        await provider.pull(repo, null, Signature.now(currentProfile().gitName, currentProfile().gitEmail));
+                        sendEvent(win.webContents, "app-unlock-ui", Locks.BRANCH_LIST);
+                    }
+                },
+                {
+                    label: 'Push...',
+                    async click() {
+                        sendEvent(win.webContents, "app-lock-ui", Locks.BRANCH_LIST);
+                        const result = await provider.push(repo, null);
+                        if (result instanceof Error) {
+                            dialog.showErrorBox("Failed to push", result.message);
+                        }
+                        sendEvent(win.webContents, "app-unlock-ui", Locks.BRANCH_LIST);
+                    }
+                },
+                {
+                    type: "separator"
+                },
+                {
+                    label: "Compare revisions...",
+                    click() {
+                        sendEvent(win.webContents, "begin-compare-revisions", null);
+                    }
+                },
+                {
+                    label: "View commit...",
+                    click() {
+                        sendEvent(win.webContents, "begin-view-commit", null);
+                    }
+                },
+            ]
+        },
+        // { role: 'windowMenu' }
+        {
+            label: 'Window',
+            submenu: [
+                { role: 'minimize' },
+                { role: 'zoom' },
+                ...(isMac ? [
+                    { type: 'separator' },
+                    { role: 'front' },
+                    { type: 'separator' },
+                    { role: 'window' }
+                ] : [
+                    { role: 'close' }
+                ])
+            ]
+        },
+        {
+            role: 'help',
+            submenu: [
+                {
+                    label: "Homepage",
+                    async click() {
+                        shell.openExternal("https://github.com/weedz/git-good");
+                    }
+                },
+                {
+                    type: "separator"
+                },
+                {
+                    label: "About",
+                    async click() {
+                        const buildDate = new Date(__build_date__);
+                        const versionsString = `Version: ${app.getVersion()}\n` +
+                            `Date: ${buildDate.toISOString()} (${formatTimeAgo(buildDate)})\n` +
+                            `Commit: __last_comit__\n` +
+                            `Electron: ${process.versions.electron}\n` +
+                            `Chrome: ${process.versions.chrome}\n` +
+                            `Node: ${process.versions.node}\n` +
+                            `V8: ${process.versions.v8}\n` +
+                            `OS: ${process.getSystemVersion()}`;
+                        const response = await dialog.showMessageBox(win, {
+                            type: "info",
+                            title: "Git-good",
+                            message: versionsString,
+                            buttons: ["Copy", "OK"],
+                            defaultId: 1,
+                        });
+                        if (response.response === 0) {
+                            clipboard.writeText(versionsString);
+                        }
+                    }
+                },
+            ]
+        }
+    ] as MenuItemConstructorOptions[];
 
-const menu = Menu.buildFromTemplate(menuTemplate);
-Menu.setApplicationMenu(menu);
-
+    const menu = Menu.buildFromTemplate(menuTemplate);
+    Menu.setApplicationMenu(menu);
+}
+applyAppMenu();
 
 let repo: Repository;
 
@@ -646,10 +666,14 @@ async function openRepo(repoPath: string) {
 
     if (opened) {
         repo = opened;
+
+        addRecentRepository(repoPath);
+
+        applyAppMenu();
+
         const repoProfile = await getRepoProfile(repo);
 
         let body;
-
         if (repoProfile !== false) {
             const profile = setCurrentProfile(repoProfile);
             body = `Profile set to '${profile?.profileName}'`;

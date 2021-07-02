@@ -8,7 +8,8 @@ import { AppConfig, AuthConfig } from "../Config";
 
 let appConfig: AppConfig;
 let selectedGitProfile: AppConfig["profiles"][0];
-const globalAppConfigPath = join(app.getPath("userData"), "git-good.config.json");
+const appDataDir = app.getPath("userData");
+const globalAppConfigPath = join(appDataDir, "git-good.config.json");
 
 try {
     const configJSON = readFileSync(globalAppConfigPath).toString();
@@ -27,10 +28,19 @@ try {
                 gpg: undefined,
             }
         ],
-        selectedProfile: 0
+        selectedProfile: 0,
     };
     writeFileSync(globalAppConfigPath, JSON.stringify(appConfig));
 }
+
+let recentRepoMenu: string[] = [];
+try {
+    const recentRepos = readFileSync(join(appDataDir, "recent-repos.json")).toString();
+    recentRepoMenu = JSON.parse(recentRepos);
+} catch (err) {
+    // noop.
+}
+
 
 export function currentProfile() {
     return selectedGitProfile;
@@ -96,6 +106,24 @@ export async function getRepoProfile(repo: Repository) {
 
 export function clearRepoProfile(repo: Repository) {
     unlinkSync(join(repo.path(), "git-good.profile"));
+}
+
+
+export function getRecentRepositories() {
+    return recentRepoMenu;
+}
+export function addRecentRepository(repoPath: string) {
+    // Ensure we do not save duplicates
+    const existingIndex = recentRepoMenu.findIndex(itemPath => itemPath === repoPath);
+    if (existingIndex > -1) {
+        recentRepoMenu.splice(existingIndex, 1);
+    }
+    recentRepoMenu.unshift(repoPath);
+    recentRepoMenu.splice(10);
+    
+    writeFileSync(join(appDataDir, "recent-repos.json"), JSON.stringify(recentRepoMenu));
+    
+    return true;
 }
 
 export function saveAppConfig(data: AppConfig) {
