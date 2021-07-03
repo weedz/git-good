@@ -1,6 +1,6 @@
 {
   "name": "git-good",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Git good",
   "main": "dist/main.js",
   "scripts": {
@@ -25,7 +25,7 @@
     "@rollup/plugin-node-resolve": "^13.0.0",
     "@rollup/plugin-replace": "^2.4.2",
     "@rollup/plugin-typescript": "^8.2.1",
-    "@types/node": "^15.12.5",
+    "@types/node": "^16.0.0",
     "@types/nodegit": "^0.27.2",
     "@types/uuid": "^8.3.0",
     "@typescript-eslint/eslint-plugin": "^4.28.1",
