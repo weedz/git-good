@@ -1,7 +1,7 @@
 import { h } from "preact";
 import { PureComponent } from "preact/compat";
 import { LoadCommitReturn, RefType } from "../../Data/Actions";
-import { updateStore, Store } from "../../Data/Renderer/store";
+import { Store, setDiffpaneSrc } from "../../Data/Renderer/store";
 import { showLocalMenu, showRemoteRefMenu, showTagMenu } from "../Branches/Menu";
 import Link, { GlobalLinks } from "../Link";
 import HeadColors from "./HeadColors";
@@ -20,7 +20,7 @@ type Props = {
 
 function selectCommit(c: Link<string>) {
     if (c.props.linkData) {
-        updateStore({diffPaneSrc: c.props.linkData});
+        setDiffpaneSrc(c.props.linkData);
     }
 }
 

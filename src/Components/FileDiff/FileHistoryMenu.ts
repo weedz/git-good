@@ -1,14 +1,14 @@
 import { getCurrentWindow, Menu, MenuItem } from "@electron/remote";
 import { clipboard } from "electron";
 import { h } from "preact";
-import { contextMenuState, updateStore } from "../../Data/Renderer/store";
+import { contextMenuState, setDiffpaneSrc } from "../../Data/Renderer/store";
 
 const commitMenu = new Menu();
 commitMenu.append(new MenuItem({
     label: "View commit",
     click() {
         const sha = contextMenuState.data.sha;
-        updateStore({diffPaneSrc: sha});
+        setDiffpaneSrc(sha);
     }
 }));
 commitMenu.append(new MenuItem({

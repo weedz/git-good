@@ -5,12 +5,10 @@
     "node": true
   },
   "extends": [
+    "preact",
     "eslint:recommended",
     "plugin:@typescript-eslint/eslint-recommended",
-    "plugin:@typescript-eslint/recommended",
-    "plugin:import/errors",
-    "plugin:import/warnings",
-    "preact"
+    "plugin:@typescript-eslint/recommended"
   ],
   "ignorePatterns": "/scripts",
   "rules": {
@@ -20,17 +18,9 @@
       "argsIgnorePattern": "^_"
     }],
     // "preact" enables "no-useless-constructor", but we want to use parameter properties
-    // in the constructor so enable typescript specifik "no-useless-constructor"
+    // in the constructor so enable typescript specific "no-useless-constructor"
     "no-useless-constructor": "off",
     "@typescript-eslint/no-useless-constructor": ["error"]
-  },
-  "settings": {
-    "import/resolver": {
-      "node": {
-        "extensions": [".ts", ".tsx", ".d.ts"],
-        "moduleDirectory": ["node_modules", "."]
-      }
-    }
   },
   "parser": "@typescript-eslint/parser"
 }

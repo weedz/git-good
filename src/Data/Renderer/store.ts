@@ -1,5 +1,6 @@
 import { AnyComponent, Component, JSX } from "preact";
 import { PureComponent } from "preact/compat";
+import { createStore, PartialStoreListener } from "@weedzcokie/store";
 import { DialogProps, DialogTypes } from "../../Components/Dialog/types";
 import { unselectLink } from "../../Components/Link";
 import { IpcAction, BranchesObj, BranchObj, PatchObj, Locks, RepoStatus, IpcActionParams, IpcActionReturn, HeadBranchObj } from "../Actions";
@@ -61,7 +62,7 @@ export type StoreType = {
     notifications: Record<NotificationPosition, Map<string, Notification>>
 };
 
-const store: StoreType = {
+const store = createStore<StoreType>({
     repo: null,
     branches: {
         remote: [],
@@ -89,52 +90,21 @@ const store: StoreType = {
     notifications: {
         [NotificationPosition.DEFAULT]: new Map(),
     }
-};
+});
+type StoreKeys = keyof StoreType;
 
-export const Store = store as Readonly<StoreType>;
+export const Store = store.Store;
+export const updateStore = store.updateStore;
 
 export const contextMenuState: {data: Record<string, string>} = {
     data: {}
 };
 
-type StoreKeys = keyof StoreType;
-
-type PartialStoreListener<T extends StoreKeys> = (arg: StoreType[T]) => void;
-
-const listeners: {
-    [K in StoreKeys]: PartialStoreListener<K>[]
-} = {
-    repo: [],
-    branches: [],
-    commitMsg: [],
-    comparePatches: [],
-    currentFile: [],
-    dialogWindow: [],
-    diffPaneSrc: [],
-    head: [],
-    heads: [],
-    locks: [],
-    remotes: [],
-    selectedBranch: [],
-    viewChanges: [],
-    diffOptions: [],
-    notifications: [],
-};
-
-export function subscribe<T extends StoreKeys>(key: T, cb: PartialStoreListener<T>) {
-    listeners[key].push(cb as PartialStoreListener<StoreKeys>);
-    return () => unsubscribe(key, cb);
-}
-
-function unsubscribe<T extends StoreKeys>(key: T, cb: PartialStoreListener<T>) {
-    listeners[key].splice(listeners[key].indexOf(cb as PartialStoreListener<StoreKeys>)>>>0, 1);
-}
-
 export abstract class StoreComponent<P = unknown, S = unknown> extends Component<P, S> {
     listeners: Array<() => void> = [];
 
-    listen<T extends StoreKeys>(key: T, cb: PartialStoreListener<T>) {
-        this.listeners.push(subscribe(key, cb));
+    listen<T extends StoreKeys>(key: T, cb: PartialStoreListener<StoreType, T>) {
+        this.listeners.push(store.subscribe(key, cb));
     }
     registerHandler<T extends IpcAction>(action: T, cb: (arg: IpcActionReturn[T]) => void) {
         this.listeners.push(registerHandler(action, cb));
@@ -149,8 +119,8 @@ export abstract class StoreComponent<P = unknown, S = unknown> extends Component
 export abstract class PureStoreComponent<P = unknown, S = unknown> extends PureComponent<P, S> {
     listeners: Array<() => void> = [];
 
-    listen<T extends StoreKeys>(key: T, cb: PartialStoreListener<T>) {
-        this.listeners.push(subscribe(key, cb));
+    listen<T extends StoreKeys>(key: T, cb: PartialStoreListener<StoreType, T>) {
+        this.listeners.push(store.subscribe(key, cb));
     }
     registerHandler<T extends IpcAction>(action: T, cb: (arg: IpcActionReturn[T]) => void) {
         this.listeners.push(registerHandler(action, cb));
@@ -163,35 +133,27 @@ export abstract class PureStoreComponent<P = unknown, S = unknown> extends PureC
     }
 }
 
-function triggerKeyListeners(newStore: Partial<StoreType>) {
-    for (const key of Object.keys(newStore) as StoreKeys[]) {
-        for (const listener of listeners[key]) {
-            const data = newStore[key] as StoreType[typeof key];
-            (listener as PartialStoreListener<StoreKeys>)(data);
-        }
-    }
-}
-
-export function updateStore(newStore: Partial<StoreType>) {
-    triggerKeyListeners(newStore);
-    Object.assign(store, newStore);
-}
-
 export function notify(notificationData: {position?: NotificationPosition, title: string, body?: null | string | AnyComponent | JSX.Element, time?: number, classList?: string[]}) {
     const position = notificationData.position || NotificationPosition.DEFAULT;
     const notification = new Notification(notificationData.title, notificationData.body || null, notificationData.classList || [], deleteNotification[position], notificationData.time ?? 5000);
 
     Store.notifications[position].set(notification.id, notification);
-    updateStore({
+    store.updateStore({
         notifications: Store.notifications
     });
 
     return notification;
 }
 const deleteNotification: {[K in NotificationPosition]: (id: string) => void} = {
-    [NotificationPosition.DEFAULT]: (id) => Store.notifications[NotificationPosition.DEFAULT].delete(id) && updateStore({ notifications: Store.notifications }),
+    [NotificationPosition.DEFAULT]: (id) => Store.notifications[NotificationPosition.DEFAULT].delete(id) && store.updateStore({ notifications: Store.notifications }),
 }
 
+// Lock CommitList UI when loading commit info
+store.subscribe("diffPaneSrc", sha => {
+    if (sha) {
+        setLock(Locks.COMMIT_LIST);
+    }
+});
 
 // TODO: Most of these functions should probably be in Renderer/IPC.ts or Renderer/index.ts
 
@@ -239,12 +201,12 @@ export function openFile(params: (
             });
         }
     }
-    updateStore({
+    store.updateStore({
         currentFile
     });
 }
 export function closeFile() {
-    updateStore({
+    store.updateStore({
         currentFile: null
     });
     unselectLink("files");
@@ -257,10 +219,10 @@ export function continueRebase() {
 }
 
 export function setLock(lock: Locks) {
-    updateStore({locks: {...Store.locks, [lock]: true}});
+    store.updateStore({locks: {...Store.locks, [lock]: true}});
 }
 export function clearLock(lock: Locks) {
-    updateStore({locks: {...Store.locks, [lock]: false}});
+    store.updateStore({locks: {...Store.locks, [lock]: false}});
 }
 
 export function createBranchFromSha(sha: string, name: string) {
@@ -316,7 +278,7 @@ export function commit(params: IpcActionParams[IpcAction.COMMIT]) {
 }
 
 export function openDialogWindow<T extends DialogTypes>(type: T, props: DialogProps[T]) {
-    updateStore({
+    store.updateStore({
         dialogWindow: {
             type,
             props
@@ -324,14 +286,14 @@ export function openDialogWindow<T extends DialogTypes>(type: T, props: DialogPr
     });
 }
 export function closeDialogWindow() {
-    updateStore({
+    store.updateStore({
         dialogWindow: null
     });
 }
 
 export async function openFileHistory(file: string, sha?: string) {
     ipcSendMessage(IpcAction.LOAD_FILE_COMMITS, {file, cursor: sha, startAtCursor: true});
-    updateStore({
+    store.updateStore({
         currentFile: {
             patch: {
                 status: 0,
@@ -343,5 +305,11 @@ export async function openFileHistory(file: string, sha?: string) {
             },
             commitSHA: sha
         },
+    });
+}
+
+export function setDiffpaneSrc(diffPaneSrc: StoreType["diffPaneSrc"]) {
+    store.updateStore({
+        diffPaneSrc
     });
 }

@@ -5,7 +5,7 @@ import { GlobalLinks, unselectLink } from "../../Components/Link";
 import { BranchObj, IpcAction, IpcActionReturn, IpcResponse, Locks, RepoStatus } from "../Actions";
 import { openDialog_CompareRevisions, openDialog_Settings, openDialog_ViewCommit } from "./Dialogs";
 import { addWindowEventListener, registerHandler, ipcSendMessage, ipcGetData } from "./IPC";
-import { Store, clearLock, setLock, updateStore, StoreType, notify, subscribe } from "./store";
+import { Store, clearLock, setLock, updateStore, StoreType, notify } from "./store";
 import { Notification } from "../../Components/Notification";
 
 let refreshingWorkdir = false;
@@ -206,13 +206,6 @@ function handlePullHead(res: IpcActionReturn[IpcAction.PULL]) {
         loadBranches();
     }
 }
-
-// Lock CommitList UI when loading commit info
-subscribe("diffPaneSrc", sha => {
-    if (sha) {
-        setLock(Locks.COMMIT_LIST);
-    }
-});
 
 addWindowEventListener("repo-opened", repoOpened);
 addWindowEventListener("refresh-workdir", refreshWorkdir);

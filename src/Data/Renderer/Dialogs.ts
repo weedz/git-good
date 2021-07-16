@@ -2,7 +2,7 @@ import { DialogTypes } from "../../Components/Dialog/types";
 import { IpcAction } from "../Actions";
 import { normalizeLocalName, normalizeRemoteNameWithoutRemote, normalizeTagName, remoteName } from "../Branch";
 import { ipcGetData, ipcSendMessage } from "./IPC";
-import { closeDialogWindow, createBranchFromSha, createBranchFromRef, openDialogWindow, setUpstream, renameLocalBranch, updateStore } from "./store";
+import { closeDialogWindow, createBranchFromSha, createBranchFromRef, openDialogWindow, setUpstream, renameLocalBranch, setDiffpaneSrc } from "./store";
 
 export function openDialog_EditRemote(data: {name: string, pullFrom: string, pushTo: string | null}) {
     const oldName = data.name;
@@ -56,7 +56,7 @@ export function openDialog_ViewCommit() {
             if (sha) {
                 try {
                     sha = await ipcGetData(IpcAction.PARSE_REVSPEC, sha);
-                    updateStore({diffPaneSrc: sha});
+                    setDiffpaneSrc(sha);
                 } catch (e) {
                     // Invalid revspec
                 }
