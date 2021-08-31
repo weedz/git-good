@@ -5,6 +5,7 @@ import typescript from "@rollup/plugin-typescript";
 import css from "rollup-plugin-import-css";
 import { terser } from "rollup-plugin-terser";
 import replace from "@rollup/plugin-replace"
+import { defineConfig } from "rollup";
 
 const production = !process.env.ROLLUP_WATCH;
 
@@ -38,7 +39,7 @@ const plugins = [
     production && terser(),
 ];
 
-export default {
+export default defineConfig({
     external,
     input: [
         "src/renderer.tsx",
@@ -53,4 +54,4 @@ export default {
     watch: {
         clearScreen: false
     }
-};
+});
