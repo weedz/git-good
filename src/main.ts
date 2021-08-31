@@ -564,7 +564,7 @@ const eventMap: {
 
         return setRepoProfile(repo, data.profileId);
     },
-    [IpcAction.GET_SETTINGS]: async (_, _data) => {
+    [IpcAction.GET_SETTINGS]: async (_) => {
         return getAppConfig();
     },
     [IpcAction.CREATE_TAG]: async (repo, data) => {
@@ -598,6 +598,11 @@ const eventMap: {
     }
 }
 
+const ALLOWED_WHEN_NOT_IN_REPO = {
+    [IpcAction.OPEN_REPO]: true,
+    [IpcAction.GET_SETTINGS]: true,
+};
+
 ipcMain.on("asynchronous-message", async (event, arg: EventArgs) => {
     const action = arg.action;
     const lock = provider.actionLock[action];
@@ -608,7 +613,7 @@ ipcMain.on("asynchronous-message", async (event, arg: EventArgs) => {
 
     provider.actionLock[action] = {interuptable: false};
 
-    if (action !== IpcAction.OPEN_REPO && !repo) {
+    if (!repo && !(action in ALLOWED_WHEN_NOT_IN_REPO)) {
         provider.eventReply(event, action, Error("Not in a repository"), arg.id);
         return;
     }

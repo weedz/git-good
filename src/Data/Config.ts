@@ -33,6 +33,9 @@ export type AppConfig = {
         gpg?: GpgConfig | undefined
     }>
     selectedProfile: number
+    ui: {
+        refreshWorkdirOnFocus: boolean
+    }
 };
 
 export type GpgConfig = {

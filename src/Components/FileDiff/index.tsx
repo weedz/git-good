@@ -1,6 +1,7 @@
 import { h } from "preact";
 import { HunkObj, IpcAction, LineObj, IpcActionReturn } from "../../Data/Actions";
-import { Store, closeFile, openFileHistory, PureStoreComponent, updateStore, glyphWidth, StoreType } from "../../Data/Renderer/store";
+import { glyphWidth } from "../../Data/Renderer";
+import { Store, closeFile, openFileHistory, PureStoreComponent, updateStore, StoreType } from "../../Data/Renderer/store";
 import { DELTA } from "../../Data/Utils";
 import FileHistory from "./FileHistory";
 import HunksContainer from "./HunksContainer";

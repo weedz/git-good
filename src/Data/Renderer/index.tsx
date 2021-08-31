@@ -11,8 +11,33 @@ import { Notification } from "../../Components/Notification";
 let refreshingWorkdir = false;
 
 window.addEventListener("focus", async () => {
-    refreshWorkdir();
+    if (Store.uiConfig?.refreshWorkdirOnFocus) {
+        refreshWorkdir();
+    }
 });
+
+// Glyph properties
+let _glyphWidth = 7.81;
+calculateGlyphWidth(13, 'JetBrains Mono NL');
+
+ipcGetData(IpcAction.GET_SETTINGS, null).then(config => {
+    updateStore({
+        uiConfig: config["ui"]
+    })
+})
+
+function calculateGlyphWidth(size: number, font: string) {
+    const canvas = document.createElement("canvas");
+    const ctx = canvas.getContext("2d");
+    if (ctx) {
+        ctx.font = `${size}px '${font}'`;
+        const textMetrics = ctx.measureText("i");
+        _glyphWidth = textMetrics.width;
+    }
+}
+export function glyphWidth() {
+    return _glyphWidth;
+}
 
 export async function refreshWorkdir() {
     if (!Store.repo || refreshingWorkdir) {

@@ -6,23 +6,7 @@ import { unselectLink } from "../../Components/Link";
 import { IpcAction, BranchesObj, BranchObj, PatchObj, Locks, RepoStatus, IpcActionParams, IpcActionReturn, HeadBranchObj } from "../Actions";
 import { registerHandler, ipcSendMessage, ipcGetData } from "./IPC";
 import { Notification } from "../../Components/Notification";
-
-// Glyph properties
-let _glyphWidth = 7.81;
-calculateGlyphWidth(13, 'JetBrains Mono NL');
-
-function calculateGlyphWidth(size: number, font: string) {
-    const canvas = document.createElement("canvas");
-    const ctx = canvas.getContext("2d");
-    if (ctx) {
-        ctx.font = `${size}px '${font}'`;
-        const textMetrics = ctx.measureText("i");
-        _glyphWidth = textMetrics.width;
-    }
-}
-export function glyphWidth() {
-    return _glyphWidth;
-}
+import { AppConfig } from "../Config";
 
 export type DialogWindow = {
     type: DialogTypes
@@ -60,6 +44,7 @@ export type StoreType = {
         ignoreWhitespace: boolean
     }
     notifications: Record<NotificationPosition, Map<string, Notification>>
+    uiConfig: AppConfig["ui"] | undefined
 };
 
 const store = createStore<StoreType>({
@@ -89,7 +74,8 @@ const store = createStore<StoreType>({
     },
     notifications: {
         [NotificationPosition.DEFAULT]: new Map(),
-    }
+    },
+    uiConfig: undefined,
 });
 type StoreKeys = keyof StoreType;
 

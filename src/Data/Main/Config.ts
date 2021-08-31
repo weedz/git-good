@@ -29,6 +29,9 @@ try {
             }
         ],
         selectedProfile: 0,
+        ui: {
+            refreshWorkdirOnFocus: false
+        }
     };
     writeFileSync(globalAppConfigPath, JSON.stringify(appConfig));
 }

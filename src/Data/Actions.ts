@@ -137,7 +137,7 @@ export type IpcActionParams = {
     [IpcAction.REMOVE_REMOTE]: {name: string}
     [IpcAction.FETCH]: null | {remote: string}
     [IpcAction.SAVE_SETTINGS]: AppConfig
-    [IpcAction.GET_SETTINGS]: string | null
+    [IpcAction.GET_SETTINGS]: null
     [IpcAction.REPO_PROFILE]: {action: "save" | "remove", profileId: number}
     [IpcAction.FILE_DIFF_AT]: {
         file: string

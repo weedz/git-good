@@ -3,6 +3,7 @@ import { Component, Fragment, h } from "preact";
 import { IpcAction } from "../../../Data/Actions";
 import { AppConfig } from "../../../Data/Config";
 import { ipcGetData, ipcSendMessage } from "../../../Data/Renderer/IPC";
+import { updateStore } from "../../../Data/Renderer/store";
 import { SettingsProps } from "../types";
 import { Profile } from "./Profile";
 
@@ -22,6 +23,16 @@ export class Settings extends Component<SettingsProps, State> {
         });
     }
 
+    setUIConfig<K extends keyof AppConfig["ui"]>(key: K, value: AppConfig["ui"][K]) {
+        this.setState({
+            config: {...this.state.config,
+                ui: {...this.state.config.ui,
+                    [key]: value
+                }
+            }
+        });
+    }
+
     render() {
         if (!this.state.config) {
             return <p>Loading config...</p>
@@ -30,39 +41,23 @@ export class Settings extends Component<SettingsProps, State> {
         const profile = this.state.editProfile && this.state.config.profiles[this.state.config.selectedProfile];
         const selectedProfile = this.state.config.profiles[this.state.config.selectedProfile];
 
-        return <div className="dialog-window" style={{
-            width: "100%",
-            height: "100%",
-            overflowY: "auto",
-        }}>
-            <form onSubmit={e => {
-                e.preventDefault();
+        let formBody;
+        if (profile) {
+            formBody = <Profile profile={profile} cancelCb={() => this.setState({editProfile: null})} saveProfile={profile => {
+                const profiles = this.state.config.profiles;
+                profiles[this.state.config.selectedProfile] = profile;
                 this.setState({
-                    saved: true
-                });
-                setTimeout(() => {
-                    this && this.setState({
-                        saved: null
-                    });
-                }, 5000);
-                this.props.confirmCb(this.state.config);
-            }}>
-                <h2>Settings</h2>
-                {
-                    profile ? <Profile profile={profile} cancelCb={() => this.setState({editProfile: null})} saveProfile={profile => {
-                        const profiles = this.state.config.profiles;
-                        profiles[this.state.config.selectedProfile] = profile;
-                        this.setState({
-                            config: {
-                                ...this.state.config,
-                                profiles
-                            },
-                            editProfile: null
-                        }, () => this.props.confirmCb(this.state.config));
-                    }} />
-                : <Fragment>
-                    <div className="pane">
-                    <p>Profiles</p>
+                    config: {
+                        ...this.state.config,
+                        profiles
+                    },
+                    editProfile: null
+                }, () => this.props.confirmCb(this.state.config));
+            }} />;
+        } else {
+            formBody = <Fragment>
+                <div className="pane">
+                    <h3>Profiles</h3>
                     <select onChange={e => {
                         this.setState({
                             config: {
@@ -138,10 +133,41 @@ export class Settings extends Component<SettingsProps, State> {
                         </select>
                     </div>
                 </div>
+                <div className="pane">
+                    <h3>UI</h3>
+                    <div>
+                        <label for="ssh-agent">Refresh workdir on focus:</label>
+                        <input id="ssh-agent" type="checkbox" name="ssh-agent" checked={this.state.config.ui.refreshWorkdirOnFocus} onChange={e => this.setUIConfig("refreshWorkdirOnFocus", e.currentTarget.checked)} />
+                    </div>
+                </div>
                 {this.state.saved && <p>Settings saved!</p>}
                 <button type="submit">Save</button>
                 <button type="button" onClick={this.props.cancelCb}>Close</button>
-                    </Fragment>}
+            </Fragment>
+        }
+
+        return <div className="dialog-window" style={{
+            width: "100%",
+            height: "100%",
+            overflowY: "auto",
+        }}>
+            <form onSubmit={e => {
+                e.preventDefault();
+                this.setState({
+                    saved: true
+                });
+                updateStore({
+                    uiConfig: this.state.config.ui
+                });
+                setTimeout(() => {
+                    this && this.setState({
+                        saved: null
+                    });
+                }, 5000);
+                this.props.confirmCb(this.state.config);
+            }}>
+                <h2>Settings</h2>
+                {formBody}
             </form>
         </div>;
     }
