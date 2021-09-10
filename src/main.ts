@@ -39,7 +39,10 @@ const createWindow = () => {
         minHeight: initialWindowHeight,
         minWidth: initialWindowWidth,
         webPreferences: {
+            nativeWindowOpen: true,
             nodeIntegration: true,
+            // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+            // @ts-ignore, required by @electron/remote
             enableRemoteModule: true,
             contextIsolation: false,
             disableBlinkFeatures: "Auxclick"
