@@ -14,7 +14,7 @@ import { sendEvent } from "./Data/Main/WindowEvents";
 import { TransferProgress } from "../types/nodegit";
 import { normalizeLocalName } from "./Data/Branch";
 
-import { initialize } from "@electron/remote/main";
+import { initialize, enable as enableRemote } from "@electron/remote/main";
 initialize();
 
 // constants from rollup
@@ -41,13 +41,11 @@ const createWindow = () => {
         webPreferences: {
             nativeWindowOpen: true,
             nodeIntegration: true,
-            // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-            // @ts-ignore, required by @electron/remote
-            enableRemoteModule: true,
             contextIsolation: false,
             disableBlinkFeatures: "Auxclick"
         }
     });
+    enableRemote(win.webContents);
 
     // win.webContents.openDevTools();
 
