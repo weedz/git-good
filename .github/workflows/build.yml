@@ -16,7 +16,7 @@ jobs:
 
     steps:
       - name: Check out Git repository
-        uses: actions/checkout@v2
+        uses: actions/checkout@master
 
       - name: Install linux dependencies
         if: runner.os == 'Linux'
@@ -26,14 +26,14 @@ jobs:
         if: runner.os == 'Windows'
         run: vcpkg install openssl
 
-      - name: Install macos dependencies
-        if: runner.os == 'macOS'
-        run: brew install openssl
+      # - name: Install macos dependencies
+      #   if: runner.os == 'macOS'
+      #   run: brew install openssl
 
       - name: Install Node.js, NPM and Yarn
-        uses: actions/setup-node@v2
+        uses: actions/setup-node@master
         with:
-          node-version: 15
+          node-version: 14
       - name: Install node dependencies
         run: npm ci --ignore-scripts
       - name: Build
