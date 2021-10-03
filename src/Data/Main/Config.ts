@@ -16,7 +16,7 @@ try {
     appConfig = JSON.parse(configJSON);
     selectedGitProfile = appConfig.profiles[appConfig.selectedProfile];
 } catch (err) {
-    console.log("Invalid or not existing config file. Creating...");
+    console.log("Invalid or missing config file. Creating...");
     appConfig = {
         profiles: [
             {

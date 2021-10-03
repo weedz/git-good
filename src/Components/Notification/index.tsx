@@ -1,5 +1,5 @@
 import { AnyComponent, Component, createRef, h } from "preact";
-import { v4 as uuid } from "uuid";
+import { nanoid } from "nanoid";
 import "./style.css";
 
 export class Notification {
@@ -11,7 +11,7 @@ export class Notification {
     ref = createRef<NotificationComponent>();
 
     constructor(title: Props["title"], body: Props["body"], classes: string[], private deleteCallback: (id: string) => void, timeout: number | null = null) {
-        this.id = uuid();
+        this.id = nanoid();
         this.refreshExpireTime(timeout);
         this.item = <NotificationComponent ref={this.ref} key={this.id} body={body} title={title} close={this.delete} clearTimer={this.clearTimer} classList={classes} />;
     }
