@@ -18,7 +18,7 @@ type State = {
 };
 
 const pageSize = 200;
-const historyLimit = 1000;
+const historyLimit = 2000;
 
 export default class CommitList extends PureStoreComponent<unknown, State> {
     graph: {

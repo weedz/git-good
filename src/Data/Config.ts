@@ -18,7 +18,7 @@ export type AuthConfig = SshConfig | {
     password: string
 };
 
-export type AppConfig = {
+export interface AppConfig {
     profiles: Array<{
         profileName: string
         authType: "ssh" | "userpass"
@@ -36,9 +36,10 @@ export type AppConfig = {
     ui: {
         refreshWorkdirOnFocus: boolean
     }
-};
+    commitlistSortOrder: "topological" | "none"
+}
 
-export type GpgConfig = {
+export interface GpgConfig {
     commit: boolean
     tag: boolean
     key: string

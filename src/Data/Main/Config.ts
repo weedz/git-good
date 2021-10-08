@@ -31,7 +31,8 @@ try {
         selectedProfile: 0,
         ui: {
             refreshWorkdirOnFocus: false
-        }
+        },
+        commitlistSortOrder: "topological",
     };
     writeFileSync(globalAppConfigPath, JSON.stringify(appConfig));
 }

@@ -24,11 +24,13 @@ export class Settings extends Component<SettingsProps, State> {
     }
 
     setUIConfig<K extends keyof AppConfig["ui"]>(key: K, value: AppConfig["ui"][K]) {
+        this.setConfig("ui", {...this.state.config.ui, [key]: value});
+    }
+
+    setConfig<K extends keyof AppConfig>(key: K, value: AppConfig[K]) {
         this.setState({
             config: {...this.state.config,
-                ui: {...this.state.config.ui,
-                    [key]: value
-                }
+                [key]: value,
             }
         });
     }
@@ -58,14 +60,7 @@ export class Settings extends Component<SettingsProps, State> {
             formBody = <Fragment>
                 <div className="pane">
                     <h3>Profiles</h3>
-                    <select onChange={e => {
-                        this.setState({
-                            config: {
-                                ...this.state.config,
-                                selectedProfile: Number.parseInt(e.currentTarget.value, 10) || 0
-                            }
-                        });
-                    }}>
+                    <select onChange={e => this.setConfig("selectedProfile", Number.parseInt(e.currentTarget.value, 10) || 0)}>
                         {this.state.config.profiles.map((profile, idx) => (
                             <option key={profile.profileName} value={idx} selected={idx === this.state.config.selectedProfile}>{profile.profileName}</option>
                         ))}
@@ -138,6 +133,16 @@ export class Settings extends Component<SettingsProps, State> {
                     <div>
                         <label for="ssh-agent">Refresh workdir on focus:</label>
                         <input id="ssh-agent" type="checkbox" name="ssh-agent" checked={this.state.config.ui.refreshWorkdirOnFocus} onChange={e => this.setUIConfig("refreshWorkdirOnFocus", e.currentTarget.checked)} />
+                    </div>
+                </div>
+                <div className="pane">
+                    <h3>Git</h3>
+                    <div>
+                        <label for="commitlist-sort-order">Commitlist sort order:</label>
+                        <select id="commitlist-sort-order" onChange={e => this.setConfig("commitlistSortOrder", e.currentTarget.value as AppConfig["commitlistSortOrder"])}>
+                            <option value="topological" selected={this.state.config.commitlistSortOrder === "topological"}>Topological (default)</option>
+                            <option value="none" selected={this.state.config.commitlistSortOrder === "none"}>None (Much faster for large repos)</option>
+                        </select>
                     </div>
                 </div>
                 {this.state.saved && <p>Settings saved!</p>}

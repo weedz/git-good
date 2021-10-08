@@ -8,7 +8,7 @@ import { IpcAction, BranchObj, LineObj, HunkObj, PatchObj, CommitObj, IpcActionP
 import { normalizeLocalName, normalizeRemoteName, normalizeRemoteNameWithoutRemote, normalizeTagName, remoteName } from "../Branch";
 import { gpgSign, gpgVerify } from "./GPG";
 import { AuthConfig } from "../Config";
-import { currentProfile, getAuth } from "./Config";
+import { currentProfile, getAppConfig, getAuth } from "./Config";
 
 export const actionLock: {
     [key in IpcAction]?: {
@@ -97,7 +97,9 @@ const commitFilters = {
 
 function initRevwalk(repo: Repository, start: "refs/*" | Oid) {
     const revwalk = repo.createRevWalk();
-    revwalk.sorting(Revwalk.SORT.TOPOLOGICAL | Revwalk.SORT.TIME);
+    if (getAppConfig().commitlistSortOrder === "topological") {
+        revwalk.sorting(Revwalk.SORT.TOPOLOGICAL | Revwalk.SORT.TIME);
+    }
 
     if (start === "refs/*") {
         revwalk.pushGlob(start);
