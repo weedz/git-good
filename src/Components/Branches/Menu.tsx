@@ -189,6 +189,10 @@ headMenu.append(setUpstreamMenuItem);
 headMenu.append(new MenuItem({
     type: "separator"
 }));
+headMenu.append(newBranch);
+headMenu.append(new MenuItem({
+    type: "separator"
+}));
 headMenu.append(createTag);
 
 const tagMenu = new Menu();
