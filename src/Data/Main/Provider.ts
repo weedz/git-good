@@ -211,8 +211,11 @@ export async function pull(repo: Repository, branch: string | null, signature: S
     const currentBranch = await repo.head();
 
     let upstream: Reference;
+    let status: { ahead: number, behind: number };
     try {
         upstream = await Branch.upstream(ref);
+
+        status = await Graph.aheadBehind(repo, upstream.target(), ref.target()) as unknown as { ahead: number, behind: number };
     }
     catch (err) {
         // Missing remote/upstream
@@ -220,9 +223,39 @@ export async function pull(repo: Repository, branch: string | null, signature: S
         return false;
     }
 
-    const result = await repo.rebaseBranches(ref.name(), upstream.name(), upstream.name(), signature, (..._args: unknown[]) => {
-        // console.log("beforeNextFn:", args);
-    });
+    let hardReset = false;
+    if (status.behind) {
+        if (currentBranch.name() !== ref.name()) {
+            dialog.showErrorBox("Pull", `The remote branch '${upstream.name()}' is behind the local branch '${ref.name()}'. Might need a hard reset, checkout '${ref.name()}' before continuing.`);
+            return false;
+        }
+        const result = await dialog.showMessageBox({
+            title: "Hard reset?",
+            message: `The remote branch '${upstream.name()}' is behind the local branch '${ref.name()}'. Do a hard reset to remote branch?`,
+            type: "question",
+            buttons: ["Cancel", "No", "Hard reset"],
+            cancelId: 0,
+        });
+        if (!result.response) {
+            return false;
+        }
+        if (result.response === 2) {
+            hardReset = true;
+        }
+    }
+
+    let result;
+    if (hardReset) {
+        const originHead = await repo.getBranchCommit(upstream);
+
+        // Returns 0 on success
+        result = !await Reset.reset(repo, originHead, Reset.TYPE.HARD, {});
+        index = await repo.refreshIndex();
+    } else {
+        result = await repo.rebaseBranches(ref.name(), upstream.name(), upstream.name(), signature, (..._args: unknown[]) => {
+            // console.log("beforeNextFn:", args);
+        });
+    }
 
     if (result) {
         if (currentBranch.name() !== ref.name()) {
@@ -885,7 +918,12 @@ export async function resolveConflict(repo: Repository, path: string) {
         if (res.response === 2) {
             await index.addByPath(path);
         } else {
-            await fs.unlink(join(repo.workdir(), path));
+            try {
+                await fs.unlink(join(repo.workdir(), path));
+            } catch (err) {
+                console.log(err);
+            }
+            await index.removeByPath(path);
         }
     } else if (!conflictEntry.their_out) {
         const res = await dialog.showMessageBox({
@@ -899,7 +937,12 @@ export async function resolveConflict(repo: Repository, path: string) {
             return 0;
         }
         if (res.response === 2) {
-            await fs.unlink(join(repo.workdir(), path));
+            try {
+                await fs.unlink(join(repo.workdir(), path));
+            } catch (err) {
+                console.log(err);
+            }
+            await index.removeByPath(path);
         } else {
             await index.addByPath(path);
         }
