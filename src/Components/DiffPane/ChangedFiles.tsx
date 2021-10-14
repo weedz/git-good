@@ -39,9 +39,6 @@ export default class ChangedFiles extends Component<Props, {fileFilter?: string}
             // untracked: 0,
         };
     }
-    componentWillReceiveProps() {
-        this.resetCounters();
-    }
     openFile = (data: Link<PatchObj>) => {
         this.resetCounters();
         const patch = data.props.linkData as unknown as PatchObj;

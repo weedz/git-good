@@ -105,7 +105,7 @@ function applyAppMenu() {
     // FIXME: Do we really need to redefine menuTemplate every time we update a menu item?
     const menuTemplate = [
         // { role: 'appMenu' }
-        ...(isMac ? [{
+        ...isMac ? [{
             label: app.name,
             submenu: [
                 { role: 'about' },
@@ -118,7 +118,7 @@ function applyAppMenu() {
                 { type: 'separator' },
                 { role: 'quit' }
             ]
-        }] : []),
+        }] : [],
         // { role: 'fileMenu' }
         {
             label: 'File',

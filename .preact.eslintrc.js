@@ -48,8 +48,7 @@ module.exports = {
 			// eslint-plugin-preact interprets this as "h.createElement",
 			// however we only care about marking h() as being a used variable.
 			pragma: 'h',
-			// We use "react 16.0" to avoid pushing folks to UNSAFE_ methods.
-			version: '16.0'
+			version: '17'
 		}
 	},
 
@@ -103,8 +102,8 @@ module.exports = {
 		'no-duplicate-imports': 2,
 		'no-else-return': 1,
 		'no-empty-pattern': 0,
-		'no-empty': 0,
-		'no-extra-parens': 0,
+		'no-empty': 2,
+		'no-extra-parens': 0, // Allows for nicer indentation for components
 		'no-iterator': 2,
 		'no-lonely-if': 2,
 		'no-mixed-spaces-and-tabs': [1, 'smart-tabs'],
@@ -118,14 +117,9 @@ module.exports = {
 		'no-this-before-super': 2,
 		'no-undef-init': 2,
 		'no-unneeded-ternary': 2,
-		'no-unused-vars': [2, {
-			args: 'after-used',
-			ignoreRestSiblings: true
-		}],
 		'no-useless-call': 1,
 		'no-useless-computed-key': 1,
 		'no-useless-concat': 1,
-		'no-useless-constructor': 1,
 		'no-useless-escape': 1,
 		'no-useless-rename': 1,
 		'no-var': 1,
@@ -152,6 +146,17 @@ module.exports = {
 		'quote-props': [2, 'as-needed'],
 		radix: 1, // parseInt(x, 10)
 		'unicode-bom': 2,
-		'valid-jsdoc': 0
+		'valid-jsdoc': 0,
+
+		/**
+		 * General TypeScript rules
+		 */
+		// "@typescript-eslint/no-shadow": 2,
+		"no-unused-vars": "off",
+		"@typescript-eslint/no-unused-vars": ["error", {
+			"argsIgnorePattern": "^_"
+		}],
+		"no-useless-constructor": "off",
+		"@typescript-eslint/no-useless-constructor": ["error"],
 	}
 };

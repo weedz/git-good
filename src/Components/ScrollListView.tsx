@@ -49,8 +49,13 @@ export default abstract class ScrollListView<T, P = unknown> extends Component<P
             totalHeight: props.itemHeight * props.items.length
         });
     }
-    componentWillReceiveProps(nextProps: Props<T>) {
-        this.setHeight(nextProps);
+
+    static getDerivedStateFromProps(props: Props<unknown>, state: State) {
+        const totalHeight = props.itemHeight * props.items.length;
+        if (totalHeight != state.totalHeight) {
+            return { totalHeight };
+        }
+        return null;
     }
     checkScrollPosition = () => {
         this.timeout = 0;

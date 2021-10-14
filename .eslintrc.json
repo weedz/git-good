@@ -13,10 +13,6 @@
   "ignorePatterns": "/scripts",
   "rules": {
     "@typescript-eslint/explicit-module-boundary-types": "off",
-    "no-unused-vars": "off",
-    "@typescript-eslint/no-unused-vars": ["error", {
-      "argsIgnorePattern": "^_"
-    }],
     // "preact" enables "no-useless-constructor", but we want to use parameter properties
     // in the constructor so enable typescript specific "no-useless-constructor"
     "no-useless-constructor": "off",

@@ -10,7 +10,8 @@ type Props = {
 export default function Compare(props: Props) {
     return (
         <div id="diff-pane" className="pane">
-            <ChangedFiles patches={props.patches} compare />
+            {/* We always want a new `ChangedFiles` component when showing a new compare view */}
+            <ChangedFiles key={Math.random()} patches={props.patches} compare />
         </div>
     );
 }

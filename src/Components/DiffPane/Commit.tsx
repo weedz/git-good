@@ -72,7 +72,7 @@ export default class Commit extends StoreComponent<Props, State> {
         return (
             <div id="diff-pane" className="pane">
                 <CommitMessage commit={this.state.commit} />
-                <ChangedFiles patches={this.state.patches} commit={this.state.commit} />
+                <ChangedFiles key={this.state.commit} patches={this.state.patches} commit={this.state.commit} />
             </div>
         );
     }
