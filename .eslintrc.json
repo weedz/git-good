@@ -5,7 +5,7 @@
     "node": true
   },
   "extends": [
-    "preact",
+    "./.preact.eslintrc",
     "eslint:recommended",
     "plugin:@typescript-eslint/eslint-recommended",
     "plugin:@typescript-eslint/recommended"
