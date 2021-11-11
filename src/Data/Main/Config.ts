@@ -47,7 +47,7 @@ try {
 
 
 export function currentProfile() {
-    return selectedGitProfile;
+    return selectedGitProfile as Readonly<typeof selectedGitProfile>;
 }
 
 export function getAuth(): AuthConfig | false {
@@ -82,7 +82,7 @@ export function setCurrentProfile(profileId: number) {
     if (appConfig.profiles[profileId]) {
         selectedGitProfile = appConfig.profiles[profileId];
         appConfig.selectedProfile = profileId;
-        return selectedGitProfile;
+        return currentProfile();
     }
 }
 
@@ -114,7 +114,7 @@ export function clearRepoProfile(repo: Repository) {
 
 
 export function getRecentRepositories() {
-    return recentRepoMenu;
+    return recentRepoMenu as Readonly<typeof recentRepoMenu>;
 }
 export function addRecentRepository(repoPath: string) {
     // Ensure we do not save duplicates
@@ -136,5 +136,5 @@ export function saveAppConfig(data: AppConfig) {
 }
 
 export function getAppConfig() {
-    return appConfig;
+    return appConfig as Readonly<AppConfig>;
 }
