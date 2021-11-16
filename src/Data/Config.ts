@@ -37,6 +37,7 @@ export interface AppConfig {
         refreshWorkdirOnFocus: boolean
     }
     commitlistSortOrder: "topological" | "none"
+    terminal: string | null
 }
 
 export interface GpgConfig {

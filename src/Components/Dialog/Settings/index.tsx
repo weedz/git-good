@@ -122,10 +122,7 @@ export class Settings extends Component<SettingsProps, State> {
                     <h3>Terminal</h3>
                     <div>
                         <label for="terminal-app">Terminal application:</label>
-                        <select>
-                            {/* FIXME: Add valid options for windows and mac, and custom command */}
-                            <option>x-terminal-emulator</option>
-                        </select>
+                        <input id="terminal-app" type="text" name="terminal-app" value={this.state.config.terminal || ""} onChange={e => this.setConfig("terminal", e.currentTarget.value)} />
                     </div>
                 </div>
                 <div className="pane">

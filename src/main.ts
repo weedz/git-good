@@ -149,20 +149,22 @@ function applyAppMenu() {
                             let process;
                             // TODO: configure different terminals?
                             if (isWindows) {
-                                process = exec("start cmd.exe", {
+                                const exe = getAppConfig().terminal || "cmd.exe";
+                                process = exec(`start ${exe}`, {
                                     cwd: repo.workdir()
                                 });
                             } else if (isMac) {
-                                process = spawn("open", ["-a", "Terminal", "."], {
+                                const exe = getAppConfig().terminal || "Terminal";
+                                process = spawn("open", ["-a", exe, "."], {
                                     cwd: repo.workdir()
                                 });
                             } else {
-                                process = spawn("x-terminal-emulator", {
+                                process = spawn(getAppConfig().terminal || "x-terminal-emulator", {
                                     cwd: repo.workdir()
                                 });
                             }
-                            process.on("error", (err) => {
-                                console.log(err);
+                            process.on("error", err => {
+                                dialog.showErrorBox("Failed to open terminal", err.message);
                             });
                         }
                     }

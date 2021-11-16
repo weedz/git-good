@@ -33,6 +33,7 @@ try {
             refreshWorkdirOnFocus: false
         },
         commitlistSortOrder: "topological",
+        terminal: null,
     };
     writeFileSync(globalAppConfigPath, JSON.stringify(appConfig));
 }
