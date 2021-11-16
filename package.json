@@ -54,7 +54,8 @@
       "category": "Development",
       "target": [
         "AppImage",
-        "deb"
+        "deb",
+        "pacman"
       ]
     },
     "mac": {
