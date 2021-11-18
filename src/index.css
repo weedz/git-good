@@ -25,7 +25,8 @@ body {
   padding: 0;
   background-color: #000;
   color: #ddd;
-  font-family: "JetBrains Mono NL", monospace;
+  /* FIXME: Add setting to change font, reflect this change in src/Data/Renderer/index.tsx:calculateGlyphWidth */
+  font-family: "JetBrainsMonoNL Nerd Font Mono", monospace;
   font-size: 13px;
 }
 h4 {

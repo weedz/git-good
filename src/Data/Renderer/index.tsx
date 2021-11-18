@@ -18,7 +18,7 @@ window.addEventListener("focus", async () => {
 
 // Glyph properties
 let _glyphWidth = 7.81;
-calculateGlyphWidth(13, 'JetBrains Mono NL');
+calculateGlyphWidth(13, 'JetBrainsMonoNL Nerd Font Mono');
 
 ipcGetData(IpcAction.GET_SETTINGS, null).then(config => {
     updateStore({
