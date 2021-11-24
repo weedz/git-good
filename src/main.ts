@@ -420,10 +420,10 @@ const eventMap: {
     [IpcAction.PULL]: async (repo, data) =>  provider.pull(repo, data, Signature.now(currentProfile().gitName, currentProfile().gitEmail)),
     [IpcAction.CREATE_BRANCH]: async (repo, data) => {
         try {
-            const res = await repo.createBranch(data.name, data.sha)
+            const res = await repo.createBranch(data.name, data.sha);
             return res !== null;
         } catch (err) {
-            return Error("Failed to create branch");
+            return err as Error;
         }
     },
     [IpcAction.CREATE_BRANCH_FROM_REF]: async (repo, data) => {
@@ -431,13 +431,17 @@ const eventMap: {
         try {
             ref = await repo.getReference(data.ref);
         } catch (err) {
-            return Error("Failed to create branch");
+            return err as Error;
         }
 
         const sha = ref.isTag() ? (await ref.peel(Object.TYPE.COMMIT)) as unknown as Commit : await repo.getReferenceCommit(data.ref);
-        
-        const res = await repo.createBranch(data.name, sha);
-        return res !== null;
+
+        try {
+            const res = await repo.createBranch(data.name, sha);
+            return res !== null;
+        } catch (err) {
+            return err as Error;
+        }
     },
     // TODO: Should we allow renaming remote refs? Can we use the same call for remote refs?
     [IpcAction.RENAME_LOCAL_BRANCH]: async (repo, data) => {
