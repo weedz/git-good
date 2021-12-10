@@ -48,6 +48,7 @@ export function authenticate(username: string, auth: AuthConfig) {
 export async function openRepo(repoPath: string) {
     try {
         repo = await Repository.open(repoPath);
+        index = await repo.refreshIndex();
     } catch (e) {
         return false;
     }
@@ -548,7 +549,7 @@ export async function remotes(repo: Repository): Promise<IpcActionReturn[IpcActi
 }
 
 export async function findFile(repo: Repository, file: string): Promise<IpcActionReturn[IpcAction.FIND_FILE]> {
-    index = await repo.refreshIndex();
+    await index.read(0);
 
     const set = new Set<string>();
 
@@ -661,7 +662,7 @@ async function getStagedPatches(repo: Repository, flags: Diff.OPTION) {
 }
 
 export async function refreshWorkDir(repo: Repository, options: IpcActionParams[IpcAction.REFRESH_WORKDIR]): Promise<IpcActionReturn[IpcAction.REFRESH_WORKDIR]> {
-    index = await repo.refreshIndex();
+    await index.read(0);
 
     const flags = options?.flags || 0;
 
@@ -677,7 +678,7 @@ export async function refreshWorkDir(repo: Repository, options: IpcActionParams[
 }
 
 export async function stageFile(repo: Repository, filePath: string): Promise<IpcActionReturn[IpcAction.STAGE_FILE]> {
-    index = await repo.refreshIndex();
+    await index.read(0);
 
     let result;
 
@@ -699,7 +700,7 @@ export async function stageFile(repo: Repository, filePath: string): Promise<Ipc
 export async function unstageFile(repo: Repository, path: string): Promise<IpcActionReturn[IpcAction.UNSTAGE_FILE]> {
     const head = await repo.getHeadCommit();
     await Reset.default(repo, head, path);
-    index = await repo.refreshIndex();
+    await index.read(0);
 
     return 0;
 }
@@ -902,7 +903,7 @@ async function loadConflictedPatch(path: string): Promise<HunkObj[]> {
 }
 
 export async function resolveConflict(repo: Repository, path: string) {
-    const conflictEntry = await index.conflictGet(path || "") as unknown as {ancestor_out: IndexEntry, our_out: IndexEntry | null, their_out: IndexEntry | null};
+    const conflictEntry = await index.conflictGet(path) as unknown as {ancestor_out: IndexEntry, our_out: IndexEntry | null, their_out: IndexEntry | null};
 
     if (!conflictEntry.our_out) {
         const res = await dialog.showMessageBox({
@@ -966,7 +967,7 @@ export async function resolveConflict(repo: Repository, path: string) {
     }
 
     // TODO: Promise<number>. seems to return undefined, not 0 on success
-    const result = await index.conflictRemove(path || "");
+    const result = await index.conflictRemove(path);
     await index.write();
     return result;
 }
