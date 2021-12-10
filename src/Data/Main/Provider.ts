@@ -758,7 +758,7 @@ export async function getWorkdirHunks(path: string, type: "staged" | "unstaged")
 function handleLine(line: DiffLine): LineObj {
     const oldLineno = line.oldLineno();
     const newLineno = line.newLineno();
-    let type = "";
+    let type: LineObj["type"] = "";
     if (oldLineno === -1) {
         type = "+";
     } else if (newLineno === -1) {
@@ -879,17 +879,41 @@ async function loadConflictedPatch(path: string): Promise<HunkObj[]> {
             lines: [],
         }];
     }
+
+    const hunks: HunkObj[] = [];
+
+    if ((await fs.stat(join(repo.workdir(), path))).size < 1 * 1024 * 1024) {
+        const fileContent = await fs.readFile(join(repo.workdir(), path));
+        const lineFeedCodepoint = "\n".codePointAt(0);
+
+        let conflictCursor = 0;
+
+        while (conflictCursor !== -1) {
+            const start = fileContent.indexOf("\n<<<<<<<", conflictCursor);
+            if (start < 0) {
+                break;
+            }
+            const end = fileContent.indexOf("\n>>>>>>>", start);
+            conflictCursor = end;
     
-    // const ancestor = await repo.getBlob(conflictEntry.ancestor_out.id);
-    // const theirs = await repo.getBlob(conflictEntry.their_out.id);
-    // const ours = await repo.getBlob(conflictEntry.our_out.id);
+            const content = fileContent.subarray(start, end + 9).toString();
+            const startLine = fileContent.subarray(0, start).filter(chr => chr === lineFeedCodepoint).length + 1;
+    
+            const lines = content.toString().split("\n").map((line, index): LineObj => ({
+                content: line,
+                type: "",
+                newLineno: index + startLine,
+                oldLineno: index + startLine,
+            }));
 
-    // console.log(theirs.content().toString());
+            hunks.push({
+                header: "",
+                lines,
+            });
+        }
+    }
 
-    // TODO: Parse conflicted file in index, eg. readfile(path)?
-
-
-    return [{
+    return hunks.length ? hunks : [{
         header: "",
         lines: [
             {
@@ -899,7 +923,7 @@ async function loadConflictedPatch(path: string): Promise<HunkObj[]> {
                 content: ""
             }
         ]
-    }]
+    }];
 }
 
 export async function resolveConflict(repo: Repository, path: string) {

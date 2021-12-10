@@ -251,7 +251,7 @@ export type FileObj = {
 };
 
 export type LineObj = {
-    type: string
+    type: "" | "-" | "+"
     oldLineno: number
     newLineno: number
     content: string
