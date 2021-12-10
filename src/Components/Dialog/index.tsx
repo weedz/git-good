@@ -51,6 +51,18 @@ export default class Dialog extends StoreComponent<unknown, State> {
                 this.setState({view: null});
             }
         });
+        document.addEventListener("keydown", this.handleKeyDown);
+    }
+    componentWillUnmount() {
+        document.removeEventListener("keydown", this.handleKeyDown);
+    }
+    handleKeyDown = (e: KeyboardEvent) => {
+        if (e.key === "Escape" && this.state.view) {
+            this.closeDialog();
+        }
+    }
+    closeDialog = () => {
+        this.setState({view: null});
     }
     render() {
         return this.state.view;
