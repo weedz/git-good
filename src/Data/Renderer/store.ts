@@ -213,14 +213,14 @@ export function clearLock(lock: Locks) {
 
 export function createBranchFromSha(sha: string, name: string) {
     setLock(Locks.BRANCH_LIST);
-    ipcSendMessage(IpcAction.CREATE_BRANCH, {
+    return ipcGetData(IpcAction.CREATE_BRANCH, {
         sha,
         name,
     });
 }
 export function createBranchFromRef(ref: string, name: string) {
     setLock(Locks.BRANCH_LIST);
-    ipcSendMessage(IpcAction.CREATE_BRANCH_FROM_REF, {
+    return ipcGetData(IpcAction.CREATE_BRANCH_FROM_REF, {
         ref,
         name,
     });
@@ -233,7 +233,7 @@ export function deleteBranch(name: string) {
 }
 export function renameLocalBranch(oldName: string, newName: string) {
     setLock(Locks.BRANCH_LIST);
-    ipcSendMessage(IpcAction.RENAME_LOCAL_BRANCH, {
+    return ipcGetData(IpcAction.RENAME_LOCAL_BRANCH, {
         ref: oldName,
         name: newName
     });
