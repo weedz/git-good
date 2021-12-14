@@ -192,7 +192,8 @@ function branchesLoaded(result: IpcActionReturn[IpcAction.LOAD_BRANCHES]) {
     mapHeads(heads, result.tags);
     updateStore({
         branches: result,
-        heads
+        heads,
+        stash: result.stash,
     });
 
     loadHEAD();

@@ -1,7 +1,7 @@
 import { h } from "preact";
 import "./style.css";
 import { normalizeLocalName } from "../../Data/Branch";
-import { Store, checkoutBranch, updateStore, PureStoreComponent } from "../../Data/Renderer/store";
+import { Store, checkoutBranch, updateStore, PureStoreComponent, showStash } from "../../Data/Renderer/store";
 import { showHeadMenu, showLocalMenu, showRemoteMenu, showRemoteRefMenu, showRemotesMenu, showTagMenu } from "./Menu";
 import { branchesAheadBehind, toggleTreeItem, getBranchTree, RenderBranchTree, RenderRemotes } from "./Utils";
 import Link from "../Link";
@@ -71,6 +71,26 @@ export default class BranchList extends PureStoreComponent<Props> {
                     <li className="sub-tree">
                         <a href="#" onClick={toggleTreeItem}>Tags</a>
                         <RenderBranchTree branches={this.props.branches.tags} contextMenu={showTagMenu} indent={1} />
+                    </li>
+                    <hr />
+                    <li className="sub-tree">
+                        <a href="#" onClick={toggleTreeItem}>Stash</a>
+                        {Store.stash && 
+                            <ul className="tree-list block-list">
+                                {Store.stash.map(stash => (
+                                    <li key={stash.oid} title={stash.msg}>
+                                        {/* TODO: add context menu for stash (drop,apply) */}
+                                        <Link linkId={stash.oid} linkData={stash.index} selectAction={async (link) => {
+                                            if (link.props.linkData !== undefined) {
+                                                showStash(link.props.linkData);
+                                            }
+                                        }}>
+                                            {stash.index}:{stash.msg.substring(0, 30)}
+                                        </Link>
+                                    </li>
+                                ))}
+                            </ul>
+                        }
                     </li>
                 </ul>}
             </Links.Provider>
