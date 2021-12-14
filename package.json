@@ -28,7 +28,7 @@
     "@types/node": "^16.11.10",
     "@types/nodegit": "^0.27.6",
     "@typescript-eslint/eslint-plugin": "^5.4.0",
-    "@typescript-eslint/parser": "^5.4.0",
+    "@typescript-eslint/parser": "^5.7.0",
     "electron": "^16.0.2",
     "electron-builder": "^22.14.8",
     "eslint": "^8.3.0",
