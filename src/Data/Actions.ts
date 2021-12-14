@@ -22,6 +22,7 @@ export enum IpcAction {
     LOAD_COMMIT,
     LOAD_PATCHES_WITHOUT_HUNKS,
     LOAD_HUNKS,
+    SHOW_STASH,
     CHECKOUT_BRANCH,
     REFRESH_WORKDIR,
     GET_CHANGES,
@@ -83,6 +84,7 @@ export type IpcActionParams = {
     ) & {
         path: string
     }
+    [IpcAction.SHOW_STASH]: number
     [IpcAction.CHECKOUT_BRANCH]: string
     [IpcAction.REFRESH_WORKDIR]: null | {
         flags?: DiffOptions["flags"]
@@ -160,7 +162,7 @@ export type IpcActionParams = {
 export type IpcActionReturn = {
     [IpcAction.LOAD_COMMITS]: LoadCommitsReturn
     [IpcAction.LOAD_FILE_COMMITS]: LoadFileCommitsReturn
-    [IpcAction.LOAD_BRANCHES]: BranchesObj
+    [IpcAction.LOAD_BRANCHES]: BranchesObj & {stash: StashObj[]}
     [IpcAction.LOAD_HEAD]: HeadBranchObj
     [IpcAction.LOAD_UPSTREAMS]: Array<{
         status: {
@@ -181,6 +183,7 @@ export type IpcActionReturn = {
         path: string
         hunks: HunkObj[] | false
     }
+    [IpcAction.SHOW_STASH]: PatchObj[]
     [IpcAction.CHECKOUT_BRANCH]: false | HeadBranchObj
     [IpcAction.REFRESH_WORKDIR]: {
         unstaged: number
@@ -325,6 +328,11 @@ export type BranchesObj = {
     remote: BranchObj[]
     local: BranchObj[]
     tags: BranchObj[]
+};
+export type StashObj = {
+    index: number
+    msg: string
+    oid: string
 };
 interface LoadCommitsParamSha {
     sha: string

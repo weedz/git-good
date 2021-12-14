@@ -411,6 +411,7 @@ const eventMap: {
             hunks: await loadHunks(repo, arg)
         };
     },
+    [IpcAction.SHOW_STASH]: provider.showStash,
     [IpcAction.CHECKOUT_BRANCH]: provider.checkoutBranch,
     [IpcAction.REFRESH_WORKDIR]: provider.refreshWorkDir,
     [IpcAction.GET_CHANGES]: provider.loadChanges,

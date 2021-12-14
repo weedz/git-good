@@ -3,7 +3,7 @@ import { PureComponent } from "preact/compat";
 import { createStore, PartialStoreListener } from "@weedzcokie/store";
 import { DialogProps, DialogTypes } from "../../Components/Dialog/types";
 import { unselectLink } from "../../Components/Link";
-import { IpcAction, BranchesObj, BranchObj, PatchObj, Locks, RepoStatus, IpcActionParams, IpcActionReturn, HeadBranchObj } from "../Actions";
+import { IpcAction, BranchesObj, BranchObj, PatchObj, Locks, RepoStatus, IpcActionParams, IpcActionReturn, HeadBranchObj, StashObj } from "../Actions";
 import { registerHandler, ipcSendMessage, ipcGetData } from "./IPC";
 import { Notification } from "../../Components/Notification";
 import { AppConfig } from "../Config";
@@ -23,6 +23,7 @@ export type StoreType = {
         status: null | RepoStatus
     }
     branches: BranchesObj
+    stash: StashObj[]
     head: HeadBranchObj | undefined
     remotes: IpcActionReturn[IpcAction.REMOTES]
     heads: Record<string, BranchObj[]>
@@ -54,6 +55,7 @@ const store = createStore<StoreType>({
         local: [],
         tags: []
     },
+    stash: [],
     head: undefined,
     remotes: [],
     heads: {},
@@ -277,7 +279,7 @@ export function closeDialogWindow() {
     });
 }
 
-export async function openFileHistory(file: string, sha?: string) {
+export function openFileHistory(file: string, sha?: string) {
     ipcSendMessage(IpcAction.LOAD_FILE_COMMITS, {file, cursor: sha, startAtCursor: true});
     store.updateStore({
         currentFile: {
@@ -291,6 +293,13 @@ export async function openFileHistory(file: string, sha?: string) {
             },
             commitSHA: sha
         },
+    });
+}
+
+export async function showStash(index: number) {
+    const patches = await ipcGetData(IpcAction.SHOW_STASH, index);
+    store.updateStore({
+        comparePatches: patches
     });
 }
 

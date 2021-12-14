@@ -3,8 +3,8 @@ import { promises as fs } from "fs";
 import { dialog, IpcMainEvent } from "electron";
 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
 // @ts-ignore, missing declations for Credential
-import { Revparse, Credential, Repository, Revwalk, Commit, Diff, ConvenientPatch, ConvenientHunk, DiffLine, Object, Branch, Graph, Index, Reset, Checkout, DiffFindOptions, Reference, Oid, Signature, Remote, DiffOptions, IndexEntry, Error as NodeGitError, Tag } from "nodegit";
-import { IpcAction, BranchObj, LineObj, HunkObj, PatchObj, CommitObj, IpcActionParams, IpcActionReturn, RefType } from "../Actions";
+import { Revparse, Credential, Repository, Revwalk, Commit, Diff, ConvenientPatch, ConvenientHunk, DiffLine, Object, Branch, Graph, Index, Reset, Checkout, DiffFindOptions, Reference, Oid, Signature, Remote, DiffOptions, IndexEntry, Error as NodeGitError, Tag, Stash } from "nodegit";
+import { IpcAction, BranchObj, LineObj, HunkObj, PatchObj, CommitObj, IpcActionParams, IpcActionReturn, RefType, StashObj } from "../Actions";
 import { normalizeLocalName, normalizeRemoteName, normalizeRemoteNameWithoutRemote, normalizeTagName, remoteName } from "../Branch";
 import { gpgSign, gpgVerify } from "./GPG";
 import { AuthConfig } from "../Config";
@@ -493,12 +493,53 @@ export async function getUpstreamRefs(repo: Repository): Promise<IpcActionReturn
     return upstreams;
 }
 
+export async function showStash(repo: Repository, index: number) {
+    const stash = repoStash.at(index);
+
+    if (!stash) {
+        return Error("Invalid stash");
+    }
+
+    const stashCommit = await Commit.lookup(repo, stash.oid);
+    const stashDiff = await stashCommit.getDiff();
+
+    // TODO: Which diff to show?
+    const diff = stashDiff[0];
+
+    const patches = await diff.patches();
+
+    const patchesObj = patches.map(async patch => {
+        const patchObj = handlePatch(patch);
+        const hunks = await loadHunks(patch);
+        if (hunks) {
+            patchObj.hunks = hunks;
+        }
+        return patchObj;
+    });
+
+    return Promise.all(patchesObj);
+}
+
+async function getStash(repo: Repository) {
+    const stash: StashObj[] = [];
+    await Stash.foreach(repo, (index: number, msg: string, oid: Oid) => {
+        stash.push({
+            index,
+            msg,
+            oid: oid.tostrS(),
+        });
+    });
+    return stash;
+}
+
 // {local: Branch[], remote: Branch[], tags: Branch[]}
 export async function getBranches(repo: Repository): Promise<IpcActionReturn[IpcAction.LOAD_BRANCHES]> {
     
     const local: BranchObj[] = [];
     const remote: BranchObj[] = [];
     const tags: BranchObj[] = [];
+
+    repoStash = await getStash(repo);
     
     const refs = await repo.getReferences();
     // FIXME: Why do we get 2 references for "refs/remotes/origin/master"
@@ -540,6 +581,7 @@ export async function getBranches(repo: Repository): Promise<IpcActionReturn[Ipc
         local,
         remote,
         tags,
+        stash: repoStash,
     };
 }
 
@@ -1185,6 +1227,7 @@ export async function checkoutBranch(repo: Repository, branch: string) {
     }
 }
 
+let repoStash: StashObj[] = [];
 let currentCommit: string;
 let commitObjectCache: {
     [sha: string]: {
