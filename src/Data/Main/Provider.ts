@@ -495,30 +495,18 @@ export async function getUpstreamRefs(repo: Repository): Promise<IpcActionReturn
 
 // {local: Branch[], remote: Branch[], tags: Branch[]}
 export async function getBranches(repo: Repository): Promise<IpcActionReturn[IpcAction.LOAD_BRANCHES]> {
-    const refs = await repo.getReferences();
-
+    
     const local: BranchObj[] = [];
     const remote: BranchObj[] = [];
     const tags: BranchObj[] = [];
-
+    
+    const refs = await repo.getReferences();
     // FIXME: Why do we get 2 references for "refs/remotes/origin/master"
     await Promise.all(
         refs.map(async (ref) => {
-            let oid;
-            try {
-                const headCommit = await ref.peel(Object.TYPE.COMMIT);
-                oid = headCommit.id();
-            } catch (e) {
-                console.warn(e);
-                console.log(`Cannot find head of ref '${ref.name()}'`);
-            }
-            if (!oid) {
-                return;
-            }
-
             const refObj: BranchObj = {
                 name: ref.name(),
-                headSHA: oid.tostrS(),
+                headSHA: ref.target().tostrS(),
                 normalizedName: "",
                 type: RefType.LOCAL,
             };
@@ -531,6 +519,16 @@ export async function getBranches(repo: Repository): Promise<IpcActionReturn[Ipc
                 refObj.type = RefType.REMOTE;
                 remote.push(refObj);
             } else if (ref.isTag()) {
+                // We need to handle Tag in a special way. Start with `ref.targetPeel` 
+                // (which is way faster) but it seems to fail for "soft" tags?
+                // Then fallback to `ref.peel` if `ref.targetPeel` returns null
+                let oid = ref.targetPeel();
+                if (!oid) {
+                    const headCommit = await ref.peel(Object.TYPE.COMMIT);
+                    oid = headCommit.id();
+                }
+                refObj.headSHA = oid.tostrS();
+
                 refObj.normalizedName = normalizeTagName(refObj.name);
                 refObj.type = RefType.TAG;
                 tags.push(refObj);
