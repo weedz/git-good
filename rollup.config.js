@@ -3,9 +3,29 @@ import { execSync } from "child_process";
 import resolve from "@rollup/plugin-node-resolve";
 import typescript from "@rollup/plugin-typescript";
 import css from "rollup-plugin-import-css";
-import { terser } from "rollup-plugin-terser";
 import replace from "@rollup/plugin-replace"
 import { defineConfig } from "rollup";
+import { minify } from "terser";
+
+function terserPlugin() {
+    return {
+        async renderChunk(code, _chunk, outputOptions) {
+            const options = {
+                mangle: true,
+                compress: true,
+            };
+            if (outputOptions.format === "es" || outputOptions.format === "esm") {
+                options.module = true;
+            }
+            if (outputOptions.format === "cjs") {
+                options.toplevel = true;
+            }
+
+            return minify(code, options);
+        }
+    }
+}
+
 
 const production = !process.env.ROLLUP_WATCH;
 
@@ -36,7 +56,7 @@ const plugins = [
         __build_date__: () => new Date().getTime(),
         __last_comit__: () => execSync("git rev-parse HEAD").toString("utf8").trim(),
     }),
-    production && terser(),
+    production && terserPlugin(),
 ];
 
 export default defineConfig({
@@ -49,6 +69,7 @@ export default defineConfig({
         sourcemap: !production,
         format: "cjs",
         dir: "dist",
+        compact: production,
     },
     plugins,
     watch: {
