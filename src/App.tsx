@@ -15,7 +15,7 @@ export default class App extends StoreComponent {
     componentDidMount() {
         this.listen("repo", repo => {
             if (repo) {
-                document.title = basename(repo.path);
+                document.title = `${basename(repo.path)} - git-good`;
                 this.setState({});
             }
         });
