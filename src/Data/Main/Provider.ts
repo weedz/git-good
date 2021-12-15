@@ -988,6 +988,7 @@ export async function resolveConflict(repo: Repository, path: string) {
         }
         if (res.response === 2) {
             await index.addByPath(path);
+            await index.conflictRemove(path);
         } else {
             try {
                 await fs.unlink(join(repo.workdir(), path));
@@ -1009,13 +1010,13 @@ export async function resolveConflict(repo: Repository, path: string) {
         }
         if (res.response === 2) {
             try {
-                await fs.unlink(join(repo.workdir(), path));
+                await index.removeByPath(path);
             } catch (err) {
                 console.log(err);
             }
-            await index.removeByPath(path);
         } else {
             await index.addByPath(path);
+            await index.conflictRemove(path);
         }
     } else {
         if ((await fs.stat(join(repo.workdir(), path))).size < 1 * 1024 * 1024) {
@@ -1034,10 +1035,12 @@ export async function resolveConflict(repo: Repository, path: string) {
         }
 
         await index.addByPath(path);
+        await index.conflictRemove(path);
     }
 
     // TODO: Promise<number>. seems to return undefined, not 0 on success
-    const result = await index.conflictRemove(path);
+    // const result = await index.conflictRemove(path);
+    const result = undefined;
     await index.write();
     return result;
 }
