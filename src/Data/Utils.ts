@@ -54,3 +54,19 @@ export function formatTimeAgo(date: Date) {
         duration /= division.amount
     }
 }
+/**
+ * Returns the supplied number of bytes formated as KiB/MiB/GiB with a precision of 2 decimal places
+ * @param bytes 
+ */
+export function humanReadableBytes(bytes: number) {
+    if (bytes > 1073741824) {
+        return `${Math.round(bytes * 100 / 1073741824) / 100} GiB`;
+    }
+    if (bytes > 1048576) {
+        return `${Math.round(bytes * 100 / 1048576) / 100} MiB`;
+    }
+    if (bytes > 1024) {
+        return `${Math.round(bytes * 100 / 1024) / 100} KiB`;
+    }
+    return bytes.toString(10);
+}

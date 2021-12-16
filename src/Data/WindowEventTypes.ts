@@ -9,7 +9,8 @@ export type WindowEvents =
     "app-unlock-ui" |
     "begin-compare-revisions" |
     "begin-view-commit" |
-    "notify";
+    "notify" |
+    "push-status";
 
 export type WindowArguments = {
     "repo-opened": IpcActionReturn[IpcAction.OPEN_REPO]
@@ -29,4 +30,9 @@ export type WindowArguments = {
     }
     "begin-view-commit": null
     "notify": {title: string, body?: string}
+    "push-status": {done: boolean} | {
+        totalObjects: number
+        transferedObjects: number
+        bytes: number
+    }
 }

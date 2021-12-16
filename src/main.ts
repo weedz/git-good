@@ -475,7 +475,9 @@ const eventMap: {
         return Error("Revisions not found");
     },
     [IpcAction.PUSH]: async (repo, data) => {
-        return provider.push(repo, data);
+        return provider.push(repo, data, {
+            win: win.webContents
+        });
     },
     [IpcAction.SET_UPSTREAM]: async (repo, data) => {
         const result = await provider.setUpstream(repo, data.local, data.remote);

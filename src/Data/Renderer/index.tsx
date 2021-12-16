@@ -7,6 +7,7 @@ import { openDialog_CompareRevisions, openDialog_Settings, openDialog_ViewCommit
 import { addWindowEventListener, registerHandler, ipcSendMessage, ipcGetData } from "./IPC";
 import { Store, clearLock, setLock, updateStore, StoreType, notify } from "./store";
 import { Notification } from "../../Components/Notification";
+import { humanReadableBytes } from "../Utils";
 
 let refreshingWorkdir = false;
 
@@ -129,9 +130,7 @@ export function pull(ref: string | null) {
 }
 
 export async function push() {
-    const n = notify({title: "Pushing...", time: 0});
-    await ipcGetData(IpcAction.PUSH, null);
-    n.update({title: "Pushed", body: <p>Done!</p>, time: 3000});
+    return ipcGetData(IpcAction.PUSH, null);
 }
 
 function setStatus(status: RepoStatus) {
@@ -243,25 +242,45 @@ addWindowEventListener("begin-view-commit", openDialog_ViewCommit);
 addWindowEventListener("notify", notify);
 
 // FIXME: Should probably handle this better..
-let fetchNotification: null | Notification;
-addWindowEventListener("fetch-status", stats => {
-    if (!fetchNotification) {
-        fetchNotification = notify({title: "Fetching", time: 0});
-    }
-    if ("done" in stats) {
-        if (stats.done) {
-            fetchNotification.update({title: "Fetched", body: <p>{stats.update ? "Done" : "No update"}</p>, time: 3000});
-            fetchNotification = null;
+{
+    let fetchNotification: null | Notification;
+    addWindowEventListener("fetch-status", stats => {
+        if (!fetchNotification) {
+            fetchNotification = notify({title: "Fetching", time: 0});
         }
-        if (stats.update) {
-            loadBranches();
+        if ("done" in stats) {
+            if (stats.done) {
+                fetchNotification.update({title: "Fetched", body: <p>{stats.update ? "Done" : "No update"}</p>, time: 3000});
+                fetchNotification = null;
+            }
+            if (stats.update) {
+                loadBranches();
+            }
+        } else if (stats.receivedObjects == stats.totalObjects) {
+            fetchNotification.update({body: <p>Resolving deltas {stats.indexedDeltas}/{stats.totalDeltas}</p>});
+        } else if (stats.totalObjects > 0) {
+            fetchNotification.update({body: <p>Received {stats.receivedObjects}/{stats.totalObjects} objects ({stats.indexedObjects}) in {humanReadableBytes(stats.receivedBytes)}</p>});
         }
-    } else if (stats.receivedObjects == stats.totalObjects) {
-        fetchNotification.update({body: <p>Resolving deltas {stats.indexedDeltas}/{stats.totalDeltas}</p>});
-    } else if (stats.totalObjects > 0) {
-        fetchNotification.update({body: <p>Received {stats.receivedObjects}/{stats.totalObjects} objects ({stats.indexedObjects}) in {stats.receivedBytes} bytes</p>});
-    }
-});
+    });
+}
+
+{
+    let pushNotification: null | Notification;
+    addWindowEventListener("push-status", stats => {
+        console.log("push status", stats);
+        if (!pushNotification) {
+            pushNotification = notify({title: "Pushing...", time: 0});
+        }
+        if ("done" in stats) {
+            if (stats.done) {
+                pushNotification.update({title: "Pushed", time: 3000});
+                pushNotification = null;
+            }
+        } else if (stats.totalObjects > 0) {
+            pushNotification.update({body: <p>Pushed {stats.transferedObjects}/{stats.totalObjects} objects in {stats.bytes} bytes</p>});
+        }
+    });
+}
 
 registerHandler(IpcAction.OPEN_REPO, repoOpened);
 registerHandler(IpcAction.REFRESH_WORKDIR, updateRepoStatus);

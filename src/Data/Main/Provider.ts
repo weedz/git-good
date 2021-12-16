@@ -1,6 +1,6 @@
 import { join } from "path";
 import { promises as fs } from "fs";
-import { dialog, IpcMainEvent } from "electron";
+import { dialog, IpcMainEvent, WebContents } from "electron";
 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
 // @ts-ignore, missing declations for Credential
 import { Revparse, Credential, Repository, Revwalk, Commit, Diff, ConvenientPatch, ConvenientHunk, DiffLine, Object, Branch, Graph, Index, Reset, Checkout, DiffFindOptions, Reference, Oid, Signature, Remote, DiffOptions, IndexEntry, Error as NodeGitError, Tag, Stash } from "nodegit";
@@ -9,6 +9,12 @@ import { normalizeLocalName, normalizeRemoteName, normalizeRemoteNameWithoutRemo
 import { gpgSign, gpgVerify } from "./GPG";
 import { AuthConfig } from "../Config";
 import { currentProfile, getAppConfig, getAuth } from "./Config";
+import { sendEvent } from "./WindowEvents";
+
+// TODO: Could probably handle this better
+export type Context = {
+    win: WebContents;
+};
 
 export const actionLock: {
     [key in IpcAction]?: {
@@ -272,7 +278,7 @@ export async function pull(repo: Repository, branch: string | null, signature: S
     return !!result;
 }
 
-async function pushHead(repo: Repository, auth: AuthConfig) {
+async function pushHead(repo: Repository, auth: AuthConfig, context?: Context) {
     const head = await repo.head();
     let upstream;
     try {
@@ -287,32 +293,41 @@ async function pushHead(repo: Repository, auth: AuthConfig) {
 
     const remote = await repo.getRemote(remoteName(upstream.name()));
 
-    return pushBranch(repo, remote, head, auth);
+    return pushBranch(repo, remote, head, auth, undefined, context);
 }
 
-export async function push(repo: Repository, data: IpcActionParams[IpcAction.PUSH]) {
+export async function push(repo: Repository, data: IpcActionParams[IpcAction.PUSH], context?: Context) {
+    context && sendEvent(context.win, "push-status", {
+        done: false
+    });
+
+    let result = false;
+
     const auth = getAuth();
     if (!auth) {
         return Error("No git credentials");
     }
     if (!data) {
-        return pushHead(repo, auth);
+        result = await pushHead(repo, auth, context);
+    } else {
+        const localRef = await repo.getReference(data.localBranch);
+        const remote = await repo.getRemote(data.remote);
+
+        if (localRef.isBranch()) {
+            result = await pushBranch(repo, remote, localRef, auth, data.force, context);
+        } else if (localRef.isTag()) {
+            result = await pushTag(remote, localRef, auth, undefined, context);
+        }
     }
 
-    const localRef = await repo.getReference(data.localBranch);
-    const remote = await repo.getRemote(data.remote);
+    context && sendEvent(context.win, "push-status", {
+        done: true
+    });
 
-    if (localRef.isBranch()) {
-        return pushBranch(repo, remote, localRef, auth, data.force);
-    }
-    if (localRef.isTag()) {
-        return pushTag(remote, localRef, auth);
-    }
-
-    return false;
+    return result;
 }
 
-async function pushBranch(repo: Repository, remote: Remote, localRef: Reference, auth: AuthConfig, force = false) {
+async function pushBranch(repo: Repository, remote: Remote, localRef: Reference, auth: AuthConfig, force = false, context?: Context) {
     let remoteRefName: string;
     let status: { ahead: number, behind: number };
     try {
@@ -344,15 +359,15 @@ async function pushBranch(repo: Repository, remote: Remote, localRef: Reference,
         }
     }
 
-    return doPush(remote, localRef.name(), `heads/${remoteRefName}`, auth, force);
+    return doPush(remote, localRef.name(), `heads/${remoteRefName}`, auth, force, context);
 }
 
-async function pushTag(remote: Remote, localRef: Reference, auth: AuthConfig, remove = false) {
+async function pushTag(remote: Remote, localRef: Reference, auth: AuthConfig, remove = false, context?: Context) {
     // We can pass an empty localref to delete a remote ref
-    return doPush(remote, remove ? "" : localRef.name(), `tags/${normalizeTagName(localRef.name())}`, auth);
+    return doPush(remote, remove ? "" : localRef.name(), `tags/${normalizeTagName(localRef.name())}`, auth, undefined, context);
 }
 
-async function doPush(remote: Remote, localName: string, remoteName: string, auth: AuthConfig, forcePush = false) {
+async function doPush(remote: Remote, localName: string, remoteName: string, auth: AuthConfig, forcePush = false, context?: Context) {
     // something with pathspec, https://github.com/nodegit/nodegit/issues/1270#issuecomment-293742772
     const force = forcePush ? "+" : "";
     try {
@@ -363,8 +378,15 @@ async function doPush(remote: Remote, localName: string, remoteName: string, aut
                 callbacks: {
                     credentials: (_url: string, username: string) => authenticate(username, auth),
 
-                    // FIXME: Can we use this to show "progress" when pushing?
-                    // transferProgress: (...args: any) => void,
+                    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+                    // @ts-ignore
+                    pushTransferProgress: (transferedObjects: number, totalObjects: number, bytes: number) => {
+                        context && sendEvent(context.win, "push-status", {
+                            totalObjects,
+                            transferedObjects,
+                            bytes
+                        });
+                    },
                 }
             }
         );
