@@ -13,6 +13,7 @@ function terserPlugin() {
             const options = {
                 mangle: true,
                 compress: true,
+                sourceMap: outputOptions.sourcemap,
             };
             if (outputOptions.format === "es" || outputOptions.format === "esm") {
                 options.module = true;

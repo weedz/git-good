@@ -1,23 +1,4 @@
 module.exports = {
-	// Currently ignored due to the custom parser.
-	parserOptions: {
-		ecmaVersion: 2020,
-		sourceType: 'module',
-		ecmaFeatures: {
-			modules: true,
-			impliedStrict: true,
-			jsx: true
-		},
-		requireConfigFile: false,
-		babelOptions: {
-			plugins: [
-				'@babel/plugin-syntax-class-properties',
-				['@babel/plugin-syntax-decorators', { decoratorsBeforeExport: false }],
-				'@babel/plugin-syntax-jsx'
-			]
-		}
-	},
-
 	// We don't use plugin:react/recommended here to avoid React-specific rules.
 	extends: [
 		'eslint:recommended',
@@ -41,9 +22,6 @@ module.exports = {
 	},
 
 	settings: {
-		// Preact CLI provides these defaults
-		targets: ['last 2 versions'],
-		polyfills: ['fetch', 'Promise'],
 		react: {
 			// eslint-plugin-preact interprets this as "h.createElement",
 			// however we only care about marking h() as being a used variable.
