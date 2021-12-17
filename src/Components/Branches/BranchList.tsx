@@ -79,7 +79,7 @@ export default class BranchList extends PureStoreComponent<Props> {
                             {Store.stash.map(stash => (
                                 <li key={stash.oid} title={stash.msg}>
                                     {/* TODO: add context menu for stash (drop,apply) */}
-                                    <Link linkId={stash.oid} linkData={stash.index} selectAction={async (link) => {
+                                    <Link style={{textIndent: "1em"}} linkId={stash.oid} linkData={stash.index} selectAction={async (link) => {
                                         if (link.props.linkData !== undefined) {
                                             showStash(link.props.linkData);
                                         }
