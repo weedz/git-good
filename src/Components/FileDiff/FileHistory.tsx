@@ -1,6 +1,5 @@
 import { Diff } from "nodegit";
-import { h } from "preact";
-import { PureComponent } from "preact/compat";
+import { Component, h } from "preact";
 import { ipcGetData } from "../../Data/Renderer/IPC";
 import { IpcActionReturn, IpcAction } from "../../Data/Actions";
 import { updateStore } from "../../Data/Renderer/store";
@@ -8,6 +7,7 @@ import { formatTimeAgo } from "../../Data/Utils";
 import ScrollContainer from "../ScrollContainer";
 import Link from "../Link";
 import { showFileHistoryCommitMenu } from "./FileHistoryMenu";
+import { filterCommit } from "../../Data/Renderer/Utility";
 
 const ITEM_HEIGHT = 50;
 const ACTION_ITEM_HEIGHT = 12;
@@ -16,16 +16,23 @@ type Props = {
     fileHistory: IpcActionReturn[IpcAction.LOAD_FILE_COMMITS]["commits"]
     openFileHistory: (path: string) => void
 }
+type State = {
+    filter: string
+};
 
-// eslint-disable-next-line react/prefer-stateless-function
-export default class CommitContainer extends PureComponent<Props> {
+export default class CommitContainer extends Component<Props, State> {
+    updateFilter(filter: string) {
+        this.setState({filter});
+    }
     render() {
+        const fileHistory = this.state.filter ? this.props.fileHistory.filter(item => filterCommit(this.state.filter, item)) : this.props.fileHistory;
         return (
             <div id="file-history-commits" className="pane">
                 <h4>File history</h4>
+                <input type="text" placeholder="Sha/message/author" title="Search/Filter" onChange={e => this.updateFilter(e.currentTarget.value)} />
                 {!this.props.fileHistory.length ? (
                     <p>Loading...</p>
-                ) : <ScrollContainer items={this.props.fileHistory} itemHeight={ITEM_HEIGHT} renderItems={(commits, start) => {
+                ) : <ScrollContainer items={fileHistory} itemHeight={ITEM_HEIGHT} renderItems={(commits, start) => {
                     let extraHeightOffset = 0;
                     return commits.map((commit, idx) => {
                         let status = "";

@@ -9,6 +9,7 @@ import HeadColors from "./HeadColors";
 import { Links } from "../LinkContainer";
 import CommitContainer from "./CommitContainer";
 import { GlobalLinks } from "../Link";
+import { filterCommit } from "../../Data/Renderer/Utility";
 
 type State = {
     commits: IpcActionReturn[IpcAction.LOAD_COMMITS]["commits"]
@@ -145,10 +146,7 @@ export default class CommitList extends PureStoreComponent<unknown, State> {
     filterCommits() {
         const filter = this.state.filter;
         if (filter) {
-            return this.state.commits.filter((commit) =>
-                commit.sha.toLocaleLowerCase().includes(filter)
-                || commit.message.toLocaleLowerCase().includes(filter)
-            );
+            return this.state.commits.filter(commit => filterCommit(filter, commit));
         }
         return this.state.commits;
     }
