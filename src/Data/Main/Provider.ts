@@ -770,7 +770,7 @@ export async function unstageFile(repo: Repository, path: string): Promise<IpcAc
 
     return 0;
 }
-export async function discardChanges(repo: Repository, filePath: string): Promise<IpcActionReturn[IpcAction.DISCARD_FILE]> {
+export async function discardChanges(repo: Repository, filePath: string) {
     if (!index.getByPath(filePath)) {
         // file not found in index (untracked), delete?
         const result = await dialog.showMessageBox({
@@ -780,7 +780,13 @@ export async function discardChanges(repo: Repository, filePath: string): Promis
             cancelId: 0,
         });
         if (result.response === 1) {
-            await fs.unlink(join(repo.workdir(), filePath));
+            try {
+                await fs.unlink(join(repo.workdir(), filePath));
+            } catch (err) {
+                if (err instanceof Error) {
+                    return err;
+                }
+            }
         }
         return 0;
     }
