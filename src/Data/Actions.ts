@@ -55,6 +55,10 @@ export enum IpcAction {
     CREATE_TAG,
     DELETE_TAG,
     PARSE_REVSPEC,
+    LOAD_STASHES,
+    STASH_POP,
+    STASH_APPLY,
+    STASH_DROP,
 }
 
 export type IpcActionParams = {
@@ -157,12 +161,16 @@ export type IpcActionParams = {
         remote: boolean | undefined
     }
     [IpcAction.PARSE_REVSPEC]: string
+    [IpcAction.LOAD_STASHES]: null
+    [IpcAction.STASH_POP]: number
+    [IpcAction.STASH_APPLY]: number
+    [IpcAction.STASH_DROP]: number
 };
 
 export type IpcActionReturn = {
     [IpcAction.LOAD_COMMITS]: LoadCommitsReturn
     [IpcAction.LOAD_FILE_COMMITS]: LoadFileCommitsReturn
-    [IpcAction.LOAD_BRANCHES]: BranchesObj & {stash: StashObj[]}
+    [IpcAction.LOAD_BRANCHES]: BranchesObj
     [IpcAction.LOAD_HEAD]: HeadBranchObj
     [IpcAction.LOAD_UPSTREAMS]: Array<{
         status: {
@@ -227,6 +235,10 @@ export type IpcActionReturn = {
     [IpcAction.CREATE_TAG]: boolean
     [IpcAction.DELETE_TAG]: boolean
     [IpcAction.PARSE_REVSPEC]: string
+    [IpcAction.LOAD_STASHES]: StashObj[]
+    [IpcAction.STASH_POP]: boolean
+    [IpcAction.STASH_APPLY]: boolean
+    [IpcAction.STASH_DROP]: boolean
 };
 
 export type IpcActionReturnError = {

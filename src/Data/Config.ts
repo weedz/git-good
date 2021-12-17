@@ -18,20 +18,22 @@ export type AuthConfig = SshConfig | {
     password: string
 };
 
+export type Profile = {
+    profileName: string
+    authType: "ssh" | "userpass"
+    username?: string
+    password?: string
+    gitEmail: string
+    gitName: string
+    sshPrivateKey?: string
+    sshPublicKey?: string
+    sshPassphrase?: string
+    sshAgent: boolean
+    gpg?: GpgConfig | undefined
+}
+
 export interface AppConfig {
-    profiles: Array<{
-        profileName: string
-        authType: "ssh" | "userpass"
-        username?: string
-        password?: string
-        gitEmail: string
-        gitName: string
-        sshPrivateKey?: string
-        sshPublicKey?: string
-        sshPassphrase?: string
-        sshAgent: boolean
-        gpg?: GpgConfig | undefined
-    }>
+    profiles: Profile[]
     selectedProfile: number
     ui: {
         refreshWorkdirOnFocus: boolean

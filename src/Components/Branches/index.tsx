@@ -5,6 +5,7 @@ import { Store, PureStoreComponent } from "../../Data/Renderer/store";
 import { getBranchTree, filterBranches } from "./Utils";
 import BranchList from "./BranchList";
 import { loadUpstreams } from "../../Data/Renderer";
+import StashList from "./StashList";
 
 type State = {
     filter: string
@@ -61,6 +62,8 @@ export default class Branches extends PureStoreComponent<unknown, State> {
             <Fragment>
                 <div id="branch-pane" className={`pane${Store.locks[Locks.BRANCH_LIST] ? " disabled" : ""}`}>
                     <BranchList branches={this.state.branches} />
+                    <hr />
+                    <StashList />
                 </div>
                 <div className="pane">
                     <input type="text" placeholder="Filter..." onKeyUp={this.filter} />

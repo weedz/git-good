@@ -7,14 +7,11 @@ import { IpcAction, BranchesObj, BranchObj, PatchObj, Locks, RepoStatus, IpcActi
 import { registerHandler, ipcSendMessage, ipcGetData } from "./IPC";
 import { Notification } from "../../Components/Notification";
 import { AppConfig } from "../Config";
+import { NotificationInit, NotificationPosition } from "../WindowEventTypes";
 
 export type DialogWindow = {
     type: DialogTypes
     props: DialogProps[DialogTypes]
-}
-
-export enum NotificationPosition {
-    DEFAULT,
 }
 
 export type StoreType = {
@@ -107,7 +104,7 @@ export abstract class StoreComponent<P = unknown, S = unknown> extends Component
 export abstract class PureStoreComponent<P = unknown, S = unknown> extends PureComponent<P, S> {
     listeners: Array<() => void> = [];
 
-    listen<T extends StoreKeys>(key: T, cb: PartialStoreListener<StoreType, T>) {
+    listen<T extends StoreKeys>(key: T, cb: PartialStoreListener<StoreType, T> = () => this.forceUpdate()) {
         this.listeners.push(store.subscribe(key, cb));
     }
     registerHandler<T extends IpcAction>(action: T, cb: (arg: IpcActionReturn[T]) => void) {
@@ -121,7 +118,7 @@ export abstract class PureStoreComponent<P = unknown, S = unknown> extends PureC
     }
 }
 
-export function notify(notificationData: {position?: NotificationPosition, title: string, body?: null | string | AnyComponent | JSX.Element, time?: number, classList?: string[]}) {
+export function notify(notificationData: NotificationInit & {body?: null | string | AnyComponent | JSX.Element}) {
     const position = notificationData.position || NotificationPosition.DEFAULT;
     const notification = new Notification(notificationData.title, notificationData.body || null, notificationData.classList || [], deleteNotification[position], notificationData.time ?? 5000);
 

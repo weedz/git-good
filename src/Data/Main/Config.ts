@@ -1,13 +1,13 @@
 import { app } from "electron";
 import { readFileSync, unlinkSync, writeFileSync } from "fs";
 import { readFile } from "fs/promises";
-import { Repository } from "nodegit";
+import { Repository, Signature } from "nodegit";
 import { join } from "path";
-import { AppConfig, AuthConfig } from "../Config";
+import { AppConfig, AuthConfig, Profile } from "../Config";
 
 
 let appConfig: AppConfig;
-let selectedGitProfile: AppConfig["profiles"][0];
+let selectedGitProfile: Profile;
 const appDataDir = app.getPath("userData");
 const globalAppConfigPath = join(appDataDir, "git-good.config.json");
 
@@ -48,7 +48,14 @@ try {
 
 
 export function currentProfile() {
-    return selectedGitProfile as Readonly<typeof selectedGitProfile>;
+    return selectedGitProfile as Readonly<Profile>;
+}
+export function signatureFromProfile(profile: Profile) {
+    return  Signature.now(profile.gitName, profile.gitEmail);
+
+}
+export function signatureFromActiveProfile() {
+    return signatureFromProfile(selectedGitProfile);
 }
 
 export function getAuth(): AuthConfig | false {

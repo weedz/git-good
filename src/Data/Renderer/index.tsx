@@ -8,6 +8,7 @@ import { addWindowEventListener, registerHandler, ipcSendMessage, ipcGetData } f
 import { Store, clearLock, setLock, updateStore, StoreType, notify } from "./store";
 import { Notification } from "../../Components/Notification";
 import { humanReadableBytes } from "../Utils";
+import { WindowArguments } from "../WindowEventTypes";
 
 let refreshingWorkdir = false;
 
@@ -86,6 +87,7 @@ function repoOpened(result: IpcActionReturn[IpcAction.OPEN_REPO]) {
     localStorage.setItem("recent-repo", result.path);
     loadBranches();
     loadRemotes();
+    loadStashes();
     updateStore({
         repo: {
             path: result.path,
@@ -119,6 +121,10 @@ function loadBranches() {
 
 function loadRemotes() {
     ipcSendMessage(IpcAction.REMOTES, null);
+}
+
+function loadStashes() {
+    ipcSendMessage(IpcAction.LOAD_STASHES, null);
 }
 
 function openSettings() {
@@ -192,10 +198,14 @@ function branchesLoaded(result: IpcActionReturn[IpcAction.LOAD_BRANCHES]) {
     updateStore({
         branches: result,
         heads,
-        stash: result.stash,
     });
 
     loadHEAD();
+}
+function stashLoaded(stash: IpcActionReturn[IpcAction.LOAD_STASHES]) {
+    updateStore({
+        stash
+    });
 }
 function updateCurrentBranch(result: IpcResponse<IpcAction.CHECKOUT_BRANCH>) {
     clearLock(Locks.MAIN);
@@ -232,6 +242,33 @@ function handlePullHead(res: IpcActionReturn[IpcAction.PULL]) {
     }
 }
 
+function handleStashChanged(res: WindowArguments["stash-changed"]) {
+    switch (res.action) {
+        case "stash": {
+            notify({title: "Stashed changes"});
+            refreshWorkdir();
+            loadStashes();
+            break;
+        }
+        case "pop": {
+            notify({title: `Popped stash@{${res.index}}`});
+            refreshWorkdir();
+            loadStashes();
+            break;
+        }
+        case "apply": {
+            notify({title: `Applied stash@{${res.index}}`});
+            refreshWorkdir();
+            break;
+        }
+        case "drop": {
+            notify({title: `Dropped stash@{${res.index}}`});
+            loadStashes();
+            break;
+        }
+    }
+}
+
 addWindowEventListener("repo-opened", repoOpened);
 addWindowEventListener("refresh-workdir", refreshWorkdir);
 addWindowEventListener("open-settings", openSettings);
@@ -239,6 +276,7 @@ addWindowEventListener("app-lock-ui", setLock);
 addWindowEventListener("app-unlock-ui", clearLock);
 addWindowEventListener("begin-compare-revisions", openDialog_CompareRevisions);
 addWindowEventListener("begin-view-commit", openDialog_ViewCommit);
+addWindowEventListener("stash-changed", handleStashChanged);
 addWindowEventListener("notify", notify);
 
 // FIXME: Should probably handle this better..
@@ -303,3 +341,4 @@ registerHandler(IpcAction.REMOTES, handleRemotes);
 registerHandler(IpcAction.CREATE_TAG, loadBranches);
 registerHandler(IpcAction.DELETE_TAG, loadBranches);
 registerHandler(IpcAction.LOAD_PATCHES_WITHOUT_HUNKS, () => clearLock(Locks.COMMIT_LIST));
+registerHandler(IpcAction.LOAD_STASHES, stashLoaded);

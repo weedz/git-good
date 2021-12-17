@@ -4,12 +4,13 @@ import { basename } from "path";
 import Main from "./Views/Main";
 import Changes from "./Components/Changes";
 import Branches from "./Components/Branches";
-import { Store, openRepo, StoreComponent, NotificationPosition } from "./Data/Renderer/store";
+import { Store, openRepo, StoreComponent } from "./Data/Renderer/store";
 import { Locks } from "./Data/Actions";
 import Dialog from "./Components/Dialog";
 import FileDiff from "./Components/FileDiff";
 import NewTab from "./Views/NewTab";
 import NotificationsContainer from "./Components/NotificationsContainer";
+import { NotificationPosition } from "./Data/WindowEventTypes";
 
 export default class App extends StoreComponent {
     componentDidMount() {

@@ -2,10 +2,10 @@ import { basename, join } from "path";
 import { exec, spawn } from "child_process";
 import { app, BrowserWindow, ipcMain, Menu, dialog, shell, MenuItemConstructorOptions, IpcMainEvent, screen, clipboard } from "electron";
 
-import { Branch, Commit, Object, Oid, Rebase, Reference, Remote, Repository, Signature } from "nodegit";
+import { Branch, Commit, Object, Oid, Rebase, Reference, Remote, Repository, Stash } from "nodegit";
 
 import { isMac, isWindows } from "./Data/Main/Utils";
-import { addRecentRepository, clearRepoProfile, currentProfile, getAppConfig, getAuth, getRecentRepositories, getRepoProfile, saveAppConfig, setCurrentProfile, setRepoProfile } from "./Data/Main/Config";
+import { addRecentRepository, clearRepoProfile, currentProfile, getAppConfig, getAuth, getRecentRepositories, getRepoProfile, saveAppConfig, setCurrentProfile, setRepoProfile, signatureFromActiveProfile, signatureFromProfile } from "./Data/Main/Config";
 
 import * as provider from "./Data/Main/Provider";
 import { IpcAction, IpcActionParams, IpcActionReturn, Locks } from "./Data/Actions";
@@ -257,7 +257,7 @@ function applyAppMenu() {
                     label: 'Pull...',
                     async click() {
                         sendEvent(win.webContents, "app-lock-ui", Locks.BRANCH_LIST);
-                        await provider.pull(repo, null, Signature.now(currentProfile().gitName, currentProfile().gitEmail));
+                        await provider.pull(repo, null, signatureFromActiveProfile());
                         sendEvent(win.webContents, "app-unlock-ui", Locks.BRANCH_LIST);
                     }
                 },
@@ -287,6 +287,39 @@ function applyAppMenu() {
                         sendEvent(win.webContents, "begin-view-commit", null);
                     }
                 },
+            ]
+        },
+        {
+            label: "Stash",
+            submenu: [
+                {
+                    label: "Stash",
+                    async click() {
+                        // TODO: Stash message
+                        await Stash.save(repo, signatureFromActiveProfile(), "Stash", Stash.FLAGS.DEFAULT);
+                        sendEvent(win.webContents, "stash-changed", {
+                            action: "stash"
+                        });
+                    }
+                },
+                {
+                    label: "Pop latest stash",
+                    async click() {
+                        stashPop(repo, 0);
+                    }
+                },
+                {
+                    label: "Apply latest stash",
+                    async click() {
+                        stashApply(repo, 0);
+                    }
+                },
+                {
+                    label: "Drop latest stash",
+                    async click() {
+                        stashDrop(repo, 0);
+                    }
+                }
             ]
         },
         // { role: 'windowMenu' }
@@ -418,7 +451,7 @@ const eventMap: {
     [IpcAction.STAGE_FILE]: provider.stageFile,
     [IpcAction.UNSTAGE_FILE]: provider.unstageFile,
     [IpcAction.DISCARD_FILE]: provider.discardChanges,
-    [IpcAction.PULL]: async (repo, data) =>  provider.pull(repo, data, Signature.now(currentProfile().gitName, currentProfile().gitEmail)),
+    [IpcAction.PULL]: async (repo, data) =>  provider.pull(repo, data, signatureFromActiveProfile()),
     [IpcAction.CREATE_BRANCH]: async (repo, data) => {
         try {
             const res = await repo.createBranch(data.name, data.sha);
@@ -486,10 +519,7 @@ const eventMap: {
     },
     [IpcAction.COMMIT]: async (repo, data) => {
         const profile = currentProfile();
-        if (!profile.gitName || !profile.gitEmail) {
-            return Error("Invalid name/email");
-        }
-        return await provider.commit(repo, data, Signature.now(profile.gitName, profile.gitEmail), profile.gpg?.commit ? profile.gpg.key : undefined);
+        return await provider.commit(repo, data, signatureFromProfile(profile), profile.gpg?.commit ? profile.gpg.key : undefined);
     },
     [IpcAction.REMOTES]: provider.remotes,
     [IpcAction.RESOLVE_CONFLICT]: async (repo, {path}) => {
@@ -580,7 +610,7 @@ const eventMap: {
     },
     [IpcAction.CREATE_TAG]: async (repo, data) => {
         const profile = currentProfile();
-        return provider.createTag(repo, data, Signature.now(profile.gitName, profile.gitEmail), profile.gpg?.tag ? profile.gpg.key : undefined);
+        return provider.createTag(repo, data, signatureFromProfile(profile), profile.gpg?.tag ? profile.gpg.key : undefined);
     },
     [IpcAction.DELETE_TAG]: async (repo, data) => {
         if (data.remote) {
@@ -606,7 +636,11 @@ const eventMap: {
             return oid;
         }
         return oid.tostrS();
-    }
+    },
+    [IpcAction.LOAD_STASHES]: provider.getStash,
+    [IpcAction.STASH_POP]: stashPop,
+    [IpcAction.STASH_APPLY]: stashApply,
+    [IpcAction.STASH_DROP]: stashDrop,
 }
 
 const ALLOWED_WHEN_NOT_IN_REPO = {
@@ -808,4 +842,39 @@ function loadHunks(repo: Repository, params: IpcActionParams[IpcAction.LOAD_HUNK
         return provider.hunksFromCompare(params.path);
     }
     return provider.getWorkdirHunks(params.path, params.type);
+}
+
+async function stashPop(repo: Repository, index = 0) {
+    await Stash.pop(repo, index);
+    sendEvent(win.webContents, "stash-changed", {
+        action: "pop",
+        index,
+    });
+    return true;
+}
+async function stashApply(repo: Repository, index = 0) {
+    await Stash.apply(repo, index);
+    sendEvent(win.webContents, "stash-changed", {
+        action: "apply",
+        index,
+    });
+    return true;
+}
+async function stashDrop(repo: Repository, index = 0) {
+    const result = await dialog.showMessageBox(win, {
+        title: "Drop stash",
+        message: `Are you sure you want to delete stash@{${index}}`,
+        type: "question",
+        buttons: ["Cancel", "Delete"],
+        cancelId: 0,
+    });
+    if (result.response === 1) {
+        await Stash.drop(repo, index);
+        sendEvent(win.webContents, "stash-changed", {
+            action: "drop",
+            index,
+        });
+        return true;
+    }
+    return false;
 }

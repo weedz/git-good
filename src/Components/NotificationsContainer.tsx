@@ -1,5 +1,6 @@
 import { h } from "preact";
-import { Store, PureStoreComponent, NotificationPosition } from "../Data/Renderer/store";
+import { Store, PureStoreComponent } from "../Data/Renderer/store";
+import { NotificationPosition } from "../Data/WindowEventTypes";
 
 export default class NotificationsContainer extends PureStoreComponent<{position: NotificationPosition}> {
     componentDidMount() {

@@ -233,6 +233,29 @@ tagMenu.append(new MenuItem({
     }
 }));
 
+const stashMenu = new Menu();
+stashMenu.append(new MenuItem({
+    label: "Apply",
+    click() {
+        const index = contextMenuState.data.index;
+        ipcSendMessage(IpcAction.STASH_APPLY, Number.parseInt(index, 10));
+    }
+}));
+stashMenu.append(new MenuItem({
+    label: "Pop",
+    click() {
+        const index = contextMenuState.data.index;
+        ipcSendMessage(IpcAction.STASH_POP, Number.parseInt(index, 10));
+    }
+}));
+stashMenu.append(new MenuItem({
+    label: "Drop",
+    click() {
+        const index = contextMenuState.data.index;
+        ipcSendMessage(IpcAction.STASH_DROP, Number.parseInt(index, 10));
+    }
+}));
+
 export function showRemotesMenu(e: h.JSX.TargetedMouseEvent<HTMLAnchorElement>) {
     e.preventDefault();
     contextMenuState.data = e.currentTarget.dataset as {[name: string]: string};
@@ -272,6 +295,14 @@ export function showTagMenu(e: h.JSX.TargetedMouseEvent<HTMLAnchorElement>) {
     e.preventDefault();
     contextMenuState.data = e.currentTarget.dataset as {[name: string]: string};
     tagMenu.popup({
+        window: getCurrentWindow()
+    });
+}
+
+export function showStashMenu(e: h.JSX.TargetedMouseEvent<HTMLAnchorElement>) {
+    e.preventDefault();
+    contextMenuState.data = e.currentTarget.dataset as {[name: string]: string};
+    stashMenu.popup({
         window: getCurrentWindow()
     });
 }

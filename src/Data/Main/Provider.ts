@@ -244,7 +244,7 @@ export async function pull(repo: Repository, branch: string | null, signature: S
             buttons: ["Cancel", "No", "Hard reset"],
             cancelId: 0,
         });
-        if (!result.response) {
+        if (result.response === 0) {
             return false;
         }
         if (result.response === 2) {
@@ -352,7 +352,7 @@ async function pushBranch(context: Context, remote: Remote, localRef: Reference,
             buttons: ["Cancel", "No", "Force push"],
             cancelId: 0,
         });
-        if (!result.response) {
+        if (result.response === 0) {
             return false;
         }
         if (result.response === 2) {
@@ -543,7 +543,7 @@ export async function showStash(repo: Repository, index: number) {
     return Promise.all(patchesObj);
 }
 
-async function getStash(repo: Repository) {
+export async function getStash(repo: Repository) {
     const stash: StashObj[] = [];
     await Stash.foreach(repo, (index: number, msg: string, oid: Oid) => {
         stash.push({
@@ -552,18 +552,16 @@ async function getStash(repo: Repository) {
             oid: oid.tostrS(),
         });
     });
+    repoStash = stash;
     return stash;
 }
 
 // {local: Branch[], remote: Branch[], tags: Branch[]}
 export async function getBranches(repo: Repository): Promise<IpcActionReturn[IpcAction.LOAD_BRANCHES]> {
-    
     const local: BranchObj[] = [];
     const remote: BranchObj[] = [];
     const tags: BranchObj[] = [];
 
-    repoStash = await getStash(repo);
-    
     const refs = await repo.getReferences();
     // FIXME: Why do we get 2 references for "refs/remotes/origin/master"
     await Promise.all(
@@ -604,7 +602,6 @@ export async function getBranches(repo: Repository): Promise<IpcActionReturn[Ipc
         local,
         remote,
         tags,
-        stash: repoStash,
     };
 }
 

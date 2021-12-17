@@ -1,5 +1,18 @@
 import { Locks, IpcActionReturn, IpcAction } from "./Actions";
 
+type StashChangedArguments = {
+    action: "stash"
+} | {
+    action: "pop"
+    index: number
+} | {
+    action: "apply"
+    index: number
+} | {
+    action: "drop"
+    index: number
+};
+
 export type WindowEvents =
     "repo-opened" |
     "fetch-status" |
@@ -10,7 +23,8 @@ export type WindowEvents =
     "begin-compare-revisions" |
     "begin-view-commit" |
     "notify" |
-    "push-status";
+    "push-status" |
+    "stash-changed";
 
 export type WindowArguments = {
     "repo-opened": IpcActionReturn[IpcAction.OPEN_REPO]
@@ -29,10 +43,23 @@ export type WindowArguments = {
         receivedBytes: number
     }
     "begin-view-commit": null
-    "notify": {title: string, body?: string}
+    "notify": NotificationInit
     "push-status": {done: boolean} | {
         totalObjects: number
         transferedObjects: number
         bytes: number
     }
+    "stash-changed": StashChangedArguments
+}
+
+export enum NotificationPosition {
+    DEFAULT,
+}
+
+export type NotificationInit = {
+    position?: NotificationPosition
+    title: string
+    body?: null | string
+    time?: number
+    classList?: string[]
 }
