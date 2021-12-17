@@ -265,7 +265,7 @@ function applyAppMenu() {
                     label: 'Push...',
                     async click() {
                         sendEvent(win.webContents, "app-lock-ui", Locks.BRANCH_LIST);
-                        const result = await provider.push(repo, null);
+                        const result = await provider.push({repo}, null);
                         if (result instanceof Error) {
                             dialog.showErrorBox("Failed to push", result.message);
                         }
@@ -475,9 +475,10 @@ const eventMap: {
         return Error("Revisions not found");
     },
     [IpcAction.PUSH]: async (repo, data) => {
-        return provider.push(repo, data, {
-            win: win.webContents
-        });
+        return provider.push({
+            win: win.webContents,
+            repo
+        }, data);
     },
     [IpcAction.SET_UPSTREAM]: async (repo, data) => {
         const result = await provider.setUpstream(repo, data.local, data.remote);

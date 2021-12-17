@@ -13,7 +13,8 @@ import { sendEvent } from "./WindowEvents";
 
 // TODO: Could probably handle this better
 export type Context = {
-    win: WebContents;
+    win?: WebContents;
+    repo: Repository;
 };
 
 export const actionLock: {
@@ -278,7 +279,7 @@ export async function pull(repo: Repository, branch: string | null, signature: S
     return !!result;
 }
 
-async function pushHead(repo: Repository, auth: AuthConfig, context?: Context) {
+async function pushHead(context: Context, auth: AuthConfig) {
     const head = await repo.head();
     let upstream;
     try {
@@ -293,11 +294,11 @@ async function pushHead(repo: Repository, auth: AuthConfig, context?: Context) {
 
     const remote = await repo.getRemote(remoteName(upstream.name()));
 
-    return pushBranch(repo, remote, head, auth, undefined, context);
+    return pushBranch(context, remote, head, auth, undefined);
 }
 
-export async function push(repo: Repository, data: IpcActionParams[IpcAction.PUSH], context?: Context) {
-    context && sendEvent(context.win, "push-status", {
+export async function push(context: Context, data: IpcActionParams[IpcAction.PUSH]) {
+    context.win && sendEvent(context.win, "push-status", {
         done: false
     });
 
@@ -308,26 +309,26 @@ export async function push(repo: Repository, data: IpcActionParams[IpcAction.PUS
         return Error("No git credentials");
     }
     if (!data) {
-        result = await pushHead(repo, auth, context);
+        result = await pushHead(context, auth);
     } else {
-        const localRef = await repo.getReference(data.localBranch);
-        const remote = await repo.getRemote(data.remote);
+        const localRef = await context.repo.getReference(data.localBranch);
+        const remote = await context.repo.getRemote(data.remote);
 
         if (localRef.isBranch()) {
-            result = await pushBranch(repo, remote, localRef, auth, data.force, context);
+            result = await pushBranch(context, remote, localRef, auth, data.force);
         } else if (localRef.isTag()) {
             result = await pushTag(remote, localRef, auth, undefined, context);
         }
     }
 
-    context && sendEvent(context.win, "push-status", {
+    context.win && sendEvent(context.win, "push-status", {
         done: true
     });
 
     return result;
 }
 
-async function pushBranch(repo: Repository, remote: Remote, localRef: Reference, auth: AuthConfig, force = false, context?: Context) {
+async function pushBranch(context: Context, remote: Remote, localRef: Reference, auth: AuthConfig, force = false) {
     let remoteRefName: string;
     let status: { ahead: number, behind: number };
     try {
@@ -335,7 +336,7 @@ async function pushBranch(repo: Repository, remote: Remote, localRef: Reference,
         const upstream = await Branch.upstream(localRef);
         remoteRefName = normalizeRemoteNameWithoutRemote(upstream.name());
 
-        status = await Graph.aheadBehind(repo, localRef.target(), upstream.target()) as unknown as { ahead: number, behind: number };
+        status = await Graph.aheadBehind(context.repo, localRef.target(), upstream.target()) as unknown as { ahead: number, behind: number };
     } catch (err) {
         if (err instanceof Error) {
             dialog.showErrorBox("Push failed", `Invalid upstream: ${err.message}`);
@@ -381,7 +382,7 @@ async function doPush(remote: Remote, localName: string, remoteName: string, aut
                     // eslint-disable-next-line @typescript-eslint/ban-ts-comment
                     // @ts-ignore
                     pushTransferProgress: (transferedObjects: number, totalObjects: number, bytes: number) => {
-                        context && sendEvent(context.win, "push-status", {
+                        context?.win && sendEvent(context.win, "push-status", {
                             totalObjects,
                             transferedObjects,
                             bytes
