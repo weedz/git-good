@@ -91,7 +91,7 @@ app.on('window-all-closed', () => {
 function buildOpenRepoMenuItem(path: string): MenuItemConstructorOptions {
     const repoName = basename(path);
     return {
-        label: `${repoName} - ${path.substr(-60 + repoName.length)}`,
+        label: `${repoName} - ${path.slice(-60 + repoName.length)}`,
         async click() {
             const result = await openRepo(path);
             if (result.opened) {
