@@ -4,7 +4,7 @@ import { basename } from "path";
 import Main from "./Views/Main";
 import Changes from "./Components/Changes";
 import Branches from "./Components/Branches";
-import { Store, openRepo, StoreComponent } from "./Data/Renderer/store";
+import { Store, StoreComponent } from "./Data/Renderer/store";
 import { Locks } from "./Data/Actions";
 import Dialog from "./Components/Dialog";
 import FileDiff from "./Components/FileDiff";
@@ -26,13 +26,6 @@ export default class App extends StoreComponent {
                 this.forceUpdate();
             }
         });
-
-        if (!Store.repo) {
-            const recentRepo = localStorage.getItem("recent-repo");
-            if (recentRepo) {
-                openRepo(recentRepo);
-            }
-        }
     }
     render() {
         if (!Store.repo) {

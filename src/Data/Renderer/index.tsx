@@ -22,11 +22,16 @@ window.addEventListener("focus", async () => {
 let _glyphWidth = 7.81;
 calculateGlyphWidth(13, 'JetBrainsMonoNL Nerd Font Mono');
 
+ipcGetData(IpcAction.INIT, null).then(init => {
+    if (init.repo) {
+        repoOpened(init.repo);
+    }
+});
 ipcGetData(IpcAction.GET_SETTINGS, null).then(config => {
     updateStore({
         uiConfig: config["ui"]
     })
-})
+});
 
 function calculateGlyphWidth(size: number, font: string) {
     const canvas = document.createElement("canvas");
@@ -84,7 +89,6 @@ function repoOpened(result: IpcActionReturn[IpcAction.OPEN_REPO]) {
 
     GlobalLinks.branches = {};
 
-    localStorage.setItem("recent-repo", result.path);
     loadBranches();
     loadRemotes();
     loadStashes();

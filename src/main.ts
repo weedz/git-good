@@ -405,6 +405,16 @@ const eventMap: {
 } & {
     [A in Exclude<IpcAction, AsyncGeneratorFunctions>]: PromiseEventCallback<A>
 } = {
+    [IpcAction.INIT]: async () => {
+        const recentRepo = getRecentRepositories()[0];
+        const initData: IpcActionReturn[IpcAction.INIT] = {
+            repo: null,
+        };
+        if (recentRepo) {
+            initData.repo = await openRepo(recentRepo);
+        }
+        return initData;
+    },
     [IpcAction.OPEN_REPO]: async (_, path) => {
         if (path) {
             return openRepo(path);
@@ -644,6 +654,7 @@ const eventMap: {
 }
 
 const ALLOWED_WHEN_NOT_IN_REPO = {
+    [IpcAction.INIT]: true,
     [IpcAction.OPEN_REPO]: true,
     [IpcAction.GET_SETTINGS]: true,
 };

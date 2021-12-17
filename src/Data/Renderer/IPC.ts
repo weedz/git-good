@@ -44,6 +44,7 @@ export function ipcGetData<T extends IpcAction>(action: T, data: IpcActionParams
 type HandlerCallback = (arg: IpcResponse<IpcAction>) => void;
 
 const handlers: {[T in IpcAction]: HandlerCallback[]} = {
+    [IpcAction.INIT]: [],
     [IpcAction.LOAD_COMMITS]: [],
     [IpcAction.LOAD_FILE_COMMITS]: [],
     [IpcAction.LOAD_BRANCHES]: [],

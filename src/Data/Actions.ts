@@ -13,6 +13,7 @@ export type IpcResponse<T extends IpcAction> = IpcActionReturn[T] | false;
 export type IpcPayloadMsg<T extends IpcAction> = {result: IpcActionReturn[T]} | {error: IpcActionReturnError["msg"]};
 
 export enum IpcAction {
+    INIT = 0,
     LOAD_COMMITS,
     LOAD_FILE_COMMITS,
     LOAD_BRANCHES,
@@ -62,6 +63,7 @@ export enum IpcAction {
 }
 
 export type IpcActionParams = {
+    [IpcAction.INIT]: null
     [IpcAction.LOAD_COMMITS]: LoadCommitsParam
     [IpcAction.LOAD_FILE_COMMITS]: LoadFileCommitsParam
     [IpcAction.LOAD_BRANCHES]: null
@@ -168,6 +170,9 @@ export type IpcActionParams = {
 };
 
 export type IpcActionReturn = {
+    [IpcAction.INIT]: {
+        repo: IpcActionReturn[IpcAction.OPEN_REPO]
+    }
     [IpcAction.LOAD_COMMITS]: LoadCommitsReturn
     [IpcAction.LOAD_FILE_COMMITS]: LoadFileCommitsReturn
     [IpcAction.LOAD_BRANCHES]: BranchesObj
