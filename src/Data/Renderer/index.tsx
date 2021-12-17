@@ -277,7 +277,7 @@ addWindowEventListener("notify", notify);
                 pushNotification = null;
             }
         } else if (stats.totalObjects > 0) {
-            pushNotification.update({body: <p>Pushed {stats.transferedObjects}/{stats.totalObjects} objects in {stats.bytes} bytes</p>});
+            pushNotification.update({body: <p>Pushed {stats.transferedObjects}/{stats.totalObjects} objects in {humanReadableBytes(stats.bytes)}</p>});
         }
     });
 }
