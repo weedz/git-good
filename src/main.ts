@@ -265,7 +265,7 @@ function applyAppMenu() {
                     label: 'Push...',
                     async click() {
                         sendEvent(win.webContents, "app-lock-ui", Locks.BRANCH_LIST);
-                        const result = await provider.push({repo}, null);
+                        const result = await provider.push({repo, win: win.webContents}, null);
                         if (result instanceof Error) {
                             dialog.showErrorBox("Failed to push", result.message);
                         }
@@ -696,14 +696,14 @@ async function abortRebase(repo: Repository): Promise<IpcActionReturn[IpcAction.
     const rebase = await Rebase.open(repo);
     console.log(rebase);
     // rebase.abort();
-    return provider.repoStatus();
+    return provider.repoStatus(repo);
 }
 async function continueRebase(repo: Repository): Promise<IpcActionReturn[IpcAction.CONTINUE_REBASE]> {
     const rebase = await Rebase.open(repo);
     console.log(rebase);
     // const rebaseAction = await rebase.next();
     // console.dir(rebaseAction);
-    return provider.repoStatus();
+    return provider.repoStatus(repo);
 }
 
 async function openRepoDialog() {
@@ -743,7 +743,7 @@ async function openRepo(repoPath: string) {
     return {
         path: repoPath,
         opened: !!opened,
-        status: opened ? provider.repoStatus() : null,
+        status: opened ? provider.repoStatus(repo) : null,
     };
 }
 
@@ -850,9 +850,9 @@ function loadHunks(repo: Repository, params: IpcActionParams[IpcAction.LOAD_HUNK
         return provider.getHunks(repo, params.sha, params.path);
     }
     if ("compare" in params) {
-        return provider.hunksFromCompare(params.path);
+        return provider.hunksFromCompare(repo, params.path);
     }
-    return provider.getWorkdirHunks(params.path, params.type);
+    return provider.getWorkdirHunks(repo, params.path, params.type);
 }
 
 async function stashPop(repo: Repository, index = 0) {

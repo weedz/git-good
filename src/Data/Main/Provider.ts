@@ -54,15 +54,15 @@ export function authenticate(username: string, auth: AuthConfig) {
 
 export async function openRepo(repoPath: string) {
     try {
-        repo = await Repository.open(repoPath);
+        const repo = await Repository.open(repoPath);
         index = await repo.refreshIndex();
+        return repo;
     } catch (e) {
         return false;
     }
-    return repo;
 }
 
-export function repoStatus() {
+export function repoStatus(repo: Repository) {
     return {
         empty: repo.isEmpty(),
         merging: repo.isMerging(),
@@ -280,7 +280,7 @@ export async function pull(repo: Repository, branch: string | null, signature: S
 }
 
 async function pushHead(context: Context, auth: AuthConfig) {
-    const head = await repo.head();
+    const head = await context.repo.head();
     let upstream;
     try {
         upstream = await Branch.upstream(head);
@@ -292,7 +292,7 @@ async function pushHead(context: Context, auth: AuthConfig) {
         return false;
     }
 
-    const remote = await repo.getRemote(remoteName(upstream.name()));
+    const remote = await context.repo.getRemote(remoteName(upstream.name()));
 
     return pushBranch(context, remote, head, auth, undefined);
 }
@@ -533,7 +533,7 @@ export async function showStash(repo: Repository, index: number) {
 
     const patchesObj = patches.map(async patch => {
         const patchObj = handlePatch(patch);
-        const hunks = await loadHunks(patch);
+        const hunks = await loadHunks(repo, patch);
         if (hunks) {
             patchObj.hunks = hunks;
         }
@@ -739,7 +739,7 @@ export async function refreshWorkDir(repo: Repository, options: IpcActionParams[
     return {
         unstaged: workDirIndexCache.unstagedPatches.length,
         staged: workDirIndexCache.stagedPatches.length,
-        status: repoStatus(),
+        status: repoStatus(repo),
     };
 }
 
@@ -822,9 +822,9 @@ export async function loadChanges(): Promise<IpcActionReturn[IpcAction.GET_CHANG
         unstaged,
     };
 }
-export async function getWorkdirHunks(path: string, type: "staged" | "unstaged") {
+export async function getWorkdirHunks(repo: Repository, path: string, type: "staged" | "unstaged") {
     const patch = workDirIndexPathMap[type][path];
-    return loadHunks(patch, path);
+    return loadHunks(repo, patch, path);
 }
 
 function handleLine(line: DiffLine): LineObj {
@@ -858,20 +858,20 @@ async function handleHunk(hunk: ConvenientHunk): Promise<HunkObj> {
 export async function getHunks(repo: Repository, sha: string, path: string): Promise<false | HunkObj[]> {
     const patch = commitObjectCache[sha]?.patches[path];
     if (patch) {
-        return loadHunks(patch, path);
+        return loadHunks(repo, patch, path);
     }
     return false;
 }
-export async function hunksFromCompare(path: string): Promise<false | HunkObj[]> {
-    return loadHunks(compareObjCache.patches[path], path);
+export async function hunksFromCompare(repo: Repository, path: string): Promise<false | HunkObj[]> {
+    return loadHunks(repo, compareObjCache.patches[path], path);
 }
-async function loadHunks(patch: ConvenientPatch, path?: string) {
+async function loadHunks(repo: Repository, patch: ConvenientPatch, path?: string) {
     if (!patch) {
         return false;
     }
 
     if (patch.isConflicted() && path) {
-        return loadConflictedPatch(path);
+        return loadConflictedPatch(repo, path);
     }
 
     const hunks = await patch.hunks();
@@ -935,7 +935,7 @@ export async function diff_file_at_commit(repo: Repository, file: string, sha: s
     return patchObj;
 }
 
-async function loadConflictedPatch(path: string): Promise<HunkObj[]> {
+async function loadConflictedPatch(repo: Repository, path: string): Promise<HunkObj[]> {
     const conflictEntry = await index.conflictGet(path || "") as unknown as {ancestor_out: IndexEntry, our_out: IndexEntry | null, their_out: IndexEntry | null};
 
     if (!conflictEntry.their_out) {
@@ -1289,5 +1289,3 @@ let workDirIndexPathMap: {
     unstaged: { [path: string]: ConvenientPatch },
 }
 let index: Index;
-
-let repo: Repository;
