@@ -147,7 +147,6 @@ function applyAppMenu() {
                     click() {
                         if (repo) {
                             let process;
-                            // TODO: configure different terminals?
                             if (isWindows) {
                                 const exe = getAppConfig().terminal || "cmd.exe";
                                 process = exec(`start ${exe}`, {

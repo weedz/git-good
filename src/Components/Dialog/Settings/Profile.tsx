@@ -152,16 +152,6 @@ export class Profile extends Component<Props, State> {
                     </Fragment>
                     }
                 </div>
-                <div className="pane">
-                    <h3>Terminal</h3>
-                    <div>
-                        <label for="terminal-app">Terminal application:</label>
-                        <select>
-                            {/* FIXME: Add valid options for windows and mac, and custom command */}
-                            <option>x-terminal-emulator</option>
-                        </select>
-                    </div>
-                </div>
                 <button type="submit">Save</button>
                 <button type="button" onClick={this.props.cancelCb}>Close</button>
             </form>
