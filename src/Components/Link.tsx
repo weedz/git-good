@@ -125,7 +125,6 @@ class Link<T = unknown> extends PureComponent<Props<T>, State> {
         const classNames = props.className ? [props.className] : [];
         delete props.className;
 
-        // FIXME: check for this.props.linkId should set `state.selected = true`
         if (this.state.selected || this.props.linkId && selectedIds[this.type] === this.props.linkId) {
             classNames.push("selected");
         }
