@@ -1063,8 +1063,6 @@ export async function resolveConflict(repo: Repository, path: string) {
         await index.conflictRemove(path);
     }
 
-    // TODO: Promise<number>. seems to return undefined, not 0 on success
-    // const result = await index.conflictRemove(path);
     const result = undefined;
     await index.write();
     return result;
