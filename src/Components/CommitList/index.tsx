@@ -161,7 +161,7 @@ export default class CommitList extends PureStoreComponent<unknown, State> {
                 </div>
                 <Links.Provider value="commits">
                     {this.state.commits.length ? <CommitContainer commits={this.filterCommits()} graph={this.graph} /> : "No commits yet?"}
-                    {!Store.selectedBranch.history && <button onClick={() => this.loadMoreCommits()} disabled={!!Store.locks[Locks.BRANCH_LIST]}>Load more...</button>}
+                    {!Store.selectedBranch.history && <button onClick={this.loadMoreCommits} disabled={!!Store.locks[Locks.BRANCH_LIST]}>Load more...</button>}
                 </Links.Provider>
             </div>
         );
