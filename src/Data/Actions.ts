@@ -387,7 +387,6 @@ type LoadCommitsReturn = {
 };
 type LoadFileCommitsReturn = {
     commits: Array<LoadCommitReturn & {
-        // FIXME: Enforce `status`?
         status?: Diff.DELTA
         path: string
     }>
