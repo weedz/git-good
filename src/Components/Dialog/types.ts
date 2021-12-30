@@ -1,3 +1,4 @@
+import { JSX } from "preact";
 import { AppConfig } from "../../Data/Config";
 
 export enum DialogTypes {
@@ -11,6 +12,8 @@ export enum DialogTypes {
     CREATE_TAG,
     PUSH_TAG,
     VIEW_COMMIT,
+    CLONE_REPOSITORY,
+    INIT_REPOSITORY,
 }
 
 export type DialogProps = {
@@ -24,14 +27,16 @@ export type DialogProps = {
     [DialogTypes.CREATE_TAG]: CreateTagProps
     [DialogTypes.PUSH_TAG]: PushTagProps
     [DialogTypes.VIEW_COMMIT]: PushTagProps
+    [DialogTypes.CLONE_REPOSITORY]: CloneRepoProps
+    [DialogTypes.INIT_REPOSITORY]: InitRepoProps
 }
 
 interface DialogBaseProps {
-    cancelCb: () => void
+    cancelCb: (e: JSX.TargetedMouseEvent<HTMLButtonElement>) => void
 }
 
 export interface CompareProps extends DialogBaseProps {
-    default?: {
+    data?: {
         from: string
         to: string
     }
@@ -39,7 +44,7 @@ export interface CompareProps extends DialogBaseProps {
 }
 
 export interface ViewCommitProps extends DialogBaseProps {
-    default?: {
+    data?: {
         sha: string
     }
     confirmCb: (sha: string) => void
@@ -55,12 +60,12 @@ export interface RemoteProps extends DialogBaseProps {
 }
 
 export interface BranchProps extends DialogBaseProps {
-    default: string | undefined
+    data: string | undefined
     confirmCb: (branchName: string, checkout: boolean) => void
 }
 
 export interface SetUpstreamProps extends DialogBaseProps {
-    default: {
+    data: {
         remote: string
         branch: string
     }
@@ -76,4 +81,10 @@ export interface CreateTagProps extends DialogBaseProps {
 }
 export interface PushTagProps extends DialogBaseProps {
     confirmCb: (remote: string) => void
+}
+interface CloneRepoProps extends DialogBaseProps {
+    confirmCb: (data: {source: string, target: string}) => void
+}
+interface InitRepoProps extends DialogBaseProps {
+    confirmCb: (target: string) => void
 }

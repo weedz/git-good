@@ -5,8 +5,8 @@ import { SetUpstreamProps } from "./types";
 
 export function SetUpstream(dialog: SetUpstreamProps) {
     const data = {
-        branch: dialog.default.branch,
-        remote: dialog.default.remote
+        branch: dialog.data.branch,
+        remote: dialog.data.remote
     };
     return <div className="dialog-window">
         <form onSubmit={e => {
@@ -18,7 +18,7 @@ export function SetUpstream(dialog: SetUpstreamProps) {
                 {Store.remotes.map(remote => <option key={remote.name} value={remote.name} selected={remote.name === data.remote}>{remote.name}</option>)}
             </select>
             <input type="text" name="branch" placeholder="Remote branch..." onChange={e => data.branch = e.currentTarget.value} value={data.branch} />
-            <button type="button" onClick={() => dialog.cancelCb()}>Cancel</button>
+            <button type="button" onClick={dialog.cancelCb}>Cancel</button>
             <button type="submit">Confirm</button>
         </form>
     </div>;

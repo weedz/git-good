@@ -19,7 +19,7 @@ export function CreateTag(dialog: CreateTagProps) {
             <div>
                 <input type="text" name="annotation" placeholder="Message..." onChange={e => data.annotation = e.currentTarget.value} value={data.annotation} />
             </div>
-            <button type="button" onClick={() => dialog.cancelCb()}>Cancel</button>
+            <button type="button" onClick={dialog.cancelCb}>Cancel</button>
             <button type="submit">Confirm</button>
         </form>
     </div>;
