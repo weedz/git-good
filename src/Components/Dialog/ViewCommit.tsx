@@ -4,7 +4,7 @@ import { ViewCommitProps } from "./types";
 
 export function ViewCommit(dialog: ViewCommitProps) {
     const data = {
-        sha: dialog.default?.sha || "",
+        sha: dialog.data?.sha || "",
     };
     return <div className="dialog-window">
         <form onSubmit={e => {
@@ -13,7 +13,7 @@ export function ViewCommit(dialog: ViewCommitProps) {
         }}>
             <h4>View commit</h4>
             <input type="text" name="from" placeholder="Sha" onChange={e => data.sha = e.currentTarget.value} value={data.sha} />
-            <button type="button" onClick={() => dialog.cancelCb()}>Cancel</button>
+            <button type="button" onClick={dialog.cancelCb}>Cancel</button>
             <button type="submit">Find</button>
         </form>
     </div>;

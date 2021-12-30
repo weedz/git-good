@@ -39,6 +39,8 @@ const external = [
     "fs/promises",
     "child_process",
     "electron",
+    "electron/main",
+    "electron/renderer",
     "@electron/remote",
     "@electron/remote/main",
 ];

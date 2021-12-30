@@ -66,18 +66,18 @@ export class Profile extends Component<Props, State> {
                                 </div>
                                 <div>
                                     <label for="ssh-public-key">SSH Public key:</label>
+                                    {!this.state.config.sshAgent && <input type="text" disabled value={this.state.config.sshPublicKey} />}
                                     <button disabled={this.state.config.sshAgent} id="ssh-public-key" type="button" name="ssh-public-key" onClick={() => selectFile(path => this.setConfigKey("sshPublicKey", path))}>Browse</button>
-                                    {!this.state.config.sshAgent && <span>{this.state.config.sshPublicKey}</span>}
                                 </div>
                                 <div>
                                     <label for="ssh-private-key">SSH Private key:</label>
+                                    {!this.state.config.sshAgent && <input type="text" disabled value={this.state.config.sshPrivateKey} />}
                                     <button disabled={this.state.config.sshAgent} id="ssh-private-key" type="button" name="ssh-private-key" onClick={() => selectFile(path => this.setConfigKey("sshPrivateKey", path))}>Browse</button>
-                                    {!this.state.config.sshAgent && <span>{this.state.config.sshPrivateKey}</span>}
                                 </div>
                                 <div>
                                     <label for="ssh-passphrase">SSH passphrase:</label>
+                                    {!this.state.config.sshAgent && <input type="text" disabled value={this.state.config.sshPassphrase} />}
                                     <input disabled={this.state.config.sshAgent} type="text" id="ssh-passphrase" name="ssh-passphrase" value={this.state.config.sshPassphrase} onKeyUp={e => this.setConfigKey("sshPassphrase", e.currentTarget.value)} />
-                                    {!this.state.config.sshAgent && <span>{this.state.config.sshPassphrase}</span>}
                                 </div>
                             </div>
                         )}

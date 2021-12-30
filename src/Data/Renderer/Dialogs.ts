@@ -1,10 +1,10 @@
-import { DialogTypes } from "../../Components/Dialog/types";
+import { DialogProps, DialogTypes } from "../../Components/Dialog/types";
 import { IpcAction } from "../Actions";
 import { normalizeLocalName, normalizeRemoteNameWithoutRemote, normalizeTagName, remoteName } from "../Branch";
 import { ipcGetData, ipcSendMessage } from "./IPC";
 import { closeDialogWindow, createBranchFromSha, createBranchFromRef, openDialogWindow, setUpstream, renameLocalBranch, setDiffpaneSrc } from "./store";
 
-export function openDialog_EditRemote(data: {name: string, pullFrom: string, pushTo: string | null}) {
+export function openDialog_EditRemote(data: DialogProps[DialogTypes.EDIT_REMOTE]["data"]) {
     const oldName = data.name;
     openDialogWindow(DialogTypes.EDIT_REMOTE, {
         data,
@@ -85,7 +85,7 @@ export function openDialog_BranchFrom(sha: string, type: BranchFromType) {
         }
     }
     openDialogWindow(DialogTypes.NEW_BRANCH, {
-        default: defaultValue,
+        data: defaultValue,
         cancelCb() {
             closeDialogWindow();
         },
@@ -122,7 +122,7 @@ export function openDialog_RenameRef(sha: string, type: BranchType) {
         }
     }
     openDialogWindow(DialogTypes.RENAME_BRANCH, {
-        default: currentName,
+        data: currentName,
         cancelCb() {
             closeDialogWindow();
         },
@@ -152,6 +152,10 @@ export function openDialog_SetUpstream(local: string, currentUpstream?: string) 
     }
 
     openDialogWindow(DialogTypes.SET_UPSTREAM, {
+        data: {
+            remote: oldRemote,
+            branch,
+        },
         async confirmCb(remote, upstream) {
             if (await setUpstream(local, upstream ? `${remote}/${upstream}` : null)) {
                 closeDialogWindow();
@@ -160,10 +164,6 @@ export function openDialog_SetUpstream(local: string, currentUpstream?: string) 
         cancelCb() {
             closeDialogWindow();
         },
-        default: {
-            remote: oldRemote,
-            branch,
-        }
     });
 }
 

@@ -1,8 +1,9 @@
 import { dialog } from "@electron/remote";
+import { OpenDialogOptions } from "electron/renderer";
 import { LoadCommitReturn } from "../Actions";
 
-export async function selectFile(cb: (data: string) => void) {
-    const result = await dialog.showOpenDialog({});
+export async function selectFile(cb: (data: string) => void, options: OpenDialogOptions = {}) {
+    const result = await dialog.showOpenDialog(options);
     if (!result.canceled) {
         cb(result.filePaths[0]);
     }

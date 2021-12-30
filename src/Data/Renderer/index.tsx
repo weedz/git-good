@@ -1,14 +1,16 @@
 import { h } from "preact";
 import { Diff } from "nodegit";
 import { dialog } from "@electron/remote";
+import { ipcRenderer } from "electron/renderer";
 import { GlobalLinks, unselectLink } from "../../Components/Link";
 import { BranchObj, IpcAction, IpcActionReturn, IpcResponse, Locks, RepoStatus } from "../Actions";
 import { openDialog_CompareRevisions, openDialog_Settings, openDialog_ViewCommit } from "./Dialogs";
 import { addWindowEventListener, registerHandler, ipcSendMessage, ipcGetData } from "./IPC";
-import { Store, clearLock, setLock, updateStore, StoreType, notify } from "./store";
+import { Store, clearLock, setLock, updateStore, StoreType, notify, openDialogWindow, closeDialogWindow } from "./store";
 import { Notification } from "../../Components/Notification";
 import { humanReadableBytes } from "../Utils";
-import { WindowArguments } from "../WindowEventTypes";
+import { RendererRequestArgs, RendererRequestData, RendererRequestEvents, RendererRequestPayload, WindowArguments } from "../WindowEventTypes";
+import { DialogTypes } from "../../Components/Dialog/types";
 
 let refreshingWorkdir = false;
 
@@ -345,3 +347,42 @@ registerHandler(IpcAction.CREATE_TAG, loadBranches);
 registerHandler(IpcAction.DELETE_TAG, loadBranches);
 registerHandler(IpcAction.LOAD_PATCHES_WITHOUT_HUNKS, () => clearLock(Locks.COMMIT_LIST));
 registerHandler(IpcAction.LOAD_STASHES, stashLoaded);
+
+
+const rendererActions: {
+    [E in RendererRequestEvents]: (data: RendererRequestArgs[E]) => Promise<RendererRequestData[E]>
+} = {
+    "clone-dialog": () => new Promise((resolve, reject) => {
+        openDialogWindow(DialogTypes.CLONE_REPOSITORY, {
+            confirmCb(data) {
+                closeDialogWindow();
+                resolve(data);
+            },
+            cancelCb() {
+                closeDialogWindow();
+                reject();
+            }
+        })
+    }),
+    "init-dialog": () => new Promise((resolve, reject) => {
+        openDialogWindow(DialogTypes.INIT_REPOSITORY, {
+            confirmCb(data) {
+                closeDialogWindow();
+                resolve({source: data});
+            },
+            cancelCb() {
+                closeDialogWindow();
+                reject();
+            }
+        })
+    })
+};
+ipcRenderer.on("request-client-data", handleRequestClientData);
+async function handleRequestClientData<E extends RendererRequestEvents>(_: unknown, payload: RendererRequestPayload<E>) {
+    const response = await rendererActions[payload.event](payload.data).catch(e => Error(e));
+
+    ipcRenderer.send("response-client-data", {
+        id: payload.id,
+        data: response,
+    });
+}

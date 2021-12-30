@@ -12,6 +12,8 @@ import { PushTag } from "./PushTag";
 
 import "./style.css";
 import { ViewCommit } from "./ViewCommit";
+import { CloneRepositoryDialog } from "./CloneRepository";
+import { InitRepositoryDialog } from "./InitRepository";
 
 const dialogTypes = {
     [DialogTypes.NEW_BRANCH]: NewBranch,
@@ -24,6 +26,8 @@ const dialogTypes = {
     [DialogTypes.CREATE_TAG]: CreateTag,
     [DialogTypes.PUSH_TAG]: PushTag,
     [DialogTypes.VIEW_COMMIT]: ViewCommit,
+    [DialogTypes.CLONE_REPOSITORY]: CloneRepositoryDialog,
+    [DialogTypes.INIT_REPOSITORY]: InitRepositoryDialog,
 };
 
 type State = {

@@ -63,3 +63,33 @@ export type NotificationInit = {
     time?: number
     classList?: string[]
 }
+
+export type RendererRequestEvents = 
+    "clone-dialog" |
+    "init-dialog";
+
+export type RendererRequestArgs = {
+    "clone-dialog": null
+    "init-dialog": null
+}
+
+export type RendererRequestData = {
+    "clone-dialog": {
+        source: string
+        target: string
+    }
+    "init-dialog": {
+        source: string
+    }
+}
+
+export type RendererRequestPayload<E extends RendererRequestEvents> = {
+    id: string
+    event: E
+    data: RendererRequestArgs[E]
+}
+
+export type RendererResponsePayload<E extends RendererRequestEvents> = {
+    id: string
+    data: RendererRequestData[E]
+}

@@ -1,8 +1,9 @@
 import { basename, join } from "path";
 import { exec, spawn } from "child_process";
-import { app, BrowserWindow, ipcMain, Menu, dialog, shell, MenuItemConstructorOptions, IpcMainEvent, screen, clipboard } from "electron";
+import { app, BrowserWindow, ipcMain, Menu, dialog, MenuItemConstructorOptions, IpcMainEvent, screen } from "electron/main";
+import { shell, clipboard } from "electron";
 
-import { Branch, Commit, Object, Oid, Rebase, Reference, Remote, Repository, Stash } from "nodegit";
+import { Branch, Clone, Commit, Object, Oid, Rebase, Reference, Remote, Repository, Stash } from "nodegit";
 
 import { isMac, isWindows } from "./Data/Main/Utils";
 import { addRecentRepository, clearRepoProfile, currentProfile, getAppConfig, getAuth, getRecentRepositories, getRepoProfile, saveAppConfig, setCurrentProfile, setRepoProfile, signatureFromActiveProfile, signatureFromProfile } from "./Data/Main/Config";
@@ -10,7 +11,7 @@ import { addRecentRepository, clearRepoProfile, currentProfile, getAppConfig, ge
 import * as provider from "./Data/Main/Provider";
 import { IpcAction, IpcActionParams, IpcActionReturnOrError, IpcActionReturn, Locks, AsyncIpcActionReturnOrError } from "./Data/Actions";
 import { formatTimeAgo } from "./Data/Utils";
-import { sendEvent } from "./Data/Main/WindowEvents";
+import { requestClientData, sendEvent } from "./Data/Main/WindowEvents";
 import { TransferProgress } from "../types/nodegit";
 import { normalizeLocalName } from "./Data/Branch";
 
@@ -108,29 +109,56 @@ function applyAppMenu() {
         ...isMac ? [{
             label: app.name,
             submenu: [
-                { role: 'about' },
-                { type: 'separator' },
-                { role: 'services' },
-                { type: 'separator' },
-                { role: 'hide' },
-                { role: 'hideothers' },
-                { role: 'unhide' },
-                { type: 'separator' },
-                { role: 'quit' }
+                { role: "about" },
+                { type: "separator" },
+                { role: "services" },
+                { type: "separator" },
+                { role: "hide" },
+                { role: "hideothers" },
+                { role: "unhide" },
+                { type: "separator" },
+                { role: "quit" }
             ]
         }] : [],
         {
-            label: 'File',
+            label: "File",
             submenu: [
                 {
-                    label: 'Open repository...',
-                    accelerator: 'CmdOrCtrl+O',
-                    async click() {
-                        const result = await openRepoDialog();
-                        if (result?.opened) {
-                            sendEvent(win.webContents, "repo-opened", result);
-                        }
-                    }
+                    label: "Open repository...",
+                    submenu: [
+                        {
+                            label: "Open existing...",
+                            accelerator: 'CmdOrCtrl+O',
+                            async click() {
+                                const result = await openRepoDialog();
+                                if (result?.opened) {
+                                    sendEvent(win.webContents, "repo-opened", result);
+                                }
+                            }
+                        },
+                        {
+                            label: "Clone...",
+                            async click() {
+                                const data = await requestClientData(win.webContents, "clone-dialog", null);
+                                if (data.target && data.source) {
+                                    const repo = await Clone.clone(data.source, data.target);
+                                    const repoResult = await openRepo(repo.workdir());
+                                    sendEvent(win.webContents, "repo-opened", repoResult);
+                                }
+                            }
+                        },
+                        {
+                            label: "Create/init...",
+                            async click() {
+                                const data = await requestClientData(win.webContents, "init-dialog", null);
+                                if (data.source) {
+                                    const repo = await Repository.init(data.source, 0);
+                                    const repoResult = await openRepo(repo.workdir());
+                                    sendEvent(win.webContents, "repo-opened", repoResult);
+                                }
+                            }
+                        },
+                    ]
                 },
                 {
                     label: "Recent...",
@@ -276,12 +304,14 @@ function applyAppMenu() {
                 {
                     label: "Compare revisions...",
                     click() {
+                        // TODO: implement with requestClientData
                         sendEvent(win.webContents, "begin-compare-revisions", null);
                     }
                 },
                 {
                     label: "View commit...",
                     click() {
+                        // TODO: implement with requestClientData
                         sendEvent(win.webContents, "begin-view-commit", null);
                     }
                 },
@@ -751,7 +781,7 @@ async function openRepo(repoPath: string) {
     return {
         path: repoPath,
         opened: !!opened,
-        status: opened ? provider.repoStatus(repo) : null,
+        status: opened ? provider.repoStatus(opened) : null,
     };
 }
 

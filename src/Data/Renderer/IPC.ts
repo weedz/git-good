@@ -8,7 +8,7 @@ ipcRenderer.on("asynchronous-reply", handleMessage);
 // We send null to callbacks when the action failed/returned an error
 const callbackHandlers: Record<string, (args: IpcActionReturn[IpcAction] | null) => void> = {};
 
-function handleMessage<T extends IpcAction>(_: unknown, payload: IpcPayload<T>) {
+function handleMessage(_: unknown, payload: IpcPayload<IpcAction>) {
     if (payload.id && callbackHandlers[payload.id]) {
         if ("error" in payload) {
             callbackHandlers[payload.id](null);
@@ -37,6 +37,7 @@ export function ipcSendMessage<T extends IpcAction>(action: T, data: IpcActionPa
 export function ipcGetData<T extends IpcAction>(action: T, data: IpcActionParams[T]) {
     const id = ipcSendMessage(action, data);
     return new Promise<IpcActionReturn[T]>((resolve, _reject) => {
+        // calbackHandlers get cleaned up in handleMessage()
         callbackHandlers[id] = resolve as unknown as (args: IpcActionReturn[IpcAction] | null) => void;
     });
 }

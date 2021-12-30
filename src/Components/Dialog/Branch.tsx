@@ -4,7 +4,7 @@ import { BranchProps } from "./types";
 
 function BranchDialog(dialog: BranchProps & {title: string}) {
     const data = {
-        branchName: dialog.default || "",
+        branchName: dialog.data || "",
         checkout: false,
     };
     return <div className="dialog-window">
@@ -17,7 +17,7 @@ function BranchDialog(dialog: BranchProps & {title: string}) {
             <label>
                 Checkout: <input type="checkbox" onChange={e => data.checkout = e.currentTarget.checked} /><br />
             </label>
-            <button type="button" onClick={() => dialog.cancelCb()}>Cancel</button>
+            <button type="button" onClick={dialog.cancelCb}>Cancel</button>
             <button type="submit">Confirm</button>
         </form>
     </div>;
