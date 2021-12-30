@@ -8,8 +8,6 @@ type State = {
     view: h.JSX.Element | null
 }
 
-// FIXME: this should be refactored so we don't have to listen on store changes..
-
 export default class DiffPane extends PureStoreComponent<unknown, State> {
     componentDidMount() {
         this.listen("diffPaneSrc", sha => {
