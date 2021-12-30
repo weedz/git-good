@@ -997,7 +997,7 @@ async function loadConflictedPatch(repo: Repository, path: string): Promise<Hunk
     }];
 }
 
-export async function resolveConflict(repo: Repository, path: string) {
+export async function resolveConflict(repo: Repository, path: string): Promise<boolean> {
     const conflictEntry = await index.conflictGet(path) as unknown as {ancestor_out: IndexEntry, our_out: IndexEntry | null, their_out: IndexEntry | null};
 
     if (!conflictEntry.our_out) {
@@ -1009,7 +1009,7 @@ export async function resolveConflict(repo: Repository, path: string) {
             cancelId: 0,
         });
         if (res.response === 0) {
-            return 0;
+            return false;
         }
         if (res.response === 2) {
             await index.addByPath(path);
@@ -1031,7 +1031,7 @@ export async function resolveConflict(repo: Repository, path: string) {
             cancelId: 0,
         });
         if (res.response === 0) {
-            return 0;
+            return false;
         }
         if (res.response === 2) {
             try {
@@ -1054,7 +1054,7 @@ export async function resolveConflict(repo: Repository, path: string) {
                     cancelId: 0,
                 });
                 if (res.response !== 1) {
-                    return 0;
+                    return false;
                 }
             }
         }
@@ -1063,9 +1063,8 @@ export async function resolveConflict(repo: Repository, path: string) {
         await index.conflictRemove(path);
     }
 
-    const result = undefined;
     await index.write();
-    return result;
+    return true;
 }
 
 function handlePatch(patch: ConvenientPatch): PatchObj {

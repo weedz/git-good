@@ -533,7 +533,7 @@ const eventMap: {
     [IpcAction.RESOLVE_CONFLICT]: async (repo, {path}) => {
         const result = await provider.resolveConflict(repo, path);
         sendEvent(win.webContents, "refresh-workdir", null);
-        return !result;
+        return result;
     },
     [IpcAction.EDIT_REMOTE]: async (repo, data, event) => {
         if (!Remote.isValidName(data.name)) {
