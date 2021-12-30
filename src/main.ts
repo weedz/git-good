@@ -141,6 +141,7 @@ function applyAppMenu() {
                     type: "separator"
                 },
                 {
+                    enabled: !!repo,
                     label: "Open in Terminal",
                     accelerator: 'CmdOrCtrl+Shift+C',
                     click() {
@@ -168,6 +169,7 @@ function applyAppMenu() {
                     }
                 },
                 {
+                    enabled: !!repo,
                     label: "Open in File Manager",
                     click() {
                         repo && shell.openPath(repo.workdir());
