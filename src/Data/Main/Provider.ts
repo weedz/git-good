@@ -1019,7 +1019,7 @@ export async function resolveConflict(repo: Repository, path: string) {
             try {
                 await fs.unlink(join(repo.workdir(), path));
             } catch (err) {
-                console.log(err);
+                console.error(err);
             }
             await index.removeByPath(path);
         }
@@ -1038,7 +1038,7 @@ export async function resolveConflict(repo: Repository, path: string) {
             try {
                 await index.removeByPath(path);
             } catch (err) {
-                console.log(err);
+                console.error(err);
             }
         } else {
             await index.addByPath(path);

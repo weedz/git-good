@@ -309,7 +309,6 @@ addWindowEventListener("notify", notify);
 {
     let pushNotification: null | Notification;
     addWindowEventListener("push-status", stats => {
-        console.log("push status", stats);
         if (!pushNotification) {
             pushNotification = notify({title: "Pushing...", time: 0});
         }

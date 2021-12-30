@@ -75,7 +75,6 @@ export default class CommitForm extends StoreComponent<Props, State> {
         } else if (Store.repo?.status?.rebasing) {
             commitButton = <input type="submit" name="amend" value="Continue rebase" onClick={(e) => {
                 e.preventDefault();
-                console.log("continue rebase");
             }} />
         } else {
             commitButton = <input type="submit" name="commit" value="Commit" onClick={this.commit} disabled={!this.props.staged || !this.state.commitMsg.summary.length} />
