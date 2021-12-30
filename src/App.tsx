@@ -8,7 +8,6 @@ import { Store, StoreComponent } from "./Data/Renderer/store";
 import { Locks } from "./Data/Actions";
 import Dialog from "./Components/Dialog";
 import FileDiff from "./Components/FileDiff";
-import NewTab from "./Views/NewTab";
 import NotificationsContainer from "./Components/NotificationsContainer";
 import { NotificationPosition } from "./Data/WindowEventTypes";
 
@@ -30,7 +29,7 @@ export default class App extends StoreComponent {
     render() {
         if (!Store.repo) {
             return (
-                <NewTab />
+                <p>Open a repo with File &gt; Open repository...</p>
             );
         }
         return (
