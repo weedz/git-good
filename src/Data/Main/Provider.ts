@@ -11,9 +11,8 @@ import { AuthConfig } from "../Config";
 import { currentProfile, getAppConfig, getAuth } from "./Config";
 import { sendEvent } from "./WindowEvents";
 
-// TODO: Could probably handle this better
 export type Context = {
-    win?: WebContents;
+    win: WebContents;
     repo: Repository;
 };
 
@@ -298,7 +297,7 @@ async function pushHead(context: Context, auth: AuthConfig) {
 }
 
 export async function push(context: Context, data: IpcActionParams[IpcAction.PUSH]) {
-    context.win && sendEvent(context.win, "push-status", {
+    sendEvent(context.win, "push-status", {
         done: false
     });
 
@@ -321,7 +320,7 @@ export async function push(context: Context, data: IpcActionParams[IpcAction.PUS
         }
     }
 
-    context.win && sendEvent(context.win, "push-status", {
+    sendEvent(context.win, "push-status", {
         done: true
     });
 
@@ -382,7 +381,7 @@ async function doPush(remote: Remote, localName: string, remoteName: string, aut
                     // eslint-disable-next-line @typescript-eslint/ban-ts-comment
                     // @ts-ignore
                     pushTransferProgress: (transferedObjects: number, totalObjects: number, bytes: number) => {
-                        context?.win && sendEvent(context.win, "push-status", {
+                        context && sendEvent(context.win, "push-status", {
                             totalObjects,
                             transferedObjects,
                             bytes
