@@ -24,9 +24,7 @@ interface Props {
 
 export default class BranchList extends PureStoreComponent<Props> {
     componentDidMount() {
-        this.listen("head", () => {
-            this.forceUpdate();
-        });
+        this.listen("head");
     }
 
     render() {

@@ -4,9 +4,7 @@ import { NotificationPosition } from "../Data/WindowEventTypes";
 
 export default class NotificationsContainer extends PureStoreComponent<{position: NotificationPosition}> {
     componentDidMount() {
-        this.listen("notifications", () => {
-            this.forceUpdate()
-        });
+        this.listen("notifications");
     }
     render() {
         return (
