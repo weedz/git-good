@@ -5,7 +5,11 @@ Just a simple git client using electron and nodegit, focus on lightweight and pe
 
 Follow instructions from https://github.com/nodegit/nodegit. 
 
-### Linux (Ubuntu)
+### Arch Linux
+
+PKGBUILD is available from <https://github.com/weedz/git-good-pkgbuild>. 
+
+### Ubuntu/debian
 
 To successfully build/link nodegit on linux you will need the following packages:
 ```
