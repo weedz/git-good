@@ -21,6 +21,8 @@ initialize();
 declare const __build_date__: number;
 // declare const __last_comit__: string;
 
+let repo: Repository;
+
 let win: BrowserWindow;
 const createWindow = () => {
     const cursorPosition = screen.getCursorScreenPoint();
@@ -103,7 +105,6 @@ function buildOpenRepoMenuItem(path: string): MenuItemConstructorOptions {
 
 function applyAppMenu() {
     const menuTemplate = [
-        // { role: 'appMenu' }
         ...isMac ? [{
             label: app.name,
             submenu: [
@@ -118,7 +119,6 @@ function applyAppMenu() {
                 { role: 'quit' }
             ]
         }] : [],
-        // { role: 'fileMenu' }
         {
             label: 'File',
             submenu: [
@@ -189,7 +189,6 @@ function applyAppMenu() {
                 isMac ? { role: 'close' } : { role: 'quit' },
             ]
         },
-        // { role: 'editMenu' }
         {
             label: 'Edit',
             submenu: [
@@ -218,7 +217,6 @@ function applyAppMenu() {
                 ])
             ]
         },
-        // { role: 'viewMenu' }
         {
             label: 'View',
             submenu: [
@@ -233,7 +231,7 @@ function applyAppMenu() {
                 { role: 'togglefullscreen' }
             ]
         },
-        {
+        ...repo ? [{
             label: 'Repository',
             submenu: [
                 {
@@ -286,8 +284,7 @@ function applyAppMenu() {
                     }
                 },
             ]
-        },
-        {
+        }, {
             label: "Stash",
             submenu: [
                 {
@@ -319,7 +316,7 @@ function applyAppMenu() {
                     }
                 }
             ]
-        },
+        }] : [],
         // { role: 'windowMenu' }
         {
             label: 'Window',
@@ -380,8 +377,6 @@ function applyAppMenu() {
     Menu.setApplicationMenu(menu);
 }
 applyAppMenu();
-
-let repo: Repository;
 
 type EventArgs = {
     action: IpcAction
