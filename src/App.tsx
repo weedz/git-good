@@ -1,4 +1,4 @@
-import { h } from "preact";
+import { h, Fragment } from "preact";
 import { basename } from "path";
 
 import Main from "./Views/Main";
@@ -27,21 +27,21 @@ export default class App extends StoreComponent {
         });
     }
     render() {
-        if (!Store.repo) {
-            return (
-                <p>Open a repo with File &gt; Open repository...</p>
-            );
-        }
+        const mainContent = Store.repo
+         ? <>
+            <div id="left-pane">
+                <Changes />
+                <Branches />
+            </div>
+            <FileDiff />
+            <Main />
+            <NotificationsContainer position={NotificationPosition.DEFAULT} />
+        </>
+        : <p>Open a repo with File &gt; Open repository...</p>;
         return (
             <div id="main-window" className={Store.locks[Locks.MAIN] ? "disabled" : ""}>
                 <Dialog />
-                <div id="left-pane">
-                    <Changes />
-                    <Branches />
-                </div>
-                <FileDiff />
-                <Main />
-                <NotificationsContainer position={NotificationPosition.DEFAULT} />
+                {mainContent}
             </div>
         );
     }
