@@ -16,18 +16,6 @@ export type Context = {
     repo: Repository;
 };
 
-interface RepoContext {
-    index: Index
-}
-
-function getRepoContext(repo: Repository) {
-    const context = repoContext.get(repo);
-    if (!context) {
-        throw new Error(`Missing context for repo '${repo.path()}'`);
-    }
-    return context;
-}
-
 export const actionLock: {
     [key in IpcAction]?: {
         interuptable: false
@@ -66,9 +54,7 @@ export function authenticate(username: string, auth: AuthConfig) {
 export async function openRepo(repoPath: string) {
     try {
         const repo = await Repository.open(repoPath);
-        repoContext.set(repo, {
-            index: await repo.refreshIndex(),
-        });
+        index = await repo.refreshIndex();
         return repo;
     } catch (e) {
         return false;
@@ -272,7 +258,7 @@ export async function pull(repo: Repository, branch: string | null, signature: S
     
             // Returns 0 on success
             result = !await Reset.reset(repo, originHead, Reset.TYPE.HARD, {});
-            await getRepoContext(repo).index.read(0);
+            index = await repo.refreshIndex();
         } else {
             result = await repo.rebaseBranches(ref.name(), upstream.name(), upstream.name(), signature, (..._args: unknown[]) => {
                 // console.log("beforeNextFn:", args);
@@ -628,8 +614,6 @@ export async function remotes(repo: Repository): Promise<IpcActionReturn[IpcActi
 }
 
 export async function findFile(repo: Repository, file: string): Promise<IpcActionReturn[IpcAction.FIND_FILE]> {
-    const index = getRepoContext(repo).index;
-
     await index.read(0);
 
     const set = new Set<string>();
@@ -668,7 +652,7 @@ export async function commit(repo: Repository, params: IpcActionParams[IpcAction
 
     const parent = await repo.getHeadCommit();
 
-    const oid = await getRepoContext(repo).index.writeTree();
+    const oid = await index.writeTree();
 
     const message = params.message.body ? `${params.message.summary}\n\n${params.message.body}` : params.message.summary;
 
@@ -720,7 +704,6 @@ export async function createTag(repo: Repository, data: IpcActionParams[IpcActio
 }
 
 async function getUnstagedPatches(repo: Repository, flags: Diff.OPTION) {
-    const index = getRepoContext(repo).index;
     const unstagedDiff = await Diff.indexToWorkdir(repo, index, {
         flags: Diff.OPTION.SHOW_UNTRACKED_CONTENT | Diff.OPTION.RECURSE_UNTRACKED_DIRS | flags
     });
@@ -732,7 +715,6 @@ async function getUnstagedPatches(repo: Repository, flags: Diff.OPTION) {
 }
 
 async function getStagedPatches(repo: Repository, flags: Diff.OPTION) {
-    const index = getRepoContext(repo).index;
     const head = await repo.getHeadCommit();
     const stagedDiff = await Diff.treeToIndex(repo, await head.getTree(), index, {
         flags
@@ -745,7 +727,7 @@ async function getStagedPatches(repo: Repository, flags: Diff.OPTION) {
 }
 
 export async function refreshWorkDir(repo: Repository, options: IpcActionParams[IpcAction.REFRESH_WORKDIR]): Promise<IpcActionReturn[IpcAction.REFRESH_WORKDIR]> {
-    await getRepoContext(repo).index.read(0);
+    await index.read(0);
 
     const flags = options?.flags || 0;
 
@@ -761,8 +743,6 @@ export async function refreshWorkDir(repo: Repository, options: IpcActionParams[
 }
 
 export async function stageFile(repo: Repository, filePath: string): Promise<IpcActionReturn[IpcAction.STAGE_FILE]> {
-    const index = getRepoContext(repo).index;
-
     await index.read(0);
 
     let result;
@@ -785,13 +765,12 @@ export async function stageFile(repo: Repository, filePath: string): Promise<Ipc
 export async function unstageFile(repo: Repository, path: string): Promise<IpcActionReturn[IpcAction.UNSTAGE_FILE]> {
     const head = await repo.getHeadCommit();
     await Reset.default(repo, head, path);
-
-    await getRepoContext(repo).index.read(0);
+    await index.read(0);
 
     return 0;
 }
 export async function discardChanges(repo: Repository, filePath: string) {
-    if (!getRepoContext(repo).index.getByPath(filePath)) {
+    if (!index.getByPath(filePath)) {
         // file not found in index (untracked), delete?
         const result = await dialog.showMessageBox({
             message: `Delete untracked file ${filePath}?`,
@@ -956,7 +935,7 @@ export async function diff_file_at_commit(repo: Repository, file: string, sha: s
 }
 
 async function loadConflictedPatch(repo: Repository, path: string): Promise<HunkObj[]> {
-    const conflictEntry = await getRepoContext(repo).index.conflictGet(path || "") as unknown as {ancestor_out: IndexEntry, our_out: IndexEntry | null, their_out: IndexEntry | null};
+    const conflictEntry = await index.conflictGet(path || "") as unknown as {ancestor_out: IndexEntry, our_out: IndexEntry | null, their_out: IndexEntry | null};
 
     if (!conflictEntry.their_out) {
         return [{
@@ -1018,8 +997,7 @@ async function loadConflictedPatch(repo: Repository, path: string): Promise<Hunk
     }];
 }
 
-export async function resolveConflict(repo: Repository, path: string) {
-    const index = getRepoContext(repo).index;
+export async function resolveConflict(repo: Repository, path: string): Promise<boolean> {
     const conflictEntry = await index.conflictGet(path) as unknown as {ancestor_out: IndexEntry, our_out: IndexEntry | null, their_out: IndexEntry | null};
 
     if (!conflictEntry.our_out) {
@@ -1274,7 +1252,6 @@ export async function checkoutBranch(repo: Repository, branch: string) {
     }
 }
 
-// TODO: Move these to RepoContext so we can more easily handle multiple repos in the same window
 let repoStash: StashObj[] = [];
 let currentCommit: string;
 let commitObjectCache: {
@@ -1307,6 +1284,4 @@ let workDirIndexPathMap: {
     staged: { [path: string]: ConvenientPatch },
     unstaged: { [path: string]: ConvenientPatch },
 }
-
-const repoContext: WeakMap<Repository, RepoContext> = new WeakMap();
-
+let index: Index;
