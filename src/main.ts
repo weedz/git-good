@@ -102,7 +102,6 @@ function buildOpenRepoMenuItem(path: string): MenuItemConstructorOptions {
 }
 
 function applyAppMenu() {
-    // FIXME: Do we really need to redefine menuTemplate every time we update a menu item?
     const menuTemplate = [
         // { role: 'appMenu' }
         ...isMac ? [{
