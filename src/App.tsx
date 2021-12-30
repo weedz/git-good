@@ -14,9 +14,9 @@ import { NotificationPosition } from "./Data/WindowEventTypes";
 export default class App extends StoreComponent {
     componentDidMount() {
         this.listen("repo", repo => {
-            if (repo) {
+            if (repo && repo.path !== Store.repo?.path) {
                 document.title = `${basename(repo.path)} - git-good`;
-                this.setState({});
+                this.forceUpdate();
             }
         });
 
