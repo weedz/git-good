@@ -4,7 +4,7 @@ import { dialog, IpcMainEvent, WebContents } from "electron";
 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
 // @ts-ignore, missing declations for Credential
 import { Revparse, Credential, Repository, Revwalk, Commit, Diff, ConvenientPatch, ConvenientHunk, DiffLine, Object, Branch, Graph, Index, Reset, Checkout, DiffFindOptions, Reference, Oid, Signature, Remote, DiffOptions, IndexEntry, Error as NodeGitError, Tag, Stash } from "nodegit";
-import { IpcAction, BranchObj, LineObj, HunkObj, PatchObj, CommitObj, IpcActionParams, IpcActionReturn, RefType, StashObj } from "../Actions";
+import { IpcAction, BranchObj, LineObj, HunkObj, PatchObj, CommitObj, IpcActionParams, RefType, StashObj, AsyncIpcActionReturnOrError, IpcActionReturnOrError, IpcActionReturn } from "../Actions";
 import { normalizeLocalName, normalizeRemoteName, normalizeRemoteNameWithoutRemote, normalizeTagName, remoteName } from "../Branch";
 import { gpgSign, gpgVerify } from "./GPG";
 import { AuthConfig } from "../Config";
@@ -22,7 +22,7 @@ export const actionLock: {
     };
 } = {};
 
-export function eventReply<T extends IpcAction>(event: IpcMainEvent, action: T, data: Error | IpcActionReturn[T], id?: string) {
+export function eventReply<T extends IpcAction>(event: IpcMainEvent, action: T, data: IpcActionReturnOrError<T>, id?: string) {
     if (action in actionLock) {
         delete actionLock[action];
     }
@@ -466,7 +466,7 @@ export async function deleteRemoteTag(remote: Remote, tagName: string) {
     return true;
 }
 
-export async function getHEAD(repo: Repository): Promise<IpcActionReturn[IpcAction.LOAD_HEAD]> {
+export async function getHEAD(repo: Repository): AsyncIpcActionReturnOrError<IpcAction.LOAD_HEAD> {
     const head = await repo.head();
     const headCommit = await repo.getHeadCommit();
 
@@ -487,7 +487,7 @@ export async function getHEAD(repo: Repository): Promise<IpcActionReturn[IpcActi
     }
 }
 
-export async function getUpstreamRefs(repo: Repository): Promise<IpcActionReturn[IpcAction.LOAD_UPSTREAMS]> {
+export async function getUpstreamRefs(repo: Repository): AsyncIpcActionReturnOrError<IpcAction.LOAD_UPSTREAMS> {
     const refs = await repo.getReferences();
 
     const upstreams: IpcActionReturn[IpcAction.LOAD_UPSTREAMS] = [];
@@ -556,7 +556,7 @@ export async function getStash(repo: Repository) {
 }
 
 // {local: Branch[], remote: Branch[], tags: Branch[]}
-export async function getBranches(repo: Repository): Promise<IpcActionReturn[IpcAction.LOAD_BRANCHES]> {
+export async function getBranches(repo: Repository): AsyncIpcActionReturnOrError<IpcAction.LOAD_BRANCHES> {
     const local: BranchObj[] = [];
     const remote: BranchObj[] = [];
     const tags: BranchObj[] = [];
@@ -604,7 +604,7 @@ export async function getBranches(repo: Repository): Promise<IpcActionReturn[Ipc
     };
 }
 
-export async function remotes(repo: Repository): Promise<IpcActionReturn[IpcAction.REMOTES]> {
+export async function remotes(repo: Repository): AsyncIpcActionReturnOrError<IpcAction.REMOTES> {
     const remotes = await repo.getRemotes();
     return remotes.map(remote => ({
         name: remote.name(),
@@ -613,7 +613,7 @@ export async function remotes(repo: Repository): Promise<IpcActionReturn[IpcActi
     }))
 }
 
-export async function findFile(repo: Repository, file: string): Promise<IpcActionReturn[IpcAction.FIND_FILE]> {
+export async function findFile(repo: Repository, file: string): AsyncIpcActionReturnOrError<IpcAction.FIND_FILE> {
     await index.read(0);
 
     const set = new Set<string>();
@@ -726,7 +726,7 @@ async function getStagedPatches(repo: Repository, flags: Diff.OPTION) {
     return stagedDiff.patches();
 }
 
-export async function refreshWorkDir(repo: Repository, options: IpcActionParams[IpcAction.REFRESH_WORKDIR]): Promise<IpcActionReturn[IpcAction.REFRESH_WORKDIR]> {
+export async function refreshWorkDir(repo: Repository, options: IpcActionParams[IpcAction.REFRESH_WORKDIR]): AsyncIpcActionReturnOrError<IpcAction.REFRESH_WORKDIR> {
     await index.read(0);
 
     const flags = options?.flags || 0;
@@ -742,7 +742,7 @@ export async function refreshWorkDir(repo: Repository, options: IpcActionParams[
     };
 }
 
-export async function stageFile(repo: Repository, filePath: string): Promise<IpcActionReturn[IpcAction.STAGE_FILE]> {
+export async function stageFile(repo: Repository, filePath: string): AsyncIpcActionReturnOrError<IpcAction.STAGE_FILE> {
     await index.read(0);
 
     let result;
@@ -762,7 +762,7 @@ export async function stageFile(repo: Repository, filePath: string): Promise<Ipc
 
     return 0;
 }
-export async function unstageFile(repo: Repository, path: string): Promise<IpcActionReturn[IpcAction.UNSTAGE_FILE]> {
+export async function unstageFile(repo: Repository, path: string): AsyncIpcActionReturnOrError<IpcAction.UNSTAGE_FILE> {
     const head = await repo.getHeadCommit();
     await Reset.default(repo, head, path);
     await index.read(0);
@@ -800,7 +800,7 @@ export async function discardChanges(repo: Repository, filePath: string) {
     return 0;
 }
 
-export async function loadChanges(): Promise<IpcActionReturn[IpcAction.GET_CHANGES]> {
+export async function loadChanges(): AsyncIpcActionReturnOrError<IpcAction.GET_CHANGES> {
     workDirIndexPathMap = {
         staged: {},
         unstaged: {},
@@ -1103,7 +1103,7 @@ async function handleDiff(diff: Diff, patches: { [path: string]: ConvenientPatch
     });
 }
 
-export async function getCommitPatches(sha: string, options?: DiffOptions): Promise<IpcActionReturn[IpcAction.LOAD_PATCHES_WITHOUT_HUNKS]> {
+export async function getCommitPatches(sha: string, options?: DiffOptions): AsyncIpcActionReturnOrError<IpcAction.LOAD_PATCHES_WITHOUT_HUNKS> {
     const commit = commitObjectCache[sha].commit;
 
     const diff = await commit_diff_parent(commit, options);
@@ -1235,7 +1235,7 @@ export async function commitWithDiff(repo: Repository, sha: string) {
     return commit;
 }
 
-export async function checkoutBranch(repo: Repository, branch: string) {
+export async function checkoutBranch(repo: Repository, branch: string): AsyncIpcActionReturnOrError<IpcAction.CHECKOUT_BRANCH> {
     try {
         await repo.checkoutBranch(branch);
         const head = await repo.head();
@@ -1246,7 +1246,7 @@ export async function checkoutBranch(repo: Repository, branch: string) {
             commit: getCommitObj(headCommit),
             normalizedName: head.name(),
             type: RefType.LOCAL
-        } as IpcActionReturn[IpcAction.CHECKOUT_BRANCH];
+        };
     } catch (err) {
         return err as Error;
     }

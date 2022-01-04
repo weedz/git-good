@@ -8,7 +8,14 @@ export type IpcPayload<T extends IpcAction> = {
     {data: IpcActionReturn[T]} | {error: string}
 );
 
+export type IpcActionReturnOrError<A extends IpcAction> = IpcActionReturn[A] | Error;
+export type AsyncIpcActionReturnOrError<A extends IpcAction> = Promise<IpcActionReturnOrError<A>>;
+
 export type IpcResponse<T extends IpcAction> = IpcActionReturn[T] | false;
+
+export type IpcActionReturnError = {
+    msg: Error
+};
 
 export type IpcPayloadMsg<T extends IpcAction> = {result: IpcActionReturn[T]} | {error: IpcActionReturnError["msg"]};
 
@@ -244,10 +251,6 @@ export type IpcActionReturn = {
     [IpcAction.STASH_POP]: boolean
     [IpcAction.STASH_APPLY]: boolean
     [IpcAction.STASH_DROP]: boolean
-};
-
-export type IpcActionReturnError = {
-    msg: Error
 };
 
 export type RepoStatus = {

@@ -8,7 +8,7 @@ import { isMac, isWindows } from "./Data/Main/Utils";
 import { addRecentRepository, clearRepoProfile, currentProfile, getAppConfig, getAuth, getRecentRepositories, getRepoProfile, saveAppConfig, setCurrentProfile, setRepoProfile, signatureFromActiveProfile, signatureFromProfile } from "./Data/Main/Config";
 
 import * as provider from "./Data/Main/Provider";
-import { IpcAction, IpcActionParams, IpcActionReturn, Locks } from "./Data/Actions";
+import { IpcAction, IpcActionParams, IpcActionReturnOrError, IpcActionReturn, Locks, AsyncIpcActionReturnOrError } from "./Data/Actions";
 import { formatTimeAgo } from "./Data/Utils";
 import { sendEvent } from "./Data/Main/WindowEvents";
 import { TransferProgress } from "../types/nodegit";
@@ -386,8 +386,8 @@ type EventArgs = {
     id?: string
 };
 
-type AsyncGeneratorEventCallback<A extends IpcAction> = (repo: Repository, args: IpcActionParams[A], event: IpcMainEvent) => AsyncGenerator<Error | IpcActionReturn[A]>;
-type PromiseEventCallback<A extends IpcAction> = (repo: Repository, args: IpcActionParams[A], event: IpcMainEvent) => Promise<Error | IpcActionReturn[A]>;
+type AsyncGeneratorEventCallback<A extends IpcAction> = (repo: Repository, args: IpcActionParams[A], event: IpcMainEvent) => AsyncGenerator<IpcActionReturnOrError<A>>;
+type PromiseEventCallback<A extends IpcAction> = (repo: Repository, args: IpcActionParams[A], event: IpcMainEvent) => AsyncIpcActionReturnOrError<A>;
 
 type AsyncGeneratorFunctions = IpcAction.LOAD_COMMITS;
 function isAsyncGenerator(action: IpcAction): action is AsyncGeneratorFunctions {
@@ -687,13 +687,13 @@ ipcMain.on("asynchronous-message", async (event, arg: EventArgs) => {
     }
 });
 
-async function abortRebase(repo: Repository): Promise<IpcActionReturn[IpcAction.ABORT_REBASE]> {
+async function abortRebase(repo: Repository): AsyncIpcActionReturnOrError<IpcAction.ABORT_REBASE> {
     const rebase = await Rebase.open(repo);
     console.log(rebase);
     // rebase.abort();
     return provider.repoStatus(repo);
 }
-async function continueRebase(repo: Repository): Promise<IpcActionReturn[IpcAction.CONTINUE_REBASE]> {
+async function continueRebase(repo: Repository): AsyncIpcActionReturnOrError<IpcAction.CONTINUE_REBASE> {
     const rebase = await Rebase.open(repo);
     console.log(rebase);
     // const rebaseAction = await rebase.next();
