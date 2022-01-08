@@ -210,18 +210,20 @@ export function clearLock(lock: Locks) {
     store.updateStore({locks: {...Store.locks, [lock]: false}});
 }
 
-export function createBranchFromSha(sha: string, name: string) {
+export function createBranchFromSha(sha: string, name: string,  checkout: boolean) {
     setLock(Locks.BRANCH_LIST);
     return ipcGetData(IpcAction.CREATE_BRANCH, {
         sha,
         name,
+        checkout,
     });
 }
-export function createBranchFromRef(ref: string, name: string) {
+export function createBranchFromRef(ref: string, name: string, checkout: boolean) {
     setLock(Locks.BRANCH_LIST);
     return ipcGetData(IpcAction.CREATE_BRANCH_FROM_REF, {
         ref,
         name,
+        checkout,
     });
 }
 export function deleteBranch(name: string) {

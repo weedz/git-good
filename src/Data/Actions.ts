@@ -126,10 +126,12 @@ export type IpcActionParams = {
     [IpcAction.CREATE_BRANCH]: {
         sha: string
         name: string
+        checkout?: boolean
     }
     [IpcAction.CREATE_BRANCH_FROM_REF]: {
         ref: string
         name: string
+        checkout?: boolean
     }
     [IpcAction.RENAME_LOCAL_BRANCH]: {
         ref: string

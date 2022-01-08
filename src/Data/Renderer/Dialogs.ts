@@ -89,13 +89,13 @@ export function openDialog_BranchFrom(sha: string, type: BranchFromType) {
         cancelCb() {
             closeDialogWindow();
         },
-        async confirmCb(branchName) {
+        async confirmCb(branchName, checkout) {
             let success = true;
             if (branchName) {
                 if (type === BranchFromType.COMMIT) {
-                    success = await createBranchFromSha(sha, branchName);
+                    success = await createBranchFromSha(sha, branchName, checkout);
                 } else if (type === BranchFromType.REF) {
-                    success = await createBranchFromRef(sha, branchName);
+                    success = await createBranchFromRef(sha, branchName, checkout);
                 }
             }
             if (success) {

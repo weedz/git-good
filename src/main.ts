@@ -460,6 +460,9 @@ const eventMap: {
     [IpcAction.CREATE_BRANCH]: async (repo, data) => {
         try {
             const res = await repo.createBranch(data.name, data.sha);
+            if (data.checkout) {
+                await repo.checkoutBranch(data.name);
+            }
             return res !== null;
         } catch (err) {
             return err as Error;
@@ -477,6 +480,9 @@ const eventMap: {
 
         try {
             const res = await repo.createBranch(data.name, sha);
+            if (data.checkout) {
+                await repo.checkoutBranch(data.name);
+            }
             return res !== null;
         } catch (err) {
             return err as Error;
@@ -702,15 +708,22 @@ async function continueRebase(repo: Repository): AsyncIpcActionReturnOrError<Ipc
 }
 
 async function openRepoDialog() {
+    sendEvent(win.webContents, "app-lock-ui", Locks.MAIN);
+
     const res = await dialog.showOpenDialog({
         properties: ["openDirectory"],
         title: "Select a repository"
     });
     if (res.canceled) {
+        sendEvent(win.webContents, "app-unlock-ui", Locks.MAIN);
         return null;
     }
 
-    return openRepo(res.filePaths[0]);
+    const result = await openRepo(res.filePaths[0]);
+
+    sendEvent(win.webContents, "app-unlock-ui", Locks.MAIN);
+
+    return result;
 }
 
 async function openRepo(repoPath: string) {

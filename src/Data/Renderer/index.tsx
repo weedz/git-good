@@ -13,7 +13,7 @@ import { WindowArguments } from "../WindowEventTypes";
 let refreshingWorkdir = false;
 
 window.addEventListener("focus", async () => {
-    if (Store.uiConfig?.refreshWorkdirOnFocus) {
+    if (!Store.locks[Locks.MAIN] && Store.uiConfig?.refreshWorkdirOnFocus) {
         refreshWorkdir();
     }
 });

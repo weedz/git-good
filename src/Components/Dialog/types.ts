@@ -56,7 +56,7 @@ export interface RemoteProps extends DialogBaseProps {
 
 export interface BranchProps extends DialogBaseProps {
     default: string | undefined
-    confirmCb: (branchName: string) => void
+    confirmCb: (branchName: string, checkout: boolean) => void
 }
 
 export interface SetUpstreamProps extends DialogBaseProps {
