@@ -23,8 +23,8 @@ export function EditRemote(dialog: RemoteProps) {
                 <input type="text" name="push" onChange={e => data.pushTo = e.currentTarget.value} value={data.pushTo || ""} />
             </label>
             <br />
-            <button type="submit">Confirm</button>
             <button type="button" onClick={() => dialog.cancelCb()}>Cancel</button>
+            <button type="submit">Confirm</button>
         </form>
     </div>;
 }

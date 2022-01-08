@@ -27,8 +27,8 @@ export function AddRemote(dialog: DialogProps[DialogTypes.ADD_REMOTE]) {
                 <input type="text" name="push" onChange={e => data.pushTo = e.currentTarget.value} />
             </label>
             <br />
-            <button type="submit">Confirm</button>
             <button type="button" onClick={() => dialog.cancelCb()}>Cancel</button>
+            <button type="submit">Confirm</button>
         </form>
     </div>;
 }

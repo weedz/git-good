@@ -143,8 +143,8 @@ export class Settings extends Component<SettingsProps, State> {
                     </div>
                 </div>
                 {this.state.saved && <p>Settings saved!</p>}
-                <button type="submit">Save</button>
                 <button type="button" onClick={this.props.cancelCb}>Close</button>
+                <button type="submit">Save</button>
             </Fragment>
         }
 

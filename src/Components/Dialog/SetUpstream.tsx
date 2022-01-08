@@ -18,8 +18,8 @@ export function SetUpstream(dialog: SetUpstreamProps) {
                 {Store.remotes.map(remote => <option key={remote.name} value={remote.name} selected={remote.name === data.remote}>{remote.name}</option>)}
             </select>
             <input type="text" name="branch" placeholder="Remote branch..." onChange={e => data.branch = e.currentTarget.value} value={data.branch} />
-            <button type="submit">Confirm</button>
             <button type="button" onClick={() => dialog.cancelCb()}>Cancel</button>
+            <button type="submit">Confirm</button>
         </form>
     </div>;
 }
