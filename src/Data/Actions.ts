@@ -19,7 +19,7 @@ export type IpcActionReturnError = {
 
 export type IpcPayloadMsg<T extends IpcAction> = {result: IpcActionReturn[T]} | {error: IpcActionReturnError["msg"]};
 
-export enum IpcAction {
+export const enum IpcAction {
     INIT = 0,
     LOAD_COMMITS,
     LOAD_FILE_COMMITS,

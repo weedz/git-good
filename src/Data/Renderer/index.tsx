@@ -352,7 +352,7 @@ registerHandler(IpcAction.LOAD_STASHES, stashLoaded);
 const rendererActions: {
     [E in RendererRequestEvents]: (data: RendererRequestArgs[E]) => Promise<RendererRequestData[E]>
 } = {
-    "clone-dialog": () => new Promise((resolve, reject) => {
+    [RendererRequestEvents.CLONE_DIALOG]: () => new Promise((resolve, reject) => {
         openDialogWindow(DialogTypes.CLONE_REPOSITORY, {
             confirmCb(data) {
                 closeDialogWindow();
@@ -364,7 +364,7 @@ const rendererActions: {
             }
         })
     }),
-    "init-dialog": () => new Promise((resolve, reject) => {
+    [RendererRequestEvents.INIT_DIALOG]: () => new Promise((resolve, reject) => {
         openDialogWindow(DialogTypes.INIT_REPOSITORY, {
             confirmCb(data) {
                 closeDialogWindow();

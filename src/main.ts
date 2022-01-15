@@ -16,6 +16,7 @@ import { TransferProgress } from "../types/nodegit";
 import { normalizeLocalName } from "./Data/Branch";
 
 import { initialize, enable as enableRemote } from "@electron/remote/main";
+import { RendererRequestEvents } from "./Data/WindowEventTypes";
 initialize();
 
 // constants from rollup
@@ -139,7 +140,7 @@ function applyAppMenu() {
                         {
                             label: "Clone...",
                             async click() {
-                                const data = await requestClientData(win.webContents, "clone-dialog", null);
+                                const data = await requestClientData(win.webContents, RendererRequestEvents.CLONE_DIALOG, null);
                                 if (data.target && data.source) {
                                     const repo = await Clone.clone(data.source, data.target);
                                     const repoResult = await openRepo(repo.workdir());
@@ -150,7 +151,7 @@ function applyAppMenu() {
                         {
                             label: "Create/init...",
                             async click() {
-                                const data = await requestClientData(win.webContents, "init-dialog", null);
+                                const data = await requestClientData(win.webContents, RendererRequestEvents.INIT_DIALOG, null);
                                 if (data.source) {
                                     const repo = await Repository.init(data.source, 0);
                                     const repoResult = await openRepo(repo.workdir());
