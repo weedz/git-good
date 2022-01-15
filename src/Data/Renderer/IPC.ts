@@ -114,7 +114,7 @@ function handleEvent<T extends IpcAction>(payload: IpcPayload<T>) {
     try {
         let data;
         if ("error" in payload) {
-            dialog.showErrorBox(`Error ${IpcAction[payload.action]}`, payload.error);
+            dialog.showErrorBox(`Error ${payload.action}`, payload.error);
             console.warn(payload);
             data = false;
         } else {
@@ -125,7 +125,7 @@ function handleEvent<T extends IpcAction>(payload: IpcPayload<T>) {
         }
     } catch (e) {
         console.error(e);
-        console.log(payload, IpcAction[payload.action]);
-        dialog.showErrorBox(`Error ${IpcAction[payload.action]}`, "Unknown error. Check devtools...");
+        console.log(payload);
+        dialog.showErrorBox(`Error ${payload.action}`, "Unknown error. Check devtools...");
     }
 }

@@ -64,21 +64,22 @@ export type NotificationInit = {
     classList?: string[]
 }
 
-export type RendererRequestEvents = 
-    "clone-dialog" |
-    "init-dialog";
+export const enum RendererRequestEvents {
+    CLONE_DIALOG = 0,
+    INIT_DIALOG,
+}
 
 export type RendererRequestArgs = {
-    "clone-dialog": null
-    "init-dialog": null
+    [RendererRequestEvents.CLONE_DIALOG]: null
+    [RendererRequestEvents.INIT_DIALOG]: null
 }
 
 export type RendererRequestData = {
-    "clone-dialog": {
+    [RendererRequestEvents.CLONE_DIALOG]: {
         source: string
         target: string
     }
-    "init-dialog": {
+    [RendererRequestEvents.INIT_DIALOG]: {
         source: string
     }
 }
