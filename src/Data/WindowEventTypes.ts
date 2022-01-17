@@ -85,12 +85,12 @@ export type RendererRequestData = {
 }
 
 export type RendererRequestPayload<E extends RendererRequestEvents> = {
-    id: string
+    id: number
     event: E
     data: RendererRequestArgs[E]
 }
 
 export type RendererResponsePayload<E extends RendererRequestEvents> = {
-    id: string
+    id: number
     data: RendererRequestData[E]
 }

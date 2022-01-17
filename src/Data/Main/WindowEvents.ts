@@ -1,6 +1,5 @@
 import { WebContents } from "electron";
 import { ipcMain } from "electron/main";
-import { nanoid } from "nanoid";
 import { WindowEvents, WindowArguments, RendererRequestEvents, RendererRequestArgs, RendererRequestData, RendererResponsePayload } from "../WindowEventTypes";
 
 export function sendEvent<T extends WindowEvents>(win: WebContents, event: T, args: WindowArguments[T]) {
@@ -19,7 +18,7 @@ ipcMain.on("response-client-data", (_, payload: RendererResponsePayload<Renderer
 });
 
 export async function requestClientData<T extends RendererRequestEvents>(win: WebContents, event: T, args: RendererRequestArgs[T]) {
-    const id = nanoid();
+    const id = (Math.random() * Number.MAX_SAFE_INTEGER)>>>0;
     win.send("request-client-data", {
         id,
         event,

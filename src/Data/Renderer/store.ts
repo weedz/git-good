@@ -41,7 +41,7 @@ export type StoreType = {
     diffOptions: {
         ignoreWhitespace: boolean
     }
-    notifications: Record<NotificationPosition, Map<string, Notification>>
+    notifications: Record<NotificationPosition, Map<number, Notification>>
     uiConfig: AppConfig["ui"] | undefined
 };
 
@@ -129,7 +129,7 @@ export function notify(notificationData: NotificationInit & {body?: null | strin
 
     return notification;
 }
-const deleteNotification: {[K in NotificationPosition]: (id: string) => void} = {
+const deleteNotification: {[K in NotificationPosition]: (id: number) => void} = {
     [NotificationPosition.DEFAULT]: (id) => Store.notifications[NotificationPosition.DEFAULT].delete(id) && store.updateStore({ notifications: Store.notifications }),
 }
 
