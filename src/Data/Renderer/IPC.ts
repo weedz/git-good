@@ -1,6 +1,5 @@
 import { ipcRenderer } from "electron";
 import { dialog } from "@electron/remote";
-import { nanoid } from "nanoid";
 import { IpcAction, IpcActionParams, IpcActionReturn, IpcPayload, IpcResponse } from "../Actions";
 import { WindowArguments, WindowEvents } from "../WindowEventTypes";
 
@@ -25,7 +24,7 @@ export function addWindowEventListener<T extends WindowEvents>(event: T, cb: (ar
 }
 
 export function ipcSendMessage<T extends IpcAction>(action: T, data: IpcActionParams[T]) {
-    const id = nanoid();
+    const id = (Math.random() * Number.MAX_SAFE_INTEGER)>>>0;
     ipcRenderer.send("asynchronous-message", {
         action,
         data,

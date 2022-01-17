@@ -1,17 +1,16 @@
 import { AnyComponent, Component, createRef, h } from "preact";
-import { nanoid } from "nanoid";
 import "./style.css";
 
 export class Notification {
-    readonly id: string;
+    readonly id: number;
     readonly item;
 
     timer!: number;
 
     ref = createRef<NotificationComponent>();
 
-    constructor(title: Props["title"], body: Props["body"], classes: string[], private deleteCallback: (id: string) => void, timeout: number | null = null) {
-        this.id = nanoid();
+    constructor(title: Props["title"], body: Props["body"], classes: string[], private deleteCallback: (id: number) => void, timeout: number | null = null) {
+        this.id = (Math.random() * Number.MAX_SAFE_INTEGER)>>>0;
         this.refreshExpireTime(timeout);
         this.item = <NotificationComponent ref={this.ref} key={this.id} body={body} title={title} close={this.delete} clearTimer={this.clearTimer} classList={classes} />;
     }
