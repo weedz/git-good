@@ -122,14 +122,14 @@ export class Settings extends Component<SettingsProps, State> {
                     <h3>Terminal</h3>
                     <div>
                         <label for="terminal-app">Terminal application:</label>
-                        <input id="terminal-app" type="text" name="terminal-app" value={this.state.config.terminal || ""} onChange={e => this.setConfig("terminal", e.currentTarget.value)} />
+                        <input id="terminal-app" type="text" name="terminal-app" value={this.state.config.terminal || ""} onInput={e => this.setConfig("terminal", e.currentTarget.value)} />
                     </div>
                 </div>
                 <div className="pane">
                     <h3>UI</h3>
                     <div>
                         <label for="ssh-agent">Refresh workdir on focus:</label>
-                        <input id="ssh-agent" type="checkbox" name="ssh-agent" checked={this.state.config.ui.refreshWorkdirOnFocus} onChange={e => this.setUIConfig("refreshWorkdirOnFocus", e.currentTarget.checked)} />
+                        <input id="ssh-agent" type="checkbox" name="ssh-agent" checked={this.state.config.ui.refreshWorkdirOnFocus} onInput={e => this.setUIConfig("refreshWorkdirOnFocus", e.currentTarget.checked)} />
                     </div>
                 </div>
                 <div className="pane">

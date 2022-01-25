@@ -29,7 +29,7 @@ export default class CommitContainer extends Component<Props, State> {
         return (
             <div id="file-history-commits" className="pane">
                 <h4>File history</h4>
-                <input type="text" placeholder="Sha/message/author" title="Search/Filter" onChange={e => this.updateFilter(e.currentTarget.value)} />
+                <input type="text" placeholder="Sha/message/author" title="Search/Filter" onInput={e => this.updateFilter(e.currentTarget.value)} />
                 {!this.props.fileHistory.length ? (
                     <p>Loading...</p>
                 ) : <ScrollContainer items={fileHistory} itemHeight={ITEM_HEIGHT} renderItems={(commits, start) => {

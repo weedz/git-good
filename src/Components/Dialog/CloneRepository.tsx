@@ -17,7 +17,7 @@ export class CloneRepositoryDialog extends Component<DialogProps[DialogTypes.CLO
                 <h4>Clone Repository</h4>
                 <label>
                     <p>URL:</p>
-                    <input type="text" onChange={e => this.setState({ source: e.currentTarget.value })} />
+                    <input type="text" onInput={e => this.setState({ source: e.currentTarget.value })} />
                 </label>
                 <label>
                     <p>Clone into:</p>

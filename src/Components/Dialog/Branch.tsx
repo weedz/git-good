@@ -13,9 +13,9 @@ function BranchDialog(dialog: BranchProps & {title: string}) {
             dialog.confirmCb(data.branchName, data.checkout);
         }}>
             <h4>{dialog.title}</h4>
-            <input type="text" name="branchName" placeholder="Name..." onChange={e => data.branchName = e.currentTarget.value} value={data.branchName} /><br />
+            <input type="text" name="branchName" placeholder="Name..." onInput={e => data.branchName = e.currentTarget.value} value={data.branchName} /><br />
             <label>
-                Checkout: <input type="checkbox" onChange={e => data.checkout = e.currentTarget.checked} /><br />
+                Checkout: <input type="checkbox" onInput={e => data.checkout = e.currentTarget.checked} /><br />
             </label>
             <button type="button" onClick={dialog.cancelCb}>Cancel</button>
             <button type="submit">Confirm</button>

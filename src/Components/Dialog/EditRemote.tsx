@@ -12,15 +12,15 @@ export function EditRemote(dialog: RemoteProps) {
             <h4>Edit remote</h4>
             <label>
                 <p>Name:</p>
-                <input type="text" name="name" onChange={e => data.name = e.currentTarget.value} value={data.name} />
+                <input type="text" name="name" onInput={e => data.name = e.currentTarget.value} value={data.name} />
             </label>
             <label>
                 <p>Pull from:</p>
-                <input type="text" name="pull" onChange={e => data.pullFrom = e.currentTarget.value} value={data.pullFrom} />
+                <input type="text" name="pull" onInput={e => data.pullFrom = e.currentTarget.value} value={data.pullFrom} />
             </label>
             <label>
                 <p>Push to:</p>
-                <input type="text" name="push" onChange={e => data.pushTo = e.currentTarget.value} value={data.pushTo || ""} />
+                <input type="text" name="push" onInput={e => data.pushTo = e.currentTarget.value} value={data.pushTo || ""} />
             </label>
             <br />
             <button type="button" onClick={dialog.cancelCb}>Cancel</button>

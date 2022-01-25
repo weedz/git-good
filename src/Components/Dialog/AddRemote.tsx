@@ -16,15 +16,15 @@ export function AddRemote(dialog: DialogProps[DialogTypes.ADD_REMOTE]) {
             <h4>Add remote</h4>
             <label>
                 <p>Name:</p>
-                <input type="text" name="name" onChange={e => data.name = e.currentTarget.value} />
+                <input type="text" name="name" onInput={e => data.name = e.currentTarget.value} />
             </label>
             <label>
                 <p>Pull from:</p>
-                <input type="text" name="pull" onChange={e => data.pullFrom = e.currentTarget.value} />
+                <input type="text" name="pull" onInput={e => data.pullFrom = e.currentTarget.value} />
             </label>
             <label>
                 <p>Push to:</p>
-                <input type="text" name="push" onChange={e => data.pushTo = e.currentTarget.value} />
+                <input type="text" name="push" onInput={e => data.pushTo = e.currentTarget.value} />
             </label>
             <br />
             <button type="button" onClick={dialog.cancelCb}>Cancel</button>

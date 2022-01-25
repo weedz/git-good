@@ -14,10 +14,10 @@ export function CreateTag(dialog: CreateTagProps) {
         }}>
             <h4>Create tag</h4>
             <div>
-                <input type="text" name="name" placeholder="Name..." onChange={e => data.name = e.currentTarget.value} value={data.name} />
+                <input type="text" name="name" placeholder="Name..." onInput={e => data.name = e.currentTarget.value} value={data.name} />
             </div>
             <div>
-                <input type="text" name="annotation" placeholder="Message..." onChange={e => data.annotation = e.currentTarget.value} value={data.annotation} />
+                <input type="text" name="annotation" placeholder="Message..." onInput={e => data.annotation = e.currentTarget.value} value={data.annotation} />
             </div>
             <button type="button" onClick={dialog.cancelCb}>Cancel</button>
             <button type="submit">Confirm</button>
