@@ -8,7 +8,7 @@ import { IpcAction, BranchObj, LineObj, HunkObj, PatchObj, CommitObj, IpcActionP
 import { normalizeLocalName, normalizeRemoteName, normalizeRemoteNameWithoutRemote, normalizeTagName, remoteName } from "../Branch";
 import { gpgSign, gpgVerify } from "./GPG";
 import { AuthConfig } from "../Config";
-import { currentProfile, getAppConfig, getAuth } from "./Config";
+import { currentProfile, getAppConfig, getAuth, signatureFromProfile } from "./Config";
 import { sendEvent } from "./WindowEvents";
 
 export type Context = {
@@ -467,6 +467,9 @@ export async function deleteRemoteTag(remote: Remote, tagName: string) {
 }
 
 export async function getHEAD(repo: Repository): AsyncIpcActionReturnOrError<IpcAction.LOAD_HEAD> {
+    if (repo.isEmpty()) {
+        return null;
+    }
     const head = await repo.head();
     const headCommit = await repo.getHeadCommit();
 
@@ -644,30 +647,48 @@ function onSignature(key: string) {
         };
     }
 }
+async function amend(parent: Commit, committer: Signature, message: string, gpgKey?: string) {
+    const oid = await index.writeTree();
+    const author = parent.author();
+    if (gpgKey && currentProfile().gpg) {
+        await parent.amendWithSignature("HEAD", author, committer, "utf8", message, oid, onSignature(gpgKey));
+    } else {
+        await parent.amend("HEAD", author, committer, "utf8", message, oid);
+    }
+}
 
-export async function commit(repo: Repository, params: IpcActionParams[IpcAction.COMMIT], committer: Signature, gpgKey?: string) {
+export async function commit(repo: Repository, params: IpcActionParams[IpcAction.COMMIT]) {
+    const profile = currentProfile();
+    const committer = signatureFromProfile(profile);
     if (!committer.email()) {
         return Error("No git credentials provided");
     }
 
+    const emptyRepo = repo.isEmpty();
+    if (emptyRepo && params.amend) {
+        return new Error("Cannot amend in an empty repository");
+    }
+
     const parent = await repo.getHeadCommit();
 
-    const oid = await index.writeTree();
-
-    const message = params.message.body ? `${params.message.summary}\n\n${params.message.body}` : params.message.summary;
-
     try {
+        const message = params.message.body ? `${params.message.summary}\n\n${params.message.body}` : params.message.summary;
+        const gpgKey = profile.gpg?.commit ? profile.gpg.key : undefined;
+
         if (params.amend) {
-            const author = parent.author();
-            if (gpgKey && currentProfile().gpg) {
-                await parent.amendWithSignature("HEAD", author, committer, "utf8", message, oid, onSignature(gpgKey));
-            } else {
-                await parent.amend("HEAD", author, committer, "utf8", message, oid);
-            }
-        } else if (gpgKey && currentProfile().gpg) {
-            await repo.createCommitWithSignature("HEAD", committer, committer, message, oid, [parent], onSignature(gpgKey));
+            await amend(parent, committer, message, gpgKey);
         } else {
-            await repo.createCommit("HEAD", committer, committer, message, oid, [parent]);
+            const oid = await index.writeTree();
+            const parents = emptyRepo ? null : [parent];
+            if (gpgKey && currentProfile().gpg) {
+                // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+                // @ts-ignore, `parents` can be null for the "ROOT" commit (empty repository) https://libgit2.org/libgit2/#HEAD/group/commit/git_commit_create
+                await repo.createCommitWithSignature("HEAD", committer, committer, message, oid, parents, onSignature(gpgKey));
+            } else {
+                // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+                // @ts-ignore
+                await repo.createCommit("HEAD", committer, committer, message, oid, parents);
+            }
         }
     } catch (err) {
         return err as Error;
@@ -714,11 +735,17 @@ async function getUnstagedPatches(repo: Repository, flags: Diff.OPTION) {
     return unstagedDiff.patches();
 }
 
-async function getStagedPatches(repo: Repository, flags: Diff.OPTION) {
+async function getStagedDiff(repo: Repository, flags: Diff.OPTION) {
+    if (repo.isEmpty()) {
+        return Diff.treeToIndex(repo, undefined, index, { flags });
+    }
+
     const head = await repo.getHeadCommit();
-    const stagedDiff = await Diff.treeToIndex(repo, await head.getTree(), index, {
-        flags
-    });
+    return Diff.treeToIndex(repo, await head.getTree(), index, { flags });
+}
+
+async function getStagedPatches(repo: Repository, flags: Diff.OPTION) {
+    const stagedDiff = await getStagedDiff(repo, flags);
     const diffOpts: DiffFindOptions = {
         flags: Diff.FIND.RENAMES,
     };

@@ -559,10 +559,7 @@ const eventMap: {
         const result = await provider.setUpstream(repo, data.local, data.remote);
         return !result;
     },
-    [IpcAction.COMMIT]: async (repo, data) => {
-        const profile = currentProfile();
-        return await provider.commit(repo, data, signatureFromProfile(profile), profile.gpg?.commit ? profile.gpg.key : undefined);
-    },
+    [IpcAction.COMMIT]: provider.commit,
     [IpcAction.REMOTES]: provider.remotes,
     [IpcAction.RESOLVE_CONFLICT]: async (repo, {path}) => {
         const result = await provider.resolveConflict(repo, path);
@@ -706,11 +703,6 @@ ipcMain.on("asynchronous-message", async (event, arg: EventArgs) => {
         return;
     }
 
-    if (repo && repo.isEmpty()) {
-        // WIP: fix handling of empty repos.
-        return provider.eventReply(event, action, Error("empty repo... FIXME"), arg.id);
-    }
-
     if (isAsyncGenerator(action)) {
         const callback = eventMap[action] as AsyncGeneratorEventCallback<typeof action>;
         const data = arg.data as IpcActionParams[typeof action];
@@ -839,6 +831,9 @@ async function fetchFrom(repo: Repository, remotes?: Remote[]) {
 }
 
 async function initGetCommits(repo: Repository, params: IpcActionParams[IpcAction.LOAD_COMMITS] | IpcActionParams[IpcAction.LOAD_FILE_COMMITS]) {
+    if (repo.isEmpty()) {
+        return false;
+    }
     let branch = "HEAD";
     let revwalkStart: "refs/*" | Oid;
     // FIXME: organize this...

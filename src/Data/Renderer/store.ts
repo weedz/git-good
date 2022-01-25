@@ -21,7 +21,7 @@ export type StoreType = {
     }
     branches: BranchesObj
     stash: StashObj[]
-    head: HeadBranchObj | undefined
+    head: HeadBranchObj | null
     remotes: IpcActionReturn[IpcAction.REMOTES]
     heads: Record<string, BranchObj[]>
     currentFile: null | {
@@ -53,7 +53,7 @@ const store = createStore<StoreType>({
         tags: []
     },
     stash: [],
-    head: undefined,
+    head: null,
     remotes: [],
     heads: {},
     currentFile: null,

@@ -185,7 +185,7 @@ export type IpcActionReturn = {
     [IpcAction.LOAD_COMMITS]: LoadCommitsReturn
     [IpcAction.LOAD_FILE_COMMITS]: LoadFileCommitsReturn
     [IpcAction.LOAD_BRANCHES]: BranchesObj
-    [IpcAction.LOAD_HEAD]: HeadBranchObj
+    [IpcAction.LOAD_HEAD]: null | HeadBranchObj
     [IpcAction.LOAD_UPSTREAMS]: Array<{
         status: {
             ahead: number
