@@ -10,7 +10,7 @@
     "build": "node scripts/build.js",
     "build:watch": "mkdir dist; cp -R static/* dist/ && rollup -c -w",
     "electron-rebuild": "electron-builder install-app-deps",
-    "lint": "eslint ."
+    "lint": "eslint . && tsc --noEmit"
   },
   "keywords": [],
   "author": {
