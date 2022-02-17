@@ -19,29 +19,87 @@ type State = {
     fileHistory: null | IpcActionReturn[IpcAction.LOAD_FILE_COMMITS]["commits"]
 }
 
-// function compactLines(lines: LineObj[]) {
-//     const parsedLines = [];
-//     let oldLines: Array<LineObj & {newContent?: LineObj}> = [];
+// TODO: Fix this..
+function compactLines(lines: Array<{
+    type: string
+    content: string
+    line?: LineObj
+}>) {
 
-//     for (const line of lines)
-//     {
-//         if (line.type === "-") {
-//             oldLines.push(line);
-//             parsedLines.push(line);
-//         }
-//         else if (line.type === "+" && oldLines.length > 0) {
-//             const oldLine = oldLines.shift();
-//             if (oldLine) {
-//                 oldLine.newContent = line;
-//             }
-//         } else {
-//             oldLines = [];
-//             parsedLines.push(line);
-//         }
-//     }
+    let compactedLines: Array<LineObj & {newContent?: LineObj}> = [];
+    const parsedLines = [];
 
-//     return parsedLines;
-// }
+
+
+    const oldLines: Array<{
+        type: string
+        content: string
+        line?: LineObj
+    }> = [];
+
+    const newLines: Array<{
+        type: string
+        content: string
+        newContent?: LineObj
+        line?: LineObj
+    }> = [];
+
+    let diffLines = 0;
+    let addedLines = 0;
+    let removedLines = 0;
+
+    for (const lineObj of lines) {
+        if (lineObj.line?.type === "-") {
+            compactedLines.push(lineObj.line);
+            parsedLines.push(lineObj);
+        }
+        else if (lineObj.line?.type === "+" && compactedLines.length > 0) {
+            const oldLine = compactedLines.shift();
+            if (oldLine) {
+                oldLine.newContent = lineObj.line;
+            }
+        } else {
+            compactedLines = [];
+            parsedLines.push(lineObj);
+        }
+
+
+        if (diffLines) {
+            if (diffLines < 0) {
+                oldLines.push({
+                    content: "",
+                    type: ""
+                });
+                ++diffLines;
+            }
+            if (diffLines > 0) {
+                newLines.push({
+                    content: "",
+                    type: "",
+                });
+                --diffLines;
+            }
+        }
+        const line = lineObj.line;
+        if (line?.type === "-") {
+            ++diffLines;
+            oldLines.push(lineObj);
+            ++removedLines;
+        } else if (line?.type === "+") {
+            --diffLines;
+            newLines.push(lineObj);
+            ++addedLines;
+        }
+        else {
+            oldLines.push(lineObj);
+            newLines.push(lineObj);
+        }
+    }
+
+    console.log("parsedLines:", parsedLines);
+
+    return [oldLines, newLines];
+}
 
 export default class FileDiff extends PureStoreComponent<unknown, State> {
     longestLine = 0;
@@ -101,26 +159,6 @@ export default class FileDiff extends PureStoreComponent<unknown, State> {
         }
         closeFile();
     }
-    
-    // renderLineSideBySide = (line: LineObj & {newContent?: LineObj}) => {
-    //     const newLine = line.newContent || line;
-
-    //     const oldLineNo = line.oldLineno !== -1 && line.oldLineno;
-    //     const newLineNo = newLine.newLineno !== -1 && newLine.newLineno;
-    //     const type = !!line.type;
-    //     const oldType = type && oldLineNo ? " old" : "";
-    //     const newType = type && newLineNo ? " new" : "";
-    //     return (
-    //         <li className="diff-line">
-    //             <span onMouseDown={this.selectLeft} className={`left diff-line-number${oldType}`}>{oldLineNo}</span>
-    //             <span onMouseDown={this.selectLeft} className={`left diff-type${oldType}`}>{oldLineNo && line.type}</span>
-    //             <span onMouseDown={this.selectLeft} className={`left diff-line-content${oldType}`}>{!type || oldLineNo ? line.content : null}</span>
-    //             <span onMouseDown={this.selectRight} className={`right diff-line-number${newType}`}>{newLineNo}</span>
-    //             <span onMouseDown={this.selectRight} className={`right diff-type${newType}`}>{newLineNo && newLine.type}</span>
-    //             <span onMouseDown={this.selectRight} className={`right diff-line-content${newType}`}>{!type || newLineNo ? newLine.content : null}</span>
-    //         </li>
-    //     );
-    // }
 
     render() {
         if (!Store.currentFile) {
@@ -131,6 +169,24 @@ export default class FileDiff extends PureStoreComponent<unknown, State> {
         const classes = [];
         if (this.state.fullWidth) {
             classes.push("full-width");
+        }
+
+        let hunks;
+        if (!Store.diffOptions.sideBySide) {
+            hunks = <HunksContainer itemHeight={17} width={this.longestLine * glyphWidth()} items={this.state.lines} />;
+        } else {
+            // console.time("Compact Lines");
+            const [oldLines, newLines] = compactLines(this.state.lines);
+            // console.timeEnd("Compact Lines");
+            hunks = <div style={{
+                display: "flex",
+                flexDirection: "row",
+                overflowY: "auto",
+            }}>
+                {/* TODO: Sync scroll */}
+                <HunksContainer itemHeight={17} width={this.longestLine * glyphWidth()} items={oldLines} />
+                <HunksContainer itemHeight={17} width={this.longestLine * glyphWidth()} items={newLines} />
+            </div>;
         }
 
         return (
@@ -156,12 +212,24 @@ export default class FileDiff extends PureStoreComponent<unknown, State> {
                             <button className={this.state.fullWidth ? "active" : undefined} onClick={() => this.setState({fullWidth: !this.state.fullWidth})}>Fullscreen</button>
                         </li>
                         <li>
-                            <button className={Store.diffOptions.ignoreWhitespace ? "active" : undefined} onClick={() => updateStore({diffOptions: {ignoreWhitespace: !Store.diffOptions.ignoreWhitespace}})}>Ignore whitespace</button>
+                            <button className={Store.diffOptions.ignoreWhitespace ? "active" : undefined} onClick={() => setDiffOption("ignoreWhitespace", !Store.diffOptions.ignoreWhitespace)}>Ignore whitespace</button>
+                        </li>
+                        <li className="btn-group">
+                            <button className={Store.diffOptions.sideBySide ? "active" : undefined} onClick={() => setDiffOption("sideBySide", !Store.diffOptions.sideBySide)}>Side-by-side</button>
                         </li>
                     </ul>
-                    <HunksContainer itemHeight={17} width={this.longestLine * glyphWidth()} items={this.state.lines} />
+                    {hunks}
                 </div>
             </div>
         );
     }
+}
+
+function setDiffOption(option: keyof StoreType["diffOptions"], value: boolean) {
+    updateStore({
+        diffOptions: {
+            ...Store.diffOptions,
+            [option]: value
+        }
+    })
 }

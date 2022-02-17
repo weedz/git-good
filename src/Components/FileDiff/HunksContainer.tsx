@@ -80,7 +80,8 @@ export default class HunksContainer extends ScrollListView<Line, {width: number}
         return (
             <div ref={this.containerRef} className="hunks inline" style={{
                 display: "flex",
-                flex: 1
+                flex: 1,
+                overflow: "auto",
             }}>
                 <ul style={{
                     position: "relative",
@@ -104,8 +105,8 @@ export default class HunksContainer extends ScrollListView<Line, {width: number}
                     {type}
                 </ul>
                 <ul style={{
-                    position: "absolute",
-                    left: 90,
+                    position: "relative",
+                    // left: 90,
                     width: `max(calc(100% - 90px), ${this.props.width}px)`,
                     height: this.state.totalHeight,
                     flex: 1,
