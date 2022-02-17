@@ -6,7 +6,7 @@ import Link from "../Link";
 import { Links } from "../LinkContainer";
 import { showFileMenu } from "./FileMenu";
 
-type ButtonAction = {
+interface ButtonAction {
     label: string
     click: h.JSX.MouseEventHandler<HTMLButtonElement>
 }
@@ -20,27 +20,34 @@ type Props = ({
 }) & {
     patches: PatchObj[]
     actions?: ButtonAction[]
-}
+};
 
-export default class ChangedFiles extends Component<Props, {fileFilter?: string}> {
-    fileTypes = {
+function calcDeltas(patches: Props["patches"]) {
+    const deltas = {
         added: 0,
         deleted: 0,
         modified: 0,
         renamed: 0,
         // untracked: 0,
     };
-    resetCounters() {
-        this.fileTypes = {
-            added: 0,
-            deleted: 0,
-            modified: 0,
-            renamed: 0,
-            // untracked: 0,
-        };
+    for (const patch of patches.slice(0, 1000)) {
+        if (patch.status === DELTA.MODIFIED) {
+            deltas.modified++;
+        } else if (patch.status === DELTA.DELETED) {
+            deltas.deleted++;
+        } else if (patch.status === DELTA.ADDED) {
+            deltas.added++;
+        } else if (patch.status === DELTA.RENAMED) {
+            deltas.renamed++;
+        } else if (patch.status === DELTA.UNTRACKED) {
+            deltas.added++;
+        }
     }
+    return deltas;
+}
+
+export default class ChangedFiles extends Component<Props, {fileFilter?: string}> {
     openFile = (data: Link<PatchObj>) => {
-        this.resetCounters();
         const patch = data.props.linkData as unknown as PatchObj;
         if ("commit" in this.props) {
             openFile({
@@ -52,8 +59,7 @@ export default class ChangedFiles extends Component<Props, {fileFilter?: string}
                 compare: true,
                 patch,
             });
-        }
-        else if (this.props.workDir) {
+        } else if (this.props.workDir) {
             openFile({
                 workDir: this.props.workDir,
                 patch,
@@ -62,7 +68,6 @@ export default class ChangedFiles extends Component<Props, {fileFilter?: string}
         }
     }
     filterFiles = (e: h.JSX.TargetedKeyboardEvent<HTMLInputElement>) => {
-        this.resetCounters();
         this.setState({
             fileFilter: e.currentTarget.value.toLocaleLowerCase()
         });
@@ -71,20 +76,15 @@ export default class ChangedFiles extends Component<Props, {fileFilter?: string}
         let actions = this.props.actions || [];
         let typeCss;
         if (patch.status === DELTA.MODIFIED) {
-            this.fileTypes.modified++;
             typeCss = "file-modified";
         } else if (patch.status === DELTA.DELETED) {
-            this.fileTypes.deleted++;
             typeCss = "file-deleted";
         } else if (patch.status === DELTA.ADDED) {
-            this.fileTypes.added++;
             typeCss = "file-added";
         } else if (patch.status === DELTA.RENAMED) {
-            this.fileTypes.renamed++;
             typeCss = "file-renamed";
         } else if (patch.status === DELTA.UNTRACKED) {
             typeCss = "file-untracked";
-            this.fileTypes.added++;
         }
         if (patch.status === DELTA.CONFLICTED) {
             typeCss = "file-conflicted";
@@ -121,14 +121,16 @@ export default class ChangedFiles extends Component<Props, {fileFilter?: string}
 
         const files = patches.slice(0, 1000).map(this.renderPatch);
 
+        const deltas = calcDeltas(patches);
+
         return (
             <div className="changed-files">
                 <input type="text" onKeyUp={this.filterFiles} placeholder="Search file..." value={this.state.fileFilter} />
                 <ul className="file-types">
-                    {this.fileTypes.modified > 0 && <li className="modified">{this.fileTypes.modified} modified</li>}
-                    {this.fileTypes.added > 0 && <li className="added">{this.fileTypes.added} added</li>}
-                    {this.fileTypes.deleted > 0 && <li className="deleted">{this.fileTypes.deleted} deleted</li>}
-                    {this.fileTypes.renamed > 0 && <li className="renamed">{this.fileTypes.renamed} renamed</li>}
+                    {deltas.modified > 0 && <li className="modified">{deltas.modified} modified</li>}
+                    {deltas.added > 0 && <li className="added">{deltas.added} added</li>}
+                    {deltas.deleted > 0 && <li className="deleted">{deltas.deleted} deleted</li>}
+                    {deltas.renamed > 0 && <li className="renamed">{deltas.renamed} renamed</li>}
                 </ul>
                 <Links.Provider value="files">
                     <ul className="diff-view block-list inset">
