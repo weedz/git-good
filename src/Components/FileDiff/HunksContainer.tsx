@@ -11,6 +11,8 @@ interface Line {
 interface Props {
     width: number
     onRef?: (ref: HunksContainer) => void
+    hideOldGlyphs?: boolean
+    hideNewGlyphs?: boolean
 }
 
 const ITEM_HEIGHT = 17;
@@ -60,29 +62,33 @@ export default class HunksContainer extends ScrollListView<Line, Props> {
                         <span className="diff-type">{line.line.type}</span>
                     </li>
                 );
-                if (line.line.oldLineno !== -1) {
-                    oldGlyphs.push(<li key={key} style={{
-                        position: "absolute",
-                        top,
-                        height: ITEM_HEIGHT
-                    }}><span className="diff-line-number">{line.line.oldLineno}</span></li>);
-                } else {
-                    oldGlyphs.push(<li key={key} />);
+                if (!this.props.hideOldGlyphs) {
+                    if (line.line.oldLineno !== -1) {
+                        oldGlyphs.push(<li key={key} style={{
+                            position: "absolute",
+                            top,
+                            height: ITEM_HEIGHT
+                        }}><span className="diff-line-number">{line.line.oldLineno}</span></li>);
+                    } else {
+                        oldGlyphs.push(<li key={key} />);
+                    }
                 }
-                if (line.line.newLineno !== -1) {
-                    newGlyphs.push(<li key={key} style={{
-                        position: "absolute",
-                        top,
-                        height: ITEM_HEIGHT
-                    }}><span className="diff-line-number">{line.line.newLineno}</span></li>);
-                } else {
-                    newGlyphs.push(<li key={key} />);
+                if (!this.props.hideNewGlyphs) {
+                    if (line.line.newLineno !== -1) {
+                        newGlyphs.push(<li key={key} style={{
+                            position: "absolute",
+                            top,
+                            height: ITEM_HEIGHT
+                        }}><span className="diff-line-number">{line.line.newLineno}</span></li>);
+                    } else {
+                        newGlyphs.push(<li key={key} />);
+                    }
                 }
             } else {
                 lines.push(<li key={key} />);
                 type.push(<li key={key} />);
-                newGlyphs.push(<li key={key} />);
-                oldGlyphs.push(<li key={key} />);
+                !this.props.hideNewGlyphs && newGlyphs.push(<li key={key} />);
+                !this.props.hideOldGlyphs && oldGlyphs.push(<li key={key} />);
             }
         });
 
