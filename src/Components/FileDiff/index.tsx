@@ -165,7 +165,7 @@ export default class FileDiff extends PureStoreComponent<unknown, State> {
                             top: el.scrollTop
                         });
                     }
-                }} width={this.longestLine * glyphWidth()} items={oldLines} />
+                }} width={this.longestLine * glyphWidth()} items={oldLines} hideNewGlyphs />
                 <HunksContainer itemHeight={17} onRef={(ref) => {
                     this.newLinesContainer = ref;
                 }} scrollCallback={el => {
@@ -176,7 +176,7 @@ export default class FileDiff extends PureStoreComponent<unknown, State> {
                             top: el.scrollTop
                         })
                     }
-                }} width={this.longestLine * glyphWidth()} items={newLines} />
+                }} width={this.longestLine * glyphWidth()} items={newLines} hideOldGlyphs />
             </div>;
         }
 
