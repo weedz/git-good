@@ -8,7 +8,7 @@ import HunksContainer from "./HunksContainer";
 
 import "./style.css";
 
-type State = {
+interface State {
     fullWidth: boolean
     wrapLine: boolean
     lines: Array<{
@@ -20,23 +20,14 @@ type State = {
 }
 
 // TODO: Fix this..
-function compactLines(lines: Array<{
-    type: string
-    content: string
-    line?: LineObj
-}>) {
-    const oldLines: Array<{
-        type: string
-        content: string
-        line?: LineObj
-    }> = [];
+function compactLines(lines: State["lines"]) {
+    const oldLines: State["lines"] = [];
+    const newLines: State["lines"] = [];
 
-    const newLines: Array<{
-        type: string
-        content: string
-        newContent?: LineObj
-        line?: LineObj
-    }> = [];
+    const emptyLine = {
+        content: "",
+        type: "",
+    };
 
     let diffLines = 0;
 
@@ -51,36 +42,22 @@ function compactLines(lines: Array<{
         }
         else {
             for (; diffLines > 0; --diffLines) {
-                oldLines.push({
-                    content: "",
-                    type: ""
-                });
+                oldLines.push(emptyLine);
             }
             oldLines.push(lineObj);
 
             for (; diffLines < 0; ++diffLines) {
-                newLines.push({
-                    content: "",
-                    type: ""
-                });
+                newLines.push(emptyLine);
             }
             newLines.push(lineObj);
         }
     }
     for (; diffLines > 0; --diffLines) {
-        oldLines.push({
-            content: "",
-            type: ""
-        });
+        oldLines.push(emptyLine);
     }
     for (; diffLines < 0; ++diffLines) {
-        newLines.push({
-            content: "",
-            type: ""
-        });
+        newLines.push(emptyLine);
     }
-
-    // console.log("parsedLines:", parsedLines);
 
     return [oldLines, newLines];
 }
