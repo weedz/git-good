@@ -91,6 +91,7 @@ export default class HunksContainer extends ScrollListView<Line, Props> {
                 display: "flex",
                 flex: 1,
                 overflow: "auto",
+                position: "relative",
             }}>
                 <ul style={{
                     position: "relative",
@@ -114,8 +115,8 @@ export default class HunksContainer extends ScrollListView<Line, Props> {
                     {type}
                 </ul>
                 <ul style={{
-                    position: "relative",
-                    // left: 90,
+                    position: "absolute",
+                    left: 90,
                     width: `max(calc(100% - 90px), ${this.props.width}px)`,
                     height: this.state.totalHeight,
                     flex: 1,
