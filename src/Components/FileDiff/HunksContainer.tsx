@@ -2,15 +2,24 @@ import { h } from "preact";
 import { LineObj } from "../../Data/Actions";
 import ScrollListView from "../ScrollListView";
 
-type Line = {
+interface Line {
     type: string
     content: string
     line?: LineObj
 }
 
+interface Props {
+    width: number
+    onRef?: (ref: HunksContainer) => void
+}
+
 const ITEM_HEIGHT = 17;
 
-export default class HunksContainer extends ScrollListView<Line, {width: number}> {
+export default class HunksContainer extends ScrollListView<Line, Props> {
+    componentDidMount() {
+        super.componentDidMount();
+        this.props.onRef?.(this);
+    }
     render() {
         const lines: h.JSX.Element[] = [];
 

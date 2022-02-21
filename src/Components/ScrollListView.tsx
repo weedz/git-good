@@ -13,6 +13,7 @@ type State = {
 
 export default abstract class ScrollListView<T, P = unknown> extends Component<Props<T> & P, State> {
     timeout!: number;
+    sync = false;
     state = {
         startRenderAt: 0,
         itemsToRender: 0,
@@ -75,19 +76,16 @@ export default abstract class ScrollListView<T, P = unknown> extends Component<P
                     startRenderAt: startLine
                 });
             }
-            this.props.scrollCallback?.(this.containerRef.current);
+            if (!this.sync) {
+                this.props.scrollCallback?.(this.containerRef.current);
+            }
+            this.sync = false;
         }
     }
     scrollHandler = (_: Event) => {
-        // if (this.containerRef.current) {
-        //     if (this.lastScrollPosition.left === this.containerRef.current.scrollLeft && this.lastScrollPosition.top === this.containerRef.current.scrollTop) {
-        //         return;
-        //     }
-        // }
-        console.log("Scrollhandler");
         if (!this.timeout) {
             clearTimeout(this.timeout);
-            this.timeout = window.setTimeout(this.checkScrollPosition, 30);
+            this.timeout = window.setTimeout(this.checkScrollPosition, 60);
         }
     }
 }
