@@ -25,12 +25,6 @@ function compactLines(lines: Array<{
     content: string
     line?: LineObj
 }>) {
-
-    let compactedLines: Array<LineObj & {newContent?: LineObj}> = [];
-    const parsedLines = [];
-
-
-
     const oldLines: Array<{
         type: string
         content: string
@@ -45,58 +39,48 @@ function compactLines(lines: Array<{
     }> = [];
 
     let diffLines = 0;
-    let addedLines = 0;
-    let removedLines = 0;
 
     for (const lineObj of lines) {
-        if (lineObj.line?.type === "-") {
-            compactedLines.push(lineObj.line);
-            parsedLines.push(lineObj);
+        const line = lineObj.line;
+        if (line?.type === "-") {
+            --diffLines;
+            oldLines.push(lineObj);
+        } else if (line?.type === "+") {
+            ++diffLines;
+            newLines.push(lineObj);
         }
-        else if (lineObj.line?.type === "+" && compactedLines.length > 0) {
-            const oldLine = compactedLines.shift();
-            if (oldLine) {
-                oldLine.newContent = lineObj.line;
-            }
-        } else {
-            compactedLines = [];
-            parsedLines.push(lineObj);
-        }
-
-
-        if (diffLines) {
-            if (diffLines < 0) {
+        else {
+            for (; diffLines > 0; --diffLines) {
                 oldLines.push({
                     content: "",
                     type: ""
                 });
-                ++diffLines;
             }
-            if (diffLines > 0) {
+            oldLines.push(lineObj);
+
+            for (; diffLines < 0; ++diffLines) {
                 newLines.push({
                     content: "",
-                    type: "",
+                    type: ""
                 });
-                --diffLines;
             }
-        }
-        const line = lineObj.line;
-        if (line?.type === "-") {
-            ++diffLines;
-            oldLines.push(lineObj);
-            ++removedLines;
-        } else if (line?.type === "+") {
-            --diffLines;
-            newLines.push(lineObj);
-            ++addedLines;
-        }
-        else {
-            oldLines.push(lineObj);
             newLines.push(lineObj);
         }
     }
+    for (; diffLines > 0; --diffLines) {
+        oldLines.push({
+            content: "",
+            type: ""
+        });
+    }
+    for (; diffLines < 0; ++diffLines) {
+        newLines.push({
+            content: "",
+            type: ""
+        });
+    }
 
-    console.log("parsedLines:", parsedLines);
+    // console.log("parsedLines:", parsedLines);
 
     return [oldLines, newLines];
 }
@@ -109,6 +93,12 @@ export default class FileDiff extends PureStoreComponent<unknown, State> {
         fullWidth: false,
         fileHistory: null
     };
+
+
+    oldLinesContainer: HunksContainer | null = null;
+    newLinesContainer: HunksContainer | null = null;
+
+
     componentDidMount() {
         this.listen("currentFile", this.renderHunks);
         this.registerHandler(IpcAction.LOAD_FILE_COMMITS, commitsResult => {
@@ -116,6 +106,11 @@ export default class FileDiff extends PureStoreComponent<unknown, State> {
                 fileHistory: commitsResult.commits || null
             });
         });
+    }
+
+    componentWillUnmount() {
+        this.oldLinesContainer = null;
+        this.newLinesContainer = null;
     }
 
     renderHunks = (newStore?: StoreType["currentFile"]) => {
@@ -183,9 +178,28 @@ export default class FileDiff extends PureStoreComponent<unknown, State> {
                 flexDirection: "row",
                 overflowY: "auto",
             }}>
-                {/* TODO: Sync scroll */}
-                <HunksContainer itemHeight={17} width={this.longestLine * glyphWidth()} items={oldLines} />
-                <HunksContainer itemHeight={17} width={this.longestLine * glyphWidth()} items={newLines} />
+                <HunksContainer itemHeight={17} onRef={(ref) => {
+                    this.oldLinesContainer = ref;
+                }} scrollCallback={el => {
+                    if (this.newLinesContainer) {
+                        this.newLinesContainer.sync = true;
+                        this.newLinesContainer.containerRef.current?.scrollTo({
+                            left: el.scrollLeft,
+                            top: el.scrollTop
+                        });
+                    }
+                }} width={this.longestLine * glyphWidth()} items={oldLines} />
+                <HunksContainer itemHeight={17} onRef={(ref) => {
+                    this.newLinesContainer = ref;
+                }} scrollCallback={el => {
+                    if (this.oldLinesContainer) {
+                        this.oldLinesContainer.sync = true;
+                        this.oldLinesContainer.containerRef.current?.scrollTo({
+                            left: el.scrollLeft,
+                            top: el.scrollTop
+                        })
+                    }
+                }} width={this.longestLine * glyphWidth()} items={newLines} />
             </div>;
         }
 
