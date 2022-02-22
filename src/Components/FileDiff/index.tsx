@@ -78,6 +78,7 @@ export default class FileDiff extends PureStoreComponent<unknown, State> {
 
     componentDidMount() {
         this.listen("currentFile", this.renderHunks);
+        this.listen("diffUi");
         this.registerHandler(IpcAction.LOAD_FILE_COMMITS, commitsResult => {
             this.setState({
                 fileHistory: commitsResult.commits || null
@@ -145,7 +146,7 @@ export default class FileDiff extends PureStoreComponent<unknown, State> {
         }
 
         let hunks;
-        if (!Store.diffOptions.sideBySide) {
+        if (!Store.diffUi.sideBySide) {
             hunks = <HunksContainer itemHeight={17} width={this.longestLine * glyphWidth()} items={this.state.lines} />;
         } else {
             // console.time("Compact Lines");
@@ -207,7 +208,7 @@ export default class FileDiff extends PureStoreComponent<unknown, State> {
                             <button className={Store.diffOptions.ignoreWhitespace ? "active" : undefined} onClick={() => setDiffOption("ignoreWhitespace", !Store.diffOptions.ignoreWhitespace)}>Ignore whitespace</button>
                         </li>
                         <li className="btn-group">
-                            <button className={Store.diffOptions.sideBySide ? "active" : undefined} onClick={() => setDiffOption("sideBySide", !Store.diffOptions.sideBySide)}>Side-by-side</button>
+                            <button className={Store.diffUi.sideBySide ? "active" : undefined} onClick={() => setDiffUiOption("sideBySide", !Store.diffUi.sideBySide)}>Side-by-side</button>
                         </li>
                     </ul>
                     {hunks}
@@ -221,6 +222,14 @@ function setDiffOption(option: keyof StoreType["diffOptions"], value: boolean) {
     updateStore({
         diffOptions: {
             ...Store.diffOptions,
+            [option]: value
+        }
+    })
+}
+function setDiffUiOption(option: keyof StoreType["diffUi"], value: boolean) {
+    updateStore({
+        diffUi: {
+            ...Store.diffUi,
             [option]: value
         }
     })

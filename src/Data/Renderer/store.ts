@@ -40,6 +40,8 @@ export type StoreType = {
     }
     diffOptions: {
         ignoreWhitespace: boolean
+    }
+    diffUi: {
         sideBySide: boolean
     }
     notifications: Record<NotificationPosition, Map<number, Notification>>
@@ -71,6 +73,8 @@ const store = createStore<StoreType>({
     commitMsg: {summary: "", body: ""},
     diffOptions: {
         ignoreWhitespace: true,
+    },
+    diffUi: {
         sideBySide: false,
     },
     notifications: {
