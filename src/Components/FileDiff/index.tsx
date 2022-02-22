@@ -106,6 +106,7 @@ export default class FileDiff extends PureStoreComponent<unknown, State> {
                 content: hunk.header
             }
         ];
+        this.longestLine = Math.max(this.longestLine, hunk.header.replaceAll("\t", "    ").length);
         if (hunk.lines) {
             lines = lines.concat(hunk.lines.map(this.renderLine));
         }
