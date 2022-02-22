@@ -85,7 +85,7 @@ export default abstract class ScrollListView<T, P = unknown> extends Component<P
     scrollHandler = (_: Event) => {
         if (!this.timeout) {
             window.clearTimeout(this.timeout);
-            this.timeout = window.setTimeout(this.checkScrollPosition, 60);
+            this.timeout = window.setTimeout(this.checkScrollPosition, 30);
         }
     }
 }
