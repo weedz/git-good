@@ -2,7 +2,7 @@ import { h } from "preact";
 import { CommitObj } from "../../Data/Actions";
 import { formatTimeAgo } from "../../Data/Utils";
 import Link, { GlobalLinks } from "../Link";
-import { clipboard } from "electron";
+import { clipboard } from "@electron/remote";
 
 export default function CommitMessage(props: {commit: CommitObj}) {
     const commitDate = new Date(props.commit.date * 1000);

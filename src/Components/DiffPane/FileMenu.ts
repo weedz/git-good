@@ -1,15 +1,17 @@
-import { shell } from "electron";
 import { join } from "path";
-import { getCurrentWindow, Menu, MenuItem } from "@electron/remote";
+import { getCurrentWindow, Menu, MenuItem, shell } from "@electron/remote";
 import { h } from "preact";
 import { contextMenuState, openFileHistory, Store } from "../../Data/Renderer/store";
 
 const fileMenu = new Menu();
 fileMenu.append(new MenuItem({
     label: "Open in default application",
-    click() {
+    async click() {
         const path = `${Store.repo?.path}/${contextMenuState.data.path}`;
-        shell.openPath(path);
+        const error = await shell.openPath(path);
+        if (error) {
+            console.warn("Failed to open:", error);
+        }
     }
 }));
 fileMenu.append(new MenuItem({

@@ -1,5 +1,4 @@
-import { getCurrentWindow, Menu, MenuItem } from "@electron/remote";
-import { clipboard } from "electron";
+import { getCurrentWindow, Menu, MenuItem, clipboard } from "@electron/remote";
 import { h } from "preact";
 import { IpcAction } from "../../Data/Actions";
 import { BranchFromType, openDialog_BranchFrom, openDialog_createTag } from "../../Data/Renderer/Dialogs";

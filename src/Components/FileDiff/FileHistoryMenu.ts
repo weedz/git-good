@@ -1,5 +1,4 @@
-import { getCurrentWindow, Menu, MenuItem } from "@electron/remote";
-import { clipboard } from "electron";
+import { getCurrentWindow, Menu, MenuItem, clipboard } from "@electron/remote";
 import { h } from "preact";
 import { contextMenuState, setDiffpaneSrc } from "../../Data/Renderer/store";
 
