@@ -1,8 +1,7 @@
 const fs = require("fs");
 const path = require("path");
 const rollup = require("rollup");
-
-const loadConfigFile = require('rollup/dist/loadConfigFile');
+const loadConfigFile = require("rollup/dist/loadConfigFile.js");
 
 (async () => {
     const distDir = path.resolve("dist");
