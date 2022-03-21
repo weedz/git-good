@@ -5,18 +5,18 @@ import { shell, clipboard } from "electron";
 
 import { Branch, Clone, Commit, Object, Oid, Rebase, Reference, Remote, Repository, Stash } from "nodegit";
 
-import { isMac, isWindows } from "./Data/Main/Utils";
-import { addRecentRepository, clearRepoProfile, currentProfile, getAppConfig, getAuth, getRecentRepositories, getRepoProfile, saveAppConfig, setCurrentProfile, setRepoProfile, signatureFromActiveProfile, signatureFromProfile } from "./Data/Main/Config";
+import { isMac, isWindows } from "./Main/Utils";
+import { addRecentRepository, clearRepoProfile, currentProfile, getAppConfig, getAuth, getRecentRepositories, getRepoProfile, saveAppConfig, setCurrentProfile, setRepoProfile, signatureFromActiveProfile, signatureFromProfile } from "./Main/Config";
 
-import * as provider from "./Data/Main/Provider";
-import { IpcAction, IpcActionParams, IpcActionReturnOrError, IpcActionReturn, Locks, AsyncIpcActionReturnOrError } from "./Data/Actions";
-import { formatTimeAgo } from "./Data/Utils";
-import { requestClientData, sendEvent } from "./Data/Main/WindowEvents";
+import * as provider from "./Main/Provider";
+import { IpcAction, IpcActionParams, IpcActionReturnOrError, IpcActionReturn, Locks, AsyncIpcActionReturnOrError } from "./Common/Actions";
+import { formatTimeAgo } from "./Common/Utils";
+import { requestClientData, sendEvent } from "./Main/WindowEvents";
 import { TransferProgress } from "../types/nodegit";
-import { normalizeLocalName } from "./Data/Branch";
+import { normalizeLocalName } from "./Common/Branch";
 
 import { initialize, enable as enableRemote } from "@electron/remote/main";
-import { RendererRequestEvents } from "./Data/WindowEventTypes";
+import { RendererRequestEvents } from "./Common/WindowEventTypes";
 initialize();
 
 // constants from rollup
@@ -486,6 +486,8 @@ const eventMap: {
     [IpcAction.GET_CHANGES]: provider.loadChanges,
     [IpcAction.STAGE_FILE]: provider.stageFile,
     [IpcAction.UNSTAGE_FILE]: provider.unstageFile,
+    [IpcAction.STAGE_ALL]: provider.stageAllFiles,
+    [IpcAction.UNSTAGE_ALL]: provider.unstageAllFiles,
     [IpcAction.DISCARD_FILE]: provider.discardChanges,
     [IpcAction.PULL]: async (repo, data) =>  provider.pull(repo, data, signatureFromActiveProfile()),
     [IpcAction.CREATE_BRANCH]: async (repo, data) => {
