@@ -792,7 +792,7 @@ export async function stageFile(repo: Repository, filePath: string): AsyncIpcAct
         await index.write();
     }
 
-    return 0;
+    return true;
 }
 async function unstageSingleFile(repo: Repository, head: Commit, filePath: string) {
     return Reset.default(repo, head, filePath);
@@ -803,7 +803,7 @@ export async function unstageFile(repo: Repository, filePath: string): AsyncIpcA
     
     await index.read(0);
 
-    return 0;
+    return true;
 }
 // Returns the number of staged files
 export async function stageAllFiles(repo: Repository) {
@@ -816,7 +816,7 @@ export async function stageAllFiles(repo: Repository) {
         await stageSingleFile(repo, statusItem.path());
     }
     await index.write();
-    return 0;
+    return statusList.length;
 }
 // Returns the number of unstaged files
 export async function unstageAllFiles(repo: Repository) {
@@ -829,9 +829,32 @@ export async function unstageAllFiles(repo: Repository) {
         await unstageSingleFile(repo, head, statusItem.path());
     }
     await index.read(0);
-    return 0;
+    return statusList.length;
 }
 
+async function discardSingleFile(repo: Repository, filePath: string) {
+    if (!index.getByPath(filePath)) {
+        // file not found in index (untracked), delete
+        try {
+            await fs.unlink(join(repo.workdir(), filePath));
+        } catch (err) {
+            if (err instanceof Error) {
+                return err;
+            }
+        }
+        return true;
+    }
+    
+    try {
+        const head = await repo.getHeadCommit();
+        const tree = await head.getTree();
+        await Checkout.tree(repo, tree, { checkoutStrategy: Checkout.STRATEGY.FORCE, paths: [filePath] });
+    } catch (err) {
+        console.error(err)
+    }
+
+    return true;
+}
 export async function discardChanges(repo: Repository, filePath: string) {
     if (!index.getByPath(filePath)) {
         // file not found in index (untracked), delete?
@@ -841,26 +864,22 @@ export async function discardChanges(repo: Repository, filePath: string) {
             buttons: ["Cancel", "Delete"],
             cancelId: 0,
         });
-        if (result.response === 1) {
-            try {
-                await fs.unlink(join(repo.workdir(), filePath));
-            } catch (err) {
-                if (err instanceof Error) {
-                    return err;
-                }
-            }
+        if (result.response === 0) {
+            return false;
         }
-        return 0;
-    }
-    try {
-        const head = await repo.getHeadCommit();
-        const tree = await head.getTree();
-        await Checkout.tree(repo, tree, { checkoutStrategy: Checkout.STRATEGY.FORCE, paths: [filePath] });
-    } catch (err) {
-        console.error(err)
     }
 
-    return 0;
+    return discardSingleFile(repo, filePath);
+}
+export async function discardAllChanges(repo: Repository) {
+    const statusList = await repo.getStatusExt({
+        show: Status.SHOW.WORKDIR_ONLY,
+        flags: Status.OPT.INCLUDE_UNTRACKED | Status.OPT.RECURSE_UNTRACKED_DIRS,
+    });
+    for (const statusItem of statusList) {
+        await discardSingleFile(repo, statusItem.path());
+    }
+    return statusList.length;
 }
 
 export async function loadChanges(): AsyncIpcActionReturnOrError<IpcAction.GET_CHANGES> {

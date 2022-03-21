@@ -489,6 +489,7 @@ const eventMap: {
     [IpcAction.STAGE_ALL]: provider.stageAllFiles,
     [IpcAction.UNSTAGE_ALL]: provider.unstageAllFiles,
     [IpcAction.DISCARD_FILE]: provider.discardChanges,
+    [IpcAction.DISCARD_ALL]: provider.discardAllChanges,
     [IpcAction.PULL]: async (repo, data) =>  provider.pull(repo, data, signatureFromActiveProfile()),
     [IpcAction.CREATE_BRANCH]: async (repo, data) => {
         try {

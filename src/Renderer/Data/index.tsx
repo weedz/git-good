@@ -71,14 +71,30 @@ export async function discardChanges(filePath: string) {
         buttons: ["Cancel", "Discard changes"],
         cancelId: 0,
     });
-    // Need this timeout so the window focus event is fired before IpcAction.DISCARD_FILE
-    setTimeout(async () => {
-        refreshingWorkdir = false;
-        if (result.response === 1) {
+    if (result.response === 1) {
+        // Need this timeout so the window focus event is fired before IpcAction.DISCARD_FILE
+        setTimeout(async () => {
+            refreshingWorkdir = false;
             await ipcGetData(IpcAction.DISCARD_FILE, filePath);
             refreshWorkdir();
-        }
-    }, 200);
+        }, 200);
+    }
+}
+export async function discardAllChanges() {
+    const result = await dialog.showMessageBox({
+        message: `Discard all changes?`,
+        type: "question",
+        buttons: ["Cancel", "Yes"],
+        cancelId: 0,
+    });
+    if (result.response === 1) {
+        // Need this timeout so the window focus event is fired before IpcAction.DISCARD_ALL
+        setTimeout(async () => {
+            refreshingWorkdir = false;
+            await ipcGetData(IpcAction.DISCARD_ALL, null);
+            refreshWorkdir();
+        }, 200);
+    }
 }
 
 function repoOpened(result: IpcActionReturn[IpcAction.OPEN_REPO]) {

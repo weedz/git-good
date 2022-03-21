@@ -40,6 +40,7 @@ export const enum IpcAction {
     STAGE_ALL,
     UNSTAGE_ALL,
     DISCARD_FILE,
+    DISCARD_ALL,
     COMMIT,
     PULL,
     PUSH,
@@ -111,6 +112,7 @@ export type IpcActionParams = {
     [IpcAction.STAGE_ALL]: null
     [IpcAction.UNSTAGE_ALL]: null
     [IpcAction.DISCARD_FILE]: string
+    [IpcAction.DISCARD_ALL]: null
     [IpcAction.COMMIT]: {
         amend: boolean | undefined
         message: {
@@ -221,11 +223,12 @@ export type IpcActionReturn = {
         staged: PatchObj[]
         unstaged: PatchObj[]
     }
-    [IpcAction.STAGE_FILE]: number
-    [IpcAction.UNSTAGE_FILE]: number
+    [IpcAction.STAGE_FILE]: boolean
+    [IpcAction.UNSTAGE_FILE]: boolean
     [IpcAction.STAGE_ALL]: number
     [IpcAction.UNSTAGE_ALL]: number
-    [IpcAction.DISCARD_FILE]: number
+    [IpcAction.DISCARD_FILE]: boolean
+    [IpcAction.DISCARD_ALL]: number
     [IpcAction.COMMIT]: CommitObj
     [IpcAction.PULL]: boolean
     [IpcAction.PUSH]: boolean
