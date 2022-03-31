@@ -16,7 +16,8 @@
     // "preact" enables "no-useless-constructor", but we want to use parameter properties
     // in the constructor so enable typescript specific "no-useless-constructor"
     "no-useless-constructor": "off",
-    "@typescript-eslint/no-useless-constructor": ["error"]
+    "@typescript-eslint/no-useless-constructor": ["error"],
+    "quotes": ["error"]
   },
   "parser": "@typescript-eslint/parser"
 }

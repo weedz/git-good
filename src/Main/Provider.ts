@@ -1,5 +1,5 @@
 import { join } from "path";
-import { promises as fs } from "fs";
+import * as fs from "fs/promises";
 import { dialog, IpcMainEvent, WebContents } from "electron";
 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
 // @ts-ignore, missing declations for Credential
@@ -98,10 +98,6 @@ function compileHistoryCommit(commit: Commit): HistoryCommit {
     };
 }
 
-const commitFilters = {
-    default: (_: Commit, ..._args: unknown[]) => true,
-}
-
 function initRevwalk(repo: Repository, start: "refs/*" | Oid) {
     const revwalk = repo.createRevWalk();
     if (getAppConfig().commitlistSortOrder === "topological") {
@@ -171,16 +167,11 @@ export async function getFileCommits(repo: Repository, branch: string, start: "r
 export async function* getCommits(repo: Repository, branch: string, start: "refs/*" | Oid, num = 1000) {
     const revwalk = initRevwalk(repo, start);
 
-    const filter = commitFilters.default;
     let cursorCommit: Commit | null = null;
 
     const history: Commit[] = [];
     for (const commit of await revwalk.commitWalk(num) as Array<Commit>) {
-        if (await filter(commit)) {
-            history.push(commit);
-        } else {
-            cursorCommit = commit;
-        }
+        history.push(commit);
         if (history.length >= 100) {
             cursorCommit = history[history.length - 1];
             yield {
@@ -1084,7 +1075,7 @@ export async function resolveConflict(repo: Repository, path: string): Promise<b
 
     if (!conflictEntry.our_out) {
         const res = await dialog.showMessageBox({
-            title: `"Our" file deleted`,
+            title: "\"Our\" file deleted",
             message: "The file was deleted from the source branch.",
             type: "question",
             buttons: ["Cancel", "Delete file", "Stage existing file"],
@@ -1106,8 +1097,8 @@ export async function resolveConflict(repo: Repository, path: string): Promise<b
         }
     } else if (!conflictEntry.their_out) {
         const res = await dialog.showMessageBox({
-            title: `"Their" file deleted`,
-            message: `The file was deleted from the target branch.`,
+            title: "\"Their\" file deleted",
+            message: "The file was deleted from the target branch.",
             type: "question",
             buttons: ["Cancel", "Stage existing file", "Delete file"],
             cancelId: 0,
@@ -1130,7 +1121,7 @@ export async function resolveConflict(repo: Repository, path: string): Promise<b
             const content = await fs.readFile(join(repo.workdir(), path));
             if (content.includes("\n<<<<<<<") || content.includes("\n>>>>>>>")) {
                 const res = await dialog.showMessageBox({
-                    message: `The file seems to still contain conflict markers. Stage anyway?`,
+                    message: "The file seems to still contain conflict markers. Stage anyway?",
                     type: "question",
                     buttons: ["No", "Stage file"],
                     cancelId: 0,
@@ -1166,21 +1157,20 @@ function handlePatch(patch: ConvenientPatch): PatchObj {
         flags: patchOldFile.flags(),
     };
 
-    const patchResult: PatchObj = {
+    return {
         status: patch.status(),
         lineStats: patch.lineStats(),
         newFile,
         oldFile,
         actualFile: newFile.path ? newFile : oldFile,
-    };
-
-    return patchResult;
+    } as PatchObj;
 }
 
-async function handleDiff(diff: Diff, patches: { [path: string]: ConvenientPatch }) {
-    return (await diff.patches()).map(convPatch => {
+async function handleDiff(diff: Diff, convPatches: { [path: string]: ConvenientPatch }) {
+    const patches = await diff.patches();
+    return patches.map(convPatch => {
         const patch = handlePatch(convPatch);
-        patches[patch.actualFile.path] = convPatch;
+        convPatches[patch.actualFile.path] = convPatch;
         return patch;
     });
 }

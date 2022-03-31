@@ -11,7 +11,7 @@ import FileDiff from "./Components/FileDiff";
 import NotificationsContainer from "./Components/NotificationsContainer";
 import { NotificationPosition } from "../Common/WindowEventTypes";
 
-import './index.css';
+import "./index.css";
 
 export default class App extends StoreComponent {
     componentDidMount() {

@@ -14,7 +14,7 @@ commitMenu.append(new MenuItem({
     type: "separator"
 }));
 commitMenu.append(new MenuItem({
-    label: 'Copy sha',
+    label: "Copy sha",
     click() {
         const sha = contextMenuState.data.sha;
         clipboard.writeText(sha);

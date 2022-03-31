@@ -66,7 +66,7 @@ const createWindow = () => {
     });
 };
 
-app.commandLine.appendSwitch('disable-smooth-scrolling');
+app.commandLine.appendSwitch("disable-smooth-scrolling");
 
 // This method will be called when Electron has finished
 // initialization and is ready to create browser windows.
@@ -74,7 +74,7 @@ app.commandLine.appendSwitch('disable-smooth-scrolling');
 app.whenReady().then(() => {
     createWindow();
 
-    app.on('activate', () => {
+    app.on("activate", () => {
         // On OS X it's common to re-create a window in the app when the
         // dock icon is clicked and there are no other windows open.
         if (BrowserWindow.getAllWindows().length === 0) {
@@ -84,7 +84,7 @@ app.whenReady().then(() => {
 });
 
 // Quit when all windows are closed.
-app.on('window-all-closed', () => {
+app.on("window-all-closed", () => {
     // On OS X it is common for applications and their menu bar
     // to stay active until the user quits explicitly with Cmd + Q
     if (!isMac) {
@@ -129,7 +129,7 @@ function applyAppMenu() {
                     submenu: [
                         {
                             label: "Open existing...",
-                            accelerator: 'CmdOrCtrl+O',
+                            accelerator: "CmdOrCtrl+O",
                             async click() {
                                 const result = await openRepoDialog();
                                 if (result?.opened) {
@@ -172,7 +172,7 @@ function applyAppMenu() {
                 {
                     enabled: !!repo,
                     label: "Open in Terminal",
-                    accelerator: 'CmdOrCtrl+Shift+C',
+                    accelerator: "CmdOrCtrl+Shift+C",
                     click() {
                         if (repo) {
                             let process;
@@ -205,71 +205,71 @@ function applyAppMenu() {
                     }
                 },
                 {
-                    type: 'separator'
+                    type: "separator"
                 },
                 {
                     label: "Preferences...",
-                    accelerator: 'CmdOrCtrl+,',
+                    accelerator: "CmdOrCtrl+,",
                     click() {
                         sendEvent(win.webContents, "open-settings", null);
                     }
                 },
                 {
-                    type: 'separator'
+                    type: "separator"
                 },
-                isMac ? { role: 'close' } : { role: 'quit' },
+                isMac ? { role: "close" } : { role: "quit" },
             ]
         },
         {
-            label: 'Edit',
+            label: "Edit",
             submenu: [
-                { role: 'undo' },
-                { role: 'redo' },
-                { type: 'separator' },
-                { role: 'cut' },
-                { role: 'copy' },
-                { role: 'paste' },
+                { role: "undo" },
+                { role: "redo" },
+                { type: "separator" },
+                { role: "cut" },
+                { role: "copy" },
+                { role: "paste" },
                 ...(isMac ? [
-                    { role: 'pasteAndMatchStyle' },
-                    { role: 'delete' },
-                    { role: 'selectAll' },
-                    { type: 'separator' },
+                    { role: "pasteAndMatchStyle" },
+                    { role: "delete" },
+                    { role: "selectAll" },
+                    { type: "separator" },
                     {
-                        label: 'Speech',
+                        label: "Speech",
                         submenu: [
-                            { role: 'startspeaking' },
-                            { role: 'stopspeaking' }
+                            { role: "startspeaking" },
+                            { role: "stopspeaking" }
                         ]
                     }
                 ] : [
-                    { role: 'delete' },
-                    { type: 'separator' },
-                    { role: 'selectAll' }
+                    { role: "delete" },
+                    { type: "separator" },
+                    { role: "selectAll" }
                 ])
             ]
         },
         {
-            label: 'View',
+            label: "View",
             submenu: [
-                { role: 'reload' },
-                { role: 'forcereload' },
-                { role: 'toggledevtools' },
-                { type: 'separator' },
-                { role: 'resetzoom' },
-                { role: 'zoomin' },
-                { role: 'zoomout' },
-                { type: 'separator' },
-                { role: 'togglefullscreen' }
+                { role: "reload" },
+                { role: "forcereload" },
+                { role: "toggledevtools" },
+                { type: "separator" },
+                { role: "resetzoom" },
+                { role: "zoomin" },
+                { role: "zoomout" },
+                { type: "separator" },
+                { role: "togglefullscreen" }
             ]
         },
         ...repo ? [{
-            label: 'Repository',
+            label: "Repository",
             submenu: [
                 {
-                    label: 'Fetch all',
+                    label: "Fetch all",
                     async click() {
                         if (!repo) {
-                            return dialog.showErrorBox(`Error`, "Not in a repository");
+                            return dialog.showErrorBox("Error", "Not in a repository");
                         }
                         fetchFrom(repo);
                     }
@@ -281,7 +281,7 @@ function applyAppMenu() {
                     }
                 },
                 {
-                    label: 'Pull...',
+                    label: "Pull...",
                     async click() {
                         sendEvent(win.webContents, "app-lock-ui", Locks.BRANCH_LIST);
                         await provider.pull(repo, null, signatureFromActiveProfile());
@@ -289,7 +289,7 @@ function applyAppMenu() {
                     }
                 },
                 {
-                    label: 'Push...',
+                    label: "Push...",
                     async click() {
                         sendEvent(win.webContents, "app-lock-ui", Locks.BRANCH_LIST);
                         const result = await provider.push({repo, win: win.webContents}, null);
@@ -352,22 +352,22 @@ function applyAppMenu() {
         }] : [],
         // { role: 'windowMenu' }
         {
-            label: 'Window',
+            label: "Window",
             submenu: [
-                { role: 'minimize' },
-                { role: 'zoom' },
+                { role: "minimize" },
+                { role: "zoom" },
                 ...(isMac ? [
-                    { type: 'separator' },
-                    { role: 'front' },
-                    { type: 'separator' },
-                    { role: 'window' }
+                    { type: "separator" },
+                    { role: "front" },
+                    { type: "separator" },
+                    { role: "window" }
                 ] : [
-                    { role: 'close' }
+                    { role: "close" }
                 ])
             ]
         },
         {
-            role: 'help',
+            role: "help",
             submenu: [
                 {
                     label: "Homepage",
@@ -384,7 +384,7 @@ function applyAppMenu() {
                         const buildDate = new Date(__build_date__);
                         const versionsString = `Version: ${app.getVersion()}\n` +
                             `Date: ${buildDate.toISOString()} (${formatTimeAgo(buildDate)})\n` +
-                            `Commit: __last_comit__\n` +
+                            "Commit: __last_comit__\n" +
                             `Electron: ${process.versions.electron}\n` +
                             `Chrome: ${process.versions.chrome}\n` +
                             `Node: ${process.versions.node}\n` +
@@ -769,7 +769,7 @@ async function openRepo(repoPath: string) {
             const profile = setCurrentProfile(repoProfile);
             body = `Profile set to '${profile?.profileName}'`;
         }
-        sendEvent(win.webContents, "notify", {title: `Repo opened`, body});
+        sendEvent(win.webContents, "notify", {title: "Repo opened", body});
     } else {
         dialog.showErrorBox("No repository", `'${repoPath}' does not contain a git repository`);
     }

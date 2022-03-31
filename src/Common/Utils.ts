@@ -30,7 +30,7 @@ export function getType(status: number) {
 }
 
 const formatter = new Intl.RelativeTimeFormat(undefined, {
-    numeric: 'auto'
+    numeric: "auto"
 });
 
 const DIVISIONS: Array<{amount: number, name: Intl.RelativeTimeFormatUnit}> = [
@@ -68,5 +68,5 @@ export function humanReadableBytes(bytes: number) {
     if (bytes > 1024) {
         return `${Math.round(bytes * 100 / 1024) / 100} KiB`;
     }
-    return bytes.toString(10);
+    return `${bytes.toString(10)} B`;
 }

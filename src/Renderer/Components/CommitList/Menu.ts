@@ -8,14 +8,14 @@ import { unselectLink } from "../Link";
 
 const commitMenu = new Menu();
 commitMenu.append(new MenuItem({
-    label: 'Branch...',
+    label: "Branch...",
     click() {
         const sha = contextMenuState.data.sha;
         openDialog_BranchFrom(sha, BranchFromType.COMMIT);
     }
 }));
 commitMenu.append(new MenuItem({
-    label: 'Diff...',
+    label: "Diff...",
     click() {
         unselectLink("commits");
         ipcSendMessage(IpcAction.OPEN_COMPARE_REVISIONS, {
@@ -37,7 +37,7 @@ commitMenu.append(new MenuItem({
     type: "separator"
 }));
 commitMenu.append(new MenuItem({
-    label: 'Copy sha',
+    label: "Copy sha",
     click() {
         const sha = contextMenuState.data.sha;
         clipboard.writeText(sha);

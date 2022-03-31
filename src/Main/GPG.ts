@@ -10,13 +10,13 @@ export function gpgSign(key: string, data: string) {
         let buffersLength = 0;
         let error = "";
 
-        gpg.stdout.on('data', (buf: Buffer) => {
+        gpg.stdout.on("data", (buf: Buffer) => {
             buffers.push(buf);
             buffersLength += buf.length;
         });
     
-        gpg.stderr.on('data', (buf: Buffer) => {
-            error += buf.toString('utf8');
+        gpg.stderr.on("data", (buf: Buffer) => {
+            error += buf.toString("utf8");
         });
 
         gpg.on("error", err => {
@@ -43,7 +43,7 @@ export function gpgVerify(signature: string, data: string) {
         const buffers: Buffer[] = [];
         let buffersLength = 0;
 
-        gpg.stdout.on('data', (buf: Buffer) => {
+        gpg.stdout.on("data", (buf: Buffer) => {
             buffers.push(buf);
             buffersLength += buf.length;
         });

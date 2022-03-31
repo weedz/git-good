@@ -22,7 +22,7 @@ window.addEventListener("focus", async () => {
 
 // Glyph properties
 let _glyphWidth = 7.81;
-calculateGlyphWidth(13, 'JetBrainsMonoNL Nerd Font Mono');
+calculateGlyphWidth(13, "JetBrainsMonoNL Nerd Font Mono");
 
 ipcGetData(IpcAction.INIT, null).then(init => {
     if (init.repo) {
@@ -82,7 +82,7 @@ export async function discardChanges(filePath: string) {
 }
 export async function discardAllChanges() {
     const result = await dialog.showMessageBox({
-        message: `Discard all changes?`,
+        message: "Discard all changes?",
         type: "question",
         buttons: ["Cancel", "Yes"],
         cancelId: 0,
