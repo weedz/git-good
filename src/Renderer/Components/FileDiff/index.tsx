@@ -8,6 +8,8 @@ import HunksContainer from "./HunksContainer";
 
 import "./style.css";
 
+const LINE_HEIGHT = 17;
+
 interface State {
     fullWidth: boolean
     wrapLine: boolean
@@ -91,7 +93,7 @@ export default class FileDiff extends PureStoreComponent<unknown, State> {
         this.newLinesContainer = null;
     }
 
-    renderHunks = (newStore?: StoreType["currentFile"]) => {
+    renderHunks = (newStore: StoreType["currentFile"]) => {
         const patch = newStore?.patch;
         this.longestLine = 0;
         this.setState({
@@ -147,17 +149,15 @@ export default class FileDiff extends PureStoreComponent<unknown, State> {
 
         let hunks;
         if (!Store.diffUi.sideBySide) {
-            hunks = <HunksContainer itemHeight={17} width={this.longestLine * glyphWidth()} items={this.state.lines} />;
+            hunks = <HunksContainer itemHeight={LINE_HEIGHT} width={this.longestLine * glyphWidth()} items={this.state.lines} />;
         } else {
-            // console.time("Compact Lines");
             const [oldLines, newLines] = compactLines(this.state.lines);
-            // console.timeEnd("Compact Lines");
             hunks = <div style={{
                 display: "flex",
                 flexDirection: "row",
                 overflowY: "auto",
             }}>
-                <HunksContainer itemHeight={17} onRef={(ref) => {
+                <HunksContainer itemHeight={LINE_HEIGHT} onRef={(ref) => {
                     this.oldLinesContainer = ref;
                 }} scrollCallback={el => {
                     if (this.newLinesContainer) {
@@ -168,7 +168,7 @@ export default class FileDiff extends PureStoreComponent<unknown, State> {
                         });
                     }
                 }} width={this.longestLine * glyphWidth()} items={oldLines} hideNewGlyphs />
-                <HunksContainer itemHeight={17} onRef={(ref) => {
+                <HunksContainer itemHeight={LINE_HEIGHT} onRef={(ref) => {
                     this.newLinesContainer = ref;
                 }} scrollCallback={el => {
                     if (this.oldLinesContainer) {

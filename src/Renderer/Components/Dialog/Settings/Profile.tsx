@@ -132,9 +132,6 @@ export class Profile extends Component<Props, State> {
                         <div>
                             <label for="gpg-key">GPG key:</label>
                             {/* FIXME: list gpg keys from users machine */}
-                            {/* <select onChange={e => this.setGpgConfigKey("key", e.currentTarget.value)}>
-                                <option value="">None</option>
-                            </select> */}
                             <input type="text" id="gpg-key" name="gpg-key" value={this.state.config.gpg.key} onInput={e => this.setGpgConfigKey("key", e.currentTarget.value)} />
                         </div>
                         <div>

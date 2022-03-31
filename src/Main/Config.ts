@@ -44,6 +44,7 @@ try {
     recentRepoMenu = JSON.parse(recentRepos);
 } catch (err) {
     // noop.
+    console.warn("Failed to load recent-repos.json:", err);
 }
 
 
