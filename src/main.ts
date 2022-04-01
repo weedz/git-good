@@ -43,7 +43,6 @@ const createWindow = () => {
         minHeight: initialWindowHeight,
         minWidth: initialWindowWidth,
         webPreferences: {
-            nativeWindowOpen: true,
             nodeIntegration: true,
             contextIsolation: false,
             disableBlinkFeatures: "Auxclick"
