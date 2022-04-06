@@ -50,6 +50,12 @@ export function authenticate(username: string, auth: AuthConfig) {
         return Credential.userpassPlaintextNew(auth.username, auth.password);
     }
 }
+export function credentialsCallback(_url: string, username: string) {
+    const auth = getAuth();
+    if (auth) {
+        return authenticate(username, auth);
+    }
+}
 
 export async function openRepo(repoPath: string) {
     try {
@@ -269,7 +275,7 @@ export async function pull(repo: Repository, branch: string | null, signature: S
     return !!result;
 }
 
-async function pushHead(context: Context, auth: AuthConfig) {
+async function pushHead(context: Context) {
     const head = await context.repo.head();
     let upstream;
     try {
@@ -284,7 +290,7 @@ async function pushHead(context: Context, auth: AuthConfig) {
 
     const remote = await context.repo.getRemote(remoteName(upstream.name()));
 
-    return pushBranch(context, remote, head, auth, undefined);
+    return pushBranch(context, remote, head);
 }
 
 export async function push(context: Context, data: IpcActionParams[IpcAction.PUSH]) {
@@ -299,13 +305,13 @@ export async function push(context: Context, data: IpcActionParams[IpcAction.PUS
         return Error("No git credentials");
     }
     if (!data) {
-        result = await pushHead(context, auth);
+        result = await pushHead(context);
     } else {
         const localRef = await context.repo.getReference(data.localBranch);
         const remote = await context.repo.getRemote(data.remote);
 
         if (localRef.isBranch()) {
-            result = await pushBranch(context, remote, localRef, auth, data.force);
+            result = await pushBranch(context, remote, localRef, data.force);
         } else if (localRef.isTag()) {
             result = await pushTag(remote, localRef, auth, undefined, context);
         }
@@ -318,7 +324,7 @@ export async function push(context: Context, data: IpcActionParams[IpcAction.PUS
     return result;
 }
 
-async function pushBranch(context: Context, remote: Remote, localRef: Reference, auth: AuthConfig, force = false) {
+async function pushBranch(context: Context, remote: Remote, localRef: Reference, force = false) {
     let remoteRefName: string;
     let status: { ahead: number, behind: number };
     try {
@@ -350,15 +356,15 @@ async function pushBranch(context: Context, remote: Remote, localRef: Reference,
         }
     }
 
-    return doPush(remote, localRef.name(), `heads/${remoteRefName}`, auth, force, context);
+    return doPush(remote, localRef.name(), `heads/${remoteRefName}`, force, context);
 }
 
 async function pushTag(remote: Remote, localRef: Reference, auth: AuthConfig, remove = false, context?: Context) {
     // We can pass an empty localref to delete a remote ref
-    return doPush(remote, remove ? "" : localRef.name(), `tags/${normalizeTagName(localRef.name())}`, auth, undefined, context);
+    return doPush(remote, remove ? "" : localRef.name(), `tags/${normalizeTagName(localRef.name())}`, undefined, context);
 }
 
-async function doPush(remote: Remote, localName: string, remoteName: string, auth: AuthConfig, forcePush = false, context?: Context) {
+async function doPush(remote: Remote, localName: string, remoteName: string, forcePush = false, context?: Context) {
     // something with pathspec, https://github.com/nodegit/nodegit/issues/1270#issuecomment-293742772
     const force = forcePush ? "+" : "";
     try {
@@ -367,7 +373,7 @@ async function doPush(remote: Remote, localName: string, remoteName: string, aut
             [`${force}${localName}:refs/${remoteName}`],
             {
                 callbacks: {
-                    credentials: (_url: string, username: string) => authenticate(username, auth),
+                    credentials: credentialsCallback,
 
                     // eslint-disable-next-line @typescript-eslint/ban-ts-comment
                     // @ts-ignore
@@ -407,11 +413,6 @@ export async function setUpstream(repo: Repository, local: string, remoteRefName
 }
 
 export async function deleteRemoteRef(repo: Repository, refName: string) {
-    const auth = getAuth();
-    if (!auth) {
-        return false;
-    }
-
     const ref = await repo.getReference(refName);
 
     if (ref.isRemote()) {
@@ -425,29 +426,26 @@ export async function deleteRemoteRef(repo: Repository, refName: string) {
         try {
             await remote.push([`:refs/heads/${branchName}`], {
                 callbacks: {
-                    credentials: (_url: string, username: string) => authenticate(username, auth)
+                    credentials: credentialsCallback
                 }
             });
+            ref.delete();
         } catch (err) {
             if (err instanceof Error) {
                 dialog.showErrorBox("No remote ref found", err.message);
             }
+            return false;
         }
-        ref.delete();
     }
     return true;
 }
 
 // tagName must contain full path for tag (eg. refs/tags/[tag])
 export async function deleteRemoteTag(remote: Remote, tagName: string) {
-    const auth = getAuth();
-    if (!auth) {
-        return false;
-    }
     try {
         await remote.push([`:${tagName}`], {
             callbacks: {
-                credentials: (_url: string, username: string) => authenticate(username, auth)
+                credentials: credentialsCallback
             }
         });
     } catch (err) {

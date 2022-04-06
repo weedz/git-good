@@ -6,7 +6,7 @@ import { shell, clipboard } from "electron";
 import { Branch, Clone, Commit, Object, Oid, Rebase, Reference, Remote, Repository, Stash } from "nodegit";
 
 import { isMac, isWindows } from "./Main/Utils";
-import { addRecentRepository, clearRepoProfile, currentProfile, getAppConfig, getAuth, getRecentRepositories, getRepoProfile, saveAppConfig, setCurrentProfile, setRepoProfile, signatureFromActiveProfile, signatureFromProfile } from "./Main/Config";
+import { addRecentRepository, clearRepoProfile, currentProfile, getAppConfig, getRecentRepositories, getRepoProfile, saveAppConfig, setCurrentProfile, setRepoProfile, signatureFromActiveProfile, signatureFromProfile } from "./Main/Config";
 
 import * as provider from "./Main/Provider";
 import { IpcAction, IpcActionParams, IpcActionReturnOrError, IpcActionReturn, Locks, AsyncIpcActionReturnOrError } from "./Common/Actions";
@@ -141,9 +141,23 @@ function applyAppMenu() {
                             async click() {
                                 const data = await requestClientData(win.webContents, RendererRequestEvents.CLONE_DIALOG, null);
                                 if (data.target && data.source) {
-                                    const repo = await Clone.clone(data.source, data.target);
-                                    const repoResult = await openRepo(repo.workdir());
-                                    sendEvent(win.webContents, "repo-opened", repoResult);
+                                    try {
+                                        const repo = await Clone.clone(data.source, data.target, {
+                                            fetchOpts: {
+                                                callbacks: {
+                                                    credentials: provider.credentialsCallback
+                                                }
+                                            }
+                                        });
+                                        const repoResult = await openRepo(repo.workdir());
+                                        return sendEvent(win.webContents, "repo-opened", repoResult);
+                                    } catch (err) {
+                                        console.warn(err);
+                                        if (err instanceof Error) {
+                                            dialog.showErrorBox("Clone failed", err.message);
+                                        }
+                                    }
+                                    sendEvent(win.webContents, "repo-opened", null);
                                 }
                             }
                         },
@@ -790,16 +804,11 @@ async function fetchFrom(repo: Repository, remotes?: Remote[]) {
     }
     let update = false;
     try {
-        const auth = getAuth();
         for (const remote of remotes) {
             await remote.fetch([], {
                 prune: 1,
                 callbacks: {
-                    credentials: (_url: string, username: string) => {
-                        if (auth) {
-                            return provider.authenticate(username, auth);
-                        }
-                    },
+                    credentials: provider.credentialsCallback,
                     transferProgress: (stats: TransferProgress, remote: string) => {
                         update = true;
                         sendEvent(win.webContents, "fetch-status", {
