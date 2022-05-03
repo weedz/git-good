@@ -21,29 +21,29 @@
   ],
   "license": "GPL-3.0-or-later",
   "devDependencies": {
-    "@rollup/plugin-node-resolve": "^13.2.1",
+    "@rollup/plugin-node-resolve": "^13.3.0",
     "@rollup/plugin-replace": "^4.0.0",
     "@rollup/plugin-typescript": "^8.3.2",
-    "@types/node": "^16.11.27",
+    "@types/node": "^16.11.33",
     "@types/nodegit": "^0.27.10",
-    "@typescript-eslint/eslint-plugin": "^5.20.0",
-    "@typescript-eslint/parser": "^5.20.0",
+    "@typescript-eslint/eslint-plugin": "^5.22.0",
+    "@typescript-eslint/parser": "^5.22.0",
     "asar": "^3.1.0",
-    "electron": "^18.1.0",
+    "electron": "^18.2.0",
     "electron-builder": "^23.0.3",
     "eslint": "^8.14.0",
     "eslint-plugin-react": "^7.29.4",
     "preact": "^10.7.1",
-    "rollup": "^2.70.2",
+    "rollup": "^2.71.1",
     "rollup-plugin-import-css": "^3.0.3",
-    "terser": "^5.12.1",
+    "terser": "^5.13.1",
     "tslib": "^2.4.0",
-    "typescript": "^4.6.3"
+    "typescript": "^4.6.4"
   },
   "dependencies": {
     "@electron/remote": "^2.0.8",
     "@weedzcokie/store": "^1.0.4",
-    "nodegit": "^0.28.0-alpha.13"
+    "nodegit": "^0.28.0-alpha.14"
   },
   "build": {
     "afterPack": "./scripts/after-pack.js",

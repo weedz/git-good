@@ -52,6 +52,8 @@ async function clean(resourceDir) {
 }
 
 function cleanLinux() {
+    fileList = fileList.filter(file => file !== "node_modules/nodegit/build/Release/acquireOpenSSL.node");
+    fileList = fileList.filter(file => file !== "node_modules/nodegit/build/Release/configureLibssh2.node");
     return clean("out/linux-unpacked/resources");
 }
 function cleanMac() {
