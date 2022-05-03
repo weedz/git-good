@@ -124,58 +124,56 @@ function applyAppMenu() {
             label: "File",
             submenu: [
                 {
-                    label: "Open repository...",
-                    submenu: [
-                        {
-                            label: "Open existing...",
-                            accelerator: "CmdOrCtrl+O",
-                            async click() {
-                                const result = await openRepoDialog();
-                                if (result?.opened) {
-                                    sendEvent(win.webContents, "repo-opened", result);
-                                }
-                            }
-                        },
-                        {
-                            label: "Clone...",
-                            async click() {
-                                const data = await requestClientData(win.webContents, RendererRequestEvents.CLONE_DIALOG, null);
-                                if (data.target && data.source) {
-                                    try {
-                                        const repo = await Clone.clone(data.source, data.target, {
-                                            fetchOpts: {
-                                                callbacks: {
-                                                    credentials: provider.credentialsCallback
-                                                }
-                                            }
-                                        });
-                                        const repoResult = await openRepo(repo.workdir());
-                                        return sendEvent(win.webContents, "repo-opened", repoResult);
-                                    } catch (err) {
-                                        console.warn(err);
-                                        if (err instanceof Error) {
-                                            dialog.showErrorBox("Clone failed", err.message);
+                    label: "Clone...",
+                    async click() {
+                        const data = await requestClientData(win.webContents, RendererRequestEvents.CLONE_DIALOG, null);
+                        if (data.target && data.source) {
+                            try {
+                                const repo = await Clone.clone(data.source, data.target, {
+                                    fetchOpts: {
+                                        callbacks: {
+                                            credentials: provider.credentialsCallback
                                         }
                                     }
-                                    sendEvent(win.webContents, "repo-opened", null);
+                                });
+                                const repoResult = await openRepo(repo.workdir());
+                                return sendEvent(win.webContents, "repo-opened", repoResult);
+                            } catch (err) {
+                                console.warn(err);
+                                if (err instanceof Error) {
+                                    dialog.showErrorBox("Clone failed", err.message);
                                 }
                             }
-                        },
-                        {
-                            label: "Create/init...",
-                            async click() {
-                                const data = await requestClientData(win.webContents, RendererRequestEvents.INIT_DIALOG, null);
-                                if (data.source) {
-                                    const repo = await Repository.init(data.source, 0);
-                                    const repoResult = await openRepo(repo.workdir());
-                                    sendEvent(win.webContents, "repo-opened", repoResult);
-                                }
-                            }
-                        },
-                    ]
+                            sendEvent(win.webContents, "repo-opened", null);
+                        }
+                    }
                 },
                 {
-                    label: "Recent...",
+                    label: "Init...",
+                    async click() {
+                        const data = await requestClientData(win.webContents, RendererRequestEvents.INIT_DIALOG, null);
+                        if (data.source) {
+                            const repo = await Repository.init(data.source, 0);
+                            const repoResult = await openRepo(repo.workdir());
+                            sendEvent(win.webContents, "repo-opened", repoResult);
+                        }
+                    }
+                },
+                {
+                    type: "separator"
+                },
+                {
+                    label: "Open...",
+                    accelerator: "CmdOrCtrl+O",
+                    async click() {
+                        const result = await openRepoDialog();
+                        if (result?.opened) {
+                            sendEvent(win.webContents, "repo-opened", result);
+                        }
+                    }
+                },
+                {
+                    label: "Open Recent...",
                     type: "submenu",
                     submenu: getRecentRepositories().map(buildOpenRepoMenuItem)
                 },
