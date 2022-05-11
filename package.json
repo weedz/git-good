@@ -24,17 +24,17 @@
     "@rollup/plugin-node-resolve": "^13.3.0",
     "@rollup/plugin-replace": "^4.0.0",
     "@rollup/plugin-typescript": "^8.3.2",
-    "@types/node": "^16.11.33",
+    "@types/node": "^16.11.34",
     "@types/nodegit": "^0.27.10",
-    "@typescript-eslint/eslint-plugin": "^5.22.0",
-    "@typescript-eslint/parser": "^5.22.0",
+    "@typescript-eslint/eslint-plugin": "^5.23.0",
+    "@typescript-eslint/parser": "^5.23.0",
     "asar": "^3.1.0",
-    "electron": "^18.2.0",
+    "electron": "^18.2.2",
     "electron-builder": "^23.0.3",
-    "eslint": "^8.14.0",
+    "eslint": "^8.15.0",
     "eslint-plugin-react": "^7.29.4",
-    "preact": "^10.7.1",
-    "rollup": "^2.71.1",
+    "preact": "^10.7.2",
+    "rollup": "^2.72.1",
     "rollup-plugin-import-css": "^3.0.3",
     "terser": "^5.13.1",
     "tslib": "^2.4.0",
@@ -43,7 +43,7 @@
   "dependencies": {
     "@electron/remote": "^2.0.8",
     "@weedzcokie/store": "^1.0.4",
-    "nodegit": "^0.28.0-alpha.14"
+    "nodegit": "^0.28.0-alpha.16"
   },
   "build": {
     "afterPack": "./scripts/after-pack.js",
