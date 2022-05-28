@@ -394,17 +394,18 @@ function applyAppMenu() {
                     async click() {
                         const buildDate = new Date(__build_date__);
                         const versionsString = `Version: ${app.getVersion()}\n` +
-                            `Date: ${buildDate.toISOString()} (${formatTimeAgo(buildDate)})\n` +
                             "Commit: __last_comit__\n" +
+                            `Date: ${buildDate.toISOString()} (${formatTimeAgo(buildDate)})\n` +
                             `Electron: ${process.versions.electron}\n` +
-                            `Chrome: ${process.versions.chrome}\n` +
+                            `Chromium: ${process.versions.chrome}\n` +
                             `Node: ${process.versions.node}\n` +
                             `V8: ${process.versions.v8}\n` +
                             `OS: ${process.getSystemVersion()}`;
                         const response = await dialog.showMessageBox(win, {
+                            message: "git-good",
                             type: "info",
-                            title: "Git-good",
-                            message: versionsString,
+                            title: "git-good",
+                            detail: versionsString,
                             buttons: ["Copy", "OK"],
                             defaultId: 1,
                         });
