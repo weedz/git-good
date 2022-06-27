@@ -12,7 +12,7 @@ import * as provider from "./Main/Provider";
 import { IpcAction, IpcActionParams, IpcActionReturnOrError, IpcActionReturn, Locks, AsyncIpcActionReturnOrError } from "./Common/Actions";
 import { formatTimeAgo } from "./Common/Utils";
 import { requestClientData, sendEvent } from "./Main/WindowEvents";
-import { TransferProgress } from "../types/nodegit";
+import type { TransferProgress } from "../types/nodegit";
 import { normalizeLocalName } from "./Common/Branch";
 
 import { initialize, enable as enableRemote } from "@electron/remote/main";

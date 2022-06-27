@@ -7,6 +7,8 @@
   "extends": [
     "./.preact.eslintrc",
     "eslint:recommended",
+    "plugin:import/recommended",
+    "plugin:import/typescript",
     "plugin:@typescript-eslint/eslint-recommended",
     "plugin:@typescript-eslint/recommended"
   ],
@@ -17,7 +19,16 @@
     // in the constructor so enable typescript specific "no-useless-constructor"
     "no-useless-constructor": "off",
     "@typescript-eslint/no-useless-constructor": ["error"],
-    "quotes": ["error"]
+    "quotes": ["error"],
+    "import/no-extraneous-dependencies": "error",
+    "import/no-unresolved": ["error", {
+      "ignore": [
+        "electron/main",
+        "electron/renderer"
+      ]
+    }],
+    "@typescript-eslint/no-explicit-any": "error",
+    "@typescript-eslint/no-non-null-assertion": "error"
   },
   "parser": "@typescript-eslint/parser"
 }

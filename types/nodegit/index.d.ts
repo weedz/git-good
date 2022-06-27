@@ -1,1 +1,1 @@
-export { TransferProgress } from "./transfer-progress";
+export type { TransferProgress } from "./transfer-progress.d";
