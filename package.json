@@ -8,7 +8,7 @@
     "dist": "electron-builder",
     "build": "node scripts/build.js",
     "build:watch": "mkdir dist; cp -R static/* dist/ && rollup -c -w",
-    "electron-rebuild": "electron-builder install-app-deps",
+    "electron-rebuild": "electron-rebuild",
     "lint": "eslint . && tsc --noEmit"
   },
   "keywords": [],
@@ -23,21 +23,22 @@
   "devDependencies": {
     "@rollup/plugin-node-resolve": "^13.3.0",
     "@rollup/plugin-replace": "^4.0.0",
-    "@rollup/plugin-typescript": "^8.3.3",
-    "@types/node": "^16.11.41",
+    "@rollup/plugin-typescript": "^8.3.4",
+    "@types/node": "^16.11.47",
     "@types/nodegit": "^0.27.10",
-    "@typescript-eslint/eslint-plugin": "^5.29.0",
-    "@typescript-eslint/parser": "^5.29.0",
-    "asar": "^3.1.0",
-    "electron": "^19.0.6",
-    "electron-builder": "^23.1.0",
-    "eslint": "^8.18.0",
+    "@typescript-eslint/eslint-plugin": "^5.32.0",
+    "@typescript-eslint/parser": "^5.32.0",
+    "asar": "^3.2.0",
+    "electron": "^20.0.1",
+    "electron-builder": "^23.3.3",
+    "electron-rebuild": "^3.2.9",
+    "eslint": "^8.21.0",
     "eslint-plugin-import": "^2.26.0",
     "eslint-plugin-react": "^7.30.1",
-    "preact": "^10.8.2",
-    "rollup": "^2.75.7",
+    "preact": "^10.10.0",
+    "rollup": "^2.77.2",
     "rollup-plugin-import-css": "^3.0.3",
-    "terser": "^5.14.1",
+    "terser": "^5.14.2",
     "tslib": "^2.4.0",
     "typescript": "^4.7.4"
   },
@@ -45,6 +46,9 @@
     "@electron/remote": "^2.0.8",
     "@weedzcokie/store": "^1.0.4",
     "nodegit": "^0.28.0-alpha.18"
+  },
+  "resolutions": {
+    "nan": "github:jkleinsc/nan#remove_accessor_signature"
   },
   "build": {
     "afterPack": "./scripts/after-pack.js",
