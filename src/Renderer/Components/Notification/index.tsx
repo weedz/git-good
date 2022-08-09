@@ -12,7 +12,7 @@ export class Notification {
     constructor(title: Props["title"], body: Props["body"], classes: string[], private deleteCallback: (id: number) => void, timeout: number | null = null) {
         this.id = (Math.random() * Number.MAX_SAFE_INTEGER)>>>0;
         this.refreshExpireTime(timeout);
-        this.item = <NotificationComponent ref={this.ref} key={this.id} body={body} title={title} close={this.delete} clearTimer={this.clearTimer} classList={classes} />;
+        this.item = <NotificationComponent ref={this.ref} key={this.id} body={body} title={title} close={this.delete} clearTimer={this.clearTimer} classList={classes} resetTimer={() => this.refreshExpireTime(timeout)} />;
     }
 
     update(data: {title?: Props["title"], body?: Props["body"], time?: number | null}) {
@@ -45,7 +45,7 @@ export class Notification {
         this.deleteCallback(this.id);
     }
     clearTimer = () => {
-        clearTimeout(this.timer);
+        window.clearTimeout(this.timer);
     }
 }
 
@@ -55,6 +55,7 @@ interface Props {
     classList: string[]
     close: () => void
     clearTimer: () => void
+    resetTimer: () => void
 }
 
 interface State {
@@ -92,7 +93,7 @@ class NotificationComponent extends Component<Props, State> {
     }
     render() {
         return (
-            <li className={`notification ${Array.from(this.classes.values()).join(" ")}`} onMouseEnter={this.props.clearTimer}>
+            <li className={`notification ${Array.from(this.classes.values()).join(" ")}`} onMouseEnter={this.props.clearTimer} onMouseLeave={this.props.resetTimer}>
                 <header>
                     <div className="toolbar">
                         {/* FIXME: Change "expand" icons */}
