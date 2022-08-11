@@ -94,6 +94,7 @@ const handlers: {[T in IpcAction]: HandlerCallback[]} = {
     [IpcAction.STASH_POP]: [],
     [IpcAction.STASH_APPLY]: [],
     [IpcAction.STASH_DROP]: [],
+    [IpcAction.OPEN_FILE_AT_COMMIT]: [],
 };
 export function registerHandler<T extends IpcAction>(action: T, callbacks: ((arg: IpcActionReturn[T]) => void) | (Array<(arg: IpcActionReturn[T]) => void>)) {
     if (!Array.isArray(callbacks)) {

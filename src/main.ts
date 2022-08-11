@@ -695,6 +695,7 @@ const eventMap: {
     [IpcAction.STASH_POP]: stashPop,
     [IpcAction.STASH_APPLY]: stashApply,
     [IpcAction.STASH_DROP]: stashDrop,
+    [IpcAction.OPEN_FILE_AT_COMMIT]: provider.openFileAtCommit,
 }
 
 const ALLOWED_WHEN_NOT_IN_REPO = {

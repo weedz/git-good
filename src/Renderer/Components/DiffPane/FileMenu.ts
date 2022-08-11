@@ -1,7 +1,7 @@
 import { join } from "path";
 import { getCurrentWindow, Menu, MenuItem, shell } from "@electron/remote";
 import { h } from "preact";
-import { contextMenuState, openFileHistory, Store } from "../../Data/store";
+import { contextMenuState, openFileAtCommit, openFileHistory, Store } from "../../Data/store";
 
 const fileMenu = new Menu();
 fileMenu.append(new MenuItem({
@@ -30,6 +30,12 @@ fileMenu.append(new MenuItem({
     label: "History",
     click() {
         openFileHistory(contextMenuState.data.path, contextMenuState.data.sha);
+    }
+}));
+fileMenu.append(new MenuItem({
+    label: "Open at commit",
+    click() {
+        openFileAtCommit(contextMenuState.data.path, contextMenuState.data.sha);
     }
 }));
 fileMenu.append(new MenuItem({

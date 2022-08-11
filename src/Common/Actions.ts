@@ -71,6 +71,7 @@ export const enum IpcAction {
     STASH_POP,
     STASH_APPLY,
     STASH_DROP,
+    OPEN_FILE_AT_COMMIT,
 }
 
 export type IpcActionParams = {
@@ -183,6 +184,10 @@ export type IpcActionParams = {
     [IpcAction.STASH_POP]: number
     [IpcAction.STASH_APPLY]: number
     [IpcAction.STASH_DROP]: number
+    [IpcAction.OPEN_FILE_AT_COMMIT]: {
+        file: string
+        sha: string
+    }
 };
 
 export type IpcActionReturn = {
@@ -263,6 +268,7 @@ export type IpcActionReturn = {
     [IpcAction.STASH_POP]: boolean
     [IpcAction.STASH_APPLY]: boolean
     [IpcAction.STASH_DROP]: boolean
+    [IpcAction.OPEN_FILE_AT_COMMIT]: boolean
 };
 
 export type RepoStatus = {

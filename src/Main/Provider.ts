@@ -1,6 +1,7 @@
 import { join } from "path";
 import * as fs from "fs/promises";
-import { dialog, IpcMainEvent, WebContents } from "electron";
+import { tmpdir } from "os";
+import { dialog, IpcMainEvent, shell, WebContents } from "electron";
 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
 // @ts-ignore, missing declations for Credential
 import { Revparse, Credential, Repository, Revwalk, Commit, Diff, ConvenientPatch, ConvenientHunk, DiffLine, Object, Branch, Graph, Index, Reset, Checkout, DiffFindOptions, Reference, Oid, Signature, Remote, DiffOptions, IndexEntry, Error as NodeGitError, Tag, Stash, Status } from "nodegit";
@@ -1319,6 +1320,29 @@ export async function checkoutBranch(repo: Repository, branch: string): AsyncIpc
         };
     } catch (err) {
         return err as Error;
+    }
+}
+
+export async function openFileAtCommit(repo: Repository, data: IpcActionParams[IpcAction.OPEN_FILE_AT_COMMIT]): AsyncIpcActionReturnOrError<IpcAction.OPEN_FILE_AT_COMMIT> {
+    try {
+        const commit = await repo.getCommit(data.sha);
+
+        const tree = await commit.getTree();
+
+        const entry = await tree.getEntry(data.file);
+
+        const fileBlob = await entry.getBlob();
+
+        const tempDir = await fs.mkdtemp(join(tmpdir(), "git-good-"));
+
+        const tempFileName = data.file.replaceAll("/", "_");
+        await fs.writeFile(`${tempDir}/${tempFileName}`, fileBlob.content());
+        shell.openPath(`${tempDir}/${tempFileName}`);
+
+        return true;
+    } catch (err) {
+        console.error(err);
+        return false
     }
 }
 

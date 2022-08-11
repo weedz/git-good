@@ -50,3 +50,7 @@
 .notification .toolbar > span:hover {
     background-color: #222;
 }
+
+.notification.error {
+    border-color: #ee5555;
+}
