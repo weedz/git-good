@@ -30,13 +30,35 @@ jobs:
       #   if: runner.os == 'macOS'
       #   run: brew install openssl
 
-      - name: Install Node.js, NPM and Yarn
-        uses: actions/setup-node@master
+      - name: Install Node.js
+        uses: actions/setup-node@v3
         with:
-          node-version: 14
-      - name: Install node dependencies
-        run: npm ci --ignore-scripts
+          node-version: 16
+
+      - uses: pnpm/action-setup@v2
+        name: Install pnpm
+        id: pnpm-install
+        with:
+          version: 7
+          run_install: false
+
+      - name: Get pnpm store directory
+        id: pnpm-cache
+        run: |
+          echo "::set-output name=pnpm_cache_dir::$(pnpm store path)"
+
+      - uses: actions/cache@v3
+        name: Setup pnpm cache
+        with:
+          path: ${{ steps.pnpm-cache.outputs.pnpm_cache_dir }}
+          key: ${{ runner.os }}-pnpm-store-${{ hashFiles('**/pnpm-lock.yaml') }}
+          restore-keys: |
+            ${{ runner.os }}-pnpm-store-
+
+      - name: Install dependencies
+        run: pnpm install --ignore-scripts
+
       - name: Build
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: npm run build && npm run dist
+        run: pnpm run build && pnpm run dist
