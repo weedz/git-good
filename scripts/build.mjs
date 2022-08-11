@@ -40,6 +40,12 @@ const result = await build({
     outdir: "dist",
     plugins: [envPlugin],
     minify: true,
+    watch: process.env.NODE_ENV === "development" && {
+        onRebuild(errors, result) {
+            console.log("Errors:", errors);
+            console.log("Result:", result);
+        }
+    }
 });
 
 if (result.metafile) {
