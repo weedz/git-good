@@ -17,11 +17,11 @@ import { normalizeLocalName } from "./Common/Branch";
 
 import { initialize, enable as enableRemote } from "@electron/remote/main";
 import { RendererRequestEvents } from "./Common/WindowEventTypes";
-initialize();
 
-// constants from rollup
-declare const __build_date__: number;
-// declare const __last_comit__: string;
+// eslint-disable-next-line import/no-unresolved
+import { lastCommit, buildDateTime } from "env";
+
+initialize();
 
 let repo: Repository;
 
@@ -392,9 +392,9 @@ function applyAppMenu() {
                 {
                     label: "About",
                     async click() {
-                        const buildDate = new Date(__build_date__);
+                        const buildDate = new Date(buildDateTime);
                         const versionsString = `Version: ${app.getVersion()}\n` +
-                            "Commit: __last_comit__\n" +
+                            `Commit: ${lastCommit}\n` +
                             `Date: ${buildDate.toISOString()} (${formatTimeAgo(buildDate)})\n` +
                             `Electron: ${process.versions.electron}\n` +
                             `Chromium: ${process.versions.chrome}\n` +
