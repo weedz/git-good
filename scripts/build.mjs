@@ -15,7 +15,7 @@ let envPlugin = {
         // they point to a JSON file containing the environment variables.
         build.onLoad({ filter: /.*/, namespace: 'env-ns' }, () => ({
             contents: JSON.stringify({
-                buildDateTime: new Date().getTime(),
+                buildDateTime: Date.now(),
                 lastCommit: execSync("git rev-parse HEAD").toString("utf8").trim(),
             }),
             loader: 'json',
