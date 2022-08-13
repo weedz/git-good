@@ -23,6 +23,8 @@ let envPlugin = {
     },
 }
 
+const production = process.env.NODE_ENV !== "development";
+
 const result = await build({
     entryPoints: {
         main: "src/main.ts",
@@ -39,8 +41,9 @@ const result = await build({
     ],
     outdir: "dist",
     plugins: [envPlugin],
-    minify: true,
-    watch: process.env.NODE_ENV === "development" && {
+    minify: production,
+    sourcemap: !production,
+    watch: !production && {
         onRebuild(errors, result) {
             console.log("Errors:", errors);
             console.log("Result:", result);

@@ -5,13 +5,11 @@
   "main": "dist/main.js",
   "scripts": {
     "start": "electron .",
-    "esbuild": "pnpm run esbuild:combined && cp static/* dist/",
-    "build": "node scripts/build.mjs && cp static/* dist/",
-    "esbuild:combined": "esbuild renderer=src/renderer.tsx main=src/main.ts --bundle --platform=node --target=node16 --external:nodegit --external:electron --external:@electron/remote --outdir=dist",
+    "lint": "eslint . && tsc --noEmit",
     "watch": "NODE_ENV=development npm run build",
+    "build": "rm -rf dist;mkdir dist;cp static/* dist/; node scripts/build.mjs",
     "dist": "electron-builder",
-    "electron-rebuild": "electron-rebuild",
-    "lint": "eslint . && tsc --noEmit"
+    "electron-rebuild": "electron-rebuild"
   },
   "keywords": [],
   "author": {
