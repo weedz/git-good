@@ -485,7 +485,7 @@ const eventMap: {
         return result;
     },
     [IpcAction.LOAD_PATCHES_WITHOUT_HUNKS]: async (_, args) => provider.getCommitPatches(args.sha, args.options),
-    [IpcAction.FILE_DIFF_AT]: async (repo, args) => provider.diff_file_at_commit(repo, args.file, args.sha),
+    [IpcAction.FILE_DIFF_AT]: async (repo, args) => provider.diffFileAtCommit(repo, args.file, args.sha),
     [IpcAction.LOAD_HUNKS]: async (repo, arg) => {
         return {
             path: arg.path,

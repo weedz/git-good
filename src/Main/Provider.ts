@@ -135,7 +135,7 @@ export async function getFileCommits(repo: Repository, branch: string, start: "r
 
     const commits: IpcActionReturn[IpcAction.LOAD_FILE_COMMITS]["commits"] = [];
 
-    fileHistoryCache = {};
+    fileHistoryCache.clear();
 
     for (const entry of historyEntries) {
         const commit = entry.commit;
@@ -161,7 +161,7 @@ export async function getFileCommits(repo: Repository, branch: string, start: "r
         if (!entry.oldName) {
             entry.oldName = currentName;
         }
-        fileHistoryCache[commit.sha()] = entry;
+        fileHistoryCache.set(commit.sha(), entry);
     }
 
     return {
@@ -525,10 +525,7 @@ export async function showStash(repo: Repository, index: number) {
 
     const patchesObj = patches.map(async patch => {
         const patchObj = handlePatch(patch);
-        const hunks = await loadHunks(repo, patch);
-        if (hunks) {
-            patchObj.hunks = hunks;
-        }
+        patchObj.hunks = await loadHunks(repo, patch);
         return patchObj;
     });
 
@@ -873,19 +870,17 @@ export async function discardAllChanges(repo: Repository) {
 }
 
 export async function loadChanges(): AsyncIpcActionReturnOrError<IpcAction.GET_CHANGES> {
-    workDirIndexPathMap = {
-        staged: {},
-        unstaged: {},
-    };
+    workDirIndexPathMap.staged.clear();
+    workDirIndexPathMap.unstaged.clear();
 
     const staged = workDirIndexCache.stagedPatches.map(convPatch => {
         const patch = handlePatch(convPatch);
-        workDirIndexPathMap.staged[patch.actualFile.path] = convPatch;
+        workDirIndexPathMap.staged.set(patch.actualFile.path, convPatch);
         return patch;
     });
     const unstaged = workDirIndexCache.unstagedPatches.map(convPatch => {
         const patch = handlePatch(convPatch);
-        workDirIndexPathMap.unstaged[patch.actualFile.path] = convPatch;
+        workDirIndexPathMap.unstaged.set(patch.actualFile.path, convPatch);
         return patch;
     });
     return {
@@ -893,9 +888,9 @@ export async function loadChanges(): AsyncIpcActionReturnOrError<IpcAction.GET_C
         unstaged,
     };
 }
-export async function getWorkdirHunks(repo: Repository, path: string, type: "staged" | "unstaged") {
-    const patch = workDirIndexPathMap[type][path];
-    return loadHunks(repo, patch, path);
+export async function getWorkdirHunks(repo: Repository, path: string, type: "staged" | "unstaged"): Promise<false | HunkObj[]> {
+    const patch = workDirIndexPathMap[type].get(path);
+    return patch ? loadHunks(repo, patch, path) : false;
 }
 
 function handleLine(line: DiffLine): LineObj {
@@ -927,20 +922,14 @@ async function handleHunk(hunk: ConvenientHunk): Promise<HunkObj> {
     };
 }
 export async function getHunks(repo: Repository, sha: string, path: string): Promise<false | HunkObj[]> {
-    const patch = commitObjectCache[sha]?.patches[path];
-    if (patch) {
-        return loadHunks(repo, patch, path);
-    }
-    return false;
+    const patch = commitObjectCache.get(sha)?.patches.get(path);
+    return patch ? loadHunks(repo, patch, path) : false;
 }
 export async function hunksFromCompare(repo: Repository, path: string): Promise<false | HunkObj[]> {
-    return loadHunks(repo, compareObjCache.patches[path], path);
+    const patch = compareObjCache.patches.get(path);
+    return patch ? loadHunks(repo, patch, path) : false;
 }
 async function loadHunks(repo: Repository, patch: ConvenientPatch, path?: string) {
-    if (!patch) {
-        return false;
-    }
-
     if (patch.isConflicted() && path) {
         return loadConflictedPatch(repo, path);
     }
@@ -949,7 +938,7 @@ async function loadHunks(repo: Repository, patch: ConvenientPatch, path?: string
     return Promise.all(hunks.map(handleHunk));
 }
 
-async function commit_diff_parent(commit: Commit, diffOptions?: DiffOptions) {
+async function commitDiffParent(commit: Commit, diffOptions?: DiffOptions) {
     const tree = await commit.getTree();
 
     // TODO: which parent to chose?
@@ -964,8 +953,11 @@ async function commit_diff_parent(commit: Commit, diffOptions?: DiffOptions) {
     return await tree.diffWithOptions(null, diffOptions) as Diff;
 }
 
-export async function diff_file_at_commit(repo: Repository, file: string, sha: string) {
-    const historyEntry = fileHistoryCache[sha];
+export async function diffFileAtCommit(repo: Repository, file: string, sha: string) {
+    const historyEntry = fileHistoryCache.get(sha);
+    if (!historyEntry) {
+        return Error("Revison not found");
+    }
     // FIXME: Cannot use this until Revwalk.fileHistoryWalk() sets repo on returned Commit items.
     // const commit = historyEntry.commit;
     const commit = await Commit.lookup(repo, sha);
@@ -979,7 +971,7 @@ export async function diff_file_at_commit(repo: Repository, file: string, sha: s
         pathspec.push(historyEntry.newName);
     }
 
-    const diff = await commit_diff_parent(commit, {
+    const diff = await commitDiffParent(commit, {
         pathspec,
         flags: Diff.OPTION.IGNORE_WHITESPACE,
     });
@@ -1165,24 +1157,27 @@ function handlePatch(patch: ConvenientPatch): PatchObj {
     } as PatchObj;
 }
 
-async function handleDiff(diff: Diff, convPatches: { [path: string]: ConvenientPatch }) {
+async function handleDiff(diff: Diff, convPatches: Map<string, ConvenientPatch>) {
     const patches = await diff.patches();
     return patches.map(convPatch => {
         const patch = handlePatch(convPatch);
-        convPatches[patch.actualFile.path] = convPatch;
+        convPatches.set(patch.actualFile.path, convPatch);
         return patch;
     });
 }
 
 export async function getCommitPatches(sha: string, options?: DiffOptions): AsyncIpcActionReturnOrError<IpcAction.LOAD_PATCHES_WITHOUT_HUNKS> {
-    const commit = commitObjectCache[sha].commit;
+    const commit = commitObjectCache.get(sha);
+    if (!commit) {
+        return Error("Revison not found");
+    }
 
-    const diff = await commit_diff_parent(commit, options);
+    const diff = await commitDiffParent(commit.commit, options);
     await diff.findSimilar({
         flags: Diff.FIND.RENAMES,
     });
 
-    return handleDiff(diff, commitObjectCache[currentCommit].patches);
+    return handleDiff(diff, commit.patches);
 }
 
 export async function compareRevisions(repo: Repository, revisions: { from: string, to: string }) {
@@ -1204,7 +1199,7 @@ export async function compareRevisions(repo: Repository, revisions: { from: stri
             descendant: await Graph.descendantOf(repo, commits[0].id(), commits[1].id()) === 1,
             from: commits[0],
             to: commits[1],
-            patches: {}
+            patches: new Map(),
         };
         return true;
     }).catch(_ => {
@@ -1293,15 +1288,13 @@ export async function commitWithDiff(repo: Repository, sha: string) {
     if (oid instanceof Error) {
         return oid;
     }
-    currentCommit = oid.tostrS();
 
     const commit = await repo.getCommit(oid);
-    commitObjectCache = {
-        [currentCommit]: {
-            commit,
-            patches: {},
-        }
-    };
+    commitObjectCache.clear();
+    commitObjectCache.set(oid.tostrS(), {
+        commit,
+        patches: new Map(),
+    });
 
     return commit;
 }
@@ -1347,26 +1340,17 @@ export async function openFileAtCommit(repo: Repository, data: IpcActionParams[I
 }
 
 let repoStash: StashObj[] = [];
-let currentCommit: string;
-let commitObjectCache: {
-    [sha: string]: {
-        commit: Commit
-        patches: {
-            [path: string]: ConvenientPatch
-        }
-    }
-} = {};
+const commitObjectCache: Map<string, {
+    commit: Commit
+    patches: Map<string, ConvenientPatch>
+}> = new Map();
 let compareObjCache: {
     descendant: boolean
     from: Commit
     to: Commit
-    patches: {
-        [path: string]: ConvenientPatch
-    }
+    patches: Map<string, ConvenientPatch>
 };
-let fileHistoryCache: {
-    [sha: string]: Revwalk.HistoryEntry
-} = {};
+const fileHistoryCache: Map<string, Revwalk.HistoryEntry> = new Map();
 const workDirIndexCache: {
     unstagedPatches: ConvenientPatch[]
     stagedPatches: ConvenientPatch[]
@@ -1374,8 +1358,11 @@ const workDirIndexCache: {
     unstagedPatches: [],
     stagedPatches: []
 };
-let workDirIndexPathMap: {
-    staged: { [path: string]: ConvenientPatch },
-    unstaged: { [path: string]: ConvenientPatch },
-}
+const workDirIndexPathMap: {
+    staged: Map<string, ConvenientPatch>
+    unstaged: Map<string, ConvenientPatch>
+} = {
+    staged: new Map(),
+    unstaged: new Map(),
+};
 let index: Index;
