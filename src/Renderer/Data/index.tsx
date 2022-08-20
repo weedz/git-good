@@ -181,15 +181,15 @@ function loadHunks(data: IpcActionReturn[IpcAction.LOAD_HUNKS]) {
     }
 }
 
-let branchMap: Record<string, BranchObj> = {};
+const branchMap: Map<string, BranchObj> = new Map();
 
 function mapHeads(heads: StoreType["heads"], refs: BranchObj[]) {
     for (const ref of refs) {
-        branchMap[ref.name] = ref;
-        if (!heads[ref.headSHA]) {
-            heads[ref.headSHA] = [];
+        branchMap.set(ref.name, ref);
+        if (!heads.has(ref.headSHA)) {
+            heads.set(ref.headSHA, []);
         }
-        heads[ref.headSHA].push(ref);
+        heads.get(ref.headSHA)?.push(ref);
     }
 }
 async function loadHEAD() {
@@ -202,24 +202,25 @@ export async function loadUpstreams() {
     const upstreams = await ipcGetData(IpcAction.LOAD_UPSTREAMS, null);
 
     for (const upstream of upstreams) {
-        if (upstream.name in branchMap) {
-            branchMap[upstream.name].remote = upstream.remote;
-            branchMap[upstream.name].status = upstream.status;
+        const branch = branchMap.get(upstream.name);
+        if (branch) {
+            branch.remote = upstream.remote;
+            branch.status = upstream.status;
         }
     }
 }
 function branchesLoaded(result: IpcActionReturn[IpcAction.LOAD_BRANCHES]) {
     clearLock(Locks.BRANCH_LIST);
-    const heads: StoreType["heads"] = {};
+    Store.heads.clear();
+    branchMap.clear();
 
-    branchMap = {};
+    mapHeads(Store.heads, result.local);
+    mapHeads(Store.heads, result.remote);
+    mapHeads(Store.heads, result.tags);
 
-    mapHeads(heads, result.local);
-    mapHeads(heads, result.remote);
-    mapHeads(heads, result.tags);
     updateStore({
         branches: result,
-        heads,
+        heads: Store.heads,
     });
 
     loadHEAD();

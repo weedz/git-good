@@ -28,12 +28,13 @@ function selectCommit(c: Link<string>) {
 // eslint-disable-next-line react/prefer-stateless-function
 export default class CommitListItem extends PureComponent<Props> {
     render() {
+        const head = Store.heads.get(this.props.commit.sha);
         return (
             <li className="short" style={this.props.style}>
                 <div className="commit-refs-container">
-                    {Store.heads[this.props.commit.sha] &&
+                    {head &&
                         <ul className="commit-refs">
-                            {Store.heads[this.props.commit.sha].map(ref => {
+                            {head.map(ref => {
                                 let menu;
                                 if (ref.type === RefType.LOCAL) {
                                     menu = showLocalMenu;

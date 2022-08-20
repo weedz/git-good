@@ -5,16 +5,19 @@ import { WindowArguments, WindowEvents } from "../../Common/WindowEventTypes";
 
 ipcRenderer.on("asynchronous-reply", handleMessage);
 // We send null to callbacks when the action failed/returned an error
-const callbackHandlers: Record<string, (args: IpcActionReturn[IpcAction] | null) => void> = {};
+const callbackHandlers: Map<number, (args: IpcActionReturn[IpcAction] | null) => void> = new Map();
 
 function handleMessage(_: unknown, payload: IpcPayload<IpcAction>) {
-    if (payload.id && callbackHandlers[payload.id]) {
-        if ("error" in payload) {
-            callbackHandlers[payload.id](null);
-        } else {
-            callbackHandlers[payload.id](payload.data);
+    if (payload.id) {
+        const handler = callbackHandlers.get(payload.id);
+        if (handler) {
+            callbackHandlers.delete(payload.id);
+            if ("error" in payload) {
+                handler(null);
+            } else {
+                handler(payload.data);
+            }
         }
-        delete callbackHandlers[payload.id];
     }
     handleEvent(payload);
 }
@@ -37,7 +40,7 @@ export function ipcGetData<T extends IpcAction>(action: T, data: IpcActionParams
     const id = ipcSendMessage(action, data);
     return new Promise<IpcActionReturn[T]>((resolve, _reject) => {
         // calbackHandlers get cleaned up in handleMessage()
-        callbackHandlers[id] = resolve as unknown as (args: IpcActionReturn[IpcAction] | null) => void;
+        callbackHandlers.set(id, resolve as unknown as (args: IpcActionReturn[IpcAction] | null) => void);
     });
 }
 

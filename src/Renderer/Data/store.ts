@@ -23,7 +23,7 @@ export type StoreType = {
     stash: StashObj[]
     head: HeadBranchObj | null
     remotes: IpcActionReturn[IpcAction.REMOTES]
-    heads: Record<string, BranchObj[]>
+    heads: Map<string, BranchObj[]>
     currentFile: null | {
         commitSHA?: string | undefined
         patch: PatchObj
@@ -58,7 +58,7 @@ const store = createStore<StoreType>({
     stash: [],
     head: null,
     remotes: [],
-    heads: {},
+    heads: new Map(),
     currentFile: null,
     locks: {
         [Locks.MAIN]: false,

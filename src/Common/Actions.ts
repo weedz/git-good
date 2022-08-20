@@ -2,7 +2,7 @@ import type { Diff, DiffOptions } from "nodegit";
 import type { AppConfig } from "./Config";
 
 export type IpcPayload<T extends IpcAction> = {
-    id?: string
+    id?: number
     action: T
 } & (
     {data: IpcActionReturn[T]} | {error: string}
