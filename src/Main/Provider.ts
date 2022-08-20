@@ -174,25 +174,14 @@ export async function getFileCommits(repo: Repository, branch: string, start: "r
 export async function* getCommits(repo: Repository, branch: string, start: "refs/*" | Oid, num = 1000) {
     const revwalk = initRevwalk(repo, start);
 
-    let cursorCommit: Commit | null = null;
-
-    const history: Commit[] = [];
-    for (const commit of await revwalk.commitWalk(num) as Array<Commit>) {
-        history.push(commit);
-        if (history.length >= 100) {
-            cursorCommit = history[history.length - 1];
-            yield {
-                branch,
-                commits: history.splice(0, 100).map(compileHistoryCommit)
-            };
-        }
+    const history: HistoryCommit[] = [];
+    for (const commit of await revwalk.commitWalk(num)) {
+        history.push(compileHistoryCommit(commit));
     }
 
-    const cursor = history.length > 0 ? history[history.length - 1]?.sha() : cursorCommit?.sha();
-
     yield {
-        cursor,
-        commits: history.map(compileHistoryCommit),
+        cursor: history[history.length - 1].sha,
+        commits: history,
         branch
     };
 }

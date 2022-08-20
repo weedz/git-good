@@ -1,7 +1,7 @@
 import { h } from "preact";
 import { ipcSendMessage } from "../../Data/IPC";
 import { IpcAction, IpcActionReturn, LoadCommitReturn, IpcActionParams, Locks } from "../../../Common/Actions";
-import { clearLock, openFileHistory, PureStoreComponent, setLock, Store } from "../../Data/store";
+import { clearLock, openFileHistory, PureStoreComponent, setLock, Store, StoreType } from "../../Data/store";
 
 import "./style.css";
 import FileFilter from "./FileFilter";
@@ -12,7 +12,6 @@ import { GlobalLinks } from "../Link";
 import { filterCommit } from "../../Data/Utility";
 
 type State = {
-    commits: IpcActionReturn[IpcAction.LOAD_COMMITS]["commits"]
     filter: undefined | string
     fileResults: string[]
     loading: boolean
@@ -32,15 +31,16 @@ export default class CommitList extends PureStoreComponent<unknown, State> {
     color = 0;
 
     state: State = {
-        commits: [],
         filter: undefined,
         fileResults: [],
         loading: false,
     };
 
+    commits: IpcActionReturn[IpcAction.LOAD_COMMITS]["commits"] = [];
+
     componentDidMount() {
-        this.listen("selectedBranch", this.handleProps);
-        this.listen("branches", this.handleProps);
+        this.listen("selectedBranch", this.selectedBranch);
+        this.listen("branches", this.branchesUpdated);
         this.registerHandler(IpcAction.LOAD_COMMITS, this.commitsLoaded);
 
         this.listen("locks", locks => {
@@ -49,30 +49,33 @@ export default class CommitList extends PureStoreComponent<unknown, State> {
             }
         });
 
-        this.getCommits();
+        this.getCommits(Store.selectedBranch);
     }
-    handleProps = () => {
+    selectedBranch = (selection: StoreType["selectedBranch"]) => {
+        this.handleProps(selection);
+    }
+    branchesUpdated = () => {
+        this.handleProps(Store.selectedBranch);
+    }
+    handleProps = (selection: StoreType["selectedBranch"]) => {
         this.cursor = undefined;
         this.color = 0;
-        this.getCommits();
+        this.getCommits(selection);
     }
-    getCommits = () => {
+    getCommits = (selection: StoreType["selectedBranch"]) => {
         GlobalLinks.commits = {};
         this.graph = {};
+        this.commits = [];
         if (!this.state.loading) {
-            this.setState({
-                // TODO: fix this, no need to re-render all commits
-                loading: true,
-                commits: [],
-            }, this.loadMoreCommits);
+            this.loadMoreCommits(selection);
         } else {
             console.log("Already loading commits...");
         }
     }
-    loadMoreCommits = () => {
+    loadMoreCommits = (selection: StoreType["selectedBranch"]) => {
         setLock(Locks.BRANCH_LIST);
         let options: IpcActionParams[IpcAction.LOAD_COMMITS];
-        if (Store.selectedBranch.history) {
+        if (selection.history) {
             options = {
                 num: historyLimit,
                 history: true,
@@ -80,13 +83,17 @@ export default class CommitList extends PureStoreComponent<unknown, State> {
         } else {
             options = {
                 num: pageSize,
-                branch: Store.selectedBranch.branch || "HEAD",
+                branch: selection.branch || "HEAD",
             };
         }
 
         if (this.cursor) {
             options.cursor = this.cursor;
         }
+
+        this.setState({
+            loading: true
+        });
 
         ipcSendMessage(IpcAction.LOAD_COMMITS, options);
     }
@@ -122,14 +129,14 @@ export default class CommitList extends PureStoreComponent<unknown, State> {
         if ("cursor" in fetched) {
             clearLock(Locks.BRANCH_LIST);
             this.cursor = fetched.cursor;
-        }
 
-        this.setState({
-            commits: this.state.commits.concat(fetched.commits),
-            loading: false,
-        });
+            this.setState({
+                loading: false,
+            });
+        }
     }
     commitsLoaded = (result: IpcActionReturn[IpcAction.LOAD_COMMITS]) => {
+        this.commits = this.commits.concat(result.commits);
         this.handleCommits(result);
     }
     filter = (e: h.JSX.TargetedKeyboardEvent<HTMLInputElement>) => {
@@ -146,9 +153,9 @@ export default class CommitList extends PureStoreComponent<unknown, State> {
     filterCommits() {
         const filter = this.state.filter;
         if (filter) {
-            return this.state.commits.filter(commit => filterCommit(filter, commit));
+            return this.commits.filter(commit => filterCommit(filter, commit));
         }
-        return this.state.commits;
+        return this.commits;
     }
 
     render() {
@@ -160,8 +167,8 @@ export default class CommitList extends PureStoreComponent<unknown, State> {
                     <FileFilter filterByFile={this.filterByFile} />
                 </div>
                 <Links.Provider value="commits">
-                    {this.state.commits.length ? <CommitContainer commits={this.filterCommits()} graph={this.graph} /> : "No commits yet?"}
-                    {!Store.selectedBranch.history && <button onClick={this.loadMoreCommits} disabled={!!Store.locks[Locks.BRANCH_LIST]}>Load more...</button>}
+                    {this.commits.length ? <CommitContainer commits={this.filterCommits()} graph={this.graph} /> : "No commits yet?"}
+                    {!Store.selectedBranch.history && <button onClick={() => this.loadMoreCommits(Store.selectedBranch)} disabled={!!Store.locks[Locks.BRANCH_LIST]}>Load more...</button>}
                 </Links.Provider>
             </div>
         );
