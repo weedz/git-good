@@ -1,12 +1,13 @@
 import { getCurrentWindow, Menu, MenuItem, clipboard } from "@electron/remote";
 import { h } from "preact";
-import { contextMenuState, setDiffpaneSrc } from "../../Data/store";
+import { getContextMenuData, setContextMenuData } from "../../Data/ContextMenu";
+import { setDiffpaneSrc } from "../../Data/store";
 
 const commitMenu = new Menu();
 commitMenu.append(new MenuItem({
     label: "View commit",
     click() {
-        const sha = contextMenuState.data.sha;
+        const sha = getContextMenuData().sha;
         setDiffpaneSrc(sha);
     }
 }));
@@ -16,14 +17,14 @@ commitMenu.append(new MenuItem({
 commitMenu.append(new MenuItem({
     label: "Copy sha",
     click() {
-        const sha = contextMenuState.data.sha;
+        const sha = getContextMenuData().sha;
         clipboard.writeText(sha);
     }
 }));
 
 export function showFileHistoryCommitMenu(e: h.JSX.TargetedMouseEvent<HTMLAnchorElement>) {
     e.preventDefault();
-    contextMenuState.data = e.currentTarget.dataset as {[name: string]: string};
+    setContextMenuData(e.currentTarget.dataset as {[name: string]: string});
     commitMenu.popup({
         window: getCurrentWindow()
     });

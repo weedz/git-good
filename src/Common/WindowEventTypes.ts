@@ -1,4 +1,4 @@
-import { Locks, IpcActionReturn, IpcAction } from "./Actions";
+import type { Locks, IpcActionReturn, IpcAction } from "./Actions";
 
 type StashChangedArguments = {
     action: "stash"

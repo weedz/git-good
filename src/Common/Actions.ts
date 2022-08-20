@@ -1,5 +1,5 @@
-import { Diff, DiffOptions } from "nodegit";
-import { AppConfig } from "./Config";
+import type { Diff, DiffOptions } from "nodegit";
+import type { AppConfig } from "./Config";
 import { DELTA } from "./Utils";
 
 export type IpcPayload<T extends IpcAction> = {

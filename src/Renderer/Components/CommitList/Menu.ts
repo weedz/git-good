@@ -1,16 +1,16 @@
 import { getCurrentWindow, Menu, MenuItem, clipboard } from "@electron/remote";
 import { h } from "preact";
 import { IpcAction } from "../../../Common/Actions";
+import { getContextMenuData, setContextMenuData } from "../../Data/ContextMenu";
 import { BranchFromType, openDialog_BranchFrom, openDialog_createTag } from "../../Data/Dialogs";
 import { ipcSendMessage } from "../../Data/IPC";
-import { contextMenuState } from "../../Data/store";
 import { unselectLink } from "../Link";
 
 const commitMenu = new Menu();
 commitMenu.append(new MenuItem({
     label: "Branch...",
     click() {
-        const sha = contextMenuState.data.sha;
+        const sha = getContextMenuData().sha;
         openDialog_BranchFrom(sha, BranchFromType.COMMIT);
     }
 }));
@@ -20,7 +20,7 @@ commitMenu.append(new MenuItem({
         unselectLink("commits");
         ipcSendMessage(IpcAction.OPEN_COMPARE_REVISIONS, {
             to: "HEAD",
-            from: contextMenuState.data.sha
+            from: getContextMenuData().sha
         });
     }
 }));
@@ -30,7 +30,7 @@ commitMenu.append(new MenuItem({
 commitMenu.append(new MenuItem({
     label: "Create tag here...",
     click() {
-        openDialog_createTag(contextMenuState.data.sha, true);
+        openDialog_createTag(getContextMenuData().sha, true);
     }
 }));
 commitMenu.append(new MenuItem({
@@ -39,14 +39,14 @@ commitMenu.append(new MenuItem({
 commitMenu.append(new MenuItem({
     label: "Copy sha",
     click() {
-        const sha = contextMenuState.data.sha;
+        const sha = getContextMenuData().sha;
         clipboard.writeText(sha);
     }
 }));
 
 export function showCommitMenu(e: h.JSX.TargetedMouseEvent<HTMLAnchorElement>) {
     e.preventDefault();
-    contextMenuState.data = e.currentTarget.dataset as {[name: string]: string};
+    setContextMenuData(e.currentTarget.dataset as {[name: string]: string});
     commitMenu.popup({
         window: getCurrentWindow()
     });

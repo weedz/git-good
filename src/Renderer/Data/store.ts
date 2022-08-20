@@ -87,10 +87,6 @@ type StoreKeys = keyof StoreType;
 export const Store = store.Store;
 export const updateStore = store.updateStore;
 
-export const contextMenuState: {data: Record<string, string>} = {
-    data: {}
-};
-
 export abstract class StoreComponent<P = unknown, S = unknown> extends Component<P, S> {
     listeners: Array<() => void> = [];
 

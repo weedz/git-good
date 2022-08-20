@@ -1,5 +1,5 @@
 import { dialog } from "@electron/remote";
-import { OpenDialogOptions } from "electron/renderer";
+import type { OpenDialogOptions } from "electron/renderer";
 import { LoadCommitReturn } from "../../Common/Actions";
 
 export async function selectFile(cb: (data: string) => void, options: OpenDialogOptions = {}) {
