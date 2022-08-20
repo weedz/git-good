@@ -853,6 +853,9 @@ async function initGetCommits(repo: Repository, params: IpcActionParams[IpcActio
         revwalkStart = "refs/*";
     } else {
         let start: Commit | null = null;
+        if ("branch" in params) {
+            branch = params.branch;
+        }
         try {
             if (params.cursor) {
                 start = await repo.getCommit(params.cursor);
@@ -864,7 +867,6 @@ async function initGetCommits(repo: Repository, params: IpcActionParams[IpcActio
                 }
             }
             else if ("branch" in params) {
-                branch = params.branch;
                 if (params.branch.includes("refs/tags")) {
                     const ref = await repo.getReference(params.branch);
                     start = await ref.peel(Object.TYPE.COMMIT) as unknown as Commit;
