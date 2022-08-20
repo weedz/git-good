@@ -1,10 +1,11 @@
 import { h, Component } from "preact";
 import { PatchObj, CommitObj } from "../../../Common/Actions";
 import { openFile, resolveConflict } from "../../Data/store";
-import { getType, DELTA } from "../../../Common/Utils";
+import { getType } from "../../../Common/Utils";
 import Link from "../Link";
 import { Links } from "../LinkContainer";
 import { showFileMenu } from "./FileMenu";
+import { Diff } from "nodegit";
 
 interface ButtonAction {
     label: string
@@ -31,15 +32,15 @@ function calcDeltas(patches: Props["patches"]) {
         // untracked: 0,
     };
     for (const patch of patches.slice(0, 1000)) {
-        if (patch.status === DELTA.MODIFIED) {
+        if (patch.status === Diff.DELTA.MODIFIED) {
             deltas.modified++;
-        } else if (patch.status === DELTA.DELETED) {
+        } else if (patch.status === Diff.DELTA.DELETED) {
             deltas.deleted++;
-        } else if (patch.status === DELTA.ADDED) {
+        } else if (patch.status === Diff.DELTA.ADDED) {
             deltas.added++;
-        } else if (patch.status === DELTA.RENAMED) {
+        } else if (patch.status === Diff.DELTA.RENAMED) {
             deltas.renamed++;
-        } else if (patch.status === DELTA.UNTRACKED) {
+        } else if (patch.status === Diff.DELTA.UNTRACKED) {
             deltas.added++;
         }
     }
@@ -75,18 +76,18 @@ export default class ChangedFiles extends Component<Props, {fileFilter?: string}
     renderPatch = (patch: PatchObj) => {
         let actions = this.props.actions || [];
         let typeCss;
-        if (patch.status === DELTA.MODIFIED) {
+        if (patch.status === Diff.DELTA.MODIFIED) {
             typeCss = "file-modified";
-        } else if (patch.status === DELTA.DELETED) {
+        } else if (patch.status === Diff.DELTA.DELETED) {
             typeCss = "file-deleted";
-        } else if (patch.status === DELTA.ADDED) {
+        } else if (patch.status === Diff.DELTA.ADDED) {
             typeCss = "file-added";
-        } else if (patch.status === DELTA.RENAMED) {
+        } else if (patch.status === Diff.DELTA.RENAMED) {
             typeCss = "file-renamed";
-        } else if (patch.status === DELTA.UNTRACKED) {
+        } else if (patch.status === Diff.DELTA.UNTRACKED) {
             typeCss = "file-untracked";
         }
-        if (patch.status === DELTA.CONFLICTED) {
+        if (patch.status === Diff.DELTA.CONFLICTED) {
             typeCss = "file-conflicted";
             actions = [
                 {

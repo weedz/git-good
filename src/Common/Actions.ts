@@ -1,6 +1,5 @@
 import type { Diff, DiffOptions } from "nodegit";
 import type { AppConfig } from "./Config";
-import { DELTA } from "./Utils";
 
 export type IpcPayload<T extends IpcAction> = {
     id?: string
@@ -306,7 +305,7 @@ export type HunkObj = {
     // new: number
 };
 export type PatchObj = {
-    status: DELTA
+    status: Diff.DELTA
     hunks?: HunkObj[]
     newFile: FileObj
     oldFile: FileObj

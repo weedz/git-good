@@ -1,30 +1,18 @@
-export enum DELTA {
-    UNMODIFIED = 0,
-    ADDED = 1,
-    DELETED = 2,
-    MODIFIED = 3,
-    RENAMED = 4,
-    COPIED = 5,
-    IGNORED = 6,
-    UNTRACKED = 7,
-    TYPECHANGE = 8,
-    UNREADABLE = 9,
-    CONFLICTED = 10,
-}
+import { Diff } from "nodegit";
 
 export function getType(status: number) {
     switch (status) {
-        case DELTA.ADDED:
+        case Diff.DELTA.ADDED:
             return "A";
-        case DELTA.DELETED:
+        case Diff.DELTA.DELETED:
             return "D";
-        case DELTA.MODIFIED:
+        case Diff.DELTA.MODIFIED:
             return "M";
-        case DELTA.RENAMED:
+        case Diff.DELTA.RENAMED:
             return "R";
-        case DELTA.UNTRACKED:
+        case Diff.DELTA.UNTRACKED:
             return "U";
-        case DELTA.CONFLICTED:
+        case Diff.DELTA.CONFLICTED:
             return "C";
     }
 }
