@@ -171,7 +171,7 @@ export async function getFileCommits(repo: Repository, branch: string, start: "r
     };
 }
 
-export async function* getCommits(repo: Repository, branch: string, start: "refs/*" | Oid, num = 1000) {
+export async function getCommits(repo: Repository, branch: string, start: "refs/*" | Oid, num = 1000) {
     const revwalk = initRevwalk(repo, start);
 
     const history: HistoryCommit[] = [];
@@ -179,7 +179,7 @@ export async function* getCommits(repo: Repository, branch: string, start: "refs
         history.push(compileHistoryCommit(commit));
     }
 
-    yield {
+    return {
         cursor: history[history.length - 1].sha,
         commits: history,
         branch

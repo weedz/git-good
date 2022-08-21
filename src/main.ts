@@ -9,7 +9,7 @@ import { isMac, isWindows } from "./Main/Utils";
 import { addRecentRepository, clearRepoProfile, currentProfile, getAppConfig, getRecentRepositories, getRepoProfile, saveAppConfig, setCurrentProfile, setRepoProfile, signatureFromActiveProfile, signatureFromProfile } from "./Main/Config";
 
 import * as provider from "./Main/Provider";
-import { IpcAction, IpcActionParams, IpcActionReturnOrError, IpcActionReturn, Locks, AsyncIpcActionReturnOrError } from "./Common/Actions";
+import { IpcAction, IpcActionParams, IpcActionReturn, Locks, AsyncIpcActionReturnOrError } from "./Common/Actions";
 import { formatTimeAgo } from "./Common/Utils";
 import { requestClientData, sendEvent } from "./Main/WindowEvents";
 import type { TransferProgress } from "../types/nodegit";
@@ -429,19 +429,10 @@ type EventArgs = {
     id?: string
 };
 
-type AsyncGeneratorEventCallback<A extends IpcAction> = (repo: Repository, args: IpcActionParams[A], event: IpcMainEvent) => AsyncGenerator<IpcActionReturnOrError<A>>;
 type PromiseEventCallback<A extends IpcAction> = (repo: Repository, args: IpcActionParams[A], event: IpcMainEvent) => AsyncIpcActionReturnOrError<A>;
 
-type AsyncGeneratorFunctions = IpcAction.LOAD_COMMITS;
-function isAsyncGenerator(action: IpcAction): action is AsyncGeneratorFunctions {
-    // TODO: fix proper type to detect AsyncIterator-stuff, AsyncGeneratorFunctions
-    return action === IpcAction.LOAD_COMMITS;
-}
-
 const eventMap: {
-    [A in AsyncGeneratorFunctions]: AsyncGeneratorEventCallback<A>
-} & {
-    [A in Exclude<IpcAction, AsyncGeneratorFunctions>]: PromiseEventCallback<A>
+    [A in IpcAction]: PromiseEventCallback<A>
 } = {
     [IpcAction.INIT]: async () => {
         const recentRepo = getRecentRepositories()[0];
@@ -463,15 +454,12 @@ const eventMap: {
     [IpcAction.LOAD_HEAD]: provider.getHEAD,
     [IpcAction.LOAD_UPSTREAMS]: provider.getUpstreamRefs,
     [IpcAction.LOAD_COMMIT]: provider.loadCommit,
-    async *[IpcAction.LOAD_COMMITS](repo, params) {
+    [IpcAction.LOAD_COMMITS]: async (repo, params) => {
         const arg = await initGetCommits(repo, params);
         if (!arg) {
-            yield {commits: [], branch: "", cursor: params.cursor};
-        } else {
-            for await (const commits of provider.getCommits(repo, arg.branch, arg.revwalkStart, params.num)) {
-                yield commits;
-            }
+            return {commits: [], branch: "", cursor: params.cursor};
         }
+        return provider.getCommits(repo, arg.branch, arg.revwalkStart, params.num);
     },
     [IpcAction.LOAD_FILE_COMMITS]: async (repo, params) => {
         const arg = await initGetCommits(repo, params);
@@ -719,17 +707,9 @@ ipcMain.on("asynchronous-message", async (event, arg: EventArgs) => {
         return;
     }
 
-    if (isAsyncGenerator(action)) {
-        const callback = eventMap[action] as AsyncGeneratorEventCallback<typeof action>;
-        const data = arg.data as IpcActionParams[typeof action];
-        for await (const result of callback(repo, data, event)) {
-            provider.eventReply(event, action, result, arg.id);
-        }
-    } else {
-        const callback = eventMap[action] as PromiseEventCallback<typeof action>;
-        const data = arg.data as IpcActionParams[typeof action];
-        provider.eventReply(event, action, await callback(repo, data, event), arg.id);
-    }
+    const callback = eventMap[action] as PromiseEventCallback<typeof action>;
+    const data = arg.data as IpcActionParams[typeof action];
+    provider.eventReply(event, action, await callback(repo, data, event), arg.id);
 });
 
 async function abortRebase(repo: Repository): AsyncIpcActionReturnOrError<IpcAction.ABORT_REBASE> {
