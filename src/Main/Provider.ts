@@ -2,8 +2,6 @@ import { join } from "path";
 import * as fs from "fs/promises";
 import { tmpdir } from "os";
 import { dialog, IpcMainEvent, shell, WebContents } from "electron";
-// eslint-disable-next-line @typescript-eslint/ban-ts-comment
-// @ts-ignore, missing declations for Credential
 import { Revparse, Credential, Repository, Revwalk, Commit, Diff, ConvenientPatch, ConvenientHunk, DiffLine, Object, Branch, Graph, Index, Reset, Checkout, DiffFindOptions, Reference, Oid, Signature, Remote, DiffOptions, IndexEntry, Error as NodeGitError, Tag, Stash, Status } from "nodegit";
 import { IpcAction, BranchObj, LineObj, HunkObj, PatchObj, CommitObj, IpcActionParams, RefType, StashObj, AsyncIpcActionReturnOrError, IpcActionReturnOrError, IpcActionReturn } from "../Common/Actions";
 import { normalizeLocalName, normalizeRemoteName, normalizeRemoteNameWithoutRemote, normalizeTagName, remoteName } from "../Common/Branch";
@@ -11,6 +9,14 @@ import { gpgSign, gpgVerify } from "./GPG";
 import { AuthConfig } from "../Common/Config";
 import { currentProfile, getAppConfig, getAuth, signatureFromProfile } from "./Config";
 import { sendEvent } from "./WindowEvents";
+
+declare module "nodegit" {
+    export class Credential {
+        static sshKeyFromAgent(username: string): unknown
+        static sshKeyNew(username: string, publicKey: string, privateKey: string, passphrase: string): unknown
+        static userpassPlaintextNew(username: string, password: string): unknown
+    }
+}
 
 export type Context = {
     win: WebContents;
