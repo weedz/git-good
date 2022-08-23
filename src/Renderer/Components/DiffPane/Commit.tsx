@@ -40,7 +40,7 @@ export default class Commit extends StoreComponent<Props, State> {
         this.registerHandler(IpcAction.GET_COMMIT_GPG_SIGN, this.handleGpgSign);
     }
     loadCommit = (commit: IpcResponse<IpcAction.LOAD_COMMIT>, diffOptions: typeof Store["diffOptions"]) => {
-        if (!commit) {
+        if (!commit || commit instanceof Error) {
             // FIXME: clearLock should not be called here.
             clearLock(Locks.COMMIT_LIST);
             return;

@@ -119,11 +119,11 @@ export function unregisterHandler<T extends IpcAction>(action: T, callbacks: ((a
 }
 function handleEvent<T extends IpcAction>(payload: IpcPayload<T>) {
     try {
-        let data;
+        let data: IpcResponse<T>;
         if ("error" in payload) {
             dialog.showErrorBox(`Error ${payload.action}`, payload.error);
             console.warn(payload);
-            data = false;
+            data = Error();
         } else {
             data = payload.data;
         }

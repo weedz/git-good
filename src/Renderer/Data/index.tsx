@@ -256,17 +256,17 @@ function stashLoaded(stash: IpcActionReturn[IpcAction.LOAD_STASHES]) {
         stash
     });
 }
-function updateCurrentBranch(result: IpcResponse<IpcAction.CHECKOUT_BRANCH>) {
+function updateCurrentBranch(head: IpcResponse<IpcAction.CHECKOUT_BRANCH>) {
     clearLock(Locks.MAIN);
-    if (result) {
+    if (head && !(head instanceof Error)) {
         updateStore({
-            head: result
+            head
         });
     }
 }
 
 function handleCompareRevisions(data: IpcResponse<IpcAction.OPEN_COMPARE_REVISIONS>) {
-    if (data) {
+    if (data && !(data instanceof Error)) {
         unselectLink("commits");
         updateStore({
             comparePatches: data,
