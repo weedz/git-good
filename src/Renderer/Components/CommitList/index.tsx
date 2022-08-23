@@ -1,6 +1,6 @@
 import { h } from "preact";
 import { ipcSendMessage } from "../../Data/IPC";
-import { IpcAction, IpcActionReturn, LoadCommitReturn, IpcActionParams, Locks } from "../../../Common/Actions";
+import { IpcAction, IpcActionReturn, LoadCommitReturn, IpcActionParams, Locks, IpcResponse } from "../../../Common/Actions";
 import { clearLock, openFileHistory, PureStoreComponent, setLock, Store, StoreType } from "../../Data/store";
 
 import "./style.css";
@@ -14,7 +14,6 @@ import { filterCommit } from "../../Data/Utility";
 type State = {
     filter: undefined | string
     fileResults: string[]
-    loading: boolean
 };
 
 const pageSize = 200;
@@ -29,11 +28,12 @@ export default class CommitList extends PureStoreComponent<unknown, State> {
     } = {};
     cursor: IpcActionReturn[IpcAction.LOAD_COMMITS]["cursor"];
     color = 0;
+    canFetchMore = false;
+    loading = false;
 
     state: State = {
         filter: undefined,
         fileResults: [],
-        loading: false,
     };
 
     commits: IpcActionReturn[IpcAction.LOAD_COMMITS]["commits"] = [];
@@ -60,19 +60,21 @@ export default class CommitList extends PureStoreComponent<unknown, State> {
     handleProps = (selection: StoreType["selectedBranch"]) => {
         this.cursor = undefined;
         this.color = 0;
+        this.canFetchMore = true;
         this.getCommits(selection);
     }
     getCommits = (selection: StoreType["selectedBranch"]) => {
         GlobalLinks.commits = {};
         this.graph = {};
         this.commits = [];
-        if (!this.state.loading) {
-            this.loadMoreCommits(selection);
-        } else {
-            console.log("Already loading commits...");
-        }
+        this.loadMoreCommits(selection);
     }
     loadMoreCommits = (selection: StoreType["selectedBranch"]) => {
+        if (!this.canFetchMore || this.loading) {
+            return;
+        }
+        this.loading = true;
+
         setLock(Locks.BRANCH_LIST);
         let options: IpcActionParams[IpcAction.LOAD_COMMITS];
         if (selection.history) {
@@ -91,13 +93,16 @@ export default class CommitList extends PureStoreComponent<unknown, State> {
             options.cursor = this.cursor;
         }
 
-        this.setState({
-            loading: true
-        });
-
         ipcSendMessage(IpcAction.LOAD_COMMITS, options);
     }
-    handleCommits(fetched: IpcActionReturn[IpcAction.LOAD_COMMITS]) {
+    handleCommits(fetched: IpcResponse<IpcAction.LOAD_COMMITS>) {
+        if (!fetched || fetched instanceof Error) {
+            return;
+        }
+
+        if (fetched.commits.length === 0) {
+            this.canFetchMore = false;
+        }
         if (fetched.branch === "history") {
             if (!Store.selectedBranch.history) {
                 return;
@@ -130,8 +135,8 @@ export default class CommitList extends PureStoreComponent<unknown, State> {
             clearLock(Locks.BRANCH_LIST);
             this.cursor = fetched.cursor;
 
-            this.setState({
-                loading: false,
+            this.forceUpdate(() => {
+                this.loading = false;
             });
         }
     }
@@ -167,8 +172,14 @@ export default class CommitList extends PureStoreComponent<unknown, State> {
                     <FileFilter filterByFile={this.filterByFile} />
                 </div>
                 <Links.Provider value="commits">
-                    {this.commits.length ? <CommitContainer commits={this.filterCommits()} graph={this.graph} /> : "No commits yet?"}
-                    {!Store.selectedBranch.history && <button onClick={() => this.loadMoreCommits(Store.selectedBranch)} disabled={!!Store.locks[Locks.BRANCH_LIST]}>Load more...</button>}
+                    {
+                        this.commits.length
+                            ? <CommitContainer
+                                loadMore={() => !Store.selectedBranch.history && this.loadMoreCommits(Store.selectedBranch)}
+                                commits={this.filterCommits()}
+                                graph={this.graph} />
+                            : "No commits yet?"
+                    }
                 </Links.Provider>
             </div>
         );
