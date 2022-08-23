@@ -179,11 +179,9 @@ export async function getFileCommits(repo: Repository, branch: string, start: "r
 
 export async function getCommits(repo: Repository, branch: string, start: "refs/*" | Oid, num = 1000) {
     const revwalk = initRevwalk(repo, start);
+    const commits = await revwalk.commitWalk(num);
 
-    const history: HistoryCommit[] = [];
-    for (const commit of await revwalk.commitWalk(num)) {
-        history.push(compileHistoryCommit(commit));
-    }
+    const history: HistoryCommit[] = commits.map(compileHistoryCommit);
 
     return {
         cursor: history[history.length - 1].sha,
@@ -648,7 +646,7 @@ export async function commit(repo: Repository, params: IpcActionParams[IpcAction
 
     const emptyRepo = repo.isEmpty();
     if (emptyRepo && params.amend) {
-        return new Error("Cannot amend in an empty repository");
+        return Error("Cannot amend in an empty repository");
     }
 
     const parent = await repo.getHeadCommit();
@@ -921,7 +919,7 @@ export async function getHunks(repo: Repository, sha: string, path: string): Pro
     return patch ? loadHunks(repo, patch, path) : false;
 }
 export async function hunksFromCompare(repo: Repository, path: string): Promise<false | HunkObj[]> {
-    const patch = compareObjCache.patches.get(path);
+    const patch = comparePatches.get(path);
     return patch ? loadHunks(repo, patch, path) : false;
 }
 async function loadHunks(repo: Repository, patch: ConvenientPatch, path?: string) {
@@ -953,9 +951,11 @@ export async function diffFileAtCommit(repo: Repository, file: string, sha: stri
     if (!historyEntry) {
         return Error("Revison not found");
     }
+    const commit = historyEntry.commit;
     // FIXME: Cannot use this until Revwalk.fileHistoryWalk() sets repo on returned Commit items.
-    // const commit = historyEntry.commit;
-    const commit = await Commit.lookup(repo, sha);
+    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+    // @ts-ignore
+    commit.repo = repo;
 
     const pathspec = [file];
 
@@ -1175,49 +1175,35 @@ export async function getCommitPatches(sha: string, options?: DiffOptions): Asyn
     return handleDiff(diff, commit.patches);
 }
 
-export async function compareRevisions(repo: Repository, revisions: { from: string, to: string }) {
-    const fromCommit = repo.getReference(revisions.from)
+export async function compareRevisions(repo: Repository, revisions: { from: string, to: string }): AsyncIpcActionReturnOrError<IpcAction.OPEN_COMPARE_REVISIONS> {
+    // revisions.{to,from} is either a reference/branch or a commit sha. The `repo.getReference()` path
+    // will search for a reference/branch matching the given name, and throws if not found. If it fails
+    // we instead search for a commit matching the giving string.
+    const from = await repo.getReference(revisions.from)
         .then(ref => ref.peel(Object.TYPE.COMMIT) as unknown as Commit)
         .then(commit => commit.id().tostrS())
         .catch(() => revisions.from)
         .then(sha => repo.getCommit(sha));
 
-    const toCommit = repo.getReference(revisions.to)
+    const to = await repo.getReference(revisions.to)
         .then(ref => ref.peel(Object.TYPE.COMMIT) as unknown as Commit)
         .then(commit => commit.id().tostrS())
         .catch(() => revisions.to)
         .then(sha => repo.getCommit(sha));
 
-    return Promise.all([fromCommit, toCommit]).then(async commits => {
-        // TODO: show commits if `descandant === true`
-        compareObjCache = {
-            descendant: await Graph.descendantOf(repo, commits[0].id(), commits[1].id()) === 1,
-            from: commits[0],
-            to: commits[1],
-            patches: new Map(),
-        };
-        return true;
-    }).catch(_ => {
-        return false;
-    });
-}
-
-export async function compareRevisionsPatches() {
-    const from = compareObjCache.from;
-    const to = compareObjCache.to;
-
     // TODO: fix this. Merge commits are a bit messy without this.
-    const tree = await to.getTree();
-    const diffOpts: DiffFindOptions = {
+    const fromTree = await from.getTree();
+    const toTree = await to.getTree();
+
+    const diff = await toTree.diff(fromTree);
+    await diff.findSimilar({
         flags: Diff.FIND.RENAMES | Diff.FIND.IGNORE_WHITESPACE,
-    };
+    });
 
-    const diff = await from.getTree().then(async fromTree => await tree.diffWithOptions(fromTree));
-    await diff.findSimilar(diffOpts);
+    comparePatches.clear();
+    return handleDiff(diff, comparePatches);
 
-    const patches = await handleDiff(diff, compareObjCache.patches);
-
-    return patches.flat();
+    // Do something with `await Graph.descendantOf(repo, from.id(), to.id())` ?
 }
 
 function getCommitObj(commit: Commit): CommitObj {
@@ -1347,12 +1333,7 @@ const commitObjectCache: Map<string, {
     commit: Commit
     patches: Map<string, ConvenientPatch>
 }> = new Map();
-let compareObjCache: {
-    descendant: boolean
-    from: Commit
-    to: Commit
-    patches: Map<string, ConvenientPatch>
-};
+const comparePatches: Map<string, ConvenientPatch> = new Map();
 const fileHistoryCache: Map<string, Revwalk.HistoryEntry> = new Map();
 const workDirIndexCache: {
     unstagedPatches: ConvenientPatch[]

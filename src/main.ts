@@ -553,10 +553,16 @@ const eventMap: {
     [IpcAction.ABORT_REBASE]: abortRebase,
     [IpcAction.CONTINUE_REBASE]: continueRebase,
     [IpcAction.OPEN_COMPARE_REVISIONS]: async (repo, revisions) => {
-        if (await provider.compareRevisions(repo, revisions)) {
-            return provider.compareRevisionsPatches();
+        try {
+            return provider.compareRevisions(repo, revisions)
         }
-        return Error("Revisions not found");
+        catch (err) {
+            if (err instanceof Error) {
+                return err;
+            }
+        }
+
+        return Error("Unknown error, revisions not found?");
     },
     [IpcAction.PUSH]: async (repo, data) => {
         return provider.push({

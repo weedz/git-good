@@ -351,7 +351,7 @@ export type CommitObj = {
 
 export type HeadBranchObj = BranchObj & {commit: CommitObj}
 
-export enum RefType {
+export const enum RefType {
     LOCAL,
     TAG,
     REMOTE,
@@ -423,7 +423,7 @@ type LoadFileCommitsReturn = {
     cursor?: string
 };
 
-export enum Locks {
+export const enum Locks {
     MAIN,
     BRANCH_LIST,
     COMMIT_LIST,

@@ -51,13 +51,10 @@ export default class CommitList extends PureStoreComponent<unknown, State> {
 
         this.getCommits(Store.selectedBranch);
     }
-    selectedBranch = (selection: StoreType["selectedBranch"]) => {
-        this.handleProps(selection);
-    }
     branchesUpdated = () => {
-        this.handleProps(Store.selectedBranch);
+        this.selectedBranch(Store.selectedBranch);
     }
-    handleProps = (selection: StoreType["selectedBranch"]) => {
+    selectedBranch = (selection: StoreType["selectedBranch"]) => {
         this.cursor = undefined;
         this.color = 0;
         this.canFetchMore = true;

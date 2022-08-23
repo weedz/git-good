@@ -10,9 +10,6 @@ export function sendEvent<T extends WindowEvents>(win: WebContents, event: T, ar
 const callbackHandlers: Record<string, (args: RendererRequestData[RendererRequestEvents]) => void> = {};
 
 ipcMain.on("response-client-data", (_, payload: RendererResponsePayload<RendererRequestEvents>) => {
-    if (!payload.id) {
-        throw new Error("??");
-    }
     callbackHandlers[payload.id](payload.data);
     delete callbackHandlers[payload.id];
 });
