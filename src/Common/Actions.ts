@@ -71,6 +71,7 @@ export const enum IpcAction {
     STASH_APPLY,
     STASH_DROP,
     OPEN_FILE_AT_COMMIT,
+    GET_COMMIT_GPG_SIGN,
 }
 
 export type IpcActionParams = {
@@ -187,6 +188,7 @@ export type IpcActionParams = {
         file: string
         sha: string
     }
+    [IpcAction.GET_COMMIT_GPG_SIGN]: string
 };
 
 export type IpcActionReturn = {
@@ -268,6 +270,13 @@ export type IpcActionReturn = {
     [IpcAction.STASH_APPLY]: boolean
     [IpcAction.STASH_DROP]: boolean
     [IpcAction.OPEN_FILE_AT_COMMIT]: boolean
+    [IpcAction.GET_COMMIT_GPG_SIGN]: false | {
+        signature: {
+            data: string
+            verified: boolean
+        }
+        sha: string
+    }
 };
 
 export type RepoStatus = {

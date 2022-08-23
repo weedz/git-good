@@ -684,6 +684,7 @@ const eventMap: {
     [IpcAction.STASH_APPLY]: stashApply,
     [IpcAction.STASH_DROP]: stashDrop,
     [IpcAction.OPEN_FILE_AT_COMMIT]: provider.openFileAtCommit,
+    [IpcAction.GET_COMMIT_GPG_SIGN]: provider.getCommitGpgSign,
 }
 
 const ALLOWED_WHEN_NOT_IN_REPO = {

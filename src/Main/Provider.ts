@@ -1249,18 +1249,26 @@ export async function loadCommit(repo: Repository, sha: string | null) {
         return commit;
     }
 
-    const commitObj = getCommitObj(commit);
+    return getCommitObj(commit);
+}
 
-    if (currentProfile().gpg) {
-        try {
-            const commitSignature = await commit.getSignature("gpgsig");
-            commitObj.signature = await gpgVerify(commitSignature.signature, commitSignature.signedData)
-        } catch (err) {
-            // Commit is probably not signed.
-        }
+export async function getCommitGpgSign(repo: Repository, sha: string): AsyncIpcActionReturnOrError<IpcAction.GET_COMMIT_GPG_SIGN> {
+    if (!currentProfile().gpg) {
+        return false;
     }
 
-    return commitObj;
+    const commit = await repo.getCommit(sha);
+
+    try {
+        const commitSignature = await commit.getSignature("gpgsig");
+        return {
+            sha,
+            signature: await gpgVerify(commitSignature.signature, commitSignature.signedData)
+        };
+    } catch (err) {
+        // Commit is probably not signed.
+    }
+    return false;
 }
 
 export async function parseRevspec(repo: Repository, sha: string) {

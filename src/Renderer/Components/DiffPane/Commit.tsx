@@ -37,6 +37,7 @@ export default class Commit extends StoreComponent<Props, State> {
         this.listen("diffOptions", diffOptions => this.state.commit && this.loadCommit(this.state.commit, diffOptions));
         this.registerHandler(IpcAction.LOAD_COMMIT, commit => this.loadCommit(commit, Store.diffOptions));
         this.registerHandler(IpcAction.LOAD_PATCHES_WITHOUT_HUNKS, this.handlePatch);
+        this.registerHandler(IpcAction.GET_COMMIT_GPG_SIGN, this.handleGpgSign);
     }
     loadCommit = (commit: IpcResponse<IpcAction.LOAD_COMMIT>, diffOptions: typeof Store["diffOptions"]) => {
         if (!commit) {
@@ -44,6 +45,11 @@ export default class Commit extends StoreComponent<Props, State> {
             clearLock(Locks.COMMIT_LIST);
             return;
         }
+
+        this.setState({
+            commit
+        });
+
         let options;
         if (diffOptions.ignoreWhitespace) {
             options = {
@@ -51,9 +57,7 @@ export default class Commit extends StoreComponent<Props, State> {
             };
         }
         ipcSendMessage(IpcAction.LOAD_PATCHES_WITHOUT_HUNKS, {sha: this.props.sha, options});
-        this.setState({
-            commit
-        });
+        ipcSendMessage(IpcAction.GET_COMMIT_GPG_SIGN, this.props.sha);
     }
     handlePatch = (patches: IpcActionReturn[IpcAction.LOAD_PATCHES_WITHOUT_HUNKS]) => {
         this.setState({
@@ -63,6 +67,13 @@ export default class Commit extends StoreComponent<Props, State> {
                 triggerAction("files");
             }
         });
+    }
+    handleGpgSign = (result: IpcActionReturn[IpcAction.GET_COMMIT_GPG_SIGN]) => {
+        if (result && result.sha === this.state.commit?.sha) {
+            const commit = this.state.commit;
+            commit.signature = result.signature;
+            this.forceUpdate();
+        }
     }
     render() {
         if (!this.state.commit) {
