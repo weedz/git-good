@@ -14,6 +14,7 @@ import "./style.css";
 import { ViewCommit } from "./ViewCommit";
 import { CloneRepositoryDialog } from "./CloneRepository";
 import { InitRepositoryDialog } from "./InitRepository";
+import { dismissibleWindowClosed, showDismissibleWindow } from "../../Data";
 
 const dialogTypes = {
     [DialogTypes.NEW_BRANCH]: NewBranch,
@@ -37,6 +38,7 @@ export default class Dialog extends StoreComponent<unknown, State> {
     componentDidMount() {
         this.listen("dialogWindow", dialogWindow => {
             if (dialogWindow) {
+                showDismissibleWindow(this.dismissDialog);
                 const DialogWindow = dialogTypes[dialogWindow.type];
                 const props = dialogWindow.props;
     
@@ -44,7 +46,7 @@ export default class Dialog extends StoreComponent<unknown, State> {
                     <div className="dialog-window-backdrop" />
                     <div className="dialog-window-container">
                         {
-                        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+                            // eslint-disable-next-line @typescript-eslint/ban-ts-comment
                         // @ts-ignore, type guarded by Store.openDialogWindow. TODO: get better at types and fix this..
                         <DialogWindow {...props} />
                         }
@@ -52,20 +54,15 @@ export default class Dialog extends StoreComponent<unknown, State> {
                 </Fragment>;
                 this.setState({view});
             } else {
+                dismissibleWindowClosed(this.dismissDialog);
                 this.setState({view: null});
             }
         });
-        document.addEventListener("keydown", this.handleKeyDown);
     }
     componentWillUnmount() {
-        document.removeEventListener("keydown", this.handleKeyDown);
+        dismissibleWindowClosed(this.dismissDialog);
     }
-    handleKeyDown = (e: KeyboardEvent) => {
-        if (e.key === "Escape" && this.state.view) {
-            this.closeDialog();
-        }
-    }
-    closeDialog = () => {
+    dismissDialog = () => {
         this.setState({view: null});
     }
     render() {

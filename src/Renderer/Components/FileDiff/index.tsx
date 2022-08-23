@@ -1,7 +1,7 @@
 import { Diff } from "nodegit";
 import { h } from "preact";
 import { HunkObj, IpcAction, LineObj, IpcActionReturn } from "../../../Common/Actions";
-import { glyphWidth } from "../../Data";
+import { dismissibleWindowClosed, glyphWidth, showDismissibleWindow } from "../../Data";
 import { Store, closeFile, openFileHistory, PureStoreComponent, updateStore, StoreType } from "../../Data/store";
 import FileHistory from "./FileHistory";
 import HunksContainer from "./HunksContainer";
@@ -89,11 +89,15 @@ export default class FileDiff extends PureStoreComponent<unknown, State> {
     }
 
     componentWillUnmount() {
+        dismissibleWindowClosed(this.closeActiveFileDiff);
         this.oldLinesContainer = null;
         this.newLinesContainer = null;
     }
 
     renderHunks = (newStore: StoreType["currentFile"]) => {
+        if (newStore?.patch) {
+            showDismissibleWindow(this.closeActiveFileDiff);
+        }
         const patch = newStore?.patch;
         this.longestLine = 0;
         this.setState({

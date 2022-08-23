@@ -14,11 +14,37 @@ import { DialogTypes } from "../Components/Dialog/types";
 
 let refreshingWorkdir = false;
 
-window.addEventListener("focus", async () => {
+window.addEventListener("focus", () => {
     if (!Store.locks[Locks.MAIN] && Store.uiConfig?.refreshWorkdirOnFocus) {
         refreshWorkdir();
     }
 });
+
+const dismissibleWindows: Set<() => void> = new Set();
+const dismissibleWindowsStack: Array<() => void> = [];
+
+document.addEventListener("keydown", (e) => {
+    if (e.key === "Escape") {
+        const cb = dismissibleWindowsStack.pop();
+        if (cb) {
+            dismissibleWindows.delete(cb);
+            cb();
+        }
+    }
+});
+export function dismissibleWindowClosed(dismissCallback: () => void) {
+    dismissibleWindows.delete(dismissCallback);
+    dismissibleWindowsStack.splice(dismissibleWindowsStack.indexOf(dismissCallback) >>> 0, 1);
+}
+export function showDismissibleWindow(dismissCallback: () => void) {
+    if (dismissibleWindows.has(dismissCallback)) {
+        dismissibleWindowsStack.splice(dismissibleWindowsStack.indexOf(dismissCallback) >>> 0, 1);
+    } else {
+        dismissibleWindows.add(dismissCallback);
+    }
+    dismissibleWindowsStack.push(dismissCallback);
+}
+
 
 // Glyph properties
 let _glyphWidth = 7.81;
