@@ -1,7 +1,9 @@
 import { basename, join } from "path";
 import { exec, spawn } from "child_process";
-import { app, BrowserWindow, ipcMain, Menu, dialog, MenuItemConstructorOptions, IpcMainEvent, screen } from "electron/main";
+
 import { shell, clipboard } from "electron";
+import { app, BrowserWindow, ipcMain, Menu, dialog, MenuItemConstructorOptions, IpcMainEvent } from "electron/main";
+import { initialize, enable as enableRemote } from "@electron/remote/main";
 
 import { Branch, Clone, Commit, Object, Oid, Rebase, Reference, Remote, Repository, Stash } from "nodegit";
 
@@ -15,7 +17,6 @@ import { requestClientData, sendEvent } from "./Main/WindowEvents";
 import type { TransferProgress } from "../types/nodegit";
 import { normalizeLocalName } from "./Common/Branch";
 
-import { initialize, enable as enableRemote } from "@electron/remote/main";
 import { RendererRequestEvents } from "./Common/WindowEventTypes";
 
 // eslint-disable-next-line import/no-unresolved
@@ -27,8 +28,9 @@ let repo: Repository;
 
 let win: BrowserWindow;
 const createWindow = () => {
-    const cursorPosition = screen.getCursorScreenPoint();
-    const activeDisplay = screen.getDisplayNearestPoint(cursorPosition);
+    // TODO: `screen.getCursorScreenPoint()` triggers a segfault on wayland?
+    // const cursorPosition = screen.getCursorScreenPoint();
+    // const activeDisplay = screen.getDisplayNearestPoint(cursorPosition);
 
     const initialWindowWidth = 1024;
     const initialWindowHeight = 600;
@@ -36,8 +38,8 @@ const createWindow = () => {
 
     // Create the browser window.
     win = new BrowserWindow({
-        x: activeDisplay.bounds.x + activeDisplay.size.width / 2 - initialWindowWidth / 2,
-        y: activeDisplay.bounds.y + activeDisplay.size.height / 2 - initialWindowHeight / 2,
+        // x: activeDisplay.bounds.x + activeDisplay.size.width / 2 - initialWindowWidth / 2,
+        // y: activeDisplay.bounds.y + activeDisplay.size.height / 2 - initialWindowHeight / 2,
         height: initialWindowHeight,
         width: initialWindowWidth,
         minHeight: initialWindowHeight,
