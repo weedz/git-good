@@ -22,6 +22,10 @@ import { RendererRequestEvents } from "./Common/WindowEventTypes";
 // eslint-disable-next-line import/no-unresolved
 import { lastCommit, buildDateTime } from "env";
 
+// eslint-disable-next-line @typescript-eslint/ban-ts-comment
+// @ts-ignore, this is apparently a thing. Needed to set a real app_id under wayland
+app.setDesktopName("git-good");
+
 initialize();
 
 let repo: Repository;
