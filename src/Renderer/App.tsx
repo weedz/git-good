@@ -1,5 +1,4 @@
 import { h, Fragment } from "preact";
-import { basename } from "path";
 
 import Main from "./Views/Main";
 import Changes from "./Components/Changes";
@@ -12,6 +11,7 @@ import NotificationsContainer from "./Components/NotificationsContainer";
 import { NotificationPosition } from "../Common/WindowEventTypes";
 
 import "./index.css";
+import { basename } from "../Common/Utils";
 
 export default class App extends StoreComponent {
     componentDidMount() {

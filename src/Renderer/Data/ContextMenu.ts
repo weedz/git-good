@@ -1,9 +1,9 @@
-const contextMenuState: {data: Record<string, string>} = {
-    data: {}
-};
-export function setContextMenuData(data: Record<string, string>) {
-    contextMenuState.data = data;
-}
-export function getContextMenuData(): Readonly<typeof contextMenuState.data> {
-    return contextMenuState.data;
+import { ipcRenderer } from "electron/renderer";
+import { ContextMenu, ContextMenuData } from "../../Common/ContextMenu";
+
+export function openContextMenu<M extends ContextMenu>(menu: M, data: ContextMenuData[M]) {
+    ipcRenderer.send("context-menu", {
+        action: menu,
+        data,
+    });
 }

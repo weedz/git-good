@@ -1,11 +1,10 @@
-import { WebContents } from "electron";
 import { ipcMain } from "electron/main";
 import { WindowEvents, WindowArguments, RendererRequestEvents, RendererRequestArgs, RendererRequestData, RendererResponsePayload } from "../Common/WindowEventTypes";
+import { currentWindow } from "./Context";
 
-export function sendEvent<T extends WindowEvents>(win: WebContents, event: T, args: WindowArguments[T]) {
-    win.send(event, args);
+export function sendEvent<T extends WindowEvents>(event: T, args: WindowArguments[T]) {
+    currentWindow().send(event, args);
 }
-
 
 const callbackHandlers: Record<string, (args: RendererRequestData[RendererRequestEvents]) => void> = {};
 
@@ -14,9 +13,9 @@ ipcMain.on("response-client-data", (_, payload: RendererResponsePayload<Renderer
     delete callbackHandlers[payload.id];
 });
 
-export async function requestClientData<T extends RendererRequestEvents>(win: WebContents, event: T, args: RendererRequestArgs[T]) {
+export async function requestClientData<T extends RendererRequestEvents>(event: T, args: RendererRequestArgs[T]) {
     const id = (Math.random() * Number.MAX_SAFE_INTEGER)>>>0;
-    win.send("request-client-data", {
+    currentWindow().send("request-client-data", {
         id,
         event,
         data: args,

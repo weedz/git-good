@@ -1,4 +1,5 @@
 import type { Locks, IpcActionReturn, IpcAction } from "./Actions";
+import { BranchFromType, BranchType } from "./Branch";
 
 type StashChangedArguments = {
     action: "stash"
@@ -13,9 +14,11 @@ type StashChangedArguments = {
     index: number
 };
 
+export type LinkTypes = "commits" | "branches" | "files";
+
 export type WindowEvents =
     "repo-opened" |
-    "fetch-status" |
+    "notification:fetch-status" |
     "refresh-workdir" |
     "open-settings" |
     "app-lock-ui" |
@@ -23,8 +26,18 @@ export type WindowEvents =
     "begin-compare-revisions" |
     "begin-view-commit" |
     "notify" |
-    "push-status" |
-    "stash-changed";
+    "notification:push-status" |
+    "stash-changed" |
+    "notification:pull-status" |
+    "dialog:branch-from" |
+    "dialog:create-tag" |
+    "dialog:add-remote" |
+    "dialog:edit-remote" |
+    "dialog:rename-ref" |
+    "dialog:push-tag" |
+    "dialog:set-upstream" |
+    "unselect-link" |
+    "set-diffpane";
 
 export type WindowArguments = {
     "repo-opened": IpcActionReturn[IpcAction.OPEN_REPO]
@@ -33,7 +46,7 @@ export type WindowArguments = {
     "app-lock-ui": Locks
     "app-unlock-ui": Locks
     "begin-compare-revisions": null
-    "fetch-status": {done: boolean, update: boolean} | {
+    "notification:fetch-status": {done: boolean, update: boolean} | {
         remote: string
         totalDeltas: number
         indexedDeltas: number
@@ -44,12 +57,40 @@ export type WindowArguments = {
     }
     "begin-view-commit": null
     "notify": NotificationInit
-    "push-status": {done: boolean} | {
+    "notification:push-status": {done: boolean} | {
         totalObjects: number
         transferedObjects: number
         bytes: number
     }
     "stash-changed": StashChangedArguments
+    "notification:pull-status": null | {success: boolean}
+    "dialog:branch-from": {
+        sha: string
+        type: BranchFromType
+    }
+    "dialog:create-tag": {
+        sha: string
+        fromCommit: boolean
+    }
+    "dialog:add-remote": unknown
+    "dialog:edit-remote": {
+        pullFrom?: string
+        pushTo: string
+        name: string
+    }
+    "dialog:rename-ref": {
+        name: string
+        type: BranchType
+    }
+    "dialog:push-tag": {
+        name: string
+    }
+    "dialog:set-upstream": {
+        remote: string
+        local: string
+    }
+    "set-diffpane": string
+    "unselect-link": LinkTypes
 }
 
 export enum NotificationPosition {

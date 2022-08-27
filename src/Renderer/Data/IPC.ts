@@ -1,7 +1,8 @@
-import { ipcRenderer } from "electron/renderer";
-import { dialog } from "@electron/remote";
+import { ipcRenderer, IpcRendererEvent } from "electron/renderer";
 import { IpcAction, IpcActionParams, IpcActionReturn, IpcPayload, IpcResponse } from "../../Common/Actions";
 import { WindowArguments, WindowEvents } from "../../Common/WindowEventTypes";
+import { openNativeDialog } from "./Dialogs";
+import { NativeDialog } from "../../Common/Dialog";
 
 ipcRenderer.on("asynchronous-reply", handleMessage);
 // We send null to callbacks when the action failed/returned an error
@@ -22,8 +23,8 @@ function handleMessage(_: unknown, payload: IpcPayload<IpcAction>) {
     handleEvent(payload);
 }
 
-export function addWindowEventListener<T extends WindowEvents>(event: T, cb: (args: WindowArguments[T], event: T) => void) {
-    ipcRenderer.on(event, (_, args) => cb(args, event));
+export function addWindowEventListener<T extends WindowEvents>(event: T, cb: (args: WindowArguments[T], event: T, rendererEvent?: IpcRendererEvent) => void) {
+    ipcRenderer.on(event, (rendererEvent, args) => cb(args, event, rendererEvent));
 }
 
 export function ipcSendMessage<T extends IpcAction>(action: T, data: IpcActionParams[T]) {
@@ -84,7 +85,6 @@ const handlers: {[T in IpcAction]: HandlerCallback[]} = {
     [IpcAction.RESOLVE_CONFLICT]: [],
     [IpcAction.EDIT_REMOTE]: [],
     [IpcAction.NEW_REMOTE]: [],
-    [IpcAction.REMOVE_REMOTE]: [],
     [IpcAction.FETCH]: [],
     [IpcAction.SAVE_SETTINGS]: [],
     [IpcAction.GET_SETTINGS]: [],
@@ -121,7 +121,7 @@ function handleEvent<T extends IpcAction>(payload: IpcPayload<T>) {
     try {
         let data: IpcResponse<T>;
         if ("error" in payload) {
-            dialog.showErrorBox(`Error ${payload.action}`, payload.error);
+            openNativeDialog(NativeDialog.ERROR, {title: `Error ${payload.action}`, content: payload.error})
             console.warn(payload);
             data = Error();
         } else {
@@ -133,6 +133,6 @@ function handleEvent<T extends IpcAction>(payload: IpcPayload<T>) {
     } catch (e) {
         console.error(e);
         console.log(payload);
-        dialog.showErrorBox(`Error ${payload.action}`, "Unknown error. Check devtools...");
+        openNativeDialog(NativeDialog.ERROR, {title: `Error ${payload.action}`, content: "Unknown error. Check devtools..."})
     }
 }

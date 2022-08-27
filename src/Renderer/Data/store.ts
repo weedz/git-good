@@ -120,7 +120,7 @@ export abstract class PureStoreComponent<P = unknown, S = unknown> extends PureC
     }
 }
 
-export function notify(notificationData: NotificationInit & {body?: null | string | AnyComponent | JSX.Element}) {
+export function notify(notificationData: NotificationInit & {body?: null | string | AnyComponent | JSX.Element}, _?: unknown) {
     const position = notificationData.position || NotificationPosition.DEFAULT;
     const notification = new Notification(notificationData.title, notificationData.body || null, notificationData.classList || [], deleteNotification[position], notificationData.time ?? 5000);
 
@@ -282,19 +282,6 @@ export function closeDialogWindow() {
 
 export function openFileHistory(file: string, sha?: string) {
     ipcSendMessage(IpcAction.LOAD_FILE_COMMITS, {file, cursor: sha, startAtCursor: true});
-    store.updateStore({
-        currentFile: {
-            patch: {
-                status: 0,
-                hunks: [],
-                newFile: { path: "", size: 0, mode: 0, flags: 0 },
-                oldFile: { path: "", size: 0, mode: 0, flags: 0 },
-                lineStats: { total_context: 0, total_additions: 0, total_deletions: 0 },
-                actualFile: { path: file, size: 0, mode: 0, flags: 0 }
-            },
-            commitSHA: sha
-        },
-    });
 }
 export async function openFileAtCommit(file: string, sha: string) {
     const result = await ipcGetData(IpcAction.OPEN_FILE_AT_COMMIT, {file, sha});

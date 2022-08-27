@@ -1,6 +1,7 @@
 import { createRef, h } from "preact";
 import { PureComponent } from "preact/compat";
-import { Links, LinkTypes } from "./LinkContainer";
+import { LinkTypes } from "../../Common/WindowEventTypes";
+import { Links } from "./LinkContainer";
 
 export const GlobalLinks: {
     [key in LinkTypes]: {
