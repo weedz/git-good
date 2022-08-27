@@ -1,7 +1,8 @@
-import { dialog } from "@electron/remote";
 import { Component, Fragment, h } from "preact";
 import { IpcAction } from "../../../../Common/Actions";
 import { AppConfig } from "../../../../Common/Config";
+import { NativeDialog } from "../../../../Common/Dialog";
+import { openNativeDialog } from "../../../Data/Dialogs";
 import { ipcGetData, ipcSendMessage } from "../../../Data/IPC";
 import { updateStore } from "../../../Data/store";
 import { SettingsProps } from "../types";
@@ -99,7 +100,8 @@ export class Settings extends Component<SettingsProps, State> {
                         if (this.state.config.selectedProfile === 0) {
                             return;
                         }
-                        const result = await dialog.showMessageBox({
+                        // TODO: Specifik dialog for this?
+                        const result = await openNativeDialog(NativeDialog.MESSAGE_BOX, {
                             message: `Delete profile ${selectedProfile.profileName}?`,
                             type: "question",
                             buttons: ["No", "Delete"],

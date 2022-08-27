@@ -1,8 +1,17 @@
+import { ipcRenderer } from "electron/renderer";
 import { DialogProps, DialogTypes } from "../Components/Dialog/types";
 import { IpcAction } from "../../Common/Actions";
-import { normalizeLocalName, normalizeRemoteNameWithoutRemote, normalizeTagName, remoteName } from "../../Common/Branch";
+import { BranchFromType, BranchType, normalizeLocalName, normalizeRemoteNameWithoutRemote, normalizeTagName, remoteName } from "../../Common/Branch";
 import { ipcGetData, ipcSendMessage } from "./IPC";
 import { closeDialogWindow, createBranchFromSha, createBranchFromRef, openDialogWindow, setUpstream, renameLocalBranch, setDiffpaneSrc } from "./store";
+import { NativeDialog, NativeDialogData } from "../../Common/Dialog";
+
+export async function openNativeDialog<D extends NativeDialog>(dialog: D, data: NativeDialogData[D]) {
+    return ipcRenderer.invoke("dialog", {
+        action: dialog,
+        data,
+    });
+}
 
 export function openDialog_EditRemote(data: DialogProps[DialogTypes.EDIT_REMOTE]["data"]) {
     const oldName = data.name;
@@ -68,11 +77,6 @@ export function openDialog_ViewCommit() {
     });
 }
 
-export enum BranchFromType {
-    REF,
-    COMMIT,
-}
-
 export function openDialog_BranchFrom(sha: string, type: BranchFromType) {
     let defaultValue;
     if (sha.startsWith("refs/")) {
@@ -103,11 +107,6 @@ export function openDialog_BranchFrom(sha: string, type: BranchFromType) {
             }
         }
     });
-}
-
-export enum BranchType {
-    LOCAL,
-    REMOTE
 }
 
 export function openDialog_RenameRef(sha: string, type: BranchType) {

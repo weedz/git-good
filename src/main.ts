@@ -3,9 +3,9 @@ import { exec, spawn } from "child_process";
 
 import { shell, clipboard } from "electron";
 import { app, BrowserWindow, ipcMain, Menu, dialog, MenuItemConstructorOptions, IpcMainEvent } from "electron/main";
-import { initialize, enable as enableRemote } from "@electron/remote/main";
 
-import { Branch, Clone, Commit, Object, Oid, Rebase, Reference, Remote, Repository, Stash } from "nodegit";
+
+import { Clone, Commit, Object, Rebase, Reference, Remote, Repository, Stash } from "nodegit";
 
 import { isMac, isWindows } from "./Main/Utils";
 import { addRecentRepository, clearRepoProfile, currentProfile, getAppConfig, getRecentRepositories, getRepoProfile, saveAppConfig, setCurrentProfile, setRepoProfile, signatureFromActiveProfile, signatureFromProfile } from "./Main/Config";
@@ -14,23 +14,24 @@ import * as provider from "./Main/Provider";
 import { IpcAction, IpcActionParams, IpcActionReturn, Locks, AsyncIpcActionReturnOrError } from "./Common/Actions";
 import { formatTimeAgo } from "./Common/Utils";
 import { requestClientData, sendEvent } from "./Main/WindowEvents";
-import type { TransferProgress } from "../types/nodegit";
 import { normalizeLocalName } from "./Common/Branch";
 
 import { RendererRequestEvents } from "./Common/WindowEventTypes";
 
 // eslint-disable-next-line import/no-unresolved
 import { lastCommit, buildDateTime } from "env";
+import { handleContextMenu } from "./Main/ContextMenu";
+import { handleDialog } from "./Main/Dialogs";
+import { currentRepo, currentWindow, getContext, setRepo, setWindow } from "./Main/Context";
+import { actionLock, eventReply, sendAction } from "./Main/IPC";
 
 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
 // @ts-ignore, this is apparently a thing. Needed to set a real app_id under wayland
 app.setDesktopName("git-good");
 
-initialize();
+ipcMain.on("context-menu", handleContextMenu);
+ipcMain.handle("dialog", handleDialog);
 
-let repo: Repository;
-
-let win: BrowserWindow;
 const createWindow = () => {
     // TODO: `screen.getCursorScreenPoint()` triggers a segfault on wayland?
     // const cursorPosition = screen.getCursorScreenPoint();
@@ -41,7 +42,7 @@ const createWindow = () => {
 
 
     // Create the browser window.
-    win = new BrowserWindow({
+    const win = new BrowserWindow({
         // x: activeDisplay.bounds.x + activeDisplay.size.width / 2 - initialWindowWidth / 2,
         // y: activeDisplay.bounds.y + activeDisplay.size.height / 2 - initialWindowHeight / 2,
         height: initialWindowHeight,
@@ -54,7 +55,6 @@ const createWindow = () => {
             disableBlinkFeatures: "Auxclick"
         }
     });
-    enableRemote(win.webContents);
 
     // win.webContents.openDevTools();
 
@@ -69,6 +69,8 @@ const createWindow = () => {
             action: "deny"
         }
     });
+
+    setWindow(win);
 };
 
 app.commandLine.appendSwitch("disable-smooth-scrolling");
@@ -104,13 +106,15 @@ function buildOpenRepoMenuItem(path: string): MenuItemConstructorOptions {
         async click() {
             const result = await openRepo(path);
             if (result.opened) {
-                sendEvent(win.webContents, "repo-opened", result);
+                sendEvent("repo-opened", result);
             }
         }
     }
 }
 
 function applyAppMenu() {
+    const repo = currentRepo();
+    const win = currentWindow();
     const menuTemplate = [
         ...isMac ? [{
             label: app.name,
@@ -132,36 +136,36 @@ function applyAppMenu() {
                 {
                     label: "Clone...",
                     async click() {
-                        const data = await requestClientData(win.webContents, RendererRequestEvents.CLONE_DIALOG, null);
+                        const data = await requestClientData(RendererRequestEvents.CLONE_DIALOG, null);
                         if (data.target && data.source) {
                             try {
-                                const repo = await Clone.clone(data.source, data.target, {
+                                const clonedRepo = await Clone.clone(data.source, data.target, {
                                     fetchOpts: {
                                         callbacks: {
                                             credentials: provider.credentialsCallback
                                         }
                                     }
                                 });
-                                const repoResult = await openRepo(repo.workdir());
-                                return sendEvent(win.webContents, "repo-opened", repoResult);
+                                const repoResult = await openRepo(clonedRepo.workdir());
+                                return sendEvent("repo-opened", repoResult);
                             } catch (err) {
                                 console.warn(err);
                                 if (err instanceof Error) {
                                     dialog.showErrorBox("Clone failed", err.message);
                                 }
                             }
-                            sendEvent(win.webContents, "repo-opened", null);
+                            sendEvent("repo-opened", null);
                         }
                     }
                 },
                 {
                     label: "Init...",
                     async click() {
-                        const data = await requestClientData(win.webContents, RendererRequestEvents.INIT_DIALOG, null);
+                        const data = await requestClientData(RendererRequestEvents.INIT_DIALOG, null);
                         if (data.source) {
-                            const repo = await Repository.init(data.source, 0);
-                            const repoResult = await openRepo(repo.workdir());
-                            sendEvent(win.webContents, "repo-opened", repoResult);
+                            const initialRepo = await Repository.init(data.source, 0);
+                            const repoResult = await openRepo(initialRepo.workdir());
+                            sendEvent("repo-opened", repoResult);
                         }
                     }
                 },
@@ -174,7 +178,7 @@ function applyAppMenu() {
                     async click() {
                         const result = await openRepoDialog();
                         if (result?.opened) {
-                            sendEvent(win.webContents, "repo-opened", result);
+                            sendEvent("repo-opened", result);
                         }
                     }
                 },
@@ -187,7 +191,7 @@ function applyAppMenu() {
                     type: "separator"
                 },
                 {
-                    enabled: !!repo,
+                    enabled: !!currentRepo(),
                     label: "Open in Terminal",
                     accelerator: "CmdOrCtrl+Shift+C",
                     click() {
@@ -228,7 +232,7 @@ function applyAppMenu() {
                     label: "Preferences...",
                     accelerator: "CmdOrCtrl+,",
                     click() {
-                        sendEvent(win.webContents, "open-settings", null);
+                        sendEvent("open-settings", null);
                     }
                 },
                 {
@@ -288,32 +292,35 @@ function applyAppMenu() {
                         if (!repo) {
                             return dialog.showErrorBox("Error", "Not in a repository");
                         }
-                        fetchFrom(repo);
+                        provider.fetchFrom(repo, null);
                     }
                 },
                 {
                     label: "Refresh",
                     click() {
-                        sendEvent(win.webContents, "refresh-workdir", null);
+                        sendEvent("refresh-workdir", null);
                     }
                 },
                 {
                     label: "Pull...",
                     async click() {
-                        sendEvent(win.webContents, "app-lock-ui", Locks.BRANCH_LIST);
+                        sendEvent("app-lock-ui", Locks.BRANCH_LIST);
                         await provider.pull(repo, null, signatureFromActiveProfile());
-                        sendEvent(win.webContents, "app-unlock-ui", Locks.BRANCH_LIST);
+                        sendEvent("app-unlock-ui", Locks.BRANCH_LIST);
+                        sendAction(IpcAction.LOAD_BRANCHES, await provider.getBranches(currentRepo()));
                     }
                 },
                 {
                     label: "Push...",
                     async click() {
-                        sendEvent(win.webContents, "app-lock-ui", Locks.BRANCH_LIST);
-                        const result = await provider.push({repo, win: win.webContents}, null);
+                        sendEvent("app-lock-ui", Locks.BRANCH_LIST);
+                        const result = await provider.push({repo, win}, null);
                         if (result instanceof Error) {
                             dialog.showErrorBox("Failed to push", result.message);
+                        } else {
+                            sendAction(IpcAction.LOAD_BRANCHES, await provider.getBranches(currentRepo()));
                         }
-                        sendEvent(win.webContents, "app-unlock-ui", Locks.BRANCH_LIST);
+                        sendEvent("app-unlock-ui", Locks.BRANCH_LIST);
                     }
                 },
                 {
@@ -323,14 +330,14 @@ function applyAppMenu() {
                     label: "Compare revisions...",
                     click() {
                         // TODO: implement with requestClientData
-                        sendEvent(win.webContents, "begin-compare-revisions", null);
+                        sendEvent("begin-compare-revisions", null);
                     }
                 },
                 {
                     label: "View commit...",
                     click() {
                         // TODO: implement with requestClientData
-                        sendEvent(win.webContents, "begin-view-commit", null);
+                        sendEvent("begin-view-commit", null);
                     }
                 },
             ]
@@ -342,7 +349,7 @@ function applyAppMenu() {
                     async click() {
                         // TODO: Stash message
                         await Stash.save(repo, signatureFromActiveProfile(), "Stash", Stash.FLAGS.DEFAULT);
-                        sendEvent(win.webContents, "stash-changed", {
+                        sendEvent("stash-changed", {
                             action: "stash"
                         });
                     }
@@ -350,19 +357,19 @@ function applyAppMenu() {
                 {
                     label: "Pop latest stash",
                     async click() {
-                        stashPop(repo, 0);
+                        provider.stashPop(repo, 0);
                     }
                 },
                 {
                     label: "Apply latest stash",
                     async click() {
-                        stashApply(repo, 0);
+                        provider.stashApply(repo, 0);
                     }
                 },
                 {
                     label: "Drop latest stash",
                     async click() {
-                        stashDrop(repo, 0);
+                        provider.stashDrop(repo, 0);
                     }
                 }
             ]
@@ -407,7 +414,7 @@ function applyAppMenu() {
                             `Node: ${process.versions.node}\n` +
                             `V8: ${process.versions.v8}\n` +
                             `OS: ${process.getSystemVersion()}`;
-                        const response = await dialog.showMessageBox(win, {
+                        const response = await dialog.showMessageBox({
                             message: "git-good",
                             type: "info",
                             title: "git-good",
@@ -460,24 +467,8 @@ const eventMap: {
     [IpcAction.LOAD_HEAD]: provider.getHEAD,
     [IpcAction.LOAD_UPSTREAMS]: provider.getUpstreamRefs,
     [IpcAction.LOAD_COMMIT]: provider.loadCommit,
-    [IpcAction.LOAD_COMMITS]: async (repo, params) => {
-        const arg = await initGetCommits(repo, params);
-        if (!arg) {
-            return {commits: [], branch: "", cursor: params.cursor};
-        }
-        return provider.getCommits(repo, arg.branch, arg.revwalkStart, params.num);
-    },
-    [IpcAction.LOAD_FILE_COMMITS]: async (repo, params) => {
-        const arg = await initGetCommits(repo, params);
-        if (!arg) {
-            return Error("Invalid params");
-        }
-        const result = await provider.getFileCommits(repo, arg.branch, arg.revwalkStart, params.file, params.num);
-        if (!result) {
-            return Error("failed to load commits");
-        }
-        return result;
-    },
+    [IpcAction.LOAD_COMMITS]: provider.getCommits,
+    [IpcAction.LOAD_FILE_COMMITS]: provider.getFileCommits,
     [IpcAction.LOAD_PATCHES_WITHOUT_HUNKS]: async (_, args) => provider.getCommitPatches(args.sha, args.options),
     [IpcAction.FILE_DIFF_AT]: async (repo, args) => provider.diffFileAtCommit(repo, args.file, args.sha),
     [IpcAction.LOAD_HUNKS]: async (repo, arg) => {
@@ -543,32 +534,14 @@ const eventMap: {
         }
         return !!renamedRef;
     },
-    [IpcAction.DELETE_REF]: async (repo, data) => {
-        const ref = await repo.getReference(data.name);
-        const res = Branch.delete(ref);
-        return !res
-    },
+    [IpcAction.DELETE_REF]: provider.deleteRef,
     [IpcAction.DELETE_REMOTE_REF]: provider.deleteRemoteRef,
     [IpcAction.FIND_FILE]: provider.findFile,
     [IpcAction.ABORT_REBASE]: abortRebase,
     [IpcAction.CONTINUE_REBASE]: continueRebase,
-    [IpcAction.OPEN_COMPARE_REVISIONS]: async (repo, revisions) => {
-        try {
-            return provider.compareRevisions(repo, revisions)
-        }
-        catch (err) {
-            if (err instanceof Error) {
-                return err;
-            }
-        }
-
-        return Error("Unknown error, revisions not found?");
-    },
+    [IpcAction.OPEN_COMPARE_REVISIONS]: provider.tryCompareRevisions,
     [IpcAction.PUSH]: async (repo, data) => {
-        return provider.push({
-            win: win.webContents,
-            repo
-        }, data);
+        return provider.push(getContext(), data);
     },
     [IpcAction.SET_UPSTREAM]: async (repo, data) => {
         const result = await provider.setUpstream(repo, data.local, data.remote);
@@ -578,7 +551,7 @@ const eventMap: {
     [IpcAction.REMOTES]: provider.remotes,
     [IpcAction.RESOLVE_CONFLICT]: async (repo, {path}) => {
         const result = await provider.resolveConflict(repo, path);
-        sendEvent(win.webContents, "refresh-workdir", null);
+        sendEvent("refresh-workdir", null);
         return result;
     },
     [IpcAction.EDIT_REMOTE]: async (repo, data, event) => {
@@ -596,10 +569,10 @@ const eventMap: {
             Remote.setPushurl(repo, data.name, data.pushTo);
         }
 
-        await fetchFrom(repo, [await repo.getRemote(data.name)]);
+        await provider.fetch([await repo.getRemote(data.name)]);
 
-        provider.eventReply(event, IpcAction.REMOTES, await provider.remotes(repo));
-        provider.eventReply(event, IpcAction.LOAD_BRANCHES, await provider.getBranches(repo));
+        eventReply(event, IpcAction.REMOTES, await provider.remotes(repo));
+        eventReply(event, IpcAction.LOAD_BRANCHES, await provider.getBranches(repo));
 
         return true;
     },
@@ -615,30 +588,18 @@ const eventMap: {
             Remote.setPushurl(repo, data.name, data.pushTo);
         }
 
-        if (!await fetchFrom(repo, [remote])) {
+        if (!await provider.fetch([remote])) {
             // Deleting remote with (possibly) invalid url
             await Remote.delete(repo, data.name);
             return false;
         }
 
-        provider.eventReply(event, IpcAction.REMOTES, await provider.remotes(repo));
-        provider.eventReply(event, IpcAction.LOAD_BRANCHES, await provider.getBranches(repo));
+        eventReply(event, IpcAction.REMOTES, await provider.remotes(repo));
+        eventReply(event, IpcAction.LOAD_BRANCHES, await provider.getBranches(repo));
 
         return true;
     },
-    [IpcAction.REMOVE_REMOTE]: async (repo, data, event) => {
-        try {
-            await Remote.delete(repo, data.name);
-        } catch (err) {
-            return err as Error;
-        }
-
-        provider.eventReply(event, IpcAction.REMOTES, await provider.remotes(repo));
-        provider.eventReply(event, IpcAction.LOAD_BRANCHES, await provider.getBranches(repo));
-
-        return true;
-    },
-    [IpcAction.FETCH]: async (repo, data) => fetchFrom(repo, data?.remote ? [await repo.getRemote(data.remote)] : undefined),
+    [IpcAction.FETCH]: provider.fetchFrom,
     [IpcAction.SAVE_SETTINGS]: async (_, data) => {
         setCurrentProfile(data.selectedProfile);
         try {
@@ -666,24 +627,7 @@ const eventMap: {
         const profile = currentProfile();
         return provider.createTag(repo, data, signatureFromProfile(profile), profile.gpg?.tag ? profile.gpg.key : undefined);
     },
-    [IpcAction.DELETE_TAG]: async (repo, data) => {
-        if (data.remote) {
-            // FIXME: Do we really need to check every remote?
-            for (const remote of await repo.getRemotes()) {
-                await provider.deleteRemoteTag(remote, data.name);
-            }
-        }
-
-        try {
-            await repo.deleteTagByName(data.name);
-        } catch (err) {
-            if (err instanceof Error) {
-                dialog.showErrorBox("Could not delete tag", err.toString());
-            }
-        }
-
-        return true;
-    },
+    [IpcAction.DELETE_TAG]: provider.deleteTag,
     [IpcAction.PARSE_REVSPEC]: async (repo, sha) => {
         const oid = await provider.parseRevspec(repo, sha);
         if (oid instanceof Error) {
@@ -692,9 +636,9 @@ const eventMap: {
         return oid.tostrS();
     },
     [IpcAction.LOAD_STASHES]: provider.getStash,
-    [IpcAction.STASH_POP]: stashPop,
-    [IpcAction.STASH_APPLY]: stashApply,
-    [IpcAction.STASH_DROP]: stashDrop,
+    [IpcAction.STASH_POP]: provider.stashPop,
+    [IpcAction.STASH_APPLY]: provider.stashApply,
+    [IpcAction.STASH_DROP]: provider.stashDrop,
     [IpcAction.OPEN_FILE_AT_COMMIT]: provider.openFileAtCommit,
     [IpcAction.GET_COMMIT_GPG_SIGN]: provider.getCommitGpgSign,
 }
@@ -707,22 +651,22 @@ const ALLOWED_WHEN_NOT_IN_REPO = {
 
 ipcMain.on("asynchronous-message", async (event, arg: EventArgs) => {
     const action = arg.action;
-    const lock = provider.actionLock[action];
+    const lock = actionLock[action];
     if (lock && !lock.interuptable) {
-        provider.eventReply(event, action, Error("action pending"), arg.id);
+        eventReply(event, action, Error("action pending"), arg.id);
         return;
     }
 
-    provider.actionLock[action] = {interuptable: false};
+    actionLock[action] = {interuptable: false};
 
-    if (!repo && !(action in ALLOWED_WHEN_NOT_IN_REPO)) {
-        provider.eventReply(event, action, Error("Not in a repository"), arg.id);
+    if (!currentRepo() && !(action in ALLOWED_WHEN_NOT_IN_REPO)) {
+        eventReply(event, action, Error("Not in a repository"), arg.id);
         return;
     }
 
     const callback = eventMap[action] as PromiseEventCallback<typeof action>;
     const data = arg.data as IpcActionParams[typeof action];
-    provider.eventReply(event, action, await callback(repo, data, event), arg.id);
+    eventReply(event, action, await callback(currentRepo(), data, event), arg.id);
 });
 
 async function abortRebase(repo: Repository): AsyncIpcActionReturnOrError<IpcAction.ABORT_REBASE> {
@@ -740,20 +684,20 @@ async function continueRebase(repo: Repository): AsyncIpcActionReturnOrError<Ipc
 }
 
 async function openRepoDialog() {
-    sendEvent(win.webContents, "app-lock-ui", Locks.MAIN);
+    sendEvent("app-lock-ui", Locks.MAIN);
 
     const res = await dialog.showOpenDialog({
         properties: ["openDirectory"],
         title: "Select a repository"
     });
     if (res.canceled) {
-        sendEvent(win.webContents, "app-unlock-ui", Locks.MAIN);
+        sendEvent("app-unlock-ui", Locks.MAIN);
         return null;
     }
 
     const result = await openRepo(res.filePaths[0]);
 
-    sendEvent(win.webContents, "app-unlock-ui", Locks.MAIN);
+    sendEvent("app-unlock-ui", Locks.MAIN);
 
     return result;
 }
@@ -762,20 +706,20 @@ async function openRepo(repoPath: string) {
     const opened = await provider.openRepo(repoPath);
 
     if (opened) {
-        repo = opened;
+        setRepo(opened);
 
         addRecentRepository(repoPath);
 
         applyAppMenu();
 
-        const repoProfile = await getRepoProfile(repo);
+        const repoProfile = await getRepoProfile(opened);
 
         let body;
         if (repoProfile !== false) {
             const profile = setCurrentProfile(repoProfile);
             body = `Profile set to '${profile?.profileName}'`;
         }
-        sendEvent(win.webContents, "notify", {title: "Repo opened", body});
+        sendEvent("notify", {title: "Repo opened", body});
     } else {
         dialog.showErrorBox("No repository", `'${repoPath}' does not contain a git repository`);
     }
@@ -787,104 +731,6 @@ async function openRepo(repoPath: string) {
     };
 }
 
-async function fetchFrom(repo: Repository, remotes?: Remote[]) {
-    sendEvent(win.webContents, "fetch-status", {
-        done: false,
-        update: false
-    });
-    if (!remotes) {
-        remotes = await repo.getRemotes();
-    }
-    let update = false;
-    try {
-        for (const remote of remotes) {
-            await remote.fetch([], {
-                prune: 1,
-                callbacks: {
-                    credentials: provider.credentialsCallback,
-                    transferProgress: (stats: TransferProgress, remote: string) => {
-                        update = true;
-                        sendEvent(win.webContents, "fetch-status", {
-                            remote,
-                            receivedObjects: stats.receivedObjects(),
-                            totalObjects: stats.totalObjects(),
-                            indexedDeltas: stats.indexedDeltas(),
-                            totalDeltas: stats.totalDeltas(),
-                            indexedObjects: stats.indexedObjects(),
-                            receivedBytes: stats.receivedBytes(),
-                        });
-                    },
-                },
-            }, "");
-        }
-    } catch (err) {
-        if (err instanceof Error) {
-            dialog.showErrorBox("Fetch failed", err.message);
-        }
-        sendEvent(win.webContents, "fetch-status", {
-            done: true,
-            update
-        });
-        return false;
-    }
-    sendEvent(win.webContents, "fetch-status", {
-        done: true,
-        update
-    });
-    return true;
-}
-
-async function initGetCommits(repo: Repository, params: IpcActionParams[IpcAction.LOAD_COMMITS] | IpcActionParams[IpcAction.LOAD_FILE_COMMITS]) {
-    if (repo.isEmpty()) {
-        return false;
-    }
-    let branch = "HEAD";
-    let revwalkStart: "refs/*" | Oid;
-    // FIXME: organize this...
-    if ("history" in params) {
-        branch = "history";
-        revwalkStart = "refs/*";
-    } else {
-        let start: Commit | null = null;
-        if ("branch" in params) {
-            branch = params.branch;
-        }
-        try {
-            if (params.cursor) {
-                start = await repo.getCommit(params.cursor);
-                if (!start.parentcount()) {
-                    return false;
-                }
-                if (!params.startAtCursor) {
-                    start = await start.parent(0);
-                }
-            }
-            else if ("branch" in params) {
-                if (params.branch.includes("refs/tags")) {
-                    const ref = await repo.getReference(params.branch);
-                    start = await ref.peel(Object.TYPE.COMMIT) as unknown as Commit;
-                } else {
-                    start = await repo.getReferenceCommit(params.branch);
-                }
-            } else if ("sha" in params) {
-                start = await repo.getCommit(params.sha);
-            }
-        } catch (err) {
-            // could not find requested ref
-            console.info("initGetCommits(): could not find requested ref, using head");
-        }
-        if (!start) {
-            start = await repo.getHeadCommit();
-        }
-        revwalkStart = start.id();
-    }
-
-    return {
-        branch,
-        revwalkStart,
-    };
-}
-
 function loadHunks(repo: Repository, params: IpcActionParams[IpcAction.LOAD_HUNKS]) {
     if ("sha" in params) {
         return provider.getHunks(repo, params.sha, params.path);
@@ -893,39 +739,4 @@ function loadHunks(repo: Repository, params: IpcActionParams[IpcAction.LOAD_HUNK
         return provider.hunksFromCompare(repo, params.path);
     }
     return provider.getWorkdirHunks(repo, params.path, params.type);
-}
-
-async function stashPop(repo: Repository, index = 0) {
-    await Stash.pop(repo, index);
-    sendEvent(win.webContents, "stash-changed", {
-        action: "pop",
-        index,
-    });
-    return true;
-}
-async function stashApply(repo: Repository, index = 0) {
-    await Stash.apply(repo, index);
-    sendEvent(win.webContents, "stash-changed", {
-        action: "apply",
-        index,
-    });
-    return true;
-}
-async function stashDrop(repo: Repository, index = 0) {
-    const result = await dialog.showMessageBox(win, {
-        title: "Drop stash",
-        message: `Are you sure you want to delete stash@{${index}}`,
-        type: "question",
-        buttons: ["Cancel", "Delete"],
-        cancelId: 0,
-    });
-    if (result.response === 1) {
-        await Stash.drop(repo, index);
-        sendEvent(win.webContents, "stash-changed", {
-            action: "drop",
-            index,
-        });
-        return true;
-    }
-    return false;
 }

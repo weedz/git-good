@@ -1,7 +1,6 @@
 // useContext("select-container"), stuff, profit!
 
 import { createContext } from "preact";
-
-export type LinkTypes = "commits" | "branches" | "files";
+import { LinkTypes } from "../../Common/WindowEventTypes";
 
 export const Links = createContext<LinkTypes>("branches");

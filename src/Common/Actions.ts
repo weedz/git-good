@@ -57,7 +57,6 @@ export const enum IpcAction {
     RESOLVE_CONFLICT,
     EDIT_REMOTE,
     NEW_REMOTE,
-    REMOVE_REMOTE,
     FETCH,
     SAVE_SETTINGS,
     REPO_PROFILE,
@@ -159,7 +158,6 @@ export type IpcActionParams = {
     [IpcAction.RESOLVE_CONFLICT]: {path: string}
     [IpcAction.EDIT_REMOTE]: {oldName: string, name: string, pullFrom: string, pushTo: string | null}
     [IpcAction.NEW_REMOTE]: {name: string, pullFrom: string, pushTo: string | null}
-    [IpcAction.REMOVE_REMOTE]: {name: string}
     [IpcAction.FETCH]: null | {remote: string}
     [IpcAction.SAVE_SETTINGS]: AppConfig
     [IpcAction.GET_SETTINGS]: null
@@ -256,7 +254,6 @@ export type IpcActionReturn = {
     [IpcAction.RESOLVE_CONFLICT]: boolean
     [IpcAction.EDIT_REMOTE]: boolean
     [IpcAction.NEW_REMOTE]: boolean
-    [IpcAction.REMOVE_REMOTE]: boolean
     [IpcAction.FETCH]: boolean
     [IpcAction.SAVE_SETTINGS]: boolean
     [IpcAction.GET_SETTINGS]: AppConfig
@@ -421,6 +418,7 @@ type LoadFileCommitsReturn = {
     }>
     branch: string
     cursor?: string
+    filePath: string
 };
 
 export const enum Locks {

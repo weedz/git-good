@@ -3,6 +3,7 @@
     "module": "ESNext",
     "target": "ESNext",
     "strict": true,
+    "strictNullChecks": true,
     "forceConsistentCasingInFileNames": true,
     "noEmit": true,
     "jsx": "react",

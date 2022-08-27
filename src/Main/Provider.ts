@@ -1,14 +1,16 @@
 import { join } from "path";
 import * as fs from "fs/promises";
 import { tmpdir } from "os";
-import { dialog, IpcMainEvent, shell, WebContents } from "electron";
+import { dialog, shell } from "electron";
 import { Revparse, Credential, Repository, Revwalk, Commit, Diff, ConvenientPatch, ConvenientHunk, DiffLine, Object, Branch, Graph, Index, Reset, Checkout, DiffFindOptions, Reference, Oid, Signature, Remote, DiffOptions, IndexEntry, Error as NodeGitError, Tag, Stash, Status } from "nodegit";
-import { IpcAction, BranchObj, LineObj, HunkObj, PatchObj, CommitObj, IpcActionParams, RefType, StashObj, AsyncIpcActionReturnOrError, IpcActionReturnOrError, IpcActionReturn } from "../Common/Actions";
+import { IpcAction, BranchObj, LineObj, HunkObj, PatchObj, CommitObj, IpcActionParams, RefType, StashObj, AsyncIpcActionReturnOrError, IpcActionReturn } from "../Common/Actions";
 import { normalizeLocalName, normalizeRemoteName, normalizeRemoteNameWithoutRemote, normalizeTagName, remoteName } from "../Common/Branch";
 import { gpgSign, gpgVerify } from "./GPG";
 import { AuthConfig } from "../Common/Config";
 import { currentProfile, getAppConfig, getAuth, signatureFromProfile } from "./Config";
 import { sendEvent } from "./WindowEvents";
+import type { TransferProgress } from "../../types/nodegit";
+import { Context } from "./Context";
 
 declare module "nodegit" {
     export class Credential {
@@ -16,35 +18,6 @@ declare module "nodegit" {
         static sshKeyNew(username: string, publicKey: string, privateKey: string, passphrase: string): unknown
         static userpassPlaintextNew(username: string, password: string): unknown
     }
-}
-
-export type Context = {
-    win: WebContents;
-    repo: Repository;
-};
-
-export const actionLock: {
-    [key in IpcAction]?: {
-        interuptable: false
-    };
-} = {};
-
-export function eventReply<T extends IpcAction>(event: IpcMainEvent, action: T, data: IpcActionReturnOrError<T>, id?: string) {
-    if (action in actionLock) {
-        delete actionLock[action];
-    }
-    if (data instanceof Error) {
-        return event.reply("asynchronous-reply", {
-            action,
-            error: data.toString(),
-            id
-        });
-    }
-    event.reply("asynchronous-reply", {
-        action,
-        data,
-        id
-    });
 }
 
 export function authenticate(username: string, auth: AuthConfig) {
@@ -125,14 +98,69 @@ function initRevwalk(repo: Repository, start: "refs/*" | Oid) {
     return revwalk;
 }
 
-export async function getFileCommits(repo: Repository, branch: string, start: "refs/*" | Oid, file: string, num = 50000) {
-    const revwalk = initRevwalk(repo, start);
+export async function initGetCommits(repo: Repository, params: IpcActionParams[IpcAction.LOAD_COMMITS] | IpcActionParams[IpcAction.LOAD_FILE_COMMITS]) {
+    if (repo.isEmpty()) {
+        return false;
+    }
+    let branch = "HEAD";
+    let revwalkStart: "refs/*" | Oid;
+    // FIXME: organize this...
+    if ("history" in params) {
+        branch = "history";
+        revwalkStart = "refs/*";
+    } else {
+        let start: Commit | null = null;
+        if ("branch" in params) {
+            branch = params.branch;
+        }
+        try {
+            if (params.cursor) {
+                start = await repo.getCommit(params.cursor);
+                if (!start.parentcount()) {
+                    return false;
+                }
+                if (!params.startAtCursor) {
+                    start = await start.parent(0);
+                }
+            }
+            else if ("branch" in params) {
+                if (params.branch.includes("refs/tags")) {
+                    const ref = await repo.getReference(params.branch);
+                    start = await ref.peel(Object.TYPE.COMMIT) as unknown as Commit;
+                } else {
+                    start = await repo.getReferenceCommit(params.branch);
+                }
+            } else if ("sha" in params) {
+                start = await repo.getCommit(params.sha);
+            }
+        } catch (err) {
+            // could not find requested ref
+            console.info("initGetCommits(): could not find requested ref, using head");
+        }
+        if (!start) {
+            start = await repo.getHeadCommit();
+        }
+        revwalkStart = start.id();
+    }
+
+    return {
+        branch,
+        revwalkStart,
+    };
+}
+
+export async function getFileCommits(repo: Repository, params: IpcActionParams[IpcAction.LOAD_FILE_COMMITS]): AsyncIpcActionReturnOrError<IpcAction.LOAD_FILE_COMMITS> {
+    const args = await initGetCommits(repo, params);
+    if (!args) {
+        return Error(`Could not find revision`);
+    }
+    const revwalk = initRevwalk(repo, args.revwalkStart);
 
     let followRenames = false;
 
-    let currentName = file;
+    let currentName = params.file;
     // FIXME: HistoryEntry should set commit.repo.
-    const historyEntries = await revwalk.fileHistoryWalk(currentName, num);
+    const historyEntries = await revwalk.fileHistoryWalk(currentName, params.num || 50000);
 
     if (historyEntries[0].status === Diff.DELTA.RENAMED) {
         // We always "follow renames" if the file is renamed in the first commit
@@ -171,23 +199,80 @@ export async function getFileCommits(repo: Repository, branch: string, start: "r
     }
 
     return {
+        filePath: params.file,
         cursor: historyEntries[historyEntries.length - 1]?.commit.sha(),
-        branch,
+        branch: args.branch,
         commits
     };
 }
 
-export async function getCommits(repo: Repository, branch: string, start: "refs/*" | Oid, num = 1000) {
-    const revwalk = initRevwalk(repo, start);
-    const commits = await revwalk.commitWalk(num);
+export async function getCommits(repo: Repository, params: IpcActionParams[IpcAction.LOAD_COMMITS]) {
+    const args = await initGetCommits(repo, params);
+    if (!args) {
+        return Error(`Could not find revision`);
+    }
+
+    const revwalk = initRevwalk(repo, args.revwalkStart);
+    const commits = await revwalk.commitWalk(params.num || 1000);
 
     const history: HistoryCommit[] = commits.map(compileHistoryCommit);
 
     return {
         cursor: history[history.length - 1].sha,
         commits: history,
-        branch
+        branch: args.branch
     };
+}
+
+export async function fetch(remotes: Remote[]) {
+    let update = false;
+    try {
+        for (const remote of remotes) {
+            await remote.fetch([], {
+                prune: 1,
+                callbacks: {
+                    credentials: credentialsCallback,
+                    transferProgress: (stats: TransferProgress, remote: string) => {
+                        update = true;
+                        sendEvent("notification:fetch-status", {
+                            remote,
+                            receivedObjects: stats.receivedObjects(),
+                            totalObjects: stats.totalObjects(),
+                            indexedDeltas: stats.indexedDeltas(),
+                            totalDeltas: stats.totalDeltas(),
+                            indexedObjects: stats.indexedObjects(),
+                            receivedBytes: stats.receivedBytes(),
+                        });
+                    },
+                },
+            }, "");
+        }
+    } catch (err) {
+        if (err instanceof Error) {
+            dialog.showErrorBox("Fetch failed", err.message);
+        }
+        sendEvent("notification:fetch-status", {
+            done: true,
+            update
+        });
+        return false;
+    }
+    sendEvent("notification:fetch-status", {
+        done: true,
+        update
+    });
+    return true;
+}
+
+export async function fetchFrom(repo: Repository, params: IpcActionParams[IpcAction.FETCH]) {
+    sendEvent("notification:fetch-status", {
+        done: false,
+        update: false
+    });
+
+    const remotes = params?.remote ? [await repo.getRemote(params.remote)] : await repo.getRemotes();
+
+    return fetch(remotes);
 }
 
 export async function pull(repo: Repository, branch: string | null, signature: Signature) {
@@ -288,7 +373,7 @@ async function pushHead(context: Context) {
 }
 
 export async function push(context: Context, data: IpcActionParams[IpcAction.PUSH]) {
-    sendEvent(context.win, "push-status", {
+    sendEvent("notification:push-status", {
         done: false
     });
 
@@ -311,7 +396,7 @@ export async function push(context: Context, data: IpcActionParams[IpcAction.PUS
         }
     }
 
-    sendEvent(context.win, "push-status", {
+    sendEvent("notification:push-status", {
         done: true
     });
 
@@ -372,7 +457,7 @@ async function doPush(remote: Remote, localName: string, remoteName: string, for
                     // eslint-disable-next-line @typescript-eslint/ban-ts-comment
                     // @ts-ignore
                     pushTransferProgress: (transferedObjects: number, totalObjects: number, bytes: number) => {
-                        context && sendEvent(context.win, "push-status", {
+                        context && sendEvent("notification:push-status", {
                             totalObjects,
                             transferedObjects,
                             bytes
@@ -406,6 +491,12 @@ export async function setUpstream(repo: Repository, local: string, remoteRefName
     return result;
 }
 
+export async function deleteRef(repo: Repository, data: IpcActionParams[IpcAction.DELETE_REF]) {
+    const ref = await repo.getReference(data.name);
+    const res = Branch.delete(ref);
+    return !res
+}
+
 export async function deleteRemoteRef(repo: Repository, refName: string) {
     const ref = await repo.getReference(refName);
 
@@ -431,6 +522,24 @@ export async function deleteRemoteRef(repo: Repository, refName: string) {
             return false;
         }
     }
+    return true;
+}
+export async function deleteTag(repo: Repository, data: IpcActionParams[IpcAction.DELETE_TAG]) {
+    if (data.remote) {
+        // FIXME: Do we really need to check every remote?
+        for (const remote of await repo.getRemotes()) {
+            await deleteRemoteTag(remote, data.name);
+        }
+    }
+    
+    try {
+        await repo.deleteTagByName(data.name);
+    } catch (err) {
+        if (err instanceof Error) {
+            dialog.showErrorBox("Could not delete tag", err.toString());
+        }
+    }
+    
     return true;
 }
 
@@ -536,6 +645,41 @@ export async function getStash(repo: Repository) {
     });
     repoStash = stash;
     return stash;
+}
+
+export async function stashPop(repo: Repository, index = 0) {
+    await Stash.pop(repo, index);
+    sendEvent("stash-changed", {
+        action: "pop",
+        index,
+    });
+    return true;
+}
+export async function stashApply(repo: Repository, index = 0) {
+    await Stash.apply(repo, index);
+    sendEvent("stash-changed", {
+        action: "apply",
+        index,
+    });
+    return true;
+}
+export async function stashDrop(repo: Repository, index = 0) {
+    const result = await dialog.showMessageBox({
+        title: "Drop stash",
+        message: `Are you sure you want to delete stash@{${index}}`,
+        type: "question",
+        buttons: ["Cancel", "Delete"],
+        cancelId: 0,
+    });
+    if (result.response === 1) {
+        await Stash.drop(repo, index);
+        sendEvent("stash-changed", {
+            action: "drop",
+            index,
+        });
+        return true;
+    }
+    return false;
 }
 
 // {local: Branch[], remote: Branch[], tags: Branch[]}
@@ -1173,6 +1317,19 @@ export async function getCommitPatches(sha: string, options?: DiffOptions): Asyn
     });
 
     return handleDiff(diff, commit.patches);
+}
+
+export async function tryCompareRevisions(repo: Repository, revisions: { from: string, to: string }): AsyncIpcActionReturnOrError<IpcAction.OPEN_COMPARE_REVISIONS> {
+    try {
+        return await compareRevisions(repo, revisions)
+    }
+    catch (err) {
+        if (err instanceof Error) {
+            return err;
+        }
+    }
+
+    return Error("Unknown error, revisions not found?");
 }
 
 export async function compareRevisions(repo: Repository, revisions: { from: string, to: string }): AsyncIpcActionReturnOrError<IpcAction.OPEN_COMPARE_REVISIONS> {

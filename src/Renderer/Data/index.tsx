@@ -1,16 +1,16 @@
 import { h } from "preact";
 import { Diff } from "nodegit";
-import { dialog } from "@electron/remote";
 import { ipcRenderer } from "electron/renderer";
 import { GlobalLinks, unselectLink } from "../Components/Link";
-import { BranchObj, IpcAction, IpcActionReturn, IpcResponse, Locks, RepoStatus } from "../../Common/Actions";
-import { openDialog_CompareRevisions, openDialog_Settings, openDialog_ViewCommit } from "./Dialogs";
+import { BranchObj, IpcAction, IpcActionReturn, IpcActionReturnOrError, IpcResponse, Locks, RepoStatus } from "../../Common/Actions";
+import { openNativeDialog, openDialog_CompareRevisions, openDialog_Settings, openDialog_ViewCommit, openDialog_createTag, openDialog_BranchFrom, openDialog_AddRemote, openDialog_RenameRef, openDialog_SetUpstream } from "./Dialogs";
 import { addWindowEventListener, registerHandler, ipcSendMessage, ipcGetData } from "./IPC";
-import { Store, clearLock, setLock, updateStore, StoreType, notify, openDialogWindow, closeDialogWindow } from "./store";
+import { Store, clearLock, setLock, updateStore, StoreType, notify, openDialogWindow, closeDialogWindow, setDiffpaneSrc } from "./store";
 import { Notification } from "../Components/Notification";
 import { humanReadableBytes } from "../../Common/Utils";
 import { RendererRequestArgs, RendererRequestData, RendererRequestEvents, RendererRequestPayload, WindowArguments } from "../../Common/WindowEventTypes";
 import { DialogTypes } from "../Components/Dialog/types";
+import { NativeDialog } from "../../Common/Dialog";
 
 let refreshingWorkdir = false;
 
@@ -91,36 +91,13 @@ export async function refreshWorkdir() {
 
 export async function discardChanges(filePath: string) {
     refreshingWorkdir = true;
-    const result = await dialog.showMessageBox({
-        message: `Discard changes to "${filePath}"?`,
-        type: "question",
-        buttons: ["Cancel", "Discard changes"],
-        cancelId: 0,
-    });
-    if (result.response === 1) {
-        // Need this timeout so the window focus event is fired before IpcAction.DISCARD_FILE
-        setTimeout(async () => {
-            refreshingWorkdir = false;
-            await ipcGetData(IpcAction.DISCARD_FILE, filePath);
-            refreshWorkdir();
-        }, 200);
-    }
+    await openNativeDialog(NativeDialog.DISCARD_CHANGES, { path: filePath });
+    refreshingWorkdir = false;
 }
 export async function discardAllChanges() {
-    const result = await dialog.showMessageBox({
-        message: "Discard all changes?",
-        type: "question",
-        buttons: ["Cancel", "Yes"],
-        cancelId: 0,
-    });
-    if (result.response === 1) {
-        // Need this timeout so the window focus event is fired before IpcAction.DISCARD_ALL
-        setTimeout(async () => {
-            refreshingWorkdir = false;
-            await ipcGetData(IpcAction.DISCARD_ALL, null);
-            refreshWorkdir();
-        }, 200);
-    }
+    refreshingWorkdir = true;
+    await openNativeDialog(NativeDialog.DISCARD_ALL_CHANGES, null);
+    refreshingWorkdir = false;
 }
 
 function repoOpened(result: IpcActionReturn[IpcAction.OPEN_REPO]) {
@@ -318,6 +295,25 @@ function handleStashChanged(res: WindowArguments["stash-changed"]) {
     }
 }
 
+function handleFileCommits(data: IpcActionReturnOrError<IpcAction.LOAD_FILE_COMMITS>) {
+    if (data instanceof Error) {
+        return;
+    }
+    updateStore({
+        currentFile: {
+            patch: {
+                status: 0,
+                hunks: [],
+                newFile: { path: "", size: 0, mode: 0, flags: 0 },
+                oldFile: { path: "", size: 0, mode: 0, flags: 0 },
+                lineStats: { total_context: 0, total_additions: 0, total_deletions: 0 },
+                actualFile: { path: data.filePath, size: 0, mode: 0, flags: 0 }
+            },
+            commitSHA: data.cursor
+        },
+    });
+}
+
 addWindowEventListener("repo-opened", repoOpened);
 addWindowEventListener("refresh-workdir", refreshWorkdir);
 addWindowEventListener("open-settings", openSettings);
@@ -327,11 +323,30 @@ addWindowEventListener("begin-compare-revisions", openDialog_CompareRevisions);
 addWindowEventListener("begin-view-commit", openDialog_ViewCommit);
 addWindowEventListener("stash-changed", handleStashChanged);
 addWindowEventListener("notify", notify);
+addWindowEventListener("unselect-link", (linkType) => unselectLink(linkType));
+addWindowEventListener("set-diffpane", (sha) => setDiffpaneSrc(sha));
+
+
+addWindowEventListener("dialog:branch-from", (data) => {
+    openDialog_BranchFrom(data.sha, data.type);
+});
+addWindowEventListener("dialog:create-tag", (data) => {
+    openDialog_createTag(data.sha, data.fromCommit);
+});
+addWindowEventListener("dialog:add-remote", () => {
+    openDialog_AddRemote();
+});
+addWindowEventListener("dialog:rename-ref", (data) => {
+    openDialog_RenameRef(data.name, data.type);
+});
+addWindowEventListener("dialog:set-upstream", (data) => {
+    openDialog_SetUpstream(data.local, data.remote);
+})
 
 // FIXME: Should probably handle this better..
 {
     let fetchNotification: null | Notification;
-    addWindowEventListener("fetch-status", stats => {
+    addWindowEventListener("notification:fetch-status", stats => {
         if (!fetchNotification) {
             fetchNotification = notify({title: "Fetching", time: 0});
         }
@@ -353,17 +368,33 @@ addWindowEventListener("notify", notify);
 
 {
     let pushNotification: null | Notification;
-    addWindowEventListener("push-status", stats => {
+    addWindowEventListener("notification:push-status", status => {
         if (!pushNotification) {
             pushNotification = notify({title: "Pushing...", time: 0});
         }
-        if ("done" in stats) {
-            if (stats.done) {
+        if ("done" in status) {
+            if (status.done) {
                 pushNotification.update({title: "Pushed", time: 3000});
                 pushNotification = null;
             }
-        } else if (stats.totalObjects > 0) {
-            pushNotification.update({body: <p>Pushed {stats.transferedObjects}/{stats.totalObjects} objects in {humanReadableBytes(stats.bytes)}</p>});
+        } else if (status.totalObjects > 0) {
+            pushNotification.update({body: <p>Pushed {status.transferedObjects}/{status.totalObjects} objects in {humanReadableBytes(status.bytes)}</p>});
+        }
+    });
+}
+{
+    let pullNotification: null | Notification;
+    addWindowEventListener("notification:pull-status", status => {
+        if (!pullNotification) {
+            pullNotification = notify({title: "Pulling changes...", time: 0});
+        }
+        if (status) {
+            if (status.success) {
+                pullNotification.update({title: "Done!", time: 3000});
+                pullNotification = null;
+            } else {
+                pullNotification.update({body: <p>Failed...</p>});
+            }
         }
     });
 }
@@ -390,6 +421,7 @@ registerHandler(IpcAction.CREATE_TAG, loadBranches);
 registerHandler(IpcAction.DELETE_TAG, loadBranches);
 registerHandler(IpcAction.LOAD_PATCHES_WITHOUT_HUNKS, () => clearLock(Locks.COMMIT_LIST));
 registerHandler(IpcAction.LOAD_STASHES, stashLoaded);
+registerHandler(IpcAction.LOAD_FILE_COMMITS, handleFileCommits);
 
 
 const rendererActions: {

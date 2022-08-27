@@ -1,3 +1,13 @@
+export enum BranchType {
+    LOCAL,
+    REMOTE
+}
+
+export enum BranchFromType {
+    REF,
+    COMMIT,
+}
+
 /**
  * omits the "refs/remotes/" part of the name
  */
