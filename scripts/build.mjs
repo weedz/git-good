@@ -28,7 +28,8 @@ const production = process.env.NODE_ENV !== "development";
 const result = await build({
     entryPoints: {
         main: "src/main.ts",
-        renderer: "src/renderer.tsx"
+        preload: "src/preload.ts",
+        renderer: "src/renderer.tsx",
     },
     // metafile: true,
     bundle: true,

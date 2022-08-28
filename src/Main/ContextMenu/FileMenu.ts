@@ -12,7 +12,6 @@ export function openFileContextMenu(_event: IpcMainInvokeEvent, data: Record<str
         label: "Open in default application",
         async click() {
             const path = `${currentRepo().workdir()}/${data.path}`;
-            console.log(path);
             const error = await shell.openPath(path);
             if (error) {
                 console.warn("Failed to open:", error);

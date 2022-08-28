@@ -1,18 +1,61 @@
-import { Diff } from "nodegit";
+export const enum DiffDelta {
+    UNMODIFIED = 0,
+    ADDED = 1,
+    DELETED = 2,
+    MODIFIED = 3,
+    RENAMED = 4,
+    COPIED = 5,
+    IGNORED = 6,
+    UNTRACKED = 7,
+    TYPECHANGE = 8,
+    UNREADABLE = 9,
+    CONFLICTED = 10,
+}
+export const enum DiffOption {
+    NORMAL = 0,
+    REVERSE = 1,
+    INCLUDE_IGNORED = 2,
+    RECURSE_IGNORED_DIRS = 4,
+    INCLUDE_UNTRACKED = 8,
+    RECURSE_UNTRACKED_DIRS = 16,
+    INCLUDE_UNMODIFIED = 32,
+    INCLUDE_TYPECHANGE = 64,
+    INCLUDE_TYPECHANGE_TREES = 128,
+    IGNORE_FILEMODE = 256,
+    IGNORE_SUBMODULES = 512,
+    IGNORE_CASE = 1024,
+    INCLUDE_CASECHANGE = 2048,
+    DISABLE_PATHSPEC_MATCH = 4096,
+    SKIP_BINARY_CHECK = 8192,
+    ENABLE_FAST_UNTRACKED_DIRS = 16384,
+    UPDATE_INDEX = 32768,
+    INCLUDE_UNREADABLE = 65536,
+    INCLUDE_UNREADABLE_AS_UNTRACKED = 131072,
+    FORCE_TEXT = 1048576,
+    FORCE_BINARY = 2097152,
+    IGNORE_WHITESPACE = 4194304,
+    IGNORE_WHITESPACE_CHANGE = 8388608,
+    IGNORE_WHITESPACE_EOL = 16777216,
+    SHOW_UNTRACKED_CONTENT = 33554432,
+    SHOW_UNMODIFIED = 67108864,
+    PATIENCE = 268435456,
+    MINIMAL = 536870912,
+    SHOW_BINARY = 1073741824,
+}
 
 export function getType(status: number) {
     switch (status) {
-        case Diff.DELTA.ADDED:
+        case DiffDelta.ADDED:
             return "A";
-        case Diff.DELTA.DELETED:
+        case DiffDelta.DELETED:
             return "D";
-        case Diff.DELTA.MODIFIED:
+        case DiffDelta.MODIFIED:
             return "M";
-        case Diff.DELTA.RENAMED:
+        case DiffDelta.RENAMED:
             return "R";
-        case Diff.DELTA.UNTRACKED:
+        case DiffDelta.UNTRACKED:
             return "U";
-        case Diff.DELTA.CONFLICTED:
+        case DiffDelta.CONFLICTED:
             return "C";
     }
 }

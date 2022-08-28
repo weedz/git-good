@@ -4,9 +4,9 @@ import { NativeDialog } from "../../Common/Dialog";
 import { openNativeDialog } from "./Dialogs";
 
 export async function selectFile(cb: (data: string) => void, options: OpenDialogOptions = {}) {
-    const result = await openNativeDialog(NativeDialog.OPEN_FILE, options);
-    if (!result.canceled) {
-        cb(result.filePaths[0]);
+    const filePaths = await openNativeDialog(NativeDialog.OPEN_FILE, options);
+    if (filePaths) {
+        cb(filePaths);
     }
 }
 

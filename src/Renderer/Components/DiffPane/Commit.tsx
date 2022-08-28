@@ -6,8 +6,8 @@ import "./style.css";
 import CommitMessage from "./CommitMessage";
 import ChangedFiles from "./ChangedFiles";
 import { clearLock, Store, StoreComponent } from "../../Data/store";
-import { Diff } from "nodegit";
 import { triggerAction } from "../Link";
+import { DiffOption } from "../../../Common/Utils";
 
 interface State {
     commit: null | CommitObj
@@ -53,7 +53,7 @@ export default class Commit extends StoreComponent<Props, State> {
         let options;
         if (diffOptions.ignoreWhitespace) {
             options = {
-                flags: Diff.OPTION.IGNORE_WHITESPACE
+                flags: DiffOption.IGNORE_WHITESPACE
             };
         }
         ipcSendMessage(IpcAction.LOAD_PATCHES_WITHOUT_HUNKS, {sha: this.props.sha, options});
