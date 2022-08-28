@@ -1,6 +1,6 @@
-import { Diff } from "nodegit";
 import { h } from "preact";
 import { HunkObj, IpcAction, LineObj, IpcActionReturn } from "../../../Common/Actions";
+import { DiffDelta } from "../../../Common/Utils";
 import { dismissibleWindowClosed, glyphWidth, showDismissibleWindow } from "../../Data";
 import { Store, closeFile, openFileHistory, PureStoreComponent, updateStore, StoreType } from "../../Data/store";
 import FileHistory from "./FileHistory";
@@ -196,7 +196,7 @@ export default class FileDiff extends PureStoreComponent<unknown, State> {
                 }} fileHistory={this.state.fileHistory} />}
                 <div id="file-diff" className="pane">
                     <h2>{patch.actualFile.path}<a href="#" onClick={this.closeActiveFileDiff}>&times;</a></h2>
-                    {patch.status === Diff.DELTA.RENAMED && <h4>{patch.oldFile.path} &rArr; {patch.newFile.path} ({patch.similarity}%)</h4>}
+                    {patch.status === DiffDelta.RENAMED && <h4>{patch.oldFile.path} &rArr; {patch.newFile.path} ({patch.similarity}%)</h4>}
                     <p>{patch.hunks?.length} chunks,&nbsp;<span className="added">+{patch.lineStats.total_additions}</span>&nbsp;<span className="deleted">-{patch.lineStats.total_deletions}</span></p>
                     <ul className="file-diff-toolbar flex-row">
                         <li className="btn-group">

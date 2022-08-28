@@ -1,13 +1,11 @@
 import { h } from "preact";
-import { Diff } from "nodegit";
-import { ipcRenderer } from "electron/renderer";
 import { GlobalLinks, unselectLink } from "../Components/Link";
 import { BranchObj, IpcAction, IpcActionReturn, IpcActionReturnOrError, IpcResponse, Locks, RepoStatus } from "../../Common/Actions";
 import { openNativeDialog, openDialog_CompareRevisions, openDialog_Settings, openDialog_ViewCommit, openDialog_createTag, openDialog_BranchFrom, openDialog_AddRemote, openDialog_RenameRef, openDialog_SetUpstream } from "./Dialogs";
 import { addWindowEventListener, registerHandler, ipcSendMessage, ipcGetData } from "./IPC";
 import { Store, clearLock, setLock, updateStore, StoreType, notify, openDialogWindow, closeDialogWindow, setDiffpaneSrc } from "./store";
 import { Notification } from "../Components/Notification";
-import { humanReadableBytes } from "../../Common/Utils";
+import { DiffOption, humanReadableBytes } from "../../Common/Utils";
 import { RendererRequestArgs, RendererRequestData, RendererRequestEvents, RendererRequestPayload, WindowArguments } from "../../Common/WindowEventTypes";
 import { DialogTypes } from "../Components/Dialog/types";
 import { NativeDialog } from "../../Common/Dialog";
@@ -82,7 +80,7 @@ export async function refreshWorkdir() {
     let options = null;
     if (Store.diffOptions.ignoreWhitespace) {
         options = {
-            flags: Diff.OPTION.IGNORE_WHITESPACE
+            flags: DiffOption.IGNORE_WHITESPACE
         };
     }
     await ipcGetData(IpcAction.REFRESH_WORKDIR, options);
@@ -452,12 +450,8 @@ const rendererActions: {
         })
     })
 };
-ipcRenderer.on("request-client-data", handleRequestClientData);
-async function handleRequestClientData<E extends RendererRequestEvents>(_: unknown, payload: RendererRequestPayload<E>) {
-    const response = await rendererActions[payload.event](payload.data).catch(e => Error(e));
 
-    ipcRenderer.send("response-client-data", {
-        id: payload.id,
-        data: response,
-    });
+async function handleRequestClientData<E extends RendererRequestEvents>(payload: RendererRequestPayload<E>) {
+    return rendererActions[payload.event](payload.data);
 }
+window.electronAPI.requestClientData(handleRequestClientData);

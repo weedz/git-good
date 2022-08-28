@@ -50,8 +50,9 @@ const createWindow = () => {
         minHeight: initialWindowHeight,
         minWidth: initialWindowWidth,
         webPreferences: {
+            preload: join(__dirname, "../dist/preload.js"),
             nodeIntegration: true,
-            contextIsolation: false,
+            contextIsolation: true,
             disableBlinkFeatures: "Auxclick"
         }
     });

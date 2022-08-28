@@ -1,14 +1,15 @@
-import { ipcRenderer, IpcRendererEvent } from "electron/renderer";
+import type {IpcRendererEvent} from "electron";
+// import { ipcRenderer } from "electron/renderer";
 import { IpcAction, IpcActionParams, IpcActionReturn, IpcPayload, IpcResponse } from "../../Common/Actions";
 import { WindowArguments, WindowEvents } from "../../Common/WindowEventTypes";
 import { openNativeDialog } from "./Dialogs";
 import { NativeDialog } from "../../Common/Dialog";
 
-ipcRenderer.on("asynchronous-reply", handleMessage);
+window.electronAPI.onAsyncReply(handleMessage);
 // We send null to callbacks when the action failed/returned an error
 const callbackHandlers: Map<number, (args: IpcActionReturn[IpcAction] | null) => void> = new Map();
 
-function handleMessage(_: unknown, payload: IpcPayload<IpcAction>) {
+function handleMessage(payload: IpcPayload<IpcAction>) {
     if (payload.id) {
         const handler = callbackHandlers.get(payload.id);
         if (handler) {
@@ -24,17 +25,11 @@ function handleMessage(_: unknown, payload: IpcPayload<IpcAction>) {
 }
 
 export function addWindowEventListener<T extends WindowEvents>(event: T, cb: (args: WindowArguments[T], event: T, rendererEvent?: IpcRendererEvent) => void) {
-    ipcRenderer.on(event, (rendererEvent, args) => cb(args, event, rendererEvent));
+    window.electronAPI.onMainEvent(event, cb);
 }
 
 export function ipcSendMessage<T extends IpcAction>(action: T, data: IpcActionParams[T]) {
-    const id = (Math.random() * Number.MAX_SAFE_INTEGER)>>>0;
-    ipcRenderer.send("asynchronous-message", {
-        action,
-        data,
-        id,
-    });
-    return id;
+    return window.electronAPI.sendAsyncMessage(action, data);
 }
 
 export function ipcGetData<T extends IpcAction>(action: T, data: IpcActionParams[T]) {

@@ -1,4 +1,3 @@
-import { ipcRenderer } from "electron/renderer";
 import { DialogProps, DialogTypes } from "../Components/Dialog/types";
 import { IpcAction } from "../../Common/Actions";
 import { BranchFromType, BranchType, normalizeLocalName, normalizeRemoteNameWithoutRemote, normalizeTagName, remoteName } from "../../Common/Branch";
@@ -7,10 +6,7 @@ import { closeDialogWindow, createBranchFromSha, createBranchFromRef, openDialog
 import { NativeDialog, NativeDialogData } from "../../Common/Dialog";
 
 export async function openNativeDialog<D extends NativeDialog>(dialog: D, data: NativeDialogData[D]) {
-    return ipcRenderer.invoke("dialog", {
-        action: dialog,
-        data,
-    });
+    return window.electronAPI.openNativeDialog(dialog, data);
 }
 
 export function openDialog_EditRemote(data: DialogProps[DialogTypes.EDIT_REMOTE]["data"]) {

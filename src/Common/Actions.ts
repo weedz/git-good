@@ -1,5 +1,6 @@
-import type { Diff, DiffOptions } from "nodegit";
+import type { DiffOptions } from "nodegit";
 import type { AppConfig } from "./Config";
+import { DiffDelta } from "./Utils";
 
 export type IpcPayload<T extends IpcAction> = {
     id?: number
@@ -311,7 +312,7 @@ export type HunkObj = {
     // new: number
 };
 export type PatchObj = {
-    status: Diff.DELTA
+    status: DiffDelta
     hunks?: HunkObj[]
     newFile: FileObj
     oldFile: FileObj
@@ -413,7 +414,7 @@ type LoadCommitsReturn = {
 };
 type LoadFileCommitsReturn = {
     commits: Array<LoadCommitReturn & {
-        status?: Diff.DELTA
+        status?: DiffDelta
         path: string
     }>
     branch: string

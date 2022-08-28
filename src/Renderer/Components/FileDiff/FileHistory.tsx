@@ -1,9 +1,8 @@
-import { Diff } from "nodegit";
 import { Component, h } from "preact";
 import { ipcGetData } from "../../Data/IPC";
 import { IpcActionReturn, IpcAction } from "../../../Common/Actions";
 import { updateStore } from "../../Data/store";
-import { formatTimeAgo } from "../../../Common/Utils";
+import { DiffDelta, formatTimeAgo } from "../../../Common/Utils";
 import ScrollContainer from "../ScrollContainer";
 import Link from "../Link";
 import { showFileHistoryCommitMenu } from "./FileHistoryMenu";
@@ -40,15 +39,15 @@ export default class CommitContainer extends Component<Props, State> {
                             let status = "";
                             let action;
                             let height;
-                            if (commit.status === Diff.DELTA.ADDED) {
+                            if (commit.status === DiffDelta.ADDED) {
                                 status = " added";
-                            } else if (commit.status === Diff.DELTA.RENAMED) {
+                            } else if (commit.status === DiffDelta.RENAMED) {
                                 status = " renamed";
                                 action = <Link selectAction={() => this.props.openFileHistory(commit.path)} title={commit.path}><span className="renamed">RENAMED</span>&nbsp;&gt;&nbsp;{commit.path}</Link>;
                                 height = `${ITEM_HEIGHT + ACTION_ITEM_HEIGHT}px`;
-                            } else if (commit.status === Diff.DELTA.DELETED) {
+                            } else if (commit.status === DiffDelta.DELETED) {
                                 status = " deleted";
-                            } else if (commit.status === Diff.DELTA.MODIFIED) {
+                            } else if (commit.status === DiffDelta.MODIFIED) {
                                 status = " modified";
                             }
                             const item = (

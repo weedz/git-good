@@ -24,9 +24,9 @@ export async function handleDialog(_event: IpcMainInvokeEvent, eventData: Dialog
         const dialogData = eventData.data as NativeDialogData[typeof eventData.action];
         const { canceled, filePaths } = await dialog.showOpenDialog(dialogData);
         if (canceled) {
-            return
+            return;
         }
-        return filePaths[0]
+        return filePaths[0];
     }
 
     if (eventData.action === NativeDialog.DISCARD_CHANGES) {
