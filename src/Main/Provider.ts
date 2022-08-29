@@ -878,19 +878,27 @@ async function getStagedPatches(repo: Repository, flags: Diff.OPTION) {
 }
 
 export async function refreshWorkDir(repo: Repository, options: IpcActionParams[IpcAction.REFRESH_WORKDIR]): AsyncIpcActionReturnOrError<IpcAction.REFRESH_WORKDIR> {
-    await index.read(0);
-
-    const flags = options?.flags || 0;
-
-    // TODO: This is slow. Find a better way to determine when to query unstaged changed
-    workDirIndexCache.unstagedPatches = await getUnstagedPatches(repo, flags);
-    workDirIndexCache.stagedPatches = await getStagedPatches(repo, flags);
-
-    return {
-        unstaged: workDirIndexCache.unstagedPatches.length,
-        staged: workDirIndexCache.stagedPatches.length,
-        status: repoStatus(repo),
-    };
+    // FIXME: Verify that this works? Might throw if called to often?
+    try {
+        await index.read(0);
+    
+        const flags = options?.flags || 0;
+    
+        // TODO: This is slow. Find a better way to determine when to query unstaged changed
+        workDirIndexCache.unstagedPatches = await getUnstagedPatches(repo, flags);
+        workDirIndexCache.stagedPatches = await getStagedPatches(repo, flags);
+        return {
+            unstaged: workDirIndexCache.unstagedPatches.length,
+            staged: workDirIndexCache.stagedPatches.length,
+            status: repoStatus(repo),
+        };
+    } catch (err) {
+        console.log(err);
+        if (err instanceof Error) {
+            return err;
+        }
+        return Error();
+    }
 }
 
 async function stageSingleFile(repo: Repository, filePath: string) {

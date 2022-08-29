@@ -10,10 +10,8 @@ import { RendererRequestArgs, RendererRequestData, RendererRequestEvents, Render
 import { DialogTypes } from "../Components/Dialog/types";
 import { NativeDialog } from "../../Common/Dialog";
 
-let refreshingWorkdir = false;
-
 window.addEventListener("focus", () => {
-    if (!Store.locks[Locks.MAIN] && Store.uiConfig?.refreshWorkdirOnFocus) {
+    if (!Store.locks[Locks.MAIN] && Store.appConfig?.ui.refreshWorkdirOnFocus) {
         refreshWorkdir();
     }
 });
@@ -53,10 +51,11 @@ ipcGetData(IpcAction.INIT, null).then(init => {
         repoOpened(init.repo);
     }
 });
-ipcGetData(IpcAction.GET_SETTINGS, null).then(config => {
+ipcGetData(IpcAction.GET_SETTINGS, null).then(appConfig => {
     updateStore({
-        uiConfig: config["ui"]
-    })
+        appConfig,
+        diffOptions: appConfig.diffOptions
+    });
 });
 
 function calculateGlyphWidth(size: number, font: string) {
@@ -73,10 +72,9 @@ export function glyphWidth() {
 }
 
 export async function refreshWorkdir() {
-    if (!Store.repo || refreshingWorkdir) {
+    if (!Store.repo) {
         return;
     }
-    refreshingWorkdir = true;
     let options = null;
     if (Store.diffOptions.ignoreWhitespace) {
         options = {
@@ -84,18 +82,13 @@ export async function refreshWorkdir() {
         };
     }
     await ipcGetData(IpcAction.REFRESH_WORKDIR, options);
-    refreshingWorkdir = false;
 }
 
 export async function discardChanges(filePath: string) {
-    refreshingWorkdir = true;
     await openNativeDialog(NativeDialog.DISCARD_CHANGES, { path: filePath });
-    refreshingWorkdir = false;
 }
 export async function discardAllChanges() {
-    refreshingWorkdir = true;
     await openNativeDialog(NativeDialog.DISCARD_ALL_CHANGES, null);
-    refreshingWorkdir = false;
 }
 
 function repoOpened(result: IpcActionReturn[IpcAction.OPEN_REPO]) {
