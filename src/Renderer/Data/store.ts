@@ -38,14 +38,12 @@ export type StoreType = {
         summary: string
         body: string
     }
-    diffOptions: {
-        ignoreWhitespace: boolean
-    }
     diffUi: {
         sideBySide: boolean
     }
     notifications: Record<NotificationPosition, Map<number, Notification>>
-    uiConfig: AppConfig["ui"] | undefined
+    appConfig: AppConfig | undefined
+    diffOptions: AppConfig["diffOptions"]
 };
 
 const store = createStore<StoreType>({
@@ -71,16 +69,16 @@ const store = createStore<StoreType>({
     viewChanges: null,
     comparePatches: [],
     commitMsg: {summary: "", body: ""},
-    diffOptions: {
-        ignoreWhitespace: true,
-    },
     diffUi: {
         sideBySide: false,
     },
     notifications: {
         [NotificationPosition.DEFAULT]: new Map(),
     },
-    uiConfig: undefined,
+    appConfig: undefined,
+    diffOptions: {
+        ignoreWhitespace: true,
+    },
 });
 type StoreKeys = keyof StoreType;
 
@@ -141,6 +139,15 @@ store.subscribe("diffPaneSrc", sha => {
         setLock(Locks.COMMIT_LIST);
     }
 });
+export function saveAppConfig(appConfig: AppConfig) {
+    if (appConfig) {
+        ipcSendMessage(IpcAction.SAVE_SETTINGS, appConfig);
+        updateStore({ appConfig });
+        if (appConfig.diffOptions !== Store.diffOptions) {
+            updateStore({ diffOptions: appConfig.diffOptions });
+        }
+    }
+}
 
 // TODO: Most of these functions should probably be in Renderer/IPC.ts or Renderer/index.ts
 

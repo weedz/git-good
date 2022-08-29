@@ -40,6 +40,9 @@ export interface AppConfig {
     }
     commitlistSortOrder: "topological" | "none"
     terminal: string | null
+    diffOptions: {
+        ignoreWhitespace: boolean
+    }
 }
 
 export interface GpgConfig {

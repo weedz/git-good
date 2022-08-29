@@ -648,6 +648,7 @@ const ALLOWED_WHEN_NOT_IN_REPO = {
     [IpcAction.INIT]: true,
     [IpcAction.OPEN_REPO]: true,
     [IpcAction.GET_SETTINGS]: true,
+    [IpcAction.SAVE_SETTINGS]: true,
 };
 
 ipcMain.on("asynchronous-message", async (event, arg: EventArgs) => {

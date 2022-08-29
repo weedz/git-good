@@ -2,7 +2,7 @@ import { h } from "preact";
 import { HunkObj, IpcAction, LineObj, IpcActionReturn } from "../../../Common/Actions";
 import { DiffDelta } from "../../../Common/Utils";
 import { dismissibleWindowClosed, glyphWidth, showDismissibleWindow } from "../../Data";
-import { Store, closeFile, openFileHistory, PureStoreComponent, updateStore, StoreType } from "../../Data/store";
+import { Store, closeFile, openFileHistory, PureStoreComponent, updateStore, StoreType, saveAppConfig } from "../../Data/store";
 import FileHistory from "./FileHistory";
 import HunksContainer from "./HunksContainer";
 
@@ -223,18 +223,16 @@ export default class FileDiff extends PureStoreComponent<unknown, State> {
 }
 
 function setDiffOption(option: keyof StoreType["diffOptions"], value: boolean) {
-    updateStore({
-        diffOptions: {
-            ...Store.diffOptions,
-            [option]: value
-        }
-    })
+    if (!Store.appConfig) {
+        return;
+    }
+    const diffOptions = Object.assign({}, Store.diffOptions, {[option]: value });
+    const appConfig = Store.appConfig;
+    appConfig.diffOptions = diffOptions;
+    saveAppConfig(appConfig);
 }
 function setDiffUiOption(option: keyof StoreType["diffUi"], value: boolean) {
-    updateStore({
-        diffUi: {
-            ...Store.diffUi,
-            [option]: value
-        }
-    })
+    const diffUi = Store.diffUi;
+    diffUi[option] = value;
+    updateStore({ diffUi });
 }

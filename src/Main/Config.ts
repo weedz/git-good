@@ -14,6 +14,11 @@ const globalAppConfigPath = join(appDataDir, "git-good.config.json");
 try {
     const configJSON = readFileSync(globalAppConfigPath).toString();
     appConfig = JSON.parse(configJSON);
+    if (!appConfig.diffOptions) {
+        appConfig.diffOptions = {
+            ignoreWhitespace: true,
+        };
+    }
     selectedGitProfile = appConfig.profiles[appConfig.selectedProfile];
 } catch (err) {
     console.log("Invalid or missing config file. Creating...");
@@ -34,6 +39,9 @@ try {
         },
         commitlistSortOrder: "topological",
         terminal: null,
+        diffOptions: {
+            ignoreWhitespace: true,
+        },
     };
     writeFileSync(globalAppConfigPath, JSON.stringify(appConfig));
 }

@@ -4,7 +4,6 @@ import { AppConfig } from "../../../../Common/Config";
 import { NativeDialog } from "../../../../Common/Dialog";
 import { openNativeDialog } from "../../../Data/Dialogs";
 import { ipcGetData, ipcSendMessage } from "../../../Data/IPC";
-import { updateStore } from "../../../Data/store";
 import { SettingsProps } from "../types";
 import { Profile } from "./Profile";
 
@@ -159,9 +158,6 @@ export class Settings extends Component<SettingsProps, State> {
                 e.preventDefault();
                 this.setState({
                     saved: true
-                });
-                updateStore({
-                    uiConfig: this.state.config.ui
                 });
                 setTimeout(() => {
                     this && this.setState({
