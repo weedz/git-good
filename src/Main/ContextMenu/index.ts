@@ -10,44 +10,44 @@ interface ContextMenuData {
     data: Record<string,string>
 }
 
-export function handleContextMenu(event: IpcMainInvokeEvent, data: ContextMenuData) {
+export function handleContextMenu(_: IpcMainInvokeEvent, data: ContextMenuData) {
     if (data.action === ContextMenu.FILE) {
-        return openFileContextMenu(event, data.data);
+        return openFileContextMenu(data.data);
     }
 
     if (data.action === ContextMenu.FILE_HISTORY) {
-        return openFileHistoryContextMenu(event, data.data);
+        return openFileHistoryContextMenu(data.data);
     }
 
     if (data.action === ContextMenu.REMOTE) {
-        return openRemoteMenu(event, data.data);
+        return openRemoteMenu(data.data);
     }
 
     if (data.action === ContextMenu.REMOTES) {
-        return openRemotesMenu(event, data.data);
+        return openRemotesMenu(data.data);
     }
 
     if (data.action === ContextMenu.REMOTE_REF) {
-        return openRemoteRefMenu(event, data.data);
+        return openRemoteRefMenu(data.data);
     }
 
     if (data.action === ContextMenu.HEAD) {
-        return openHeadMenu(event, data.data);
+        return openHeadMenu(data.data);
     }
 
     if (data.action === ContextMenu.BRANCH_LOCAL) {
-        return openLocalMenu(event, data.data);
+        return openLocalMenu(data.data);
     }
 
     if (data.action === ContextMenu.TAG) {
-        return openTagMenu(event, data.data);
+        return openTagMenu(data.data);
     }
 
     if (data.action === ContextMenu.STASH) {
-        return openStashMenu(event, data.data);
+        return openStashMenu(data.data);
     }
 
     if (data.action === ContextMenu.COMMIT) {
-        return openCommitMenu(event, data.data);
+        return openCommitMenu(data.data);
     }
 }
