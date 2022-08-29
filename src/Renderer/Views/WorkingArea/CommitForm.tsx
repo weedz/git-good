@@ -1,4 +1,4 @@
-import { h, Fragment } from "preact";
+import { h } from "preact";
 import { commit, notify, Store, StoreComponent, StoreType, updateStore } from "../../Data/store";
 
 type State = {
@@ -67,18 +67,23 @@ export default class CommitForm extends StoreComponent<Props, State> {
     render() {
         let commitButton;
         if (this.state.amend) {
-            commitButton = <input type="submit" name="amend" value="Amend" onClick={this.commit} disabled={!this.state.commitMsg.summary.length} />
+            commitButton = <input className="fill" type="submit" name="amend" value="Amend" onClick={this.commit} disabled={!this.state.commitMsg.summary.length} />
         } else if (Store.repo?.status?.rebasing) {
-            commitButton = <input type="submit" name="amend" value="Continue rebase" onClick={(e) => {
+            commitButton = <input className="fill" type="submit" name="amend" value="Continue rebase" onClick={(e) => {
                 e.preventDefault();
             }} />
         } else {
-            commitButton = <input type="submit" name="commit" value="Commit" onClick={this.commit} disabled={!this.props.staged || !this.state.commitMsg.summary.length} />
+            commitButton = <input className="fill" type="submit" name="commit" value="Commit" onClick={this.commit} disabled={!this.props.staged || !this.state.commitMsg.summary.length} />
         }
 
-        return <>
-            <h4>Commit</h4>
-            <form>
+        return <form>
+                <div className="flex-row">
+                    <h4>Commit Message</h4>
+                    <label style="align-self: center; margin-left: auto">
+                        <input type="checkbox" name="amend" onClick={this.setAmend} checked={this.state.amend} />
+                        <span>Amend</span>
+                    </label>
+                </div>
                 <input type="text" style={{width: "100%"}} name="summary" placeholder="Summary" value={this.state.commitMsg.summary} onKeyUp={(e: h.JSX.TargetedEvent<HTMLInputElement, KeyboardEvent>) => {
                     this.updateMessage({summary: e.currentTarget.value});
                 }} />
@@ -87,12 +92,9 @@ export default class CommitForm extends StoreComponent<Props, State> {
                     this.updateMessage({body: e.currentTarget.value});
                 }} value={this.state.commitMsg.body} />
                 <br />
-                {commitButton}
-                <label>
-                    <input type="checkbox" name="amend" onClick={this.setAmend} checked={this.state.amend} />
-                    <span>Amend</span>
-                </label>
-            </form>
-        </>;
+                <div className="flex-row">
+                    {commitButton}
+                </div>
+            </form>;
     }
 }

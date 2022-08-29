@@ -203,3 +203,8 @@ button.active {
   background: #234;
   color: #fefefe;
 }
+
+.fill {
+  width: 100%;
+  height: 100%;
+}
