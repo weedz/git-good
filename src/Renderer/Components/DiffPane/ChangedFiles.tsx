@@ -100,11 +100,19 @@ export default class ChangedFiles extends Component<Props, {fileFilter?: string}
                 }
             ];
         }
+
+        const lastSlash = patch.actualFile.path.lastIndexOf("/") + 1;
+        const path = patch.actualFile.path.substring(0, lastSlash);
+        const basename = patch.actualFile.path.substring(path.length);
+
         return (
-            <li onContextMenu={this.fileContextMenu} className="sub-tree" key={patch.actualFile.path} data-path={patch.actualFile.path}>
-                <Link className={typeCss} linkData={patch} selectAction={this.openFile}>
+            <li onContextMenu={this.fileContextMenu} key={patch.actualFile.path} data-path={patch.actualFile.path}>
+                <Link className={`${typeCss} flex-row`} linkData={patch} selectAction={this.openFile}>
                     <span className="status">{getType(patch.status)}</span>&nbsp;
-                    <span>{patch.actualFile.path}</span>
+                    <div title={patch.actualFile.path} style="min-width: 0;display:flex">
+                        <span className="file-path">{path}</span>
+                        <span className="basename">{basename}</span>
+                    </div>
                 </Link>
                 <div className="action-group">
                     {actions.map(action => <button key={patch.actualFile.path} data-path={patch.actualFile.path} onClick={action.click}>{action.label}</button>)}

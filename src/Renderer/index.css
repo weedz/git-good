@@ -127,7 +127,7 @@ textarea:focus {
 }
 
 ul.block-list > li > a {
-  display: block;
+  display: flex;
 }
 ul.block-list > li > a:not(.selected):hover {
   background-color: #1c2122;
@@ -207,4 +207,9 @@ button.active {
 .fill {
   width: 100%;
   height: 100%;
+}
+
+.truncate {
+  text-overflow: ellipsis;
+  overflow: hidden;
 }
