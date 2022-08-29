@@ -1,8 +1,10 @@
 import { dialog, IpcMainInvokeEvent } from "electron/main";
+import { IpcAction } from "../../Common/Actions";
 import { NativeDialog, NativeDialogData } from "../../Common/Dialog";
+import { getAppConfig } from "../Config";
 import { currentRepo } from "../Context";
-import { discardAllChanges, discardChanges } from "../Provider";
-import { sendEvent } from "../WindowEvents";
+import { sendAction } from "../IPC";
+import { discardAllChanges, discardChanges, refreshWorkDir } from "../Provider";
 
 interface DialogData<D extends NativeDialog> {
     action: D
@@ -41,7 +43,7 @@ export async function handleDialog(_event: IpcMainInvokeEvent, eventData: Dialog
             await discardChanges(currentRepo(), dialogData.path);
             // Need this timeout so the window focus event is fired before IpcAction.DISCARD_FILE?
             setTimeout(async () => {
-                sendEvent("refresh-workdir", null);
+                sendAction(IpcAction.REFRESH_WORKDIR, await refreshWorkDir(currentRepo(), getAppConfig().diffOptions));
             }, 200);
         }
         return true;
@@ -57,7 +59,7 @@ export async function handleDialog(_event: IpcMainInvokeEvent, eventData: Dialog
         if (result.response === 1) {
             await discardAllChanges(currentRepo());
             setTimeout(async () => {
-                sendEvent("refresh-workdir", null);
+                sendAction(IpcAction.REFRESH_WORKDIR, await refreshWorkDir(currentRepo(), getAppConfig().diffOptions));
             }, 200);
         }
         return true;

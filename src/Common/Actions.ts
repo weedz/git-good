@@ -85,7 +85,6 @@ export type IpcActionParams = {
     [IpcAction.LOAD_COMMIT]: string | null
     [IpcAction.LOAD_PATCHES_WITHOUT_HUNKS]: {
         sha: string
-        options: DiffOptions | undefined
     }
     [IpcAction.LOAD_HUNKS]: (
         {
@@ -105,7 +104,7 @@ export type IpcActionParams = {
     [IpcAction.SHOW_STASH]: number
     [IpcAction.CHECKOUT_BRANCH]: string
     [IpcAction.REFRESH_WORKDIR]: null | {
-        flags?: DiffOptions["flags"]
+        ignoreWhitespace: boolean
     }
     [IpcAction.GET_CHANGES]: null
     [IpcAction.STAGE_FILE]: string

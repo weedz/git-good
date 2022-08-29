@@ -298,8 +298,8 @@ function applyAppMenu() {
                 },
                 {
                     label: "Refresh",
-                    click() {
-                        sendEvent("refresh-workdir", null);
+                    async click() {
+                        sendAction(IpcAction.REFRESH_WORKDIR, await provider.refreshWorkDir(repo, getAppConfig().diffOptions));
                     }
                 },
                 {
@@ -470,7 +470,7 @@ const eventMap: {
     [IpcAction.LOAD_COMMIT]: provider.loadCommit,
     [IpcAction.LOAD_COMMITS]: provider.getCommits,
     [IpcAction.LOAD_FILE_COMMITS]: provider.getFileCommits,
-    [IpcAction.LOAD_PATCHES_WITHOUT_HUNKS]: async (_, args) => provider.getCommitPatches(args.sha, args.options),
+    [IpcAction.LOAD_PATCHES_WITHOUT_HUNKS]: async (_, args) => provider.getCommitPatches(args.sha, getAppConfig().diffOptions),
     [IpcAction.FILE_DIFF_AT]: async (repo, args) => provider.diffFileAtCommit(repo, args.file, args.sha),
     [IpcAction.LOAD_HUNKS]: async (repo, arg) => {
         return {
@@ -552,7 +552,7 @@ const eventMap: {
     [IpcAction.REMOTES]: provider.remotes,
     [IpcAction.RESOLVE_CONFLICT]: async (repo, {path}) => {
         const result = await provider.resolveConflict(repo, path);
-        sendEvent("refresh-workdir", null);
+        sendAction(IpcAction.REFRESH_WORKDIR, await provider.refreshWorkDir(repo, getAppConfig().diffOptions));
         return result;
     },
     [IpcAction.EDIT_REMOTE]: async (repo, data, event) => {

@@ -7,7 +7,6 @@ import CommitMessage from "./CommitMessage";
 import ChangedFiles from "./ChangedFiles";
 import { clearLock, Store, StoreComponent } from "../../Data/store";
 import { triggerAction } from "../Link";
-import { DiffOption } from "../../../Common/Utils";
 
 interface State {
     commit: null | CommitObj
@@ -34,12 +33,12 @@ export default class Commit extends StoreComponent<Props, State> {
         this.resetView();
         ipcSendMessage(IpcAction.LOAD_COMMIT, this.props.sha);
         
-        this.listen("diffOptions", diffOptions => this.state.commit && this.loadCommit(this.state.commit, diffOptions));
-        this.registerHandler(IpcAction.LOAD_COMMIT, commit => this.loadCommit(commit, Store.diffOptions));
+        this.listen("diffOptions", () => this.state.commit && this.loadCommit(this.state.commit));
+        this.registerHandler(IpcAction.LOAD_COMMIT, commit => this.loadCommit(commit));
         this.registerHandler(IpcAction.LOAD_PATCHES_WITHOUT_HUNKS, this.handlePatch);
         this.registerHandler(IpcAction.GET_COMMIT_GPG_SIGN, this.handleGpgSign);
     }
-    loadCommit = (commit: IpcResponse<IpcAction.LOAD_COMMIT>, diffOptions: typeof Store["diffOptions"]) => {
+    loadCommit = (commit: IpcResponse<IpcAction.LOAD_COMMIT>) => {
         if (!commit || commit instanceof Error) {
             // FIXME: clearLock should not be called here.
             clearLock(Locks.COMMIT_LIST);
@@ -50,13 +49,7 @@ export default class Commit extends StoreComponent<Props, State> {
             commit
         });
 
-        let options;
-        if (diffOptions.ignoreWhitespace) {
-            options = {
-                flags: DiffOption.IGNORE_WHITESPACE
-            };
-        }
-        ipcSendMessage(IpcAction.LOAD_PATCHES_WITHOUT_HUNKS, {sha: this.props.sha, options});
+        ipcSendMessage(IpcAction.LOAD_PATCHES_WITHOUT_HUNKS, {sha: this.props.sha});
         ipcSendMessage(IpcAction.GET_COMMIT_GPG_SIGN, this.props.sha);
     }
     handlePatch = (patches: IpcActionReturn[IpcAction.LOAD_PATCHES_WITHOUT_HUNKS]) => {

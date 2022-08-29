@@ -19,7 +19,6 @@ export type LinkTypes = "commits" | "branches" | "files";
 export type WindowEvents =
     "repo-opened" |
     "notification:fetch-status" |
-    "refresh-workdir" |
     "open-settings" |
     "app-lock-ui" |
     "app-unlock-ui" |
@@ -41,7 +40,6 @@ export type WindowEvents =
 
 export type WindowArguments = {
     "repo-opened": IpcActionReturn[IpcAction.OPEN_REPO]
-    "refresh-workdir": null
     "open-settings": null
     "app-lock-ui": Locks
     "app-unlock-ui": Locks

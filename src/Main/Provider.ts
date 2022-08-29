@@ -6,7 +6,7 @@ import { Revparse, Credential, Repository, Revwalk, Commit, Diff, ConvenientPatc
 import { IpcAction, BranchObj, LineObj, HunkObj, PatchObj, CommitObj, IpcActionParams, RefType, StashObj, AsyncIpcActionReturnOrError, IpcActionReturn } from "../Common/Actions";
 import { normalizeLocalName, normalizeRemoteName, normalizeRemoteNameWithoutRemote, normalizeTagName, remoteName } from "../Common/Branch";
 import { gpgSign, gpgVerify } from "./GPG";
-import { AuthConfig } from "../Common/Config";
+import { AppConfig, AuthConfig } from "../Common/Config";
 import { currentProfile, getAppConfig, getAuth, signatureFromProfile } from "./Config";
 import { sendEvent } from "./WindowEvents";
 import type { TransferProgress } from "../../types/nodegit";
@@ -877,13 +877,16 @@ async function getStagedPatches(repo: Repository, flags: Diff.OPTION) {
     return stagedDiff.patches();
 }
 
-export async function refreshWorkDir(repo: Repository, options: IpcActionParams[IpcAction.REFRESH_WORKDIR]): AsyncIpcActionReturnOrError<IpcAction.REFRESH_WORKDIR> {
+export async function refreshWorkDir(repo: Repository, diffOptions: IpcActionParams[IpcAction.REFRESH_WORKDIR]): AsyncIpcActionReturnOrError<IpcAction.REFRESH_WORKDIR> {
     // FIXME: Verify that this works? Might throw if called to often?
     try {
         await index.read(0);
-    
-        const flags = options?.flags || 0;
-    
+
+        let flags = 0;
+        if (diffOptions?.ignoreWhitespace) {
+            flags |= Diff.OPTION.IGNORE_WHITESPACE;
+        }
+
         // TODO: This is slow. Find a better way to determine when to query unstaged changed
         workDirIndexCache.unstagedPatches = await getUnstagedPatches(repo, flags);
         workDirIndexCache.stagedPatches = await getStagedPatches(repo, flags);
@@ -1313,13 +1316,18 @@ async function handleDiff(diff: Diff, convPatches: Map<string, ConvenientPatch>)
     });
 }
 
-export async function getCommitPatches(sha: string, options?: DiffOptions): AsyncIpcActionReturnOrError<IpcAction.LOAD_PATCHES_WITHOUT_HUNKS> {
+export async function getCommitPatches(sha: string, diffOptions?: AppConfig["diffOptions"]): AsyncIpcActionReturnOrError<IpcAction.LOAD_PATCHES_WITHOUT_HUNKS> {
     const commit = commitObjectCache.get(sha);
     if (!commit) {
         return Error("Revison not found");
     }
 
-    const diff = await commitDiffParent(commit.commit, options);
+    let flags = 0;
+    if (diffOptions?.ignoreWhitespace) {
+        flags |= Diff.OPTION.IGNORE_WHITESPACE;
+    }
+
+    const diff = await commitDiffParent(commit.commit, {flags});
     await diff.findSimilar({
         flags: Diff.FIND.RENAMES,
     });

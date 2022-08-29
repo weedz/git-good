@@ -5,7 +5,7 @@ import { openNativeDialog, openDialog_CompareRevisions, openDialog_Settings, ope
 import { addWindowEventListener, registerHandler, ipcSendMessage, ipcGetData } from "./IPC";
 import { Store, clearLock, setLock, updateStore, StoreType, notify, openDialogWindow, closeDialogWindow, setDiffpaneSrc } from "./store";
 import { Notification } from "../Components/Notification";
-import { DiffOption, humanReadableBytes } from "../../Common/Utils";
+import { humanReadableBytes } from "../../Common/Utils";
 import { RendererRequestArgs, RendererRequestData, RendererRequestEvents, RendererRequestPayload, WindowArguments } from "../../Common/WindowEventTypes";
 import { DialogTypes } from "../Components/Dialog/types";
 import { NativeDialog } from "../../Common/Dialog";
@@ -75,13 +75,7 @@ export async function refreshWorkdir() {
     if (!Store.repo) {
         return;
     }
-    let options = null;
-    if (Store.diffOptions.ignoreWhitespace) {
-        options = {
-            flags: DiffOption.IGNORE_WHITESPACE
-        };
-    }
-    await ipcGetData(IpcAction.REFRESH_WORKDIR, options);
+    await ipcGetData(IpcAction.REFRESH_WORKDIR, null);
 }
 
 export async function discardChanges(filePath: string) {
@@ -306,7 +300,6 @@ function handleFileCommits(data: IpcActionReturnOrError<IpcAction.LOAD_FILE_COMM
 }
 
 addWindowEventListener("repo-opened", repoOpened);
-addWindowEventListener("refresh-workdir", refreshWorkdir);
 addWindowEventListener("open-settings", openSettings);
 addWindowEventListener("app-lock-ui", setLock);
 addWindowEventListener("app-unlock-ui", clearLock);
