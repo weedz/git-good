@@ -71,11 +71,14 @@ export function glyphWidth() {
     return _glyphWidth;
 }
 
+let refreshingWorkDir = false;
 export async function refreshWorkdir() {
-    if (!Store.repo) {
+    if (!Store.repo || refreshingWorkDir) {
         return;
     }
+    refreshingWorkDir = true;
     await ipcGetData(IpcAction.REFRESH_WORKDIR, null);
+    refreshingWorkDir = false;
 }
 
 export async function discardChanges(filePath: string) {
