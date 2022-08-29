@@ -61,11 +61,7 @@ export default class CommitForm extends StoreComponent<Props, State> {
     updateMessage(msg: {summary: string} | {body: string}) {
         const commitMsg = this.state.amend ? this.state.commitMsg : Store.commitMsg;
         Object.assign(commitMsg, msg);
-        if (this.state.amend) {
-            this.setState({commitMsg});
-        } else {
-            updateStore({commitMsg});
-        }
+        this.setState({commitMsg});
     }
 
     render() {
