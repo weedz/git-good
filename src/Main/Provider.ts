@@ -1480,6 +1480,9 @@ export async function openFileAtCommit(repo: Repository, data: IpcActionParams[I
 
         return true;
     } catch (err) {
+        if (err instanceof Error) {
+            dialog.showErrorBox("Error", err.toString());
+        }
         console.error(err);
         return false
     }

@@ -65,7 +65,7 @@ export default class CommitContainer extends Component<Props, State> {
                                                 },
                                             });
                                         }
-                                    }} title={commit.message} className="flex-column" data-sha={commit.sha}>
+                                    }} title={commit.message} className="flex-column" data-sha={commit.sha} data-path={commit.path}>
                                         <div className="flex-row">
                                             <span className="msg">{commit.message.substring(0, commit.message.indexOf("\n")>>>0 || 60)}</span>
                                         </div>
