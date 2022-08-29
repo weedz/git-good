@@ -203,7 +203,7 @@ export default class FileDiff extends PureStoreComponent<unknown, State> {
                             <button className={this.state.fileHistory ? "active" : undefined} onClick={() => {
                                 this.setState({fileHistory: []});
                                 openFileHistory(patch.actualFile.path, Store.currentFile?.commitSHA);
-                            }} disabled={!!this.state.fileHistory}>History</button>
+                            }}>History</button>
                         </li>
                         <li className="btn-group">
                             <button className={this.state.fullWidth ? "active" : undefined} onClick={() => this.setState({fullWidth: !this.state.fullWidth})}>Fullscreen</button>
