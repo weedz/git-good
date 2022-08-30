@@ -205,7 +205,7 @@ export function openLocalMenu(data: Record<string, string>) {
                     cancelId: 0,
                 });
                 if (result.response === 1) {
-                    await provider.deleteRef(currentRepo(), {name: refName});
+                    await provider.deleteRef(currentRepo(), refName);
                     sendEvent("notify", {
                         title: "Branch deleted",
                         body: `Branch '${refName}' deleted`

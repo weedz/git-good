@@ -229,12 +229,6 @@ export function createBranchFromRef(ref: string, name: string, checkout: boolean
         checkout,
     });
 }
-export function deleteBranch(name: string) {
-    setLock(Locks.BRANCH_LIST);
-    return ipcGetData(IpcAction.DELETE_REF, {
-        name
-    });
-}
 export function renameLocalBranch(oldName: string, newName: string) {
     setLock(Locks.BRANCH_LIST);
     return ipcGetData(IpcAction.RENAME_LOCAL_BRANCH, {

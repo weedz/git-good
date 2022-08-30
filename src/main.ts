@@ -533,7 +533,6 @@ const eventMap: {
         }
         return !!renamedRef;
     },
-    [IpcAction.DELETE_REF]: provider.deleteRef,
     [IpcAction.FIND_FILE]: provider.findFile,
     [IpcAction.OPEN_COMPARE_REVISIONS]: provider.tryCompareRevisions,
     [IpcAction.PUSH]: async (repo, data) => {

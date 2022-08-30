@@ -45,7 +45,6 @@ export const enum IpcAction {
     SET_UPSTREAM,
     CREATE_BRANCH,
     CREATE_BRANCH_FROM_REF,
-    DELETE_REF,
     RENAME_LOCAL_BRANCH,
     FIND_FILE,
     OPEN_COMPARE_REVISIONS,
@@ -132,11 +131,6 @@ export type IpcActionParams = {
         ref: string
         name: string
     }
-    [IpcAction.DELETE_REF]: {
-        name: string
-        force?: boolean
-        prune?: boolean
-    }
     [IpcAction.FIND_FILE]: string
     [IpcAction.OPEN_COMPARE_REVISIONS]: {from: string, to: string}
     [IpcAction.REMOTES]: null
@@ -211,7 +205,6 @@ export type IpcActionReturn = {
     [IpcAction.SET_UPSTREAM]: boolean
     [IpcAction.CREATE_BRANCH]: boolean
     [IpcAction.CREATE_BRANCH_FROM_REF]: boolean
-    [IpcAction.DELETE_REF]: boolean
     [IpcAction.RENAME_LOCAL_BRANCH]: boolean
     [IpcAction.FIND_FILE]: string[]
     [IpcAction.OPEN_COMPARE_REVISIONS]: PatchObj[]

@@ -492,8 +492,8 @@ export async function setUpstream(repo: Repository, local: string, remoteRefName
     return result;
 }
 
-export async function deleteRef(repo: Repository, data: IpcActionParams[IpcAction.DELETE_REF]) {
-    const ref = await repo.getReference(data.name);
+export async function deleteRef(repo: Repository, name: string) {
+    const ref = await repo.getReference(name);
     const res = Branch.delete(ref);
     return !res
 }
