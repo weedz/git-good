@@ -738,25 +738,26 @@ export async function remotes(repo: Repository): AsyncIpcActionReturnOrError<Ipc
 }
 
 export async function findFile(repo: Repository, file: string): AsyncIpcActionReturnOrError<IpcAction.FIND_FILE> {
-    await index.read(0);
+    file = file.toLocaleLowerCase();
 
-    const set = new Set<string>();
+    const matches: string[] = [];
 
-    let count = 0;
+    const head = await repo.getHeadCommit();
+    const tree = await head.getTree();
 
-    for (const entry of index.entries()) {
-        if (entry.path.toLocaleLowerCase().includes(file.toLocaleLowerCase())) {
-            if (!set.has(entry.path)) {
-                set.add(entry.path);
-                count++;
-            }
-            if (count >= 99) {
+    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+    // @ts-ignore, see https://github.com/nodegit/nodegit/pull/1919
+    const paths: string[] = await tree.getAllFilepaths();
+    for (const path of paths) {
+        if (path.toLocaleLowerCase().includes(file)) {
+            matches.push(path);
+            if (matches.length >= 99) {
                 break;
             }
         }
     }
 
-    return Array.from(set.values())
+    return matches;
 }
 
 function onSignature(key: string) {
