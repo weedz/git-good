@@ -65,7 +65,6 @@ export const enum IpcAction {
     DELETE_TAG,
     PARSE_REVSPEC,
     LOAD_STASHES,
-    OPEN_FILE_AT_COMMIT,
     GET_COMMIT_GPG_SIGN,
 }
 
@@ -172,10 +171,6 @@ export type IpcActionParams = {
     }
     [IpcAction.PARSE_REVSPEC]: string
     [IpcAction.LOAD_STASHES]: null
-    [IpcAction.OPEN_FILE_AT_COMMIT]: {
-        file: string
-        sha: string
-    }
     [IpcAction.GET_COMMIT_GPG_SIGN]: string
 };
 
@@ -251,7 +246,6 @@ export type IpcActionReturn = {
     [IpcAction.DELETE_TAG]: boolean
     [IpcAction.PARSE_REVSPEC]: string
     [IpcAction.LOAD_STASHES]: StashObj[]
-    [IpcAction.OPEN_FILE_AT_COMMIT]: boolean
     [IpcAction.GET_COMMIT_GPG_SIGN]: false | {
         signature: {
             data: string

@@ -290,23 +290,6 @@ export function closeDialogWindow() {
 export function openFileHistory(file: string, sha?: string) {
     ipcSendMessage(IpcAction.LOAD_FILE_COMMITS, {file, cursor: sha, startAtCursor: true});
 }
-export async function openFileAtCommit(file: string, sha: string) {
-    const result = await ipcGetData(IpcAction.OPEN_FILE_AT_COMMIT, {file, sha});
-    if (result) {
-        notify({
-            title: file,
-            body: `Opened at commit ${sha}`,
-            time: 3000,
-        });
-    } else {
-        notify({
-            title: file,
-            body: `Failed to open file`,
-            classList: ["error"],
-            time: 3000,
-        });
-    }
-}
 
 export async function showStash(index: number) {
     const patches = await ipcGetData(IpcAction.SHOW_STASH, index);

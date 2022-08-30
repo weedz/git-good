@@ -1474,7 +1474,7 @@ export async function checkoutBranch(repo: Repository, branch: string): AsyncIpc
     }
 }
 
-export async function openFileAtCommit(repo: Repository, data: IpcActionParams[IpcAction.OPEN_FILE_AT_COMMIT]): AsyncIpcActionReturnOrError<IpcAction.OPEN_FILE_AT_COMMIT> {
+export async function openFileAtCommit(repo: Repository, data: {file: string, sha: string}): Promise<boolean> {
     try {
         const commit = await repo.getCommit(data.sha);
 

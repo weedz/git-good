@@ -635,7 +635,6 @@ const eventMap: {
         return oid.tostrS();
     },
     [IpcAction.LOAD_STASHES]: provider.getStash,
-    [IpcAction.OPEN_FILE_AT_COMMIT]: provider.openFileAtCommit,
     [IpcAction.GET_COMMIT_GPG_SIGN]: provider.getCommitGpgSign,
 }
 

@@ -87,7 +87,6 @@ const handlers: {[T in IpcAction]: HandlerCallback[]} = {
     [IpcAction.DELETE_TAG]: [],
     [IpcAction.PARSE_REVSPEC]: [],
     [IpcAction.LOAD_STASHES]: [],
-    [IpcAction.OPEN_FILE_AT_COMMIT]: [],
     [IpcAction.GET_COMMIT_GPG_SIGN]: [],
 };
 export function registerHandler<T extends IpcAction>(action: T, callbacks: ((arg: IpcActionReturn[T]) => void) | (Array<(arg: IpcActionReturn[T]) => void>)) {
