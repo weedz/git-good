@@ -6,7 +6,7 @@ import { addWindowEventListener, registerHandler, ipcSendMessage, ipcGetData } f
 import { Store, clearLock, setLock, updateStore, StoreType, notify, openDialogWindow, closeDialogWindow, setDiffpaneSrc } from "./store";
 import { Notification } from "../Components/Notification";
 import { humanReadableBytes } from "../../Common/Utils";
-import { RendererRequestArgs, RendererRequestData, RendererRequestEvents, RendererRequestPayload, WindowArguments } from "../../Common/WindowEventTypes";
+import { RendererRequestArgs, RendererRequestData, RendererRequestEvents, RendererRequestPayload } from "../../Common/WindowEventTypes";
 import { DialogTypes } from "../Components/Dialog/types";
 import { NativeDialog } from "../../Common/Dialog";
 
@@ -256,33 +256,6 @@ function handlePullHead(res: IpcActionReturn[IpcAction.PULL]) {
     }
 }
 
-function handleStashChanged(res: WindowArguments["stash-changed"]) {
-    switch (res.action) {
-        case "stash": {
-            notify({title: "Stashed changes"});
-            refreshWorkdir();
-            loadStashes();
-            break;
-        }
-        case "pop": {
-            notify({title: `Popped stash@{${res.index}}`});
-            refreshWorkdir();
-            loadStashes();
-            break;
-        }
-        case "apply": {
-            notify({title: `Applied stash@{${res.index}}`});
-            refreshWorkdir();
-            break;
-        }
-        case "drop": {
-            notify({title: `Dropped stash@{${res.index}}`});
-            loadStashes();
-            break;
-        }
-    }
-}
-
 function handleFileCommits(data: IpcActionReturnOrError<IpcAction.LOAD_FILE_COMMITS>) {
     if (data instanceof Error) {
         return;
@@ -308,7 +281,6 @@ addWindowEventListener("app-lock-ui", setLock);
 addWindowEventListener("app-unlock-ui", clearLock);
 addWindowEventListener("begin-compare-revisions", openDialog_CompareRevisions);
 addWindowEventListener("begin-view-commit", openDialog_ViewCommit);
-addWindowEventListener("stash-changed", handleStashChanged);
 addWindowEventListener("notify", notify);
 addWindowEventListener("unselect-link", (linkType) => unselectLink(linkType));
 addWindowEventListener("set-diffpane", (sha) => setDiffpaneSrc(sha));

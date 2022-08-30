@@ -89,9 +89,6 @@ const handlers: {[T in IpcAction]: HandlerCallback[]} = {
     [IpcAction.DELETE_TAG]: [],
     [IpcAction.PARSE_REVSPEC]: [],
     [IpcAction.LOAD_STASHES]: [],
-    [IpcAction.STASH_POP]: [],
-    [IpcAction.STASH_APPLY]: [],
-    [IpcAction.STASH_DROP]: [],
     [IpcAction.OPEN_FILE_AT_COMMIT]: [],
     [IpcAction.GET_COMMIT_GPG_SIGN]: [],
 };

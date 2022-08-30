@@ -1,19 +1,6 @@
 import type { Locks, IpcActionReturn, IpcAction } from "./Actions";
 import { BranchFromType, BranchType } from "./Branch";
 
-type StashChangedArguments = {
-    action: "stash"
-} | {
-    action: "pop"
-    index: number
-} | {
-    action: "apply"
-    index: number
-} | {
-    action: "drop"
-    index: number
-};
-
 export type LinkTypes = "commits" | "branches" | "files";
 
 export type WindowEvents =
@@ -26,7 +13,6 @@ export type WindowEvents =
     "begin-view-commit" |
     "notify" |
     "notification:push-status" |
-    "stash-changed" |
     "notification:pull-status" |
     "dialog:branch-from" |
     "dialog:create-tag" |
@@ -60,7 +46,6 @@ export type WindowArguments = {
         transferedObjects: number
         bytes: number
     }
-    "stash-changed": StashChangedArguments
     "notification:pull-status": null | {success: boolean}
     "dialog:branch-from": {
         sha: string

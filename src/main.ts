@@ -350,26 +350,26 @@ function applyAppMenu() {
                     async click() {
                         // TODO: Stash message
                         await Stash.save(repo, signatureFromActiveProfile(), "Stash", Stash.FLAGS.DEFAULT);
-                        sendEvent("stash-changed", {
-                            action: "stash"
-                        });
+                        sendAction(IpcAction.REFRESH_WORKDIR, await provider.refreshWorkDir(repo, getAppConfig().diffOptions));
+                        sendAction(IpcAction.LOAD_STASHES, await provider.getStash(currentRepo()));
+                        sendEvent("notify", {title: "Stashed changes"});
                     }
                 },
                 {
                     label: "Pop latest stash",
-                    async click() {
+                    click() {
                         provider.stashPop(repo, 0);
                     }
                 },
                 {
                     label: "Apply latest stash",
-                    async click() {
+                    click() {
                         provider.stashApply(repo, 0);
                     }
                 },
                 {
                     label: "Drop latest stash",
-                    async click() {
+                    click() {
                         provider.stashDrop(repo, 0);
                     }
                 }
@@ -637,9 +637,6 @@ const eventMap: {
         return oid.tostrS();
     },
     [IpcAction.LOAD_STASHES]: provider.getStash,
-    [IpcAction.STASH_POP]: provider.stashPop,
-    [IpcAction.STASH_APPLY]: provider.stashApply,
-    [IpcAction.STASH_DROP]: provider.stashDrop,
     [IpcAction.OPEN_FILE_AT_COMMIT]: provider.openFileAtCommit,
     [IpcAction.GET_COMMIT_GPG_SIGN]: provider.getCommitGpgSign,
 }

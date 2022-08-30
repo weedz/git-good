@@ -11,6 +11,7 @@ import { currentProfile, getAppConfig, getAuth, signatureFromProfile } from "./C
 import { sendEvent } from "./WindowEvents";
 import type { TransferProgress } from "../../types/nodegit";
 import { Context } from "./Context";
+import { sendAction } from "./IPC";
 
 declare module "nodegit" {
     export class Credential {
@@ -649,18 +650,15 @@ export async function getStash(repo: Repository) {
 
 export async function stashPop(repo: Repository, index = 0) {
     await Stash.pop(repo, index);
-    sendEvent("stash-changed", {
-        action: "pop",
-        index,
-    });
+    sendAction(IpcAction.REFRESH_WORKDIR, await refreshWorkDir(repo, getAppConfig().diffOptions));
+    sendAction(IpcAction.LOAD_STASHES, await getStash(repo));
+    sendEvent("notify", {title: `Popped stash@{${index}}`});
     return true;
 }
 export async function stashApply(repo: Repository, index = 0) {
     await Stash.apply(repo, index);
-    sendEvent("stash-changed", {
-        action: "apply",
-        index,
-    });
+    sendAction(IpcAction.REFRESH_WORKDIR, await refreshWorkDir(repo, getAppConfig().diffOptions));
+    sendEvent("notify", {title: `Applied stash@{${index}}`});
     return true;
 }
 export async function stashDrop(repo: Repository, index = 0) {
@@ -673,10 +671,8 @@ export async function stashDrop(repo: Repository, index = 0) {
     });
     if (result.response === 1) {
         await Stash.drop(repo, index);
-        sendEvent("stash-changed", {
-            action: "drop",
-            index,
-        });
+        sendAction(IpcAction.LOAD_STASHES, await getStash(repo));
+        sendEvent("notify", {title: `Dropped stash@{${index}}`});
         return true;
     }
     return false;
