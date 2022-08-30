@@ -525,7 +525,7 @@ export async function deleteRemoteRef(repo: Repository, refName: string) {
     }
     return true;
 }
-export async function deleteTag(repo: Repository, data: IpcActionParams[IpcAction.DELETE_TAG]) {
+export async function deleteTag(repo: Repository, data: {name: string, remote: boolean}) {
     if (data.remote) {
         // FIXME: Do we really need to check every remote?
         for (const remote of await repo.getRemotes()) {

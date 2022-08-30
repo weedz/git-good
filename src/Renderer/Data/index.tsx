@@ -382,7 +382,6 @@ registerHandler(IpcAction.OPEN_COMPARE_REVISIONS, handleCompareRevisions);
 registerHandler(IpcAction.COMMIT, handleNewCommit);
 registerHandler(IpcAction.REMOTES, handleRemotes);
 registerHandler(IpcAction.CREATE_TAG, loadBranches);
-registerHandler(IpcAction.DELETE_TAG, loadBranches);
 registerHandler(IpcAction.LOAD_PATCHES_WITHOUT_HUNKS, () => clearLock(Locks.COMMIT_LIST));
 registerHandler(IpcAction.LOAD_STASHES, stashLoaded);
 registerHandler(IpcAction.LOAD_FILE_COMMITS, handleFileCommits);

@@ -62,7 +62,6 @@ export const enum IpcAction {
     GET_SETTINGS,
     FILE_DIFF_AT,
     CREATE_TAG,
-    DELETE_TAG,
     PARSE_REVSPEC,
     LOAD_STASHES,
     GET_COMMIT_GPG_SIGN,
@@ -165,10 +164,6 @@ export type IpcActionParams = {
         fromCommit: boolean
         annotation?: string
     }
-    [IpcAction.DELETE_TAG]: {
-        name: string
-        remote: boolean | undefined
-    }
     [IpcAction.PARSE_REVSPEC]: string
     [IpcAction.LOAD_STASHES]: null
     [IpcAction.GET_COMMIT_GPG_SIGN]: string
@@ -243,7 +238,6 @@ export type IpcActionReturn = {
     [IpcAction.REPO_PROFILE]: boolean
     [IpcAction.FILE_DIFF_AT]: PatchObj | false
     [IpcAction.CREATE_TAG]: boolean
-    [IpcAction.DELETE_TAG]: boolean
     [IpcAction.PARSE_REVSPEC]: string
     [IpcAction.LOAD_STASHES]: StashObj[]
     [IpcAction.GET_COMMIT_GPG_SIGN]: false | {

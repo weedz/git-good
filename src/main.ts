@@ -626,7 +626,6 @@ const eventMap: {
         const profile = currentProfile();
         return provider.createTag(repo, data, signatureFromProfile(profile), profile.gpg?.tag ? profile.gpg.key : undefined);
     },
-    [IpcAction.DELETE_TAG]: provider.deleteTag,
     [IpcAction.PARSE_REVSPEC]: async (repo, sha) => {
         const oid = await provider.parseRevspec(repo, sha);
         if (oid instanceof Error) {
