@@ -205,12 +205,6 @@ export function closeFile() {
     });
     unselectLink("files");
 }
-export function abortRebase() {
-    ipcSendMessage(IpcAction.ABORT_REBASE, null);
-}
-export function continueRebase() {
-    ipcSendMessage(IpcAction.CONTINUE_REBASE, null);
-}
 
 export function setLock(lock: Locks) {
     store.updateStore({locks: {...Store.locks, [lock]: true}});

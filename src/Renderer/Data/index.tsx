@@ -157,16 +157,6 @@ export async function push() {
     return ipcGetData(IpcAction.PUSH, null);
 }
 
-function setStatus(status: RepoStatus) {
-    const repo = Store.repo;
-    if (repo) {
-        repo.status = status;
-        updateStore({
-            repo
-        });
-    }
-}
-
 function loadHunks(data: IpcActionReturn[IpcAction.LOAD_HUNKS]) {
     if (Store.currentFile && data.hunks) {
         const currentFile = Store.currentFile;
@@ -376,8 +366,6 @@ registerHandler(IpcAction.CREATE_BRANCH_FROM_REF, loadBranches);
 registerHandler(IpcAction.DELETE_REF, loadBranches);
 registerHandler(IpcAction.DELETE_REMOTE_REF, loadBranches);
 registerHandler(IpcAction.RENAME_LOCAL_BRANCH, loadBranches);
-registerHandler(IpcAction.ABORT_REBASE, setStatus);
-registerHandler(IpcAction.CONTINUE_REBASE, setStatus);
 registerHandler(IpcAction.OPEN_COMPARE_REVISIONS, handleCompareRevisions);
 registerHandler(IpcAction.COMMIT, handleNewCommit);
 registerHandler(IpcAction.REMOTES, handleRemotes);

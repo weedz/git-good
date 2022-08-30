@@ -5,7 +5,7 @@ import { shell, clipboard } from "electron";
 import { app, BrowserWindow, ipcMain, Menu, dialog, MenuItemConstructorOptions, IpcMainEvent } from "electron/main";
 
 
-import { Clone, Commit, Object, Rebase, Reference, Remote, Repository, Stash } from "nodegit";
+import { Clone, Commit, Object, Reference, Remote, Repository, Stash } from "nodegit";
 
 import { isMac, isWindows } from "./Main/Utils";
 import { addRecentRepository, clearRepoProfile, currentProfile, getAppConfig, getRecentRepositories, getRepoProfile, saveAppConfig, setCurrentProfile, setRepoProfile, signatureFromActiveProfile, signatureFromProfile } from "./Main/Config";
@@ -536,8 +536,6 @@ const eventMap: {
     [IpcAction.DELETE_REF]: provider.deleteRef,
     [IpcAction.DELETE_REMOTE_REF]: provider.deleteRemoteRef,
     [IpcAction.FIND_FILE]: provider.findFile,
-    [IpcAction.ABORT_REBASE]: abortRebase,
-    [IpcAction.CONTINUE_REBASE]: continueRebase,
     [IpcAction.OPEN_COMPARE_REVISIONS]: provider.tryCompareRevisions,
     [IpcAction.PUSH]: async (repo, data) => {
         return provider.push(getContext(), data);
@@ -663,20 +661,6 @@ ipcMain.on("asynchronous-message", async (event, arg: EventArgs) => {
     const data = arg.data as IpcActionParams[typeof action];
     eventReply(event, action, await callback(currentRepo(), data, event), arg.id);
 });
-
-async function abortRebase(repo: Repository): AsyncIpcActionReturnOrError<IpcAction.ABORT_REBASE> {
-    const rebase = await Rebase.open(repo);
-    console.log(rebase);
-    // rebase.abort();
-    return provider.repoStatus(repo);
-}
-async function continueRebase(repo: Repository): AsyncIpcActionReturnOrError<IpcAction.CONTINUE_REBASE> {
-    const rebase = await Rebase.open(repo);
-    console.log(rebase);
-    // const rebaseAction = await rebase.next();
-    // console.dir(rebaseAction);
-    return provider.repoStatus(repo);
-}
 
 async function openRepoDialog() {
     sendEvent("app-lock-ui", Locks.MAIN);

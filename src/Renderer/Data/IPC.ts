@@ -71,8 +71,6 @@ const handlers: {[T in IpcAction]: HandlerCallback[]} = {
     [IpcAction.DELETE_REMOTE_REF]: [],
     [IpcAction.RENAME_LOCAL_BRANCH]: [],
     [IpcAction.FIND_FILE]: [],
-    [IpcAction.ABORT_REBASE]: [],
-    [IpcAction.CONTINUE_REBASE]: [],
     [IpcAction.OPEN_COMPARE_REVISIONS]: [],
     [IpcAction.REMOTES]: [],
     [IpcAction.RESOLVE_CONFLICT]: [],

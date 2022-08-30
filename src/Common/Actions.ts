@@ -49,8 +49,6 @@ export const enum IpcAction {
     DELETE_REMOTE_REF,
     RENAME_LOCAL_BRANCH,
     FIND_FILE,
-    ABORT_REBASE,
-    CONTINUE_REBASE,
     OPEN_COMPARE_REVISIONS,
     REMOTES,
     RESOLVE_CONFLICT,
@@ -142,8 +140,6 @@ export type IpcActionParams = {
     }
     [IpcAction.DELETE_REMOTE_REF]: string
     [IpcAction.FIND_FILE]: string
-    [IpcAction.ABORT_REBASE]: null
-    [IpcAction.CONTINUE_REBASE]: null
     [IpcAction.OPEN_COMPARE_REVISIONS]: {from: string, to: string}
     [IpcAction.REMOTES]: null
     [IpcAction.RESOLVE_CONFLICT]: {path: string}
@@ -221,8 +217,6 @@ export type IpcActionReturn = {
     [IpcAction.DELETE_REMOTE_REF]: boolean
     [IpcAction.RENAME_LOCAL_BRANCH]: boolean
     [IpcAction.FIND_FILE]: string[]
-    [IpcAction.ABORT_REBASE]: RepoStatus
-    [IpcAction.CONTINUE_REBASE]: RepoStatus
     [IpcAction.OPEN_COMPARE_REVISIONS]: PatchObj[]
     [IpcAction.REMOTES]: {
         name: string
