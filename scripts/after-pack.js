@@ -1,16 +1,18 @@
 const fs = require("fs");
 const asar = require('asar');
 
-const nodegitPathList = [
+let nodegitPathList = [
     "node_modules/nodegit/.github",
     "node_modules/nodegit/vendor",
     "node_modules/nodegit/build/vendor",
     "node_modules/nodegit/include",
     "node_modules/nodegit/lifecycleScripts",
     "node_modules/nodegit/utils",
-];
 
-let fileList = [
+    "node_modules/nodegit/.travis",
+    "node_modules/nodegit/generate",
+    "node_modules/nodegit/guides",
+
     "node_modules/nodegit/build/Release/git2.a",
     "node_modules/nodegit/build/Release/http_parser.a",
     "node_modules/nodegit/build/Release/ntlmclient.a",
@@ -19,7 +21,9 @@ let fileList = [
     "node_modules/nodegit/build/Release/zlib.a",
     "node_modules/nodegit/build/Release/acquireOpenSSL.node",
     "node_modules/nodegit/build/Release/configureLibssh2.node",
+];
 
+const fileList = [
     "src",
     "scripts",
     ".github",
@@ -27,6 +31,9 @@ let fileList = [
     ".eslintrc.json",
     ".eslintignore",
     ".preact.eslintrc.js",
+    "static",
+    "pnpm-lock.yaml",
+    "TODO.md",
 ];
 
 
@@ -35,7 +42,7 @@ async function clean(resourceDir) {
     asar.extractAll(`${resourceDir}/app.asar`, `${resourceDir}/app`);
     fs.rmSync(`${resourceDir}/app.asar`);
     
-    for (const dir of nodegitPathList) {
+    for (const dir of nodegitPathList.concat(fileList)) {
         fs.rmSync(`${resourceDir}/app/${dir}`, { recursive: true });
     }
     
@@ -43,21 +50,19 @@ async function clean(resourceDir) {
         unpackDir: "**"
     });
     fs.rmSync(`${resourceDir}/app`, { recursive: true });
-    
-    
-    // Cleaning unpacked files..
-    for (const dir of nodegitPathList.concat(fileList)) {
+
+    for (const dir of nodegitPathList) {
         fs.rmSync(`${resourceDir}/app.asar.unpacked/${dir}`, { recursive: true });
     }
 }
 
 function cleanLinux() {
-    fileList = fileList.filter(file => file !== "node_modules/nodegit/build/Release/acquireOpenSSL.node");
-    fileList = fileList.filter(file => file !== "node_modules/nodegit/build/Release/configureLibssh2.node");
+    nodegitPathList = nodegitPathList.filter(file => file !== "node_modules/nodegit/build/Release/acquireOpenSSL.node");
+    nodegitPathList = nodegitPathList.filter(file => file !== "node_modules/nodegit/build/Release/configureLibssh2.node");
     return clean("out/linux-unpacked/resources");
 }
 function cleanMac() {
-    fileList = fileList.filter(file => file !== "node_modules/nodegit/build/Release/pcre.a");
+    nodegitPathList = nodegitPathList.filter(file => file !== "node_modules/nodegit/build/Release/pcre.a");
     return clean("out/mac/git-good.app/Contents/Resources");
 }
 
