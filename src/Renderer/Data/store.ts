@@ -243,11 +243,6 @@ export function renameLocalBranch(oldName: string, newName: string) {
     });
 }
 
-export function deleteRemoteBranch(name: string) {
-    setLock(Locks.BRANCH_LIST);
-    return ipcGetData(IpcAction.DELETE_REMOTE_REF, name);
-}
-
 export function setUpstream(local: string, remote: string | null) {
     return ipcGetData(IpcAction.SET_UPSTREAM, {
         local,

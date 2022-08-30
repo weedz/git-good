@@ -364,7 +364,6 @@ registerHandler(IpcAction.SET_UPSTREAM, loadBranches);
 registerHandler(IpcAction.CREATE_BRANCH, loadBranches);
 registerHandler(IpcAction.CREATE_BRANCH_FROM_REF, loadBranches);
 registerHandler(IpcAction.DELETE_REF, loadBranches);
-registerHandler(IpcAction.DELETE_REMOTE_REF, loadBranches);
 registerHandler(IpcAction.RENAME_LOCAL_BRANCH, loadBranches);
 registerHandler(IpcAction.OPEN_COMPARE_REVISIONS, handleCompareRevisions);
 registerHandler(IpcAction.COMMIT, handleNewCommit);
