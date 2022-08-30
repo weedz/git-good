@@ -1,7 +1,7 @@
 import { basename, join } from "path";
 import { exec, spawn } from "child_process";
 
-import { shell, clipboard } from "electron";
+import { shell, clipboard, screen } from "electron";
 import { app, BrowserWindow, ipcMain, Menu, dialog, MenuItemConstructorOptions, IpcMainEvent } from "electron/main";
 
 
@@ -33,18 +33,11 @@ ipcMain.on("context-menu", handleContextMenu);
 ipcMain.handle("dialog", handleDialog);
 
 const createWindow = () => {
-    // TODO: `screen.getCursorScreenPoint()` triggers a segfault on wayland?
-    // const cursorPosition = screen.getCursorScreenPoint();
-    // const activeDisplay = screen.getDisplayNearestPoint(cursorPosition);
-
     const initialWindowWidth = 1024;
     const initialWindowHeight = 600;
 
-
     // Create the browser window.
     const win = new BrowserWindow({
-        // x: activeDisplay.bounds.x + activeDisplay.size.width / 2 - initialWindowWidth / 2,
-        // y: activeDisplay.bounds.y + activeDisplay.size.height / 2 - initialWindowHeight / 2,
         height: initialWindowHeight,
         width: initialWindowWidth,
         minHeight: initialWindowHeight,
@@ -56,6 +49,14 @@ const createWindow = () => {
             disableBlinkFeatures: "Auxclick"
         }
     });
+
+    const cursorPosition = screen.getCursorScreenPoint();
+    const activeDisplay = screen.getDisplayNearestPoint(cursorPosition);
+
+    win.setPosition(
+        activeDisplay.bounds.x + activeDisplay.size.width / 2 - initialWindowWidth / 2,
+        activeDisplay.bounds.y + activeDisplay.size.height / 2 - initialWindowHeight / 2
+    );
 
     // win.webContents.openDevTools();
 
