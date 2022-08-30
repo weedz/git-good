@@ -1,16 +1,16 @@
-import { contextBridge, ipcRenderer, IpcRendererEvent } from "electron";
+import { contextBridge, ipcRenderer } from "electron/renderer";
 import { IpcAction, IpcActionParams, IpcPayload } from "./Common/Actions";
 import { ContextMenu, ContextMenuData } from "./Common/ContextMenu";
 import { NativeDialog, NativeDialogData, NativeDialogReturn } from "./Common/Dialog";
-import { RendererRequestData, RendererRequestEvents, RendererRequestPayload, WindowArguments, WindowEvents } from "./Common/WindowEventTypes";
+import { AppEventData, AppEventType, RendererRequestData, RendererRequestEvents, RendererRequestPayload } from "./Common/WindowEventTypes";
 
 export interface IContextMenuApi {
     openContextMenu: <M extends ContextMenu>(menu: M, data: ContextMenuData[M]) => void
     openNativeDialog: <D extends NativeDialog>(dialog: D, data: NativeDialogData[D]) => NativeDialogReturn[D]
     requestClientData: (callback: <E extends RendererRequestEvents>(payload: RendererRequestPayload<E>) => Promise<RendererRequestData[E]>) => void
     onAsyncReply: (callback: (payload: IpcPayload<IpcAction>) => void) => void
-    onMainEvent: <T extends WindowEvents>(event: T, cb: (args: WindowArguments[T], event: T, rendererEvent?: IpcRendererEvent) => void) => void
     sendAsyncMessage: <T extends IpcAction>(action: T, data: IpcActionParams[T]) => number
+    onAppEvent: <T extends AppEventType>(callback: (payload: {data: AppEventData[T], event: T}) => void) => void
 }
 
 declare global {
@@ -51,9 +51,6 @@ contextBridge.exposeInMainWorld("electronAPI", {
     onAsyncReply: (callback: (payload: IpcPayload<IpcAction>) => void) => {
         ipcRenderer.on("asynchronous-reply", (event, payload) => callback(payload));
     },
-    onMainEvent: <T extends WindowEvents>(event: T, cb: (args: WindowArguments[T], event: T, rendererEvent?: IpcRendererEvent) => void) => {
-        ipcRenderer.on(event, (rendererEvent, args) => cb(args, event, rendererEvent));
-    },
     sendAsyncMessage: <T extends IpcAction>(action: T, data: IpcActionParams[T]) => {
         const id = (Math.random() * Number.MAX_SAFE_INTEGER)>>>0;
         ipcRenderer.send("asynchronous-message", {
@@ -63,10 +60,7 @@ contextBridge.exposeInMainWorld("electronAPI", {
         });
         return id
     },
+    onAppEvent: <T extends AppEventType>(callback: (payload: {data: AppEventData[T], event: T}) => void) => {
+        ipcRenderer.on("app-event", (_rendererEvent, args) => callback(args));
+    },
 });
-
-
-export function addWindowEventListener<T extends WindowEvents>(event: T, cb: (args: WindowArguments[T], event: T, rendererEvent?: IpcRendererEvent) => void) {
-    // TODO: Verify event type
-    ipcRenderer.on(event, (rendererEvent, args) => cb(args, event, rendererEvent));
-}

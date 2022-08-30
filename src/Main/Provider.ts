@@ -12,6 +12,7 @@ import { sendEvent } from "./WindowEvents";
 import type { TransferProgress } from "../../types/nodegit";
 import { Context } from "./Context";
 import { sendAction } from "./IPC";
+import { AppEventType } from "../Common/WindowEventTypes";
 
 declare module "nodegit" {
     export class Credential {
@@ -235,7 +236,7 @@ export async function fetch(remotes: Remote[]) {
                     credentials: credentialsCallback,
                     transferProgress: (stats: TransferProgress, remote: string) => {
                         update = true;
-                        sendEvent("notification:fetch-status", {
+                        sendEvent(AppEventType.NOTIFY_FETCH_STATUS, {
                             remote,
                             receivedObjects: stats.receivedObjects(),
                             totalObjects: stats.totalObjects(),
@@ -252,13 +253,13 @@ export async function fetch(remotes: Remote[]) {
         if (err instanceof Error) {
             dialog.showErrorBox("Fetch failed", err.message);
         }
-        sendEvent("notification:fetch-status", {
+        sendEvent(AppEventType.NOTIFY_FETCH_STATUS, {
             done: true,
             update
         });
         return false;
     }
-    sendEvent("notification:fetch-status", {
+    sendEvent(AppEventType.NOTIFY_FETCH_STATUS, {
         done: true,
         update
     });
@@ -266,7 +267,7 @@ export async function fetch(remotes: Remote[]) {
 }
 
 export async function fetchFrom(repo: Repository, params: IpcActionParams[IpcAction.FETCH]) {
-    sendEvent("notification:fetch-status", {
+    sendEvent(AppEventType.NOTIFY_FETCH_STATUS, {
         done: false,
         update: false
     });
@@ -374,8 +375,8 @@ async function pushHead(context: Context) {
 }
 
 export async function push(context: Context, data: IpcActionParams[IpcAction.PUSH]) {
-    sendEvent("notification:push-status", {
-        done: false
+    sendEvent(AppEventType.NOTIFY_PUSH_STATUS, {
+        done: false,
     });
 
     let result = false;
@@ -397,7 +398,7 @@ export async function push(context: Context, data: IpcActionParams[IpcAction.PUS
         }
     }
 
-    sendEvent("notification:push-status", {
+    sendEvent(AppEventType.NOTIFY_PUSH_STATUS, {
         done: true
     });
 
@@ -458,7 +459,7 @@ async function doPush(remote: Remote, localName: string, remoteName: string, for
                     // eslint-disable-next-line @typescript-eslint/ban-ts-comment
                     // @ts-ignore
                     pushTransferProgress: (transferedObjects: number, totalObjects: number, bytes: number) => {
-                        context && sendEvent("notification:push-status", {
+                        context && sendEvent(AppEventType.NOTIFY_PUSH_STATUS, {
                             totalObjects,
                             transferedObjects,
                             bytes
@@ -652,13 +653,13 @@ export async function stashPop(repo: Repository, index = 0) {
     await Stash.pop(repo, index);
     sendAction(IpcAction.REFRESH_WORKDIR, await refreshWorkDir(repo, getAppConfig().diffOptions));
     sendAction(IpcAction.LOAD_STASHES, await getStash(repo));
-    sendEvent("notify", {title: `Popped stash@{${index}}`});
+    sendEvent(AppEventType.NOTIFY, {title: `Popped stash@{${index}}`});
     return true;
 }
 export async function stashApply(repo: Repository, index = 0) {
     await Stash.apply(repo, index);
     sendAction(IpcAction.REFRESH_WORKDIR, await refreshWorkDir(repo, getAppConfig().diffOptions));
-    sendEvent("notify", {title: `Applied stash@{${index}}`});
+    sendEvent(AppEventType.NOTIFY, {title: `Applied stash@{${index}}`});
     return true;
 }
 export async function stashDrop(repo: Repository, index = 0) {
@@ -672,7 +673,7 @@ export async function stashDrop(repo: Repository, index = 0) {
     if (result.response === 1) {
         await Stash.drop(repo, index);
         sendAction(IpcAction.LOAD_STASHES, await getStash(repo));
-        sendEvent("notify", {title: `Dropped stash@{${index}}`});
+        sendEvent(AppEventType.NOTIFY, {title: `Dropped stash@{${index}}`});
         return true;
     }
     return false;

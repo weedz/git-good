@@ -16,7 +16,7 @@ import { formatTimeAgo } from "./Common/Utils";
 import { requestClientData, sendEvent } from "./Main/WindowEvents";
 import { normalizeLocalName } from "./Common/Branch";
 
-import { RendererRequestEvents } from "./Common/WindowEventTypes";
+import { AppEventType, RendererRequestEvents } from "./Common/WindowEventTypes";
 
 // eslint-disable-next-line import/no-unresolved
 import { lastCommit, buildDateTime } from "env";
@@ -90,7 +90,7 @@ function buildOpenRepoMenuItem(path: string): MenuItemConstructorOptions {
         async click() {
             const result = await openRepo(path);
             if (result.opened) {
-                sendEvent("repo-opened", result);
+                sendEvent(AppEventType.REPO_OPENED, result);
             }
         }
     }
@@ -131,14 +131,14 @@ function applyAppMenu() {
                                     }
                                 });
                                 const repoResult = await openRepo(clonedRepo.workdir());
-                                return sendEvent("repo-opened", repoResult);
+                                return sendEvent(AppEventType.REPO_OPENED, repoResult);
                             } catch (err) {
                                 console.warn(err);
                                 if (err instanceof Error) {
                                     dialog.showErrorBox("Clone failed", err.message);
                                 }
                             }
-                            sendEvent("repo-opened", null);
+                            sendEvent(AppEventType.REPO_OPENED, null);
                         }
                     }
                 },
@@ -149,7 +149,7 @@ function applyAppMenu() {
                         if (data.source) {
                             const initialRepo = await Repository.init(data.source, 0);
                             const repoResult = await openRepo(initialRepo.workdir());
-                            sendEvent("repo-opened", repoResult);
+                            sendEvent(AppEventType.REPO_OPENED, repoResult);
                         }
                     }
                 },
@@ -162,7 +162,7 @@ function applyAppMenu() {
                     async click() {
                         const result = await openRepoDialog();
                         if (result?.opened) {
-                            sendEvent("repo-opened", result);
+                            sendEvent(AppEventType.REPO_OPENED, result);
                         }
                     }
                 },
@@ -216,7 +216,7 @@ function applyAppMenu() {
                     label: "Preferences...",
                     accelerator: "CmdOrCtrl+,",
                     click() {
-                        sendEvent("open-settings", null);
+                        sendEvent(AppEventType.OPEN_SETTINGS, null);
                     }
                 },
                 {
@@ -288,23 +288,23 @@ function applyAppMenu() {
                 {
                     label: "Pull...",
                     async click() {
-                        sendEvent("app-lock-ui", Locks.BRANCH_LIST);
+                        sendEvent(AppEventType.LOCK_UI, Locks.BRANCH_LIST);
                         await provider.pull(repo, null, signatureFromActiveProfile());
-                        sendEvent("app-unlock-ui", Locks.BRANCH_LIST);
+                        sendEvent(AppEventType.UNLOCK_UI, Locks.BRANCH_LIST);
                         sendAction(IpcAction.LOAD_BRANCHES, await provider.getBranches(currentRepo()));
                     }
                 },
                 {
                     label: "Push...",
                     async click() {
-                        sendEvent("app-lock-ui", Locks.BRANCH_LIST);
+                        sendEvent(AppEventType.LOCK_UI, Locks.BRANCH_LIST);
                         const result = await provider.push({repo, win}, null);
                         if (result instanceof Error) {
                             dialog.showErrorBox("Failed to push", result.message);
                         } else {
                             sendAction(IpcAction.LOAD_BRANCHES, await provider.getBranches(currentRepo()));
                         }
-                        sendEvent("app-unlock-ui", Locks.BRANCH_LIST);
+                        sendEvent(AppEventType.UNLOCK_UI, Locks.BRANCH_LIST);
                     }
                 },
                 {
@@ -314,14 +314,14 @@ function applyAppMenu() {
                     label: "Compare revisions...",
                     click() {
                         // TODO: implement with requestClientData
-                        sendEvent("begin-compare-revisions", null);
+                        sendEvent(AppEventType.BEGIN_COMPARE_REVISIONS, null);
                     }
                 },
                 {
                     label: "View commit...",
                     click() {
                         // TODO: implement with requestClientData
-                        sendEvent("begin-view-commit", null);
+                        sendEvent(AppEventType.BEGIN_VIEW_COMMIT, null);
                     }
                 },
             ]
@@ -335,7 +335,7 @@ function applyAppMenu() {
                         await Stash.save(repo, signatureFromActiveProfile(), "Stash", Stash.FLAGS.DEFAULT);
                         sendAction(IpcAction.REFRESH_WORKDIR, await provider.refreshWorkDir(repo, getAppConfig().diffOptions));
                         sendAction(IpcAction.LOAD_STASHES, await provider.getStash(currentRepo()));
-                        sendEvent("notify", {title: "Stashed changes"});
+                        sendEvent(AppEventType.NOTIFY, {title: "Stashed changes"});
                     }
                 },
                 {
@@ -644,20 +644,20 @@ ipcMain.on("asynchronous-message", async (event, arg: EventArgs) => {
 });
 
 async function openRepoDialog() {
-    sendEvent("app-lock-ui", Locks.MAIN);
+    sendEvent(AppEventType.LOCK_UI, Locks.MAIN);
 
     const res = await dialog.showOpenDialog({
         properties: ["openDirectory"],
         title: "Select a repository"
     });
     if (res.canceled) {
-        sendEvent("app-unlock-ui", Locks.MAIN);
+        sendEvent(AppEventType.UNLOCK_UI, Locks.MAIN);
         return null;
     }
 
     const result = await openRepo(res.filePaths[0]);
 
-    sendEvent("app-unlock-ui", Locks.MAIN);
+    sendEvent(AppEventType.UNLOCK_UI, Locks.MAIN);
 
     return result;
 }
@@ -679,7 +679,7 @@ async function openRepo(repoPath: string) {
             const profile = setCurrentProfile(repoProfile);
             body = `Profile set to '${profile?.profileName}'`;
         }
-        sendEvent("notify", {title: "Repo opened", body});
+        sendEvent(AppEventType.NOTIFY, {title: "Repo opened", body});
     } else {
         dialog.showErrorBox("No repository", `'${repoPath}' does not contain a git repository`);
     }

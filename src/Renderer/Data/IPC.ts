@@ -1,11 +1,11 @@
-import type {IpcRendererEvent} from "electron";
-// import { ipcRenderer } from "electron/renderer";
 import { IpcAction, IpcActionParams, IpcActionReturn, IpcPayload, IpcResponse } from "../../Common/Actions";
-import { WindowArguments, WindowEvents } from "../../Common/WindowEventTypes";
+import { AppEventData, AppEventType } from "../../Common/WindowEventTypes";
 import { openNativeDialog } from "./Dialogs";
 import { NativeDialog } from "../../Common/Dialog";
 
 window.electronAPI.onAsyncReply(handleMessage);
+window.electronAPI.onAppEvent(handleAppEvent);
+
 // We send null to callbacks when the action failed/returned an error
 const callbackHandlers: Map<number, (args: IpcActionReturn[IpcAction] | null) => void> = new Map();
 
@@ -24,8 +24,19 @@ function handleMessage(payload: IpcPayload<IpcAction>) {
     handleEvent(payload);
 }
 
-export function addWindowEventListener<T extends WindowEvents>(event: T, cb: (args: WindowArguments[T], event: T, rendererEvent?: IpcRendererEvent) => void) {
-    window.electronAPI.onMainEvent(event, cb);
+type AppEventHandlerCallback<T extends AppEventType> = (args: AppEventData[T]) => void;
+let appEventHandlers: {
+    [T in AppEventType]: AppEventHandlerCallback<T>
+};
+export function registerAppEventHandlers(handlers: typeof appEventHandlers) {
+    appEventHandlers = handlers;
+}
+
+function handleAppEvent<T extends AppEventType>(payload: {
+    event: T
+    data: AppEventData[T]
+}) {
+    appEventHandlers[payload.event](payload.data);
 }
 
 export function ipcSendMessage<T extends IpcAction>(action: T, data: IpcActionParams[T]) {

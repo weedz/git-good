@@ -1,5 +1,6 @@
 import { clipboard } from "electron";
 import { Menu, MenuItemConstructorOptions } from "electron/main";
+import { AppEventType } from "../../Common/WindowEventTypes";
 import { currentRepo } from "../Context";
 import { openFileAtCommit } from "../Provider";
 import { sendEvent } from "../WindowEvents";
@@ -9,7 +10,7 @@ export function openFileHistoryContextMenu(data: Record<string, string>) {
         {
             label: "View commit",
             click() {
-                sendEvent("set-diffpane", data.sha);
+                sendEvent(AppEventType.SET_DIFFPANE, data.sha);
             }
         },
         {

@@ -1,12 +1,12 @@
 import { h } from "preact";
 import { GlobalLinks, unselectLink } from "../Components/Link";
 import { BranchObj, IpcAction, IpcActionReturn, IpcActionReturnOrError, IpcResponse, Locks, RepoStatus } from "../../Common/Actions";
-import { openNativeDialog, openDialog_CompareRevisions, openDialog_Settings, openDialog_ViewCommit, openDialog_createTag, openDialog_BranchFrom, openDialog_AddRemote, openDialog_RenameRef, openDialog_SetUpstream } from "./Dialogs";
-import { addWindowEventListener, registerHandler, ipcSendMessage, ipcGetData } from "./IPC";
+import { openNativeDialog, openDialog_CompareRevisions, openDialog_Settings, openDialog_ViewCommit, openDialog_createTag, openDialog_BranchFrom, openDialog_AddRemote, openDialog_RenameRef, openDialog_SetUpstream, openDialog_EditRemote, openDialog_PushTag } from "./Dialogs";
+import { registerAppEventHandlers, registerHandler, ipcSendMessage, ipcGetData } from "./IPC";
 import { Store, clearLock, setLock, updateStore, StoreType, notify, openDialogWindow, closeDialogWindow, setDiffpaneSrc } from "./store";
 import { Notification } from "../Components/Notification";
 import { humanReadableBytes } from "../../Common/Utils";
-import { RendererRequestArgs, RendererRequestData, RendererRequestEvents, RendererRequestPayload } from "../../Common/WindowEventTypes";
+import { AppEventData, AppEventType, RendererRequestArgs, RendererRequestData, RendererRequestEvents, RendererRequestPayload } from "../../Common/WindowEventTypes";
 import { DialogTypes } from "../Components/Dialog/types";
 import { NativeDialog } from "../../Common/Dialog";
 
@@ -270,88 +270,71 @@ function handleFileCommits(data: IpcActionReturnOrError<IpcAction.LOAD_FILE_COMM
     });
 }
 
-addWindowEventListener("repo-opened", repoOpened);
-addWindowEventListener("open-settings", openSettings);
-addWindowEventListener("app-lock-ui", setLock);
-addWindowEventListener("app-unlock-ui", clearLock);
-addWindowEventListener("begin-compare-revisions", openDialog_CompareRevisions);
-addWindowEventListener("begin-view-commit", openDialog_ViewCommit);
-addWindowEventListener("notify", notify);
-addWindowEventListener("unselect-link", (linkType) => unselectLink(linkType));
-addWindowEventListener("set-diffpane", (sha) => setDiffpaneSrc(sha));
-
-
-addWindowEventListener("dialog:branch-from", (data) => {
-    openDialog_BranchFrom(data.sha, data.type);
-});
-addWindowEventListener("dialog:create-tag", (data) => {
-    openDialog_createTag(data.sha, data.fromCommit);
-});
-addWindowEventListener("dialog:add-remote", () => {
-    openDialog_AddRemote();
-});
-addWindowEventListener("dialog:rename-ref", (data) => {
-    openDialog_RenameRef(data.name, data.type);
-});
-addWindowEventListener("dialog:set-upstream", (data) => {
-    openDialog_SetUpstream(data.local, data.remote);
-})
 
 // FIXME: Should probably handle this better..
-{
-    let fetchNotification: null | Notification;
-    addWindowEventListener("notification:fetch-status", stats => {
-        if (!fetchNotification) {
-            fetchNotification = notify({title: "Fetching", time: 0});
+let fetchNotification: null | Notification;
+function handleNotificationFetch(status: AppEventData[AppEventType.NOTIFY_FETCH_STATUS]) {
+    if (!fetchNotification) {
+        fetchNotification = notify({title: "Fetching", time: 0});
+    }
+    if ("done" in status) {
+        if (status.done) {
+            fetchNotification.update({title: "Fetched", body: <p>{status.update ? "Done" : "No update"}</p>, time: 3000});
+            fetchNotification = null;
         }
-        if ("done" in stats) {
-            if (stats.done) {
-                fetchNotification.update({title: "Fetched", body: <p>{stats.update ? "Done" : "No update"}</p>, time: 3000});
-                fetchNotification = null;
-            }
-            if (stats.update) {
-                loadBranches();
-            }
-        } else if (stats.receivedObjects == stats.totalObjects) {
-            fetchNotification.update({body: <p>Resolving deltas {stats.indexedDeltas}/{stats.totalDeltas}</p>});
-        } else if (stats.totalObjects > 0) {
-            fetchNotification.update({body: <p>Received {stats.receivedObjects}/{stats.totalObjects} objects ({stats.indexedObjects}) in {humanReadableBytes(stats.receivedBytes)}</p>});
+        if (status.update) {
+            loadBranches();
         }
-    });
+    } else if (status.receivedObjects == status.totalObjects) {
+        fetchNotification.update({body: <p>Resolving deltas {status.indexedDeltas}/{status.totalDeltas}</p>});
+    } else if (status.totalObjects > 0) {
+        fetchNotification.update({body: <p>Received {status.receivedObjects}/{status.totalObjects} objects ({status.indexedObjects}) in {humanReadableBytes(status.receivedBytes)}</p>});
+    }
+}
+let pushNotification: null | Notification;
+function handleNotificationPush(status: AppEventData[AppEventType.NOTIFY_PUSH_STATUS]) {
+    if (!pushNotification) {
+        pushNotification = notify({title: "Pushing...", time: 0});
+    }
+    if ("done" in status) {
+        if (status.done) {
+            pushNotification.update({title: "Pushed", time: 3000});
+            pushNotification = null;
+        }
+    } else if (status.totalObjects > 0) {
+        pushNotification.update({body: <p>Pushed {status.transferedObjects}/{status.totalObjects} objects in {humanReadableBytes(status.bytes)}</p>});
+    }
 }
 
-{
-    let pushNotification: null | Notification;
-    addWindowEventListener("notification:push-status", status => {
-        if (!pushNotification) {
-            pushNotification = notify({title: "Pushing...", time: 0});
-        }
-        if ("done" in status) {
-            if (status.done) {
-                pushNotification.update({title: "Pushed", time: 3000});
-                pushNotification = null;
-            }
-        } else if (status.totalObjects > 0) {
-            pushNotification.update({body: <p>Pushed {status.transferedObjects}/{status.totalObjects} objects in {humanReadableBytes(status.bytes)}</p>});
-        }
-    });
-}
-{
-    let pullNotification: null | Notification;
-    addWindowEventListener("notification:pull-status", status => {
-        if (!pullNotification) {
-            pullNotification = notify({title: "Pulling changes...", time: 0});
-        }
-        if (status) {
-            if (status.success) {
-                pullNotification.update({title: "Done!", time: 3000});
-                pullNotification = null;
-            } else {
-                pullNotification.update({body: <p>Failed...</p>});
-            }
-        }
-    });
-}
+registerAppEventHandlers({
+    [AppEventType.REPO_OPENED]: repoOpened,
+    [AppEventType.OPEN_SETTINGS]: openSettings,
+    [AppEventType.LOCK_UI]: setLock,
+    [AppEventType.UNLOCK_UI]: clearLock,
+    [AppEventType.BEGIN_COMPARE_REVISIONS]: openDialog_CompareRevisions,
+    [AppEventType.BEGIN_VIEW_COMMIT]: openDialog_ViewCommit,
+    [AppEventType.UNSELECT_LINK]: (linkType) => unselectLink(linkType),
+    [AppEventType.SET_DIFFPANE]: (sha) => setDiffpaneSrc(sha),
+    [AppEventType.NOTIFY]: notify,
+    [AppEventType.NOTIFY_FETCH_STATUS]: handleNotificationFetch,
+    [AppEventType.NOTIFY_PUSH_STATUS]: handleNotificationPush,
+    [AppEventType.DIALOG_ADD_REMOTE]: openDialog_AddRemote,
+    [AppEventType.DIALOG_BRANCH_FROM]: (data) => {
+        openDialog_BranchFrom(data.sha, data.type);
+    },
+    [AppEventType.DIALOG_CREATE_TAG]: (data) => {
+        openDialog_createTag(data.sha, data.fromCommit);
+    },
+    [AppEventType.DIALOG_EDIT_REMOTE]: openDialog_EditRemote,
+    [AppEventType.DIALOG_PUSH_TAG]: openDialog_PushTag,
+    [AppEventType.DIALOG_RENAME_REF]: (data) => {
+        openDialog_RenameRef(data.name, data.type);
+    },
+    [AppEventType.DIALOG_SET_UPSTREAM]: (data) => {
+        openDialog_SetUpstream(data.local, data.remote);
+    },
+});
+
 
 registerHandler(IpcAction.OPEN_REPO, repoOpened);
 registerHandler(IpcAction.REFRESH_WORKDIR, updateRepoStatus);

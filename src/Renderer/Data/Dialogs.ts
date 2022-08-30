@@ -190,12 +190,12 @@ export function openDialog_createTag(from: string, fromCommit = false) {
     })
 }
 
-export function openDialog_PushTag(tagName: string) {
+export function openDialog_PushTag(data: {name: string}) {
     openDialogWindow(DialogTypes.PUSH_TAG, {
         confirmCb(remote) {
             ipcSendMessage(IpcAction.PUSH, {
                 remote,
-                localBranch: tagName
+                localBranch: data.name
             });
             closeDialogWindow();
         },

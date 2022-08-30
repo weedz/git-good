@@ -1,9 +1,9 @@
 import { ipcMain } from "electron/main";
-import { WindowEvents, WindowArguments, RendererRequestEvents, RendererRequestArgs, RendererRequestData, RendererResponsePayload } from "../Common/WindowEventTypes";
+import { RendererRequestEvents, RendererRequestArgs, RendererRequestData, RendererResponsePayload, AppEventType, AppEventData } from "../Common/WindowEventTypes";
 import { currentWindow } from "./Context";
 
-export function sendEvent<T extends WindowEvents>(event: T, args: WindowArguments[T]) {
-    currentWindow().send(event, args);
+export function sendEvent<T extends AppEventType>(event: T, data: AppEventData[T]) {
+    currentWindow().send("app-event", {event, data});
 }
 
 const callbackHandlers: Record<string, (args: RendererRequestData[RendererRequestEvents]) => void> = {};

@@ -3,34 +3,39 @@ import { BranchFromType, BranchType } from "./Branch";
 
 export type LinkTypes = "commits" | "branches" | "files";
 
-export type WindowEvents =
-    "repo-opened" |
-    "notification:fetch-status" |
-    "open-settings" |
-    "app-lock-ui" |
-    "app-unlock-ui" |
-    "begin-compare-revisions" |
-    "begin-view-commit" |
-    "notify" |
-    "notification:push-status" |
-    "notification:pull-status" |
-    "dialog:branch-from" |
-    "dialog:create-tag" |
-    "dialog:add-remote" |
-    "dialog:edit-remote" |
-    "dialog:rename-ref" |
-    "dialog:push-tag" |
-    "dialog:set-upstream" |
-    "unselect-link" |
-    "set-diffpane";
+export const enum AppEventType {
+    REPO_OPENED = 0,
+    OPEN_SETTINGS,
+    LOCK_UI,
+    UNLOCK_UI,
+    BEGIN_COMPARE_REVISIONS,
+    BEGIN_VIEW_COMMIT,
+    UNSELECT_LINK,
+    SET_DIFFPANE,
+    NOTIFY,
+    NOTIFY_FETCH_STATUS,
+    NOTIFY_PUSH_STATUS,
+    DIALOG_BRANCH_FROM,
+    DIALOG_CREATE_TAG,
+    DIALOG_ADD_REMOTE,
+    DIALOG_EDIT_REMOTE,
+    DIALOG_RENAME_REF,
+    DIALOG_PUSH_TAG,
+    DIALOG_SET_UPSTREAM,
+}
 
-export type WindowArguments = {
-    "repo-opened": IpcActionReturn[IpcAction.OPEN_REPO]
-    "open-settings": null
-    "app-lock-ui": Locks
-    "app-unlock-ui": Locks
-    "begin-compare-revisions": null
-    "notification:fetch-status": {done: boolean, update: boolean} | {
+export type AppEventData = {
+    [AppEventType.REPO_OPENED]: IpcActionReturn[IpcAction.OPEN_REPO]
+    [AppEventType.OPEN_SETTINGS]: null
+    [AppEventType.LOCK_UI]: Locks
+    [AppEventType.UNLOCK_UI]: Locks
+    [AppEventType.BEGIN_COMPARE_REVISIONS]: null
+    [AppEventType.BEGIN_VIEW_COMMIT]: null
+    [AppEventType.UNSELECT_LINK]: LinkTypes
+    [AppEventType.SET_DIFFPANE]: string
+    [AppEventType.NOTIFY]: NotificationInit
+    [AppEventType.BEGIN_COMPARE_REVISIONS]: null
+    [AppEventType.NOTIFY_FETCH_STATUS]: {done: boolean, update: boolean} | {
         remote: string
         totalDeltas: number
         indexedDeltas: number
@@ -39,41 +44,36 @@ export type WindowArguments = {
         indexedObjects: number
         receivedBytes: number
     }
-    "begin-view-commit": null
-    "notify": NotificationInit
-    "notification:push-status": {done: boolean} | {
+    [AppEventType.NOTIFY_PUSH_STATUS]: {done: boolean} | {
         totalObjects: number
         transferedObjects: number
         bytes: number
     }
-    "notification:pull-status": null | {success: boolean}
-    "dialog:branch-from": {
+    [AppEventType.DIALOG_BRANCH_FROM]: {
         sha: string
         type: BranchFromType
     }
-    "dialog:create-tag": {
+    [AppEventType.DIALOG_CREATE_TAG]: {
         sha: string
         fromCommit: boolean
     }
-    "dialog:add-remote": unknown
-    "dialog:edit-remote": {
-        pullFrom?: string
+    [AppEventType.DIALOG_ADD_REMOTE]: unknown
+    [AppEventType.DIALOG_EDIT_REMOTE]: {
+        pullFrom: string
         pushTo: string
         name: string
     }
-    "dialog:rename-ref": {
+    [AppEventType.DIALOG_RENAME_REF]: {
         name: string
         type: BranchType
     }
-    "dialog:push-tag": {
+    [AppEventType.DIALOG_PUSH_TAG]: {
         name: string
     }
-    "dialog:set-upstream": {
+    [AppEventType.DIALOG_SET_UPSTREAM]: {
         remote: string
         local: string
     }
-    "set-diffpane": string
-    "unselect-link": LinkTypes
 }
 
 export enum NotificationPosition {
