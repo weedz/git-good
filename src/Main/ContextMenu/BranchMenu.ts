@@ -1,3 +1,4 @@
+import { clipboard } from "electron";
 import { dialog, Menu, MenuItemConstructorOptions } from "electron/main";
 import { Remote } from "nodegit";
 import { IpcAction } from "../../Common/Actions";
@@ -38,6 +39,14 @@ function createTag(ref: string) {
                 sha: ref,
                 fromCommit: false
             });
+        }
+    };
+}
+function copyRefName(ref: string) {
+    return {
+        label: "Copy ref name",
+        click() {
+            clipboard.writeText(ref);
         }
     };
 }
@@ -158,10 +167,10 @@ export function openRemoteRefMenu(data: Record<string, string>) {
                 }
             }
         },
-        {
-            type: "separator"
-        },
+        { type: "separator" },
         createTag(data.ref),
+        { type: "separator" },
+        copyRefName(data.ref),
     ];
     Menu.buildFromTemplate(menuTemplate).popup();
 }
@@ -216,6 +225,8 @@ export function openLocalMenu(data: Record<string, string>) {
         },
         { type: "separator" },
         createTag(data.ref),
+        { type: "separator" },
+        copyRefName(data.ref),
     ];
     Menu.buildFromTemplate(menuTemplate).popup();
 }
@@ -241,6 +252,8 @@ export function openHeadMenu(data: Record<string, string>) {
         newBranch(data.ref),
         { type: "separator" },
         createTag(data.ref),
+        { type: "separator" },
+        copyRefName(data.ref),
     ];
     Menu.buildFromTemplate(menuTemplate).popup();
 }
@@ -283,6 +296,8 @@ export function openTagMenu(data: Record<string, string>) {
                 }
             }
         },
+        { type: "separator" },
+        copyRefName(data.ref),
     ];
     Menu.buildFromTemplate(menuTemplate).popup();
 }
