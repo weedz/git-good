@@ -34,7 +34,7 @@ const result = await build({
     // metafile: true,
     bundle: true,
     platform: "node",
-    target: "node16",
+    target: "esnext",
     external: [
         "nodegit",
         "electron",
