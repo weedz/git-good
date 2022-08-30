@@ -71,6 +71,7 @@ export function glyphWidth() {
     return _glyphWidth;
 }
 
+// FIXME: Seems like we really do need this. Race condition with focusing of window and refreshing workdir (`refreshWorkdirOnFocus`)
 let refreshingWorkDir = false;
 export async function refreshWorkdir() {
     if (!Store.repo || refreshingWorkDir) {
@@ -82,10 +83,14 @@ export async function refreshWorkdir() {
 }
 
 export async function discardChanges(filePath: string) {
+    refreshingWorkDir = true;
     await openNativeDialog(NativeDialog.DISCARD_CHANGES, { path: filePath });
+    refreshingWorkDir = false;
 }
 export async function discardAllChanges() {
+    refreshingWorkDir = true;
     await openNativeDialog(NativeDialog.DISCARD_ALL_CHANGES, null);
+    refreshingWorkDir = false;
 }
 
 function repoOpened(result: IpcActionReturn[IpcAction.OPEN_REPO]) {

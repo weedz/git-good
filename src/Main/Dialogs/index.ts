@@ -41,10 +41,7 @@ export async function handleDialog(_event: IpcMainInvokeEvent, eventData: Dialog
         });
         if (result.response === 1) {
             await discardChanges(currentRepo(), dialogData.path);
-            // Need this timeout so the window focus event is fired before IpcAction.DISCARD_FILE?
-            setTimeout(async () => {
-                sendAction(IpcAction.REFRESH_WORKDIR, await refreshWorkDir(currentRepo(), getAppConfig().diffOptions));
-            }, 200);
+            sendAction(IpcAction.REFRESH_WORKDIR, await refreshWorkDir(currentRepo(), getAppConfig().diffOptions));
         }
         return true;
     }
@@ -58,9 +55,7 @@ export async function handleDialog(_event: IpcMainInvokeEvent, eventData: Dialog
         });
         if (result.response === 1) {
             await discardAllChanges(currentRepo());
-            setTimeout(async () => {
-                sendAction(IpcAction.REFRESH_WORKDIR, await refreshWorkDir(currentRepo(), getAppConfig().diffOptions));
-            }, 200);
+            sendAction(IpcAction.REFRESH_WORKDIR, await refreshWorkDir(currentRepo(), getAppConfig().diffOptions));
         }
         return true;
     }

@@ -56,7 +56,7 @@ export default class WorkingArea extends StoreComponent<unknown, State> {
         this.registerHandler(IpcAction.GET_CHANGES, this.update);
 
         this.listen("diffOptions", () => {
-            setTimeout(refreshWorkdir);
+            refreshWorkdir()
         });
 
         getChanges();
