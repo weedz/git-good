@@ -110,8 +110,8 @@ export default class ChangedFiles extends Component<Props, {fileFilter?: string}
                 <Link className={`${typeCss} flex-row`} linkData={patch} selectAction={this.openFile}>
                     <span className="status">{getType(patch.status)}</span>&nbsp;
                     <div title={patch.actualFile.path} style="min-width: 0;display:flex">
-                        <span className="file-path">{path}</span>
-                        <span className="basename">{basename}</span>
+                        <span className="file-path truncate">{path}</span>
+                        <span className="basename truncate">{basename}</span>
                     </div>
                 </Link>
                 <div className="action-group">

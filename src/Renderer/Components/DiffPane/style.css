@@ -33,8 +33,7 @@
 
 .diff-view > li .file-path {
     color: #999;
-    text-overflow: ellipsis;
-    overflow: hidden;
+    flex: 1;
 }
 /* .diff-view > li .file-basename {} */
 
