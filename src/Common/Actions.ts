@@ -39,8 +39,6 @@ export const enum IpcAction {
     UNSTAGE_FILE,
     STAGE_ALL,
     UNSTAGE_ALL,
-    DISCARD_FILE,
-    DISCARD_ALL,
     COMMIT,
     PULL,
     PUSH,
@@ -108,8 +106,6 @@ export type IpcActionParams = {
     [IpcAction.UNSTAGE_FILE]: string
     [IpcAction.STAGE_ALL]: null
     [IpcAction.UNSTAGE_ALL]: null
-    [IpcAction.DISCARD_FILE]: string
-    [IpcAction.DISCARD_ALL]: null
     [IpcAction.COMMIT]: {
         amend: boolean | undefined
         message: {
@@ -225,8 +221,6 @@ export type IpcActionReturn = {
     [IpcAction.UNSTAGE_FILE]: boolean
     [IpcAction.STAGE_ALL]: number
     [IpcAction.UNSTAGE_ALL]: number
-    [IpcAction.DISCARD_FILE]: boolean
-    [IpcAction.DISCARD_ALL]: number
     [IpcAction.COMMIT]: CommitObj
     [IpcAction.PULL]: boolean
     [IpcAction.PUSH]: boolean
