@@ -32,7 +32,12 @@ app.setDesktopName("git-good");
 ipcMain.on("context-menu", handleContextMenu);
 ipcMain.handle("dialog", handleDialog);
 
-const createWindow = () => {
+app.commandLine.appendSwitch("disable-smooth-scrolling");
+
+// This method will be called when Electron has finished
+// initialization and is ready to create browser windows.
+// Some APIs can only be used after this event occurs.
+app.whenReady().then(() => {
     const initialWindowWidth = 1024;
     const initialWindowHeight = 600;
 
@@ -49,6 +54,7 @@ const createWindow = () => {
             disableBlinkFeatures: "Auxclick"
         }
     });
+    setWindow(win);
 
     const cursorPosition = screen.getCursorScreenPoint();
     const activeDisplay = screen.getDisplayNearestPoint(cursorPosition);
@@ -61,7 +67,6 @@ const createWindow = () => {
     // win.webContents.openDevTools();
 
     win.loadFile(join(__dirname, "../dist/index.html"));
-    // win.loadURL("http://localhost:5000");
 
     win.webContents.on("will-navigate", e => {
         e.preventDefault();
@@ -71,34 +76,11 @@ const createWindow = () => {
             action: "deny"
         }
     });
-
-    setWindow(win);
-};
-
-app.commandLine.appendSwitch("disable-smooth-scrolling");
-
-// This method will be called when Electron has finished
-// initialization and is ready to create browser windows.
-// Some APIs can only be used after this event occurs.
-app.whenReady().then(() => {
-    createWindow();
-
-    app.on("activate", () => {
-        // On OS X it's common to re-create a window in the app when the
-        // dock icon is clicked and there are no other windows open.
-        if (BrowserWindow.getAllWindows().length === 0) {
-            createWindow();
-        }
-    });
 });
 
 // Quit when all windows are closed.
 app.on("window-all-closed", () => {
-    // On OS X it is common for applications and their menu bar
-    // to stay active until the user quits explicitly with Cmd + Q
-    if (!isMac) {
-        app.quit();
-    }
+    app.quit();
 });
 
 function buildOpenRepoMenuItem(path: string): MenuItemConstructorOptions {
