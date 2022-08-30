@@ -38,7 +38,6 @@ const result = await build({
     external: [
         "nodegit",
         "electron",
-        "@electron/remote"
     ],
     outdir: "dist",
     plugins: [envPlugin],
