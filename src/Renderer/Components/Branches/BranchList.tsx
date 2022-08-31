@@ -3,9 +3,10 @@ import "./style.css";
 import { normalizeLocalName } from "../../../Common/Branch";
 import { Store, checkoutBranch, updateStore, PureStoreComponent } from "../../Data/store";
 import { showHeadMenu, showLocalMenu, showRemoteMenu, showRemoteRefMenu, showRemotesMenu, showTagMenu } from "./Menu";
-import { branchesAheadBehind, toggleTreeItem, getBranchTree, RenderBranchTree, RenderRemotes } from "./Utils";
+import { branchesAheadBehind, getBranchTree, RenderBranchTree, RenderRemotes } from "./Utils";
 import Link from "../Link";
 import { Links } from "../LinkContainer";
+import { toggleTreeItem } from "../../../Common/Tree";
 
 function triggerCheckoutBranch(e: h.JSX.TargetedMouseEvent<HTMLAnchorElement>) {
     e.currentTarget.dataset.ref && checkoutBranch(e.currentTarget.dataset.ref);

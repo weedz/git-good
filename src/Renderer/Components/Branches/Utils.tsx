@@ -1,7 +1,7 @@
 import { h } from "preact";
 import { PureComponent } from "preact/compat";
 import { BranchObj, BranchesObj } from "../../../Common/Actions";
-import { ensureTreePath, Tree } from "../../../Common/Tree";
+import { ensureTreePath, toggleTreeItem, Tree } from "../../../Common/Tree";
 import { updateStore } from "../../Data/store";
 import Link from "../Link";
 
@@ -16,19 +16,6 @@ export function branchesAheadBehind(ref: BranchObj) {
         }
     }
     return aheadbehind;
-}
-
-export function toggleTreeItem(e: h.JSX.TargetedMouseEvent<HTMLAnchorElement>) {
-    e.preventDefault();
-    const parent = e.currentTarget.parentElement;
-    if (parent) {
-        if (parent.classList.contains("open")) {
-            parent.classList.remove("open");
-        } else {
-            parent.classList.add("open");
-        }
-    }
-    return false;
 }
 
 function selectAction(c: Link<string>) {

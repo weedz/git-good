@@ -1,3 +1,5 @@
+import type { JSX } from "preact";
+
 export interface Tree<NodeType> {
     item?: NodeType
     children: Map<string, Tree<NodeType>>
@@ -16,3 +18,15 @@ export function ensureTreePath(tree: Tree<unknown>, segments: string[]): Tree<un
     return root;
 }
 
+export function toggleTreeItem(e: JSX.TargetedMouseEvent<HTMLAnchorElement>) {
+    e.preventDefault();
+    const parent = e.currentTarget.parentElement;
+    if (parent) {
+        if (parent.classList.contains("open")) {
+            parent.classList.remove("open");
+        } else {
+            parent.classList.add("open");
+        }
+    }
+    return false;
+}

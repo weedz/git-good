@@ -1,9 +1,9 @@
 import { h } from "preact";
 import { StashObj } from "../../../Common/Actions";
+import { toggleTreeItem } from "../../../Common/Tree";
 import { PureStoreComponent, showStash, Store } from "../../Data/store";
 import Link from "../Link";
 import { showStashMenu } from "./Menu";
-import { toggleTreeItem } from "./Utils";
 
 function selectStashItem(item: Link<StashObj>) {
     if (item.props.linkData?.index !== undefined) {

@@ -12,14 +12,14 @@
     flex: 1;
     /* will-change: transform; */
 }
-.diff-view > li {
+.diff-view li {
     white-space: nowrap;
     position: relative;
 }
-.diff-view > li > a {
+.diff-view li > a {
     padding: 3px;
 }
-.diff-view > li > .action-group {
+.diff-view li > .action-group {
     position: absolute;
     display: none;
     right: 0;
@@ -27,11 +27,11 @@
     bottom: 0;
 }
 
-.diff-view > li:hover > .action-group {
-    display: initial;
+.diff-view li:hover > .action-group {
+    display: flex;
 }
 
-.diff-view > li .file-path {
+.diff-view li .file-path {
     color: #999;
     flex: 1;
 }
