@@ -1,18 +1,9 @@
 import { h } from "preact";
 import { PureComponent } from "preact/compat";
 import { BranchObj, BranchesObj } from "../../../Common/Actions";
+import { ensureTreePath, Tree } from "../../../Common/Tree";
 import { updateStore } from "../../Data/store";
 import Link from "../Link";
-
-export type BranchTree = {
-    subtree?: {
-        [path: string]: BranchTree
-    }
-    items?: Array<{
-        name: string
-        ref: BranchObj
-    }>
-};
 
 export function branchesAheadBehind(ref: BranchObj) {
     const aheadbehind = [];
@@ -48,30 +39,27 @@ function selectAction(c: Link<string>) {
 
 // eslint-disable-next-line react/prefer-stateless-function
 export class RenderBranchTree extends PureComponent<{
-    branches: BranchTree
+    branches: Tree<BranchObj>
     contextMenu?: ((event: h.JSX.TargetedMouseEvent<HTMLAnchorElement>) => void) | undefined
     dblClick?: ((event: h.JSX.TargetedMouseEvent<HTMLAnchorElement>) => void) | undefined
     indent: number
 }> {
     render() {
         const items = [];
-        if (this.props.branches.subtree) {
-            for (const item of Object.keys(this.props.branches.subtree)) {
+        for (const [item, child] of this.props.branches.children.entries()) {
+            if (child.item) {
+                items.push(
+                    <li key={child.item.headSHA}>
+                        <Link style={{textIndent: `${this.props.indent}em`}} linkId={child.item.name} selectAction={selectAction} onDblClick={this.props.dblClick} onContextMenu={this.props.contextMenu} data-ref={child.item.name} data-remote={child.item.remote} linkData={child.item.name}>
+                            {item}&nbsp;{branchesAheadBehind(child.item)}
+                        </Link>
+                    </li>
+                );
+            } else {
                 items.push(
                     <li className="sub-tree" key={item}>
                         <a style={{textIndent: `${this.props.indent}em`}} href="#" onClick={toggleTreeItem}>{item}</a>
-                        <RenderBranchTree branches={this.props.branches.subtree[item]} contextMenu={this.props.contextMenu} dblClick={this.props.dblClick} indent={this.props.indent + 1} />
-                    </li>
-                );
-            }
-        }
-        if (this.props.branches.items) {
-            for (const branch of this.props.branches.items) {
-                items.push(
-                    <li key={branch.ref.headSHA}>
-                        <Link style={{textIndent: `${this.props.indent}em`}} linkId={branch.ref.name} selectAction={selectAction} onDblClick={this.props.dblClick} onContextMenu={this.props.contextMenu} data-ref={branch.ref.name} data-remote={branch.ref.remote} linkData={branch.ref.name}>
-                            {branch.name}&nbsp;{branchesAheadBehind(branch.ref)}
-                        </Link>
+                        <RenderBranchTree branches={child} contextMenu={this.props.contextMenu} dblClick={this.props.dblClick} indent={this.props.indent + 1} />
                     </li>
                 );
             }
@@ -86,20 +74,17 @@ export class RenderBranchTree extends PureComponent<{
 
 // eslint-disable-next-line react/prefer-stateless-function
 export class RenderRemotes extends PureComponent<{
-    branches: BranchTree
+    branches: Tree<BranchObj>
     remoteContextMenu: (event: h.JSX.TargetedMouseEvent<HTMLAnchorElement>) => void
     contextMenu: (event: h.JSX.TargetedMouseEvent<HTMLAnchorElement>) => void
 }> {
     render() {
-        if (!this.props.branches.subtree) {
-            return null;
-        }
         const items = [];
-        for (const item of Object.keys(this.props.branches.subtree)) {
+        for (const [item, child] of this.props.branches.children.entries()) {
             items.push(
-                <li className="sub-tree">
-                    <a style={{textIndent: "1em"}} onContextMenu={this.props.remoteContextMenu} href="#" onClick={toggleTreeItem} data-remote={item}>{item}</a>
-                    <RenderBranchTree branches={this.props.branches.subtree[item]} contextMenu={this.props.contextMenu} indent={2} />
+                <li className="sub-tree" key={item}>
+                    <a style={{textIndent: `1em`}} href="#" onClick={toggleTreeItem} onContextMenu={this.props.remoteContextMenu} data-remote={item}>{item}</a>
+                    <RenderBranchTree branches={child} contextMenu={this.props.contextMenu} indent={2} />
                 </li>
             );
         }
@@ -111,47 +96,25 @@ export class RenderRemotes extends PureComponent<{
     }
 }
 
-export function transformToBranchTree(branches: BranchObj[]) {
-    const root: BranchTree = {};
+function toBranchTree(branches: BranchObj[]) {
+    const tree: Tree<BranchObj> = {
+        children: new Map()
+    };
     for (const branch of branches.sort((a,b) => a.normalizedName.localeCompare(b.normalizedName))) {
-        const paths = branch.normalizedName.split("/");
-        const name = paths.pop() as string;
+        const segments = branch.normalizedName.split("/");
 
-        let tree = root;
-
-        for (const path of paths) {
-            if (!tree.subtree) {
-                tree.subtree = {};
-            }
-            if (!tree.subtree[path]) {
-                tree.subtree[path] = {};
-            }
-            tree = tree.subtree[path];
-        }
-
-        if (!tree.items) {
-            tree.items = [];
-        }
-        tree.items.push({
-            name,
-            ref: branch,
-        });
+        const leaf = ensureTreePath(tree, segments);
+        leaf.item = branch;
     }
-    return root;
+
+    return tree;
 }
 
 export function getBranchTree(branches: BranchesObj) {
     return {
-        local: transformToBranchTree(branches.local),
-        remote: transformToBranchTree(branches.remote),
-        tags: {
-            items: branches.tags.map((tag: BranchObj) => ({
-                name: tag.normalizedName,
-                ref: {
-                    name: tag.name
-                }
-            })).sort( (a,b) => a.name.localeCompare(b.name))
-        } as BranchTree
+        local: toBranchTree(branches.local),
+        remote: toBranchTree(branches.remote),
+        tags: toBranchTree(branches.tags),
     };
 }
 
