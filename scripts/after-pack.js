@@ -9,6 +9,8 @@ let nodegitPathList = [
     "node_modules/nodegit/lifecycleScripts",
     "node_modules/nodegit/utils",
 
+    "node_modules/nodegit/bin",
+
     "node_modules/nodegit/.travis",
     "node_modules/nodegit/generate",
     "node_modules/nodegit/guides",
@@ -41,9 +43,13 @@ async function clean(resourceDir) {
     // Cleaning app.asar..
     asar.extractAll(`${resourceDir}/app.asar`, `${resourceDir}/app`);
     fs.rmSync(`${resourceDir}/app.asar`);
-    
+
     for (const dir of nodegitPathList.concat(fileList)) {
-        fs.rmSync(`${resourceDir}/app/${dir}`, { recursive: true });
+        if (fs.existsSync(`${resourceDir}/app/${dir}`)) {
+            fs.rmSync(`${resourceDir}/app/${dir}`, { recursive: true });
+        } else {
+            console.log(`File not found: '${resourceDir}/app/${dir}'`);
+        }
     }
     
     await asar.createPackageWithOptions(`${resourceDir}/app`, `${resourceDir}/app.asar`, {
@@ -52,17 +58,18 @@ async function clean(resourceDir) {
     fs.rmSync(`${resourceDir}/app`, { recursive: true });
 
     for (const dir of nodegitPathList) {
-        fs.rmSync(`${resourceDir}/app.asar.unpacked/${dir}`, { recursive: true });
+        if (fs.existsSync(`${resourceDir}/app.asar.unpacked/${dir}`)) {
+            fs.rmSync(`${resourceDir}/app.asar.unpacked/${dir}`, { recursive: true });
+        } else {
+            console.log(`File not found: '${resourceDir}/app.asar.unpacked/${dir}'`);
+        }
     }
 }
 
 function cleanLinux() {
-    nodegitPathList = nodegitPathList.filter(file => file !== "node_modules/nodegit/build/Release/acquireOpenSSL.node");
-    nodegitPathList = nodegitPathList.filter(file => file !== "node_modules/nodegit/build/Release/configureLibssh2.node");
     return clean("out/linux-unpacked/resources");
 }
 function cleanMac() {
-    nodegitPathList = nodegitPathList.filter(file => file !== "node_modules/nodegit/build/Release/pcre.a");
     return clean("out/mac/git-good.app/Contents/Resources");
 }
 
