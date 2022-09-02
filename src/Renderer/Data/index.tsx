@@ -1,20 +1,14 @@
 import { h } from "preact";
 import { GlobalLinks, unselectLink } from "../Components/Link";
-import { BranchObj, IpcAction, IpcActionReturn, IpcActionReturnOrError, IpcResponse, Locks, RepoStatus } from "../../Common/Actions";
+import { BranchObj, IpcAction, IpcActionReturn, IpcActionReturnOrError, IpcResponse, Locks } from "../../Common/Actions";
 import { openNativeDialog, openDialog_CompareRevisions, openDialog_Settings, openDialog_ViewCommit, openDialog_createTag, openDialog_BranchFrom, openDialog_AddRemote, openDialog_RenameRef, openDialog_SetUpstream, openDialog_EditRemote, openDialog_PushTag } from "./Dialogs";
-import { registerAppEventHandlers, registerHandler, ipcSendMessage, ipcGetData } from "./IPC";
+import { registerAppEventHandlers, registerHandler, ipcGetData } from "./IPC";
 import { Store, clearLock, setLock, updateStore, StoreType, notify, openDialogWindow, closeDialogWindow, setDiffpaneSrc } from "./store";
 import { Notification } from "../Components/Notification";
 import { humanReadableBytes } from "../../Common/Utils";
 import { AppEventData, AppEventType, RendererRequestArgs, RendererRequestData, RendererRequestEvents, RendererRequestPayload } from "../../Common/WindowEventTypes";
 import { DialogTypes } from "../Components/Dialog/types";
 import { NativeDialog } from "../../Common/Dialog";
-
-window.addEventListener("focus", () => {
-    if (!Store.locks[Locks.MAIN] && Store.appConfig?.ui.refreshWorkdirOnFocus) {
-        refreshWorkdir();
-    }
-});
 
 const dismissibleWindows: Set<() => void> = new Set();
 const dismissibleWindowsStack: Array<() => void> = [];
@@ -71,26 +65,11 @@ export function glyphWidth() {
     return _glyphWidth;
 }
 
-// FIXME: Seems like we really do need this. Race condition with focusing of window and refreshing workdir (`refreshWorkdirOnFocus`)
-let refreshingWorkDir = false;
-export async function refreshWorkdir() {
-    if (!Store.repo || refreshingWorkDir) {
-        return;
-    }
-    refreshingWorkDir = true;
-    await ipcGetData(IpcAction.REFRESH_WORKDIR, null);
-    refreshingWorkDir = false;
-}
-
 export async function discardChanges(filePath: string) {
-    refreshingWorkDir = true;
     await openNativeDialog(NativeDialog.DISCARD_CHANGES, { path: filePath });
-    refreshingWorkDir = false;
 }
 export async function discardAllChanges() {
-    refreshingWorkDir = true;
     await openNativeDialog(NativeDialog.DISCARD_ALL_CHANGES, null);
-    refreshingWorkDir = false;
 }
 
 function repoOpened(result: IpcActionReturn[IpcAction.OPEN_REPO]) {
@@ -103,58 +82,29 @@ function repoOpened(result: IpcActionReturn[IpcAction.OPEN_REPO]) {
 
     GlobalLinks.branches = {};
 
-    loadBranches();
-    loadRemotes();
-    loadStashes();
     updateStore({
         repo: {
             path: result.path,
-            status: result.status
         },
+        repoStatus: result.status,
         selectedBranch: {
             branch: "HEAD"
         },
     });
-    setTimeout(() => {
-        refreshWorkdir();
-    }, 500);
 }
 
-function updateRepoStatus(result: {status: RepoStatus})
-{
-    if (Store.repo) {
-        updateStore({
-            repo: {
-                ...Store.repo,
-                status: result.status,
-            },
-        });
-    }
-}
-
-function loadBranches() {
-    setLock(Locks.BRANCH_LIST);
-    ipcSendMessage(IpcAction.LOAD_BRANCHES, null);
-}
-
-function loadRemotes() {
-    ipcSendMessage(IpcAction.REMOTES, null);
-}
-
-function loadStashes() {
-    ipcSendMessage(IpcAction.LOAD_STASHES, null);
+function updateRepoStatus(result: IpcActionReturn[IpcAction.REFRESH_WORKDIR]) {
+    updateStore({
+        repoStatus: result.status,
+        workDir: {
+            staged: result.staged,
+            unstaged: result.unstaged
+        },
+    });
 }
 
 function openSettings() {
     openDialog_Settings();
-}
-
-export function pull(ref: string | null) {
-    return ipcGetData(IpcAction.PULL, ref);
-}
-
-export async function push() {
-    return ipcGetData(IpcAction.PUSH, null);
 }
 
 function loadHunks(data: IpcActionReturn[IpcAction.LOAD_HUNKS]) {
@@ -234,21 +184,10 @@ function handleCompareRevisions(data: IpcResponse<IpcAction.OPEN_COMPARE_REVISIO
     }
 }
 
-function handleNewCommit() {
-    refreshWorkdir();
-    loadBranches();
-}
-
 function handleRemotes(remotes: IpcActionReturn[IpcAction.REMOTES]) {
     updateStore({
         remotes
     });
-}
-
-function handlePullHead(res: IpcActionReturn[IpcAction.PULL]) {
-    if (res) {
-        loadBranches();
-    }
 }
 
 function handleFileCommits(data: IpcActionReturnOrError<IpcAction.LOAD_FILE_COMMITS>) {
@@ -281,9 +220,6 @@ function handleNotificationFetch(status: AppEventData[AppEventType.NOTIFY_FETCH_
         if (status.done) {
             fetchNotification.update({title: "Fetched", body: <p>{status.update ? "Done" : "No update"}</p>, time: 3000});
             fetchNotification = null;
-        }
-        if (status.update) {
-            loadBranches();
         }
     } else if (status.receivedObjects == status.totalObjects) {
         fetchNotification.update({body: <p>Resolving deltas {status.indexedDeltas}/{status.totalDeltas}</p>});
@@ -341,16 +277,8 @@ registerHandler(IpcAction.REFRESH_WORKDIR, updateRepoStatus);
 registerHandler(IpcAction.LOAD_BRANCHES, branchesLoaded);
 registerHandler(IpcAction.CHECKOUT_BRANCH, updateCurrentBranch);
 registerHandler(IpcAction.LOAD_HUNKS, loadHunks);
-registerHandler(IpcAction.PULL, handlePullHead);
-registerHandler(IpcAction.PUSH, loadBranches);
-registerHandler(IpcAction.SET_UPSTREAM, loadBranches);
-registerHandler(IpcAction.CREATE_BRANCH, loadBranches);
-registerHandler(IpcAction.CREATE_BRANCH_FROM_REF, loadBranches);
-registerHandler(IpcAction.RENAME_LOCAL_BRANCH, loadBranches);
 registerHandler(IpcAction.OPEN_COMPARE_REVISIONS, handleCompareRevisions);
-registerHandler(IpcAction.COMMIT, handleNewCommit);
 registerHandler(IpcAction.REMOTES, handleRemotes);
-registerHandler(IpcAction.CREATE_TAG, loadBranches);
 registerHandler(IpcAction.LOAD_PATCHES_WITHOUT_HUNKS, () => clearLock(Locks.COMMIT_LIST));
 registerHandler(IpcAction.LOAD_STASHES, stashLoaded);
 registerHandler(IpcAction.LOAD_FILE_COMMITS, handleFileCommits);

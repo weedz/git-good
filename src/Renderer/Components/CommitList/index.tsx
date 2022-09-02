@@ -28,7 +28,7 @@ export default class CommitList extends PureStoreComponent<unknown, State> {
     } = {};
     cursor: IpcActionReturn[IpcAction.LOAD_COMMITS]["cursor"];
     color = 0;
-    canFetchMore = false;
+    canFetchMore = true;
     loading = false;
 
     state: State = {

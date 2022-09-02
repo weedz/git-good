@@ -40,7 +40,6 @@ export const enum IpcAction {
     STAGE_ALL,
     UNSTAGE_ALL,
     COMMIT,
-    PULL,
     PUSH,
     SET_UPSTREAM,
     CREATE_BRANCH,
@@ -107,7 +106,6 @@ export type IpcActionParams = {
             body: string
         }
     }
-    [IpcAction.PULL]: null | string
     [IpcAction.PUSH]: null | {
         force?: boolean
         remote: string
@@ -200,7 +198,6 @@ export type IpcActionReturn = {
     [IpcAction.STAGE_ALL]: number
     [IpcAction.UNSTAGE_ALL]: number
     [IpcAction.COMMIT]: CommitObj
-    [IpcAction.PULL]: boolean
     [IpcAction.PUSH]: boolean
     [IpcAction.SET_UPSTREAM]: boolean
     [IpcAction.CREATE_BRANCH]: boolean

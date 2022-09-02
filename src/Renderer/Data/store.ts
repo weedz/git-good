@@ -17,7 +17,11 @@ export type DialogWindow = {
 export type StoreType = {
     repo: null | {
         path: string
-        status: null | RepoStatus
+    }
+    repoStatus: null | RepoStatus
+    workDir: {
+        staged: number
+        unstaged: number
     }
     branches: BranchesObj
     stash: StashObj[]
@@ -48,6 +52,11 @@ export type StoreType = {
 
 const store = createStore<StoreType>({
     repo: null,
+    repoStatus: null,
+    workDir: {
+        staged: 0,
+        unstaged: 0
+    },
     branches: {
         remote: [],
         local: [],

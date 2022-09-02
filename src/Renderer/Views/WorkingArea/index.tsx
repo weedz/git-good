@@ -5,28 +5,28 @@ import { ipcGetData, ipcSendMessage } from "../../Data/IPC";
 import ChangedFiles from "../../Components/DiffPane/ChangedFiles";
 import { Store, StoreComponent } from "../../Data/store";
 import { triggerAction } from "../../Components/Link";
-import { discardAllChanges, discardChanges, refreshWorkdir } from "../../Data";
+import { discardAllChanges, discardChanges } from "../../Data";
 import CommitForm from "./CommitForm";
 
-async function stageFile(e: h.JSX.TargetedEvent<HTMLButtonElement, MouseEvent>) {
+function stageFile(e: h.JSX.TargetedEvent<HTMLButtonElement, MouseEvent>) {
     const path = e.currentTarget.dataset.path;
     if (!path) {
         return;
     }
-    await ipcGetData(IpcAction.STAGE_FILE, path);
-    refreshWorkdir();
+    return ipcGetData(IpcAction.STAGE_FILE, path);
 }
-async function stageAllChanges() {
-    await ipcGetData(IpcAction.STAGE_ALL, null);
-    refreshWorkdir();
+function stageAllChanges() {
+    return ipcGetData(IpcAction.STAGE_ALL, null);
 }
-async function unstageFile (e: h.JSX.TargetedEvent<HTMLButtonElement, MouseEvent>) {
+function unstageAllChanges() {
+    return ipcGetData(IpcAction.UNSTAGE_ALL, null);
+}
+function unstageFile (e: h.JSX.TargetedEvent<HTMLButtonElement, MouseEvent>) {
     const path = e.currentTarget.dataset.path;
     if (!path) {
         return;
     }
-    await ipcGetData(IpcAction.UNSTAGE_FILE, path);
-    refreshWorkdir();
+    return ipcGetData(IpcAction.UNSTAGE_FILE, path);
 }
 async function discard (e: h.JSX.TargetedEvent<HTMLButtonElement, MouseEvent>) {
     const path = e.currentTarget.dataset.path;
@@ -55,10 +55,6 @@ export default class WorkingArea extends StoreComponent<unknown, State> {
         this.registerHandler(IpcAction.REFRESH_WORKDIR, getChanges);
         this.registerHandler(IpcAction.GET_CHANGES, this.update);
 
-        this.listen("diffOptions", () => {
-            refreshWorkdir()
-        });
-
         getChanges();
     }
     update = (data: IpcActionReturn[IpcAction.GET_CHANGES]) => {
@@ -85,10 +81,7 @@ export default class WorkingArea extends StoreComponent<unknown, State> {
                     {this.state.unstaged && <ChangedFiles patches={this.state.unstaged} workDir type="unstaged" actions={[{label: "Stage", click: stageFile}, {label: "Discard", click: discard}]} />}
                 </div>
                 <div id="staged-changes">
-                    <h4>Staged ({this.state.staged.length})<button disabled={!this.state.staged.length} onClick={async () => {
-                        await ipcGetData(IpcAction.UNSTAGE_ALL, null);
-                        refreshWorkdir();
-                    }}>Unstage all</button></h4>
+                    <h4>Staged ({this.state.staged.length})<button disabled={!this.state.staged.length} onClick={unstageAllChanges}>Unstage all</button></h4>
                     {this.state.staged && <ChangedFiles patches={this.state.staged} workDir type="staged" actions={[{label: "Unstage", click: unstageFile}]} />}
                 </div>
                 <div>

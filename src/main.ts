@@ -8,7 +8,7 @@ import { app, BrowserWindow, ipcMain, Menu, dialog, MenuItemConstructorOptions, 
 import { Clone, Commit, Object, Reference, Remote, Repository, Stash } from "nodegit";
 
 import { isMac, isWindows } from "./Main/Utils";
-import { addRecentRepository, clearRepoProfile, currentProfile, getAppConfig, getRecentRepositories, getRepoProfile, saveAppConfig, setCurrentProfile, setRepoProfile, signatureFromActiveProfile, signatureFromProfile } from "./Main/Config";
+import { addRecentRepository, clearRepoProfile, currentProfile, diffOptionsIsEqual, getAppConfig, getRecentRepositories, getRepoProfile, saveAppConfig, setCurrentProfile, setRepoProfile, signatureFromActiveProfile, signatureFromProfile } from "./Main/Config";
 
 import * as provider from "./Main/Provider";
 import { IpcAction, IpcActionParams, IpcActionReturn, Locks, AsyncIpcActionReturnOrError } from "./Common/Actions";
@@ -63,6 +63,15 @@ app.whenReady().then(() => {
         activeDisplay.bounds.x + activeDisplay.size.width / 2 - initialWindowWidth / 2,
         activeDisplay.bounds.y + activeDisplay.size.height / 2 - initialWindowHeight / 2
     );
+
+    let refreshingWorkDir = false;
+    win.addListener("focus", async () => {
+        if (currentRepo() && !refreshingWorkDir && getAppConfig().ui.refreshWorkdirOnFocus) {
+            refreshingWorkDir = true;
+            sendAction(IpcAction.REFRESH_WORKDIR, await provider.refreshWorkDir(currentRepo(), getAppConfig().diffOptions));
+            refreshingWorkDir = false;
+        }
+    });
 
     // win.webContents.openDevTools();
 
@@ -276,7 +285,8 @@ function applyAppMenu() {
                         if (!repo) {
                             return dialog.showErrorBox("Error", "Not in a repository");
                         }
-                        provider.fetchFrom(repo, null);
+                        await provider.fetchFrom(repo, null);
+                        sendAction(IpcAction.LOAD_BRANCHES, await provider.getBranches(currentRepo()));
                     }
                 },
                 {
@@ -465,17 +475,33 @@ const eventMap: {
     [IpcAction.CHECKOUT_BRANCH]: provider.checkoutBranch,
     [IpcAction.REFRESH_WORKDIR]: provider.refreshWorkDir,
     [IpcAction.GET_CHANGES]: provider.loadChanges,
-    [IpcAction.STAGE_FILE]: provider.stageFile,
-    [IpcAction.UNSTAGE_FILE]: provider.unstageFile,
-    [IpcAction.STAGE_ALL]: provider.stageAllFiles,
-    [IpcAction.UNSTAGE_ALL]: provider.unstageAllFiles,
-    [IpcAction.PULL]: async (repo, data) =>  provider.pull(repo, data, signatureFromActiveProfile()),
+    [IpcAction.STAGE_FILE]: async (repo, data) => {
+        const result = await provider.stageFile(repo, data);
+        sendAction(IpcAction.REFRESH_WORKDIR, await provider.refreshWorkDir(repo, getAppConfig().diffOptions));
+        return result;
+    },
+    [IpcAction.UNSTAGE_FILE]: async (repo, data) => {
+        const result = await provider.unstageFile(repo, data);
+        sendAction(IpcAction.REFRESH_WORKDIR, await provider.refreshWorkDir(repo, getAppConfig().diffOptions));
+        return result;
+    },
+    [IpcAction.STAGE_ALL]: async (repo) => {
+        const result = await provider.stageAllFiles(repo);
+        sendAction(IpcAction.REFRESH_WORKDIR, await provider.refreshWorkDir(repo, getAppConfig().diffOptions));
+        return result;
+    },
+    [IpcAction.UNSTAGE_ALL]: async (repo) => {
+        const result = await provider.unstageAllFiles(repo);
+        sendAction(IpcAction.REFRESH_WORKDIR, await provider.refreshWorkDir(repo, getAppConfig().diffOptions));
+        return result;
+    },
     [IpcAction.CREATE_BRANCH]: async (repo, data) => {
         try {
             const res = await repo.createBranch(data.name, data.sha);
             if (data.checkout) {
                 await repo.checkoutBranch(data.name);
             }
+            sendAction(IpcAction.LOAD_BRANCHES, await provider.getBranches(repo));
             return res !== null;
         } catch (err) {
             return err as Error;
@@ -496,6 +522,7 @@ const eventMap: {
             if (data.checkout) {
                 await repo.checkoutBranch(data.name);
             }
+            sendAction(IpcAction.LOAD_BRANCHES, await provider.getBranches(repo));
             return res !== null;
         } catch (err) {
             return err as Error;
@@ -514,18 +541,36 @@ const eventMap: {
             // We only allow rename of a local branch (so the name should begin with "refs/heads/")
             renamedRef = await ref.rename(`refs/heads/${data.name}`, 0, "renamed");
         }
+
+        sendAction(IpcAction.LOAD_BRANCHES, await provider.getBranches(repo));
+
         return !!renamedRef;
     },
     [IpcAction.FIND_FILE]: provider.findFile,
     [IpcAction.OPEN_COMPARE_REVISIONS]: provider.tryCompareRevisions,
     [IpcAction.PUSH]: async (repo, data) => {
-        return provider.push(getContext(), data);
+        const result = await provider.push(getContext(), data);
+        if (!(result instanceof Error)) {
+            sendAction(IpcAction.LOAD_BRANCHES, await provider.getBranches(repo));
+        }
+        return result;
     },
     [IpcAction.SET_UPSTREAM]: async (repo, data) => {
         const result = await provider.setUpstream(repo, data.local, data.remote);
+        // Returns 0 on success
+        if (!result) {
+            sendAction(IpcAction.LOAD_BRANCHES, await provider.getBranches(repo));
+        }
         return !result;
     },
-    [IpcAction.COMMIT]: provider.commit,
+    [IpcAction.COMMIT]: async (repo, data) => {
+        const result = await provider.commit(repo, data);
+        if (!(result instanceof Error)) {
+            sendAction(IpcAction.LOAD_BRANCHES, await provider.getBranches(repo));
+            sendAction(IpcAction.REFRESH_WORKDIR, await provider.refreshWorkDir(repo, getAppConfig().diffOptions));
+        }
+        return result;
+    },
     [IpcAction.REMOTES]: provider.remotes,
     [IpcAction.RESOLVE_CONFLICT]: async (repo, {path}) => {
         const result = await provider.resolveConflict(repo, path);
@@ -577,10 +622,19 @@ const eventMap: {
 
         return true;
     },
-    [IpcAction.FETCH]: provider.fetchFrom,
+    [IpcAction.FETCH]: async (repo, data) => {
+        const result = await provider.fetchFrom(repo, data);
+        if (result) {
+            sendAction(IpcAction.LOAD_BRANCHES, await provider.getBranches(repo));
+        }
+        return result;
+    },
     [IpcAction.SAVE_SETTINGS]: async (_, data) => {
         setCurrentProfile(data.selectedProfile);
         try {
+            if (!diffOptionsIsEqual(data.diffOptions)) {
+                sendAction(IpcAction.REFRESH_WORKDIR, await provider.refreshWorkDir(currentRepo(), getAppConfig().diffOptions));
+            }
             saveAppConfig(data);
             return true;
         } catch (err) {
@@ -603,7 +657,11 @@ const eventMap: {
     },
     [IpcAction.CREATE_TAG]: async (repo, data) => {
         const profile = currentProfile();
-        return provider.createTag(repo, data, signatureFromProfile(profile), profile.gpg?.tag ? profile.gpg.key : undefined);
+        const result = await provider.createTag(repo, data, signatureFromProfile(profile), profile.gpg?.tag ? profile.gpg.key : undefined);
+        if (result) {
+            sendAction(IpcAction.LOAD_BRANCHES, await provider.getBranches(repo));
+        }
+        return result;
     },
     [IpcAction.PARSE_REVSPEC]: async (repo, sha) => {
         const oid = await provider.parseRevspec(repo, sha);
@@ -680,6 +738,10 @@ async function openRepo(repoPath: string) {
             body = `Profile set to '${profile?.profileName}'`;
         }
         sendEvent(AppEventType.NOTIFY, {title: "Repo opened", body});
+        sendAction(IpcAction.REMOTES, await provider.remotes(opened));
+        sendAction(IpcAction.LOAD_BRANCHES, await provider.getBranches(opened));
+        sendAction(IpcAction.LOAD_STASHES, await provider.getStash(opened));
+        sendAction(IpcAction.REFRESH_WORKDIR, await provider.refreshWorkDir(opened, getAppConfig().diffOptions));
     } else {
         dialog.showErrorBox("No repository", `'${repoPath}' does not contain a git repository`);
     }

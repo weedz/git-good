@@ -151,7 +151,7 @@ export function openRemoteRefMenu(data: Record<string, string>) {
                 });
     
                 if (result.response === 1) {
-                    provider.deleteRemoteRef(currentRepo(), refName);
+                    await provider.deleteRemoteRef(currentRepo(), refName);
                     sendEvent(AppEventType.NOTIFY, {
                         title: `Branch '${refName}' deleted from remote`
                     });

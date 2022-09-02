@@ -31,15 +31,22 @@ export default class Branches extends PureStoreComponent<unknown, State> {
             }
         });
         this.listen("branches", async branches => {
-            // Renders branches without upstream "graph" (ahead/behind)
-            this.setState({
-                branches: branchesToTree(branches, this.state.filter),
-            });
+            this.loadBranches(branches);
+        });
+        if (Store.branches) {
+            this.loadBranches(Store.branches);
+        }
+    }
 
-            await loadUpstreams();
-            this.setState({
-                branches: branchesToTree(Store.branches, this.state.filter),
-            });
+    async loadBranches(branches: BranchesObj) {
+        // Renders branches without upstream "graph" (ahead/behind)
+        this.setState({
+            branches: branchesToTree(branches, this.state.filter),
+        });
+
+        await loadUpstreams();
+        this.setState({
+            branches: branchesToTree(branches, this.state.filter),
         });
     }
 

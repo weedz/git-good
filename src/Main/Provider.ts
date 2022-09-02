@@ -345,7 +345,7 @@ export async function pull(repo: Repository, branch: string | null, signature: S
     } catch (err) {
         if (err instanceof Error) {
             dialog.showErrorBox("Failed to pull", err.toString());
-            return err;
+            return false;
         }
     }
 
@@ -844,6 +844,7 @@ export async function createTag(repo: Repository, data: IpcActionParams[IpcActio
         if (err instanceof Error) {
             dialog.showErrorBox("Failed to create tag", err.toString());
         }
+        return false;
     }
 
     return true;

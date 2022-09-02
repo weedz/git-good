@@ -155,3 +155,7 @@ export function saveAppConfig(data: AppConfig) {
 export function getAppConfig() {
     return appConfig as Readonly<AppConfig>;
 }
+
+export function diffOptionsIsEqual(diffOptions: AppConfig["diffOptions"]) {
+    return diffOptions.ignoreWhitespace === appConfig.diffOptions.ignoreWhitespace;
+}

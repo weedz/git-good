@@ -73,7 +73,6 @@ const handlers: {[T in IpcAction]: HandlerCallback[]} = {
     [IpcAction.STAGE_ALL]: [],
     [IpcAction.UNSTAGE_ALL]: [],
     [IpcAction.COMMIT]: [],
-    [IpcAction.PULL]: [],
     [IpcAction.PUSH]: [],
     [IpcAction.SET_UPSTREAM]: [],
     [IpcAction.CREATE_BRANCH]: [],
