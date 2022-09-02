@@ -344,6 +344,7 @@ export async function pull(repo: Repository, branch: string | null, signature: S
         }
     } catch (err) {
         if (err instanceof Error) {
+            dialog.showErrorBox("Failed to pull", err.toString());
             return err;
         }
     }
@@ -352,6 +353,8 @@ export async function pull(repo: Repository, branch: string | null, signature: S
         if (currentBranch.name() !== ref.name()) {
             await repo.checkoutBranch(currentBranch);
         }
+    } else {
+        dialog.showErrorBox("Failed to pull", "unknown error..");
     }
     return !!result;
 }
