@@ -228,12 +228,12 @@ export default class ChangedFiles extends Component<Props, State> {
             : renderTreeFromPatches(patches.slice(0, 1000), this.props.actions || [], this.fileContextMenu, this.openFile);
 
         return (
-            <div className="changed-files">
-                <input type="text" onKeyUp={this.filterFiles} placeholder="Search file..." value={this.state.fileFilter} />
+            <div className="changed-files inset">
                 <div className="flex-row btn-group" style="margin: auto">
                     <button className={this.state.renderType === RenderType.PATH ? "selected" : undefined} onClick={() => this.setState({renderType: RenderType.PATH})}>Path</button>
                     <button className={this.state.renderType === RenderType.TREE ? "selected" : undefined} onClick={() => this.setState({renderType: RenderType.TREE})}>Tree</button>
                 </div>
+                <input type="text" onKeyUp={this.filterFiles} placeholder="Search file..." value={this.state.fileFilter} />
                 <ul className="file-types">
                     {deltas.modified > 0 && <li className="modified">{deltas.modified} modified</li>}
                     {deltas.added > 0 && <li className="added">{deltas.added} added</li>}
@@ -241,7 +241,7 @@ export default class ChangedFiles extends Component<Props, State> {
                     {deltas.renamed > 0 && <li className="renamed">{deltas.renamed} renamed</li>}
                 </ul>
                 <Links.Provider value="files">
-                    <ul className="diff-view block-list inset">
+                    <ul className="diff-view block-list">
                         {files}
                     </ul>
                 </Links.Provider>
