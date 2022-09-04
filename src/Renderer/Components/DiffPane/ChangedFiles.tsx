@@ -116,8 +116,8 @@ function renderPaths(patches: PatchObj[], actions: ButtonAction[], contextMenu: 
 function renderTree(tree: Tree<PatchObj>, actions: ButtonAction[], contextMenu: (e: h.JSX.TargetedMouseEvent<HTMLLIElement>) => void, selectAction: (data: Link<PatchObj>) => void, indent = 0) {
     const items = [];
     // Sort directories before files
-    const sortedChildren = Array.from(tree.children.entries()).sort( ([_, child]) => child.children.size ? -1 : 0);
-    for (const [item, child] of sortedChildren) {
+    const sortedChildren = Array.from(tree.children.entries()).sort( ([_, a], [_b, b]) => a.children.size && !b.children.size ? -1 : 0);
+    for (const [path, child] of sortedChildren) {
         if (child.item) {
             const patch = child.item;
             const typeCss = getFileCssClass(patch.status);
@@ -140,7 +140,7 @@ function renderTree(tree: Tree<PatchObj>, actions: ButtonAction[], contextMenu: 
                     <Link className={`${typeCss} flex-row`} linkData={patch} selectAction={selectAction}>
                         <span className="status">{getType(patch.status)}</span>
                         <div title={patch.actualFile.path} style="display:flex">
-                            <span style={{textIndent: "0.5em"}}>{item}</span>
+                            <span style={{textIndent: "0.5em"}}>{path}</span>
                         </div>
                     </Link>
                     <div className="action-group">
@@ -150,8 +150,8 @@ function renderTree(tree: Tree<PatchObj>, actions: ButtonAction[], contextMenu: 
             );
         } else {
             items.push(
-                <li className="sub-tree" key={item}>
-                    <a href="#" onClick={toggleTreeItem}><span style={{textIndent: "0"}}>{item}</span></a>
+                <li className="sub-tree" key={path}>
+                    <a href="#" onClick={toggleTreeItem}><span style={{textIndent: "0"}}>{path}</span></a>
                     {renderTree(child, actions, contextMenu, selectAction, indent + 1)}
                 </li>
             );
