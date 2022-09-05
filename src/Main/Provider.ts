@@ -879,22 +879,25 @@ async function getStagedPatches(repo: Repository, flags: Diff.OPTION) {
     return stagedDiff.patches();
 }
 
-let refreshingWorkdir = false;
+let preventRefreshWorkdir = false;
 export function isRefreshingWorkdir() {
-    return refreshingWorkdir;
+    return preventRefreshWorkdir;
 }
 export async function sendRefreshWorkdirEvent(repo: Repository) {
-    refreshingWorkdir = true;
+    if (preventRefreshWorkdir) {
+        return;
+    }
+    preventRefreshWorkdir = true;
     const result = await refreshWorkdir(repo);
     if (result instanceof Error) {
         // noop ?
     } else {
         sendEvent(AppEventType.REFRESH_WORKDIR, result);
     }
-    refreshingWorkdir = false;
+    preventRefreshWorkdir = false;
 }
 
-export async function refreshWorkdir(repo: Repository) {
+async function refreshWorkdir(repo: Repository) {
     const diffOptions = getAppConfig().diffOptions;
 
     // FIXME: Verify that this works? Might throw if called to often?
@@ -987,6 +990,7 @@ export async function unstageAllFiles(repo: Repository) {
 }
 
 async function discardSingleFile(repo: Repository, filePath: string) {
+    preventRefreshWorkdir = true;
     if (!index.getByPath(filePath)) {
         // file not found in index (untracked), delete
         try {
@@ -996,6 +1000,7 @@ async function discardSingleFile(repo: Repository, filePath: string) {
                 return err;
             }
         }
+        preventRefreshWorkdir = false;
         return true;
     }
     
@@ -1007,6 +1012,7 @@ async function discardSingleFile(repo: Repository, filePath: string) {
         console.error(err);
     }
 
+    preventRefreshWorkdir = false;
     return true;
 }
 export async function discardChanges(repo: Repository, filePath: string) {

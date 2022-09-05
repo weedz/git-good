@@ -23,7 +23,7 @@ export type StoreType = {
         staged: number
         unstaged: number
     }
-    branches: BranchesObj
+    branches: null | BranchesObj
     stash: StashObj[]
     head: HeadBranchObj | null
     remotes: IpcActionReturn[IpcAction.REMOTES]
@@ -57,11 +57,7 @@ const store = createStore<StoreType>({
         staged: 0,
         unstaged: 0
     },
-    branches: {
-        remote: [],
-        local: [],
-        tags: []
-    },
+    branches: null,
     stash: [],
     head: null,
     remotes: [],

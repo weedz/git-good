@@ -1,7 +1,7 @@
 import { h, Fragment } from "preact";
 import "./style.css";
 import { BranchesObj, Locks } from "../../../Common/Actions";
-import { Store, PureStoreComponent } from "../../Data/store";
+import { Store, PureStoreComponent, StoreType } from "../../Data/store";
 import { getBranchTree, filterBranches } from "./Utils";
 import BranchList from "./BranchList";
 import { loadUpstreams } from "../../Data";
@@ -9,7 +9,7 @@ import StashList from "./StashList";
 
 type State = {
     filter: string
-    branches: ReturnType<typeof getBranchTree>;
+    branches: null | ReturnType<typeof getBranchTree>;
 }
 
 function branchesToTree(branches: BranchesObj, filter: string | null) {
@@ -30,15 +30,16 @@ export default class Branches extends PureStoreComponent<unknown, State> {
                 this.forceUpdate();
             }
         });
-        this.listen("branches", async branches => {
-            this.loadBranches(branches);
-        });
+        this.listen("branches", this.loadBranches);
         if (Store.branches) {
             this.loadBranches(Store.branches);
         }
     }
 
-    async loadBranches(branches: BranchesObj) {
+    loadBranches = async (branches: StoreType["branches"]) => {
+        if (!branches) {
+            return this.setState({branches});
+        }
         // Renders branches without upstream "graph" (ahead/behind)
         this.setState({
             branches: branchesToTree(branches, this.state.filter),
@@ -51,7 +52,7 @@ export default class Branches extends PureStoreComponent<unknown, State> {
     }
 
     filter = (e: h.JSX.TargetedKeyboardEvent<HTMLInputElement>) => {
-        if (e.currentTarget.value !== this.state.filter) {
+        if (Store.branches && e.currentTarget.value !== this.state.filter) {
             const filterValue = e.currentTarget.value.toLocaleLowerCase();
             this.setState({
                 branches: branchesToTree(Store.branches, filterValue),

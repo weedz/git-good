@@ -41,6 +41,11 @@ export default class CommitList extends PureStoreComponent<unknown, State> {
     componentDidMount() {
         this.listen("selectedBranch", this.selectedBranch);
         this.listen("branches", this.branchesUpdated);
+        this.listen("repo", () => {
+            this.graph = {};
+            this.commits = [];
+            this.forceUpdate();
+        });
         this.registerHandler(IpcAction.LOAD_COMMITS, this.commitsLoaded);
 
         this.listen("locks", locks => {
@@ -51,8 +56,8 @@ export default class CommitList extends PureStoreComponent<unknown, State> {
 
         this.getCommits(Store.selectedBranch);
     }
-    branchesUpdated = () => {
-        this.selectedBranch(Store.selectedBranch);
+    branchesUpdated = (branches: StoreType["branches"]) => {
+        branches && this.selectedBranch(Store.selectedBranch);
     }
     selectedBranch = (selection: StoreType["selectedBranch"]) => {
         this.cursor = undefined;
