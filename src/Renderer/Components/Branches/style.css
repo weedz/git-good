@@ -5,15 +5,3 @@
 #branch-pane ul {
     user-select: none;
 }
-
-#branch-pane .tree-list .sub-tree > a::after {
-    content: " [+]";
-}
-#branch-pane .tree-list .sub-tree.open > a::after {
-    content: " [-]";
-}
-#branch-pane .tree-list .sub-tree > a::before,
-#branch-pane .tree-list .sub-tree.open > a::before
- {
-    content: none;
-}

@@ -33,7 +33,8 @@ export class RenderBranchTree extends PureComponent<{
 }> {
     render() {
         const items = [];
-        for (const [item, child] of this.props.branches.children.entries()) {
+        const sortedChildren = Array.from(this.props.branches.children.entries()).sort( ([_, a], [_b, b]) => a.children.size && !b.children.size ? -1 : 0);
+        for (const [item, child] of sortedChildren) {
             if (child.item) {
                 items.push(
                     <li key={child.item.headSHA}>
