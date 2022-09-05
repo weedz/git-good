@@ -6,7 +6,7 @@ import { showHeadMenu, showLocalMenu, showRemoteMenu, showRemoteRefMenu, showRem
 import { branchesAheadBehind, getBranchTree, RenderBranchTree, RenderRemotes } from "./Utils";
 import Link from "../Link";
 import { Links } from "../LinkContainer";
-import { toggleTreeItem } from "../../../Common/Tree";
+import { toggleTreeItem } from "../../Data/Tree";
 
 function triggerCheckoutBranch(e: h.JSX.TargetedMouseEvent<HTMLAnchorElement>) {
     e.currentTarget.dataset.ref && checkoutBranch(e.currentTarget.dataset.ref);

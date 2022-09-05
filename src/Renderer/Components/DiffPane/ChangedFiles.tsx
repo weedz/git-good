@@ -5,7 +5,7 @@ import { DiffDelta, getType } from "../../../Common/Utils";
 import Link from "../Link";
 import { Links } from "../LinkContainer";
 import { showFileMenu } from "./FileMenu";
-import { ensureTreePath, toggleTreeItem, Tree } from "../../../Common/Tree";
+import { ensureTreePath, toggleTreeItem, Tree } from "../../Data/Tree";
 
 interface ButtonAction {
     label: string

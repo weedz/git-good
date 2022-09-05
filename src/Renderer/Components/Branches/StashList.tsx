@@ -1,6 +1,6 @@
 import { h } from "preact";
 import { StashObj } from "../../../Common/Actions";
-import { toggleTreeItem } from "../../../Common/Tree";
+import { toggleTreeItem } from "../../Data/Tree";
 import { PureStoreComponent, showStash, Store } from "../../Data/store";
 import Link from "../Link";
 import { showStashMenu } from "./Menu";

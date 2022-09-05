@@ -1,7 +1,7 @@
 import { h } from "preact";
 import { PureComponent } from "preact/compat";
 import { BranchObj, BranchesObj } from "../../../Common/Actions";
-import { ensureTreePath, toggleTreeItem, Tree } from "../../../Common/Tree";
+import { ensureTreePath, toggleTreeItem, Tree } from "../../Data/Tree";
 import { updateStore } from "../../Data/store";
 import Link from "../Link";
 
