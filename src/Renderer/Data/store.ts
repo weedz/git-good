@@ -160,11 +160,6 @@ export function saveAppConfig(appConfig: AppConfig) {
 
 // TODO: Most of these functions should probably be in Renderer/IPC.ts or Renderer/index.ts
 
-export function openRepo(repoPath: IpcActionParams[IpcAction.OPEN_REPO]) {
-    setLock(Locks.MAIN);
-    ipcSendMessage(IpcAction.OPEN_REPO, repoPath);
-}
-
 export function resolveConflict(path: string) {
     ipcSendMessage(IpcAction.RESOLVE_CONFLICT, {path});
 }

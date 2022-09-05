@@ -40,11 +40,7 @@ export function showDismissibleWindow(dismissCallback: () => void) {
 let _glyphWidth = 7.81;
 calculateGlyphWidth(13, "JetBrainsMonoNL Nerd Font Mono");
 
-ipcGetData(IpcAction.INIT, null).then(init => {
-    if (init.repo) {
-        repoOpened(init.repo);
-    }
-});
+ipcGetData(IpcAction.INIT, null);
 ipcGetData(IpcAction.GET_SETTINGS, null).then(appConfig => {
     updateStore({
         appConfig,
@@ -72,17 +68,19 @@ export async function discardAllChanges() {
     await openNativeDialog(NativeDialog.DISCARD_ALL_CHANGES, null);
 }
 
-function repoOpened(result: IpcActionReturn[IpcAction.OPEN_REPO]) {
+function repoOpened(result: AppEventData[AppEventType.REPO_OPENED]) {
     clearLock(Locks.MAIN);
-    if (!result || !result.opened) {
-        return updateStore({
-            repo: null
-        });
-    }
+    clearLock(Locks.BRANCH_LIST);
+    clearLock(Locks.COMMIT_LIST);
 
     GlobalLinks.branches = {};
+    GlobalLinks.commits = {};
+    GlobalLinks.files = {};
 
     updateStore({
+        diffPaneSrc: null,
+        currentFile: null,
+        branches: undefined,
         repo: {
             path: result.path,
         },
@@ -272,7 +270,6 @@ registerAppEventHandlers({
 });
 
 
-registerHandler(IpcAction.OPEN_REPO, repoOpened);
 registerHandler(IpcAction.REFRESH_WORKDIR, updateRepoStatus);
 registerHandler(IpcAction.LOAD_BRANCHES, branchesLoaded);
 registerHandler(IpcAction.CHECKOUT_BRANCH, updateCurrentBranch);

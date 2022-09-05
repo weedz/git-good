@@ -1,4 +1,4 @@
-import type { Locks, IpcActionReturn, IpcAction } from "./Actions";
+import type { Locks, RepoStatus } from "./Actions";
 import { BranchFromType, BranchType } from "./Branch";
 
 export type LinkTypes = "commits" | "branches" | "files";
@@ -25,7 +25,11 @@ export const enum AppEventType {
 }
 
 export type AppEventData = {
-    [AppEventType.REPO_OPENED]: IpcActionReturn[IpcAction.OPEN_REPO]
+    [AppEventType.REPO_OPENED]: {
+        opened: boolean
+        path: string
+        status: RepoStatus
+    }
     [AppEventType.OPEN_SETTINGS]: null
     [AppEventType.LOCK_UI]: Locks
     [AppEventType.UNLOCK_UI]: Locks

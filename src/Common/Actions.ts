@@ -27,7 +27,6 @@ export const enum IpcAction {
     LOAD_BRANCHES,
     LOAD_HEAD,
     LOAD_UPSTREAMS,
-    OPEN_REPO,
     LOAD_COMMIT,
     LOAD_PATCHES_WITHOUT_HUNKS,
     LOAD_HUNKS,
@@ -69,7 +68,6 @@ export type IpcActionParams = {
     [IpcAction.LOAD_BRANCHES]: null
     [IpcAction.LOAD_HEAD]: null
     [IpcAction.LOAD_UPSTREAMS]: null
-    [IpcAction.OPEN_REPO]: string | null
     [IpcAction.LOAD_COMMIT]: string | null
     [IpcAction.LOAD_PATCHES_WITHOUT_HUNKS]: {
         sha: string
@@ -156,9 +154,7 @@ export type IpcActionParams = {
 };
 
 export type IpcActionReturn = {
-    [IpcAction.INIT]: {
-        repo: IpcActionReturn[IpcAction.OPEN_REPO]
-    }
+    [IpcAction.INIT]: null
     [IpcAction.LOAD_COMMITS]: LoadCommitsReturn
     [IpcAction.LOAD_FILE_COMMITS]: LoadFileCommitsReturn
     [IpcAction.LOAD_BRANCHES]: BranchesObj
@@ -171,11 +167,6 @@ export type IpcActionReturn = {
         remote: string | undefined
         name: string
     }>
-    [IpcAction.OPEN_REPO]: {
-        opened: boolean
-        path: string
-        status: null | RepoStatus
-    } | null
     [IpcAction.LOAD_COMMIT]: CommitObj
     [IpcAction.LOAD_PATCHES_WITHOUT_HUNKS]: PatchObj[]
     [IpcAction.LOAD_HUNKS]: {

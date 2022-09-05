@@ -11,7 +11,7 @@ import { isMac, isWindows } from "./Main/Utils";
 import { addRecentRepository, clearRepoProfile, currentProfile, diffOptionsIsEqual, getAppConfig, getRecentRepositories, getRepoProfile, saveAppConfig, setCurrentProfile, setRepoProfile, signatureFromActiveProfile, signatureFromProfile } from "./Main/Config";
 
 import * as provider from "./Main/Provider";
-import { IpcAction, IpcActionParams, IpcActionReturn, Locks, AsyncIpcActionReturnOrError } from "./Common/Actions";
+import { IpcAction, IpcActionParams, Locks, AsyncIpcActionReturnOrError } from "./Common/Actions";
 import { formatTimeAgo } from "./Common/Utils";
 import { requestClientData, sendEvent } from "./Main/WindowEvents";
 import { normalizeLocalName } from "./Common/Branch";
@@ -97,10 +97,7 @@ function buildOpenRepoMenuItem(path: string): MenuItemConstructorOptions {
     return {
         label: `${repoName} - ${path.slice(-60 + repoName.length)}`,
         async click() {
-            const result = await openRepo(path);
-            if (result.opened) {
-                sendEvent(AppEventType.REPO_OPENED, result);
-            }
+            await openRepo(path);
         }
     }
 }
@@ -139,15 +136,13 @@ function applyAppMenu() {
                                         }
                                     }
                                 });
-                                const repoResult = await openRepo(clonedRepo.workdir());
-                                return sendEvent(AppEventType.REPO_OPENED, repoResult);
+                                await openRepo(clonedRepo.workdir());
                             } catch (err) {
                                 console.warn(err);
                                 if (err instanceof Error) {
                                     dialog.showErrorBox("Clone failed", err.message);
                                 }
                             }
-                            sendEvent(AppEventType.REPO_OPENED, null);
                         }
                     }
                 },
@@ -157,8 +152,7 @@ function applyAppMenu() {
                         const data = await requestClientData(RendererRequestEvents.INIT_DIALOG, null);
                         if (data.source) {
                             const initialRepo = await Repository.init(data.source, 0);
-                            const repoResult = await openRepo(initialRepo.workdir());
-                            sendEvent(AppEventType.REPO_OPENED, repoResult);
+                            await openRepo(initialRepo.workdir());
                         }
                     }
                 },
@@ -169,10 +163,7 @@ function applyAppMenu() {
                     label: "Open...",
                     accelerator: "CmdOrCtrl+O",
                     async click() {
-                        const result = await openRepoDialog();
-                        if (result?.opened) {
-                            sendEvent(AppEventType.REPO_OPENED, result);
-                        }
+                        await openRepoDialog();
                     }
                 },
                 {
@@ -443,19 +434,10 @@ const eventMap: {
 } = {
     [IpcAction.INIT]: async () => {
         const recentRepo = getRecentRepositories()[0];
-        const initData: IpcActionReturn[IpcAction.INIT] = {
-            repo: null,
-        };
         if (recentRepo) {
-            initData.repo = await openRepo(recentRepo);
+            await openRepo(recentRepo);
         }
-        return initData;
-    },
-    [IpcAction.OPEN_REPO]: async (_, path) => {
-        if (path) {
-            return openRepo(path);
-        }
-        return openRepoDialog();
+        return null;
     },
     [IpcAction.LOAD_BRANCHES]: provider.getBranches,
     [IpcAction.LOAD_HEAD]: provider.getHEAD,
@@ -676,7 +658,6 @@ const eventMap: {
 
 const ALLOWED_WHEN_NOT_IN_REPO = {
     [IpcAction.INIT]: true,
-    [IpcAction.OPEN_REPO]: true,
     [IpcAction.GET_SETTINGS]: true,
     [IpcAction.SAVE_SETTINGS]: true,
 };
@@ -723,34 +704,37 @@ async function openRepoDialog() {
 async function openRepo(repoPath: string) {
     const opened = await provider.openRepo(repoPath);
 
-    if (opened) {
-        setRepo(opened);
-
-        addRecentRepository(repoPath);
-
-        applyAppMenu();
-
-        const repoProfile = await getRepoProfile(opened);
-
-        let body;
-        if (repoProfile !== false) {
-            const profile = setCurrentProfile(repoProfile);
-            body = `Profile set to '${profile?.profileName}'`;
-        }
-        sendEvent(AppEventType.NOTIFY, {title: "Repo opened", body});
-        sendAction(IpcAction.REMOTES, await provider.remotes(opened));
-        sendAction(IpcAction.LOAD_BRANCHES, await provider.getBranches(opened));
-        sendAction(IpcAction.LOAD_STASHES, await provider.getStash(opened));
-        sendAction(IpcAction.REFRESH_WORKDIR, await provider.refreshWorkDir(opened, getAppConfig().diffOptions));
-    } else {
+    if(!opened) {
         dialog.showErrorBox("No repository", `'${repoPath}' does not contain a git repository`);
+        return false;
     }
 
-    return {
-        path: repoPath,
+    sendEvent(AppEventType.REPO_OPENED, {
         opened: !!opened,
-        status: opened ? provider.repoStatus(opened) : null,
-    };
+        path: repoPath,
+        status: provider.repoStatus(opened),
+    });
+
+    setRepo(opened);
+
+    addRecentRepository(repoPath);
+
+    applyAppMenu();
+
+    const repoProfile = await getRepoProfile(opened);
+
+    let body;
+    if (repoProfile !== false) {
+        const profile = setCurrentProfile(repoProfile);
+        body = `Profile set to '${profile?.profileName}'`;
+    }
+    sendEvent(AppEventType.NOTIFY, {title: "Repo opened", body});
+    sendAction(IpcAction.REMOTES, await provider.remotes(opened));
+    sendAction(IpcAction.LOAD_BRANCHES, await provider.getBranches(opened));
+    sendAction(IpcAction.LOAD_STASHES, await provider.getStash(opened));
+    sendAction(IpcAction.REFRESH_WORKDIR, await provider.refreshWorkDir(opened, getAppConfig().diffOptions));
+
+    return true;
 }
 
 function loadHunks(repo: Repository, params: IpcActionParams[IpcAction.LOAD_HUNKS]) {
