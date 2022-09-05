@@ -32,7 +32,6 @@ export const enum IpcAction {
     LOAD_HUNKS,
     SHOW_STASH,
     CHECKOUT_BRANCH,
-    REFRESH_WORKDIR,
     GET_CHANGES,
     STAGE_FILE,
     UNSTAGE_FILE,
@@ -89,9 +88,6 @@ export type IpcActionParams = {
     }
     [IpcAction.SHOW_STASH]: number
     [IpcAction.CHECKOUT_BRANCH]: string
-    [IpcAction.REFRESH_WORKDIR]: null | {
-        ignoreWhitespace: boolean
-    }
     [IpcAction.GET_CHANGES]: null
     [IpcAction.STAGE_FILE]: string
     [IpcAction.UNSTAGE_FILE]: string
@@ -175,11 +171,6 @@ export type IpcActionReturn = {
     }
     [IpcAction.SHOW_STASH]: PatchObj[]
     [IpcAction.CHECKOUT_BRANCH]: false | HeadBranchObj
-    [IpcAction.REFRESH_WORKDIR]: {
-        unstaged: number
-        staged: number
-        status: RepoStatus
-    }
     [IpcAction.GET_CHANGES]: {
         staged: PatchObj[]
         unstaged: PatchObj[]

@@ -52,7 +52,7 @@ export default class WorkingArea extends StoreComponent<unknown, State> {
         staged: [],
     };
     componentDidMount() {
-        this.registerHandler(IpcAction.REFRESH_WORKDIR, getChanges);
+        this.listen("workDir", getChanges);
         this.registerHandler(IpcAction.GET_CHANGES, this.update);
 
         getChanges();

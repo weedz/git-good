@@ -22,6 +22,7 @@ export const enum AppEventType {
     DIALOG_RENAME_REF,
     DIALOG_PUSH_TAG,
     DIALOG_SET_UPSTREAM,
+    REFRESH_WORKDIR,
 }
 
 export type AppEventData = {
@@ -77,6 +78,11 @@ export type AppEventData = {
     [AppEventType.DIALOG_SET_UPSTREAM]: {
         remote: string
         local: string
+    }
+    [AppEventType.REFRESH_WORKDIR]: {
+        unstaged: number
+        staged: number
+        status: RepoStatus
     }
 }
 

@@ -654,14 +654,14 @@ export async function getStash(repo: Repository) {
 
 export async function stashPop(repo: Repository, index = 0) {
     await Stash.pop(repo, index);
-    sendAction(IpcAction.REFRESH_WORKDIR, await refreshWorkDir(repo, getAppConfig().diffOptions));
+    await sendRefreshWorkdirEvent(repo);
     sendAction(IpcAction.LOAD_STASHES, await getStash(repo));
     sendEvent(AppEventType.NOTIFY, {title: `Popped stash@{${index}}`});
     return true;
 }
 export async function stashApply(repo: Repository, index = 0) {
     await Stash.apply(repo, index);
-    sendAction(IpcAction.REFRESH_WORKDIR, await refreshWorkDir(repo, getAppConfig().diffOptions));
+    await sendRefreshWorkdirEvent(repo);
     sendEvent(AppEventType.NOTIFY, {title: `Applied stash@{${index}}`});
     return true;
 }
@@ -879,7 +879,24 @@ async function getStagedPatches(repo: Repository, flags: Diff.OPTION) {
     return stagedDiff.patches();
 }
 
-export async function refreshWorkDir(repo: Repository, diffOptions: IpcActionParams[IpcAction.REFRESH_WORKDIR]): AsyncIpcActionReturnOrError<IpcAction.REFRESH_WORKDIR> {
+let refreshingWorkdir = false;
+export function isRefreshingWorkdir() {
+    return refreshingWorkdir;
+}
+export async function sendRefreshWorkdirEvent(repo: Repository) {
+    refreshingWorkdir = true;
+    const result = await refreshWorkdir(repo);
+    if (result instanceof Error) {
+        // noop ?
+    } else {
+        sendEvent(AppEventType.REFRESH_WORKDIR, result);
+    }
+    refreshingWorkdir = false;
+}
+
+export async function refreshWorkdir(repo: Repository) {
+    const diffOptions = getAppConfig().diffOptions;
+
     // FIXME: Verify that this works? Might throw if called to often?
     try {
         await index.read(0);
@@ -987,7 +1004,7 @@ async function discardSingleFile(repo: Repository, filePath: string) {
         const tree = await head.getTree();
         await Checkout.tree(repo, tree, { checkoutStrategy: Checkout.STRATEGY.FORCE, paths: [filePath] });
     } catch (err) {
-        console.error(err)
+        console.error(err);
     }
 
     return true;

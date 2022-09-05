@@ -91,7 +91,7 @@ function repoOpened(result: AppEventData[AppEventType.REPO_OPENED]) {
     });
 }
 
-function updateRepoStatus(result: IpcActionReturn[IpcAction.REFRESH_WORKDIR]) {
+function updateRepoStatus(result: AppEventData[AppEventType.REFRESH_WORKDIR]) {
     updateStore({
         repoStatus: result.status,
         workDir: {
@@ -267,10 +267,10 @@ registerAppEventHandlers({
     [AppEventType.DIALOG_SET_UPSTREAM]: (data) => {
         openDialog_SetUpstream(data.local, data.remote);
     },
+    [AppEventType.REFRESH_WORKDIR]: updateRepoStatus,
 });
 
 
-registerHandler(IpcAction.REFRESH_WORKDIR, updateRepoStatus);
 registerHandler(IpcAction.LOAD_BRANCHES, branchesLoaded);
 registerHandler(IpcAction.CHECKOUT_BRANCH, updateCurrentBranch);
 registerHandler(IpcAction.LOAD_HUNKS, loadHunks);

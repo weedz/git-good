@@ -1,10 +1,7 @@
 import { dialog, IpcMainInvokeEvent } from "electron/main";
-import { IpcAction } from "../../Common/Actions";
 import { NativeDialog, NativeDialogData } from "../../Common/Dialog";
-import { getAppConfig } from "../Config";
 import { currentRepo } from "../Context";
-import { sendAction } from "../IPC";
-import { discardAllChanges, discardChanges, refreshWorkDir } from "../Provider";
+import { discardAllChanges, discardChanges, sendRefreshWorkdirEvent } from "../Provider";
 
 interface DialogData<D extends NativeDialog> {
     action: D
@@ -41,7 +38,7 @@ export async function handleDialog(_event: IpcMainInvokeEvent, eventData: Dialog
         });
         if (result.response === 1) {
             await discardChanges(currentRepo(), dialogData.path);
-            sendAction(IpcAction.REFRESH_WORKDIR, await refreshWorkDir(currentRepo(), getAppConfig().diffOptions));
+            await sendRefreshWorkdirEvent(currentRepo());
         }
         return true;
     }
@@ -55,7 +52,7 @@ export async function handleDialog(_event: IpcMainInvokeEvent, eventData: Dialog
         });
         if (result.response === 1) {
             await discardAllChanges(currentRepo());
-            sendAction(IpcAction.REFRESH_WORKDIR, await refreshWorkDir(currentRepo(), getAppConfig().diffOptions));
+            await sendRefreshWorkdirEvent(currentRepo());
         }
         return true;
     }

@@ -64,12 +64,9 @@ app.whenReady().then(() => {
         activeDisplay.bounds.y + activeDisplay.size.height / 2 - initialWindowHeight / 2
     );
 
-    let refreshingWorkDir = false;
     win.addListener("focus", async () => {
-        if (currentRepo() && !refreshingWorkDir && getAppConfig().ui.refreshWorkdirOnFocus) {
-            refreshingWorkDir = true;
-            sendAction(IpcAction.REFRESH_WORKDIR, await provider.refreshWorkDir(currentRepo(), getAppConfig().diffOptions));
-            refreshingWorkDir = false;
+        if (currentRepo() && !provider.isRefreshingWorkdir() && getAppConfig().ui.refreshWorkdirOnFocus) {
+            await provider.sendRefreshWorkdirEvent(currentRepo());
         }
     });
 
@@ -277,13 +274,13 @@ function applyAppMenu() {
                             return dialog.showErrorBox("Error", "Not in a repository");
                         }
                         await provider.fetchFrom(repo, null);
-                        sendAction(IpcAction.LOAD_BRANCHES, await provider.getBranches(currentRepo()));
+                        sendAction(IpcAction.LOAD_BRANCHES, await provider.getBranches(repo));
                     }
                 },
                 {
                     label: "Refresh",
                     async click() {
-                        sendAction(IpcAction.REFRESH_WORKDIR, await provider.refreshWorkDir(repo, getAppConfig().diffOptions));
+                        await provider.sendRefreshWorkdirEvent(repo);
                     }
                 },
                 {
@@ -292,7 +289,7 @@ function applyAppMenu() {
                         sendEvent(AppEventType.LOCK_UI, Locks.BRANCH_LIST);
                         await provider.pull(repo, null, signatureFromActiveProfile());
                         sendEvent(AppEventType.UNLOCK_UI, Locks.BRANCH_LIST);
-                        sendAction(IpcAction.LOAD_BRANCHES, await provider.getBranches(currentRepo()));
+                        sendAction(IpcAction.LOAD_BRANCHES, await provider.getBranches(repo));
                     }
                 },
                 {
@@ -303,7 +300,7 @@ function applyAppMenu() {
                         if (result instanceof Error) {
                             dialog.showErrorBox("Failed to push", result.message);
                         } else {
-                            sendAction(IpcAction.LOAD_BRANCHES, await provider.getBranches(currentRepo()));
+                            sendAction(IpcAction.LOAD_BRANCHES, await provider.getBranches(repo));
                         }
                         sendEvent(AppEventType.UNLOCK_UI, Locks.BRANCH_LIST);
                     }
@@ -334,8 +331,8 @@ function applyAppMenu() {
                     async click() {
                         // TODO: Stash message
                         await Stash.save(repo, signatureFromActiveProfile(), "Stash", Stash.FLAGS.DEFAULT);
-                        sendAction(IpcAction.REFRESH_WORKDIR, await provider.refreshWorkDir(repo, getAppConfig().diffOptions));
-                        sendAction(IpcAction.LOAD_STASHES, await provider.getStash(currentRepo()));
+                        await provider.sendRefreshWorkdirEvent(repo);
+                        sendAction(IpcAction.LOAD_STASHES, await provider.getStash(repo));
                         sendEvent(AppEventType.NOTIFY, {title: "Stashed changes"});
                     }
                 },
@@ -455,26 +452,25 @@ const eventMap: {
     },
     [IpcAction.SHOW_STASH]: provider.showStash,
     [IpcAction.CHECKOUT_BRANCH]: provider.checkoutBranch,
-    [IpcAction.REFRESH_WORKDIR]: provider.refreshWorkDir,
     [IpcAction.GET_CHANGES]: provider.loadChanges,
     [IpcAction.STAGE_FILE]: async (repo, data) => {
         const result = await provider.stageFile(repo, data);
-        sendAction(IpcAction.REFRESH_WORKDIR, await provider.refreshWorkDir(repo, getAppConfig().diffOptions));
+        await provider.sendRefreshWorkdirEvent(repo);
         return result;
     },
     [IpcAction.UNSTAGE_FILE]: async (repo, data) => {
         const result = await provider.unstageFile(repo, data);
-        sendAction(IpcAction.REFRESH_WORKDIR, await provider.refreshWorkDir(repo, getAppConfig().diffOptions));
+        await provider.sendRefreshWorkdirEvent(repo);
         return result;
     },
     [IpcAction.STAGE_ALL]: async (repo) => {
         const result = await provider.stageAllFiles(repo);
-        sendAction(IpcAction.REFRESH_WORKDIR, await provider.refreshWorkDir(repo, getAppConfig().diffOptions));
+        await provider.sendRefreshWorkdirEvent(repo);
         return result;
     },
     [IpcAction.UNSTAGE_ALL]: async (repo) => {
         const result = await provider.unstageAllFiles(repo);
-        sendAction(IpcAction.REFRESH_WORKDIR, await provider.refreshWorkDir(repo, getAppConfig().diffOptions));
+        await provider.sendRefreshWorkdirEvent(repo);
         return result;
     },
     [IpcAction.CREATE_BRANCH]: async (repo, data) => {
@@ -549,14 +545,14 @@ const eventMap: {
         const result = await provider.commit(repo, data);
         if (!(result instanceof Error)) {
             sendAction(IpcAction.LOAD_BRANCHES, await provider.getBranches(repo));
-            sendAction(IpcAction.REFRESH_WORKDIR, await provider.refreshWorkDir(repo, getAppConfig().diffOptions));
+            await provider.sendRefreshWorkdirEvent(repo);
         }
         return result;
     },
     [IpcAction.REMOTES]: provider.remotes,
     [IpcAction.RESOLVE_CONFLICT]: async (repo, {path}) => {
         const result = await provider.resolveConflict(repo, path);
-        sendAction(IpcAction.REFRESH_WORKDIR, await provider.refreshWorkDir(repo, getAppConfig().diffOptions));
+        await provider.sendRefreshWorkdirEvent(repo);
         return result;
     },
     [IpcAction.EDIT_REMOTE]: async (repo, data, event) => {
@@ -611,11 +607,11 @@ const eventMap: {
         }
         return result;
     },
-    [IpcAction.SAVE_SETTINGS]: async (_, data) => {
+    [IpcAction.SAVE_SETTINGS]: async (repo, data) => {
         setCurrentProfile(data.selectedProfile);
         try {
             if (!diffOptionsIsEqual(data.diffOptions)) {
-                sendAction(IpcAction.REFRESH_WORKDIR, await provider.refreshWorkDir(currentRepo(), getAppConfig().diffOptions));
+                await provider.sendRefreshWorkdirEvent(repo);
             }
             saveAppConfig(data);
             return true;
@@ -732,7 +728,7 @@ async function openRepo(repoPath: string) {
     sendAction(IpcAction.REMOTES, await provider.remotes(opened));
     sendAction(IpcAction.LOAD_BRANCHES, await provider.getBranches(opened));
     sendAction(IpcAction.LOAD_STASHES, await provider.getStash(opened));
-    sendAction(IpcAction.REFRESH_WORKDIR, await provider.refreshWorkDir(opened, getAppConfig().diffOptions));
+    await provider.sendRefreshWorkdirEvent(opened);
 
     return true;
 }
