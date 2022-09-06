@@ -60,7 +60,7 @@ export class Settings extends Component<SettingsProps, State> {
             formBody = <Fragment>
                 <div className="pane">
                     <h3>Profiles</h3>
-                    <select onChange={e => this.setConfig("selectedProfile", Number.parseInt(e.currentTarget.value, 10) || 0)}>
+                    <select onInput={e => this.setConfig("selectedProfile", Number.parseInt(e.currentTarget.value, 10) || 0)}>
                         {this.state.config.profiles.map((profile, idx) => (
                             <option key={profile.profileName} value={idx} selected={idx === this.state.config.selectedProfile}>{profile.profileName}</option>
                         ))}
@@ -137,7 +137,7 @@ export class Settings extends Component<SettingsProps, State> {
                     <h3>Git</h3>
                     <div>
                         <label for="commitlist-sort-order">Commitlist sort order:</label>
-                        <select id="commitlist-sort-order" onChange={e => this.setConfig("commitlistSortOrder", e.currentTarget.value as AppConfig["commitlistSortOrder"])}>
+                        <select id="commitlist-sort-order" onInput={e => this.setConfig("commitlistSortOrder", e.currentTarget.value as AppConfig["commitlistSortOrder"])}>
                             <option value="topological" selected={this.state.config.commitlistSortOrder === "topological"}>Topological (default)</option>
                             <option value="none" selected={this.state.config.commitlistSortOrder === "none"}>None (Much faster for large repos)</option>
                         </select>

@@ -14,7 +14,7 @@ export function SetUpstream(dialog: SetUpstreamProps) {
             dialog.confirmCb(data.remote, data.branch);
         }}>
             <h4>Set upstream</h4>
-            <select name="remote" onChange={e => data.remote = e.currentTarget.value}>
+            <select name="remote" onInput={e => data.remote = e.currentTarget.value}>
                 {Store.remotes.map(remote => <option key={remote.name} value={remote.name} selected={remote.name === data.remote}>{remote.name}</option>)}
             </select>
             <input type="text" name="branch" placeholder="Remote branch..." onInput={e => data.branch = e.currentTarget.value} value={data.branch} />

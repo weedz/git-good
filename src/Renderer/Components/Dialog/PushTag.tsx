@@ -13,7 +13,7 @@ export function PushTag(dialog: PushTagProps) {
             dialog.confirmCb(data.remote);
         }}>
             <h4>Push to remote:</h4>
-            <select name="remote" onChange={e => data.remote = e.currentTarget.value}>
+            <select name="remote" onInput={e => data.remote = e.currentTarget.value}>
                 {Store.remotes.map(remote => <option key={remote.name} value={remote.name} selected={remote.name === data.remote}>{remote.name}</option>)}
             </select>
             <button type="button" onClick={dialog.cancelCb}>Cancel</button>
