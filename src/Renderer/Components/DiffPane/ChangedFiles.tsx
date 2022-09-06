@@ -233,7 +233,6 @@ export default class ChangedFiles extends Component<Props, State> {
                     <button className={this.state.renderType === RenderType.PATH ? "selected" : undefined} onClick={() => this.setState({renderType: RenderType.PATH})}>Path</button>
                     <button className={this.state.renderType === RenderType.TREE ? "selected" : undefined} onClick={() => this.setState({renderType: RenderType.TREE})}>Tree</button>
                 </div>
-                <input type="text" onKeyUp={this.filterFiles} placeholder="Search file..." value={this.state.fileFilter} />
                 <ul className="file-types">
                     {deltas.modified > 0 && <li className="modified">{deltas.modified} modified</li>}
                     {deltas.added > 0 && <li className="added">{deltas.added} added</li>}
@@ -245,6 +244,7 @@ export default class ChangedFiles extends Component<Props, State> {
                         {files}
                     </ul>
                 </Links.Provider>
+                <input type="text" onKeyUp={this.filterFiles} placeholder="Search file..." value={this.state.fileFilter} />
             </div>
         );
     }
