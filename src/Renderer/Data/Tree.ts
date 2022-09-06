@@ -1,18 +1,19 @@
 import type { JSX } from "preact";
 
-export interface Tree<NodeType> {
+export interface Tree<NodeType = unknown> {
     item?: NodeType
     children: Map<string, Tree<NodeType>>
 }
 
-export function ensureTreePath(tree: Tree<unknown>, segments: string[]): Tree<unknown> {
+export function ensureTreePath(tree: Tree, segments: string[]): Tree {
     let root = tree;
     for (const segment of segments) {
-        if (!root.children.has(segment)) {
-            root.children.set(segment, {children: new Map()} as Tree<unknown>);
+        let item = root.children.get(segment);
+        if (!item) {
+            item = {children: new Map()} as Tree;
+            root.children.set(segment, item);
         }
-        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-        root = root.children.get(segment)!;
+        root = item;
     }
 
     return root;

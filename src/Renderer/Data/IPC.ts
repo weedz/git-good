@@ -91,6 +91,7 @@ const handlers: {[T in IpcAction]: HandlerCallback[]} = {
     [IpcAction.PARSE_REVSPEC]: [],
     [IpcAction.LOAD_STASHES]: [],
     [IpcAction.GET_COMMIT_GPG_SIGN]: [],
+    [IpcAction.LOAD_TREE_AT_COMMIT]: [],
 };
 export function registerHandler<T extends IpcAction>(action: T, callbacks: ((arg: IpcActionReturn[T]) => void) | (Array<(arg: IpcActionReturn[T]) => void>)) {
     if (!Array.isArray(callbacks)) {

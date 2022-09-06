@@ -1,19 +1,43 @@
 import { h } from "preact";
-import { ipcSendMessage } from "../../Data/IPC";
-import { IpcAction, CommitObj, PatchObj, IpcActionReturn, IpcResponse, Locks } from "../../../Common/Actions";
+import { ipcGetData, ipcSendMessage } from "../../Data/IPC";
+import { IpcAction, CommitObj, PatchObj, IpcActionReturn, IpcResponse, Locks, FileObj } from "../../../Common/Actions";
 
 import "./style.css";
 import CommitMessage from "./CommitMessage";
 import ChangedFiles from "./ChangedFiles";
 import { clearLock, Store, StoreComponent } from "../../Data/store";
 import { triggerAction } from "../Link";
+import { DiffDelta } from "../../../Common/Utils";
 
 interface State {
     commit: null | CommitObj
     patches: PatchObj[]
+    tree: null | PatchObj[]
 }
 interface Props {
     sha: string
+}
+
+function mapTreeToPatchObj(tree: string[]) {
+    return tree.map(item => {
+        const fileObj = {
+            path: item,
+            flags: 0,
+            mode: 0,
+            size: 0
+        } as FileObj;
+        return {
+            actualFile: fileObj,
+            lineStats: {
+                total_additions: 0,
+                total_context: 0,
+                total_deletions: 0,
+            },
+            status: DiffDelta.UNMODIFIED,
+            newFile: fileObj,
+            oldFile: fileObj
+        }
+    })
 }
 
 export default class Commit extends StoreComponent<Props, State> {
@@ -21,6 +45,7 @@ export default class Commit extends StoreComponent<Props, State> {
         this.setState({
             commit: null,
             patches: [],
+            tree: null
         });
     }
     componentWillReceiveProps(props: Props) {
@@ -76,7 +101,24 @@ export default class Commit extends StoreComponent<Props, State> {
         return (
             <div id="diff-pane" className="pane">
                 <CommitMessage commit={this.state.commit} />
-                <ChangedFiles patches={this.state.patches} commit={this.state.commit} />
+                <div>
+                    <label>
+                        <span>View all files</span>
+                        <input type="checkbox" onInput={async e => {
+                            if (e.currentTarget.checked && this.state.commit?.sha) {
+                                const tree = await ipcGetData(IpcAction.LOAD_TREE_AT_COMMIT, this.state.commit.sha);
+                                this.setState({
+                                    tree: mapTreeToPatchObj(tree)
+                                });
+                            } else {
+                                this.setState({
+                                    tree: null
+                                });
+                            }
+                        }} />
+                    </label>
+                </div>
+                <ChangedFiles patches={this.state.tree || this.state.patches} commit={this.state.commit} />
             </div>
         );
     }

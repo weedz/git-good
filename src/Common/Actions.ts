@@ -58,6 +58,7 @@ export const enum IpcAction {
     PARSE_REVSPEC,
     LOAD_STASHES,
     GET_COMMIT_GPG_SIGN,
+    LOAD_TREE_AT_COMMIT,
 }
 
 export type IpcActionParams = {
@@ -147,6 +148,7 @@ export type IpcActionParams = {
     [IpcAction.PARSE_REVSPEC]: string
     [IpcAction.LOAD_STASHES]: null
     [IpcAction.GET_COMMIT_GPG_SIGN]: string
+    [IpcAction.LOAD_TREE_AT_COMMIT]: string
 };
 
 export type IpcActionReturn = {
@@ -210,6 +212,7 @@ export type IpcActionReturn = {
         }
         sha: string
     }
+    [IpcAction.LOAD_TREE_AT_COMMIT]: string[]
 };
 
 export type RepoStatus = {

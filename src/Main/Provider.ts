@@ -20,6 +20,11 @@ declare module "nodegit" {
         static sshKeyNew(username: string, publicKey: string, privateKey: string, passphrase: string): unknown
         static userpassPlaintextNew(username: string, password: string): unknown
     }
+
+    interface Tree {
+        // see https://github.com/nodegit/nodegit/pull/1919
+        getAllFilepaths(): Promise<string[]>
+    }
 }
 
 export function authenticate(username: string, auth: AuthConfig) {
@@ -751,8 +756,6 @@ export async function findFile(repo: Repository, file: string): AsyncIpcActionRe
     const head = await repo.getHeadCommit();
     const tree = await head.getTree();
 
-    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-    // @ts-ignore, see https://github.com/nodegit/nodegit/pull/1919
     const paths: string[] = await tree.getAllFilepaths();
     for (const path of paths) {
         if (path.toLocaleLowerCase().includes(file)) {
@@ -1435,6 +1438,13 @@ function getCommitObj(commit: Commit): CommitObj {
             email: committer.email()
         },
     };
+}
+
+export async function loadTreeAtCommit(repo: Repository, sha: string) {
+    const commit = await repo.getCommit(sha);
+    const tree = await commit.getTree();
+
+    return tree.getAllFilepaths();
 }
 
 export async function loadCommit(repo: Repository, sha: string | null) {

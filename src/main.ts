@@ -654,6 +654,7 @@ const eventMap: {
     },
     [IpcAction.LOAD_STASHES]: provider.getStash,
     [IpcAction.GET_COMMIT_GPG_SIGN]: provider.getCommitGpgSign,
+    [IpcAction.LOAD_TREE_AT_COMMIT]: provider.loadTreeAtCommit,
 }
 
 const ALLOWED_WHEN_NOT_IN_REPO = {

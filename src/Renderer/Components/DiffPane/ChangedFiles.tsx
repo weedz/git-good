@@ -1,7 +1,7 @@
-import { h, Component } from "preact";
+import { h, Component, Fragment } from "preact";
 import { PatchObj, CommitObj } from "../../../Common/Actions";
 import { openFile, resolveConflict } from "../../Data/store";
-import { DiffDelta, getType } from "../../../Common/Utils";
+import { DiffDelta } from "../../../Common/Utils";
 import Link from "../Link";
 import { Links } from "../LinkContainer";
 import { showFileMenu } from "./FileMenu";
@@ -31,6 +31,25 @@ interface State {
 const enum RenderType {
     PATH = 0,
     TREE,
+}
+
+function getType(status: number) {
+    switch (status) {
+        case DiffDelta.ADDED:
+            return "A";
+        case DiffDelta.DELETED:
+            return "D";
+        case DiffDelta.MODIFIED:
+            return "M";
+        case DiffDelta.RENAMED:
+            return "R";
+        case DiffDelta.UNTRACKED:
+            return "U";
+        case DiffDelta.CONFLICTED:
+            return "C";
+        case DiffDelta.UNMODIFIED:
+            return <>&nbsp;</>
+    }
 }
 
 function calcDeltas(patches: Props["patches"]) {
@@ -232,6 +251,14 @@ export default class ChangedFiles extends Component<Props, State> {
                 <div className="flex-row btn-group" style="margin: auto">
                     <button className={this.state.renderType === RenderType.PATH ? "selected" : undefined} onClick={() => this.setState({renderType: RenderType.PATH})}>Path</button>
                     <button className={this.state.renderType === RenderType.TREE ? "selected" : undefined} onClick={() => this.setState({renderType: RenderType.TREE})}>Tree</button>
+                    {this.state.renderType === RenderType.TREE && <span style="align-self:center;position:absolute;right:0;cursor:pointer;user-select:none" onClick={(e) => {
+                        const fileContainer = e.currentTarget.closest(".changed-files")?.querySelector(".diff-view.block-list");
+                        if (fileContainer) {
+                            for (const list of Array.from(fileContainer.querySelectorAll("li.sub-tree"))) {
+                                list.classList.add("open");
+                            }
+                        }
+                    }}>Expand all</span>}
                 </div>
                 <ul className="file-types">
                     {deltas.modified > 0 && <li className="modified">{deltas.modified} modified</li>}

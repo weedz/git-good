@@ -12,23 +12,6 @@ export const enum DiffDelta {
     CONFLICTED = 10,
 }
 
-export function getType(status: number) {
-    switch (status) {
-        case DiffDelta.ADDED:
-            return "A";
-        case DiffDelta.DELETED:
-            return "D";
-        case DiffDelta.MODIFIED:
-            return "M";
-        case DiffDelta.RENAMED:
-            return "R";
-        case DiffDelta.UNTRACKED:
-            return "U";
-        case DiffDelta.CONFLICTED:
-            return "C";
-    }
-}
-
 const formatter = new Intl.RelativeTimeFormat(undefined, {
     numeric: "auto"
 });
