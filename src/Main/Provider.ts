@@ -10,7 +10,7 @@ import { AppConfig, AuthConfig } from "../Common/Config";
 import { currentProfile, getAppConfig, getAuth, signatureFromProfile } from "./Config";
 import { sendEvent } from "./WindowEvents";
 import type { TransferProgress } from "../../types/nodegit";
-import { Context } from "./Context";
+import { Context, setLastKnownHead } from "./Context";
 import { sendAction } from "./IPC";
 import { AppEventType } from "../Common/WindowEventTypes";
 
@@ -688,6 +688,9 @@ export async function getBranches(repo: Repository): AsyncIpcActionReturnOrError
     const remote: BranchObj[] = [];
     const tags: BranchObj[] = [];
 
+    const currentHead = await repo.getHeadCommit();
+    setLastKnownHead(currentHead.id());
+
     const refs = await repo.getReferences();
     // FIXME: Why do we get 2 references for "refs/remotes/origin/master"
     await Promise.all(
@@ -818,6 +821,8 @@ export async function commit(repo: Repository, params: IpcActionParams[IpcAction
     } catch (err) {
         return err as Error;
     }
+
+    setLastKnownHead((await repo.getHeadCommit()).id());
 
     return loadCommit(repo, null);
 }
@@ -1491,6 +1496,7 @@ export async function checkoutBranch(repo: Repository, branch: string): AsyncIpc
         await repo.checkoutBranch(branch);
         const head = await repo.head();
         const headCommit = await repo.getHeadCommit()
+        setLastKnownHead(headCommit.id());
         return {
             name: head.name(),
             headSHA: headCommit.id().tostrS(),

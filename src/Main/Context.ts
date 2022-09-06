@@ -1,5 +1,5 @@
 import { BrowserWindow, WebContents } from "electron/main";
-import { Repository } from "nodegit";
+import { Oid, Repository } from "nodegit";
 
 export type Context = {
     win: WebContents;
@@ -7,8 +7,15 @@ export type Context = {
 };
 
 let repo: Repository;
+let lastKnownHead: Oid;
 let win: WebContents;
 
+export function getLastKnownHead() {
+    return lastKnownHead;
+}
+export function setLastKnownHead(oid: Oid) {
+    lastKnownHead = oid;
+}
 export function currentRepo() {
     return repo;
 }

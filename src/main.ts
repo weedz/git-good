@@ -22,7 +22,7 @@ import { AppEventType, RendererRequestEvents } from "./Common/WindowEventTypes";
 import { lastCommit, buildDateTime } from "env";
 import { handleContextMenu } from "./Main/ContextMenu";
 import { handleDialog } from "./Main/Dialogs";
-import { currentRepo, currentWindow, getContext, setRepo, setWindow } from "./Main/Context";
+import { currentRepo, currentWindow, getContext, getLastKnownHead, setRepo, setWindow } from "./Main/Context";
 import { actionLock, eventReply, sendAction } from "./Main/IPC";
 
 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
@@ -66,6 +66,10 @@ app.whenReady().then(() => {
 
     win.addListener("focus", async () => {
         if (currentRepo() && !provider.isRefreshingWorkdir() && getAppConfig().ui.refreshWorkdirOnFocus) {
+            const currentHead = await currentRepo().getHeadCommit();
+            if (!getLastKnownHead() || !currentHead.id().equal(getLastKnownHead())) {
+                sendAction(IpcAction.LOAD_BRANCHES, await provider.getBranches(currentRepo()));
+            }
             await provider.sendRefreshWorkdirEvent(currentRepo());
         }
     });
