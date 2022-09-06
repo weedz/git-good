@@ -40,7 +40,7 @@ contextBridge.exposeInMainWorld("electronAPI", {
         });
     },
     requestClientData: (callback: <E extends RendererRequestEvents>(payload: RendererRequestPayload<E>) => Promise<RendererRequestData[E]>) => {
-        ipcRenderer.on("request-client-data", async (e, payload) => {
+        ipcRenderer.on("request-client-data", async (_, payload) => {
             const response = await callback(payload.data).catch(e => Error(e));
             ipcRenderer.send("response-client-data", {
                 id: payload.id,
@@ -49,7 +49,7 @@ contextBridge.exposeInMainWorld("electronAPI", {
         });
     },
     onAsyncReply: (callback: (payload: IpcPayload<IpcAction>) => void) => {
-        ipcRenderer.on("asynchronous-reply", (event, payload) => callback(payload));
+        ipcRenderer.on("asynchronous-reply", (_, payload) => callback(payload));
     },
     sendAsyncMessage: <T extends IpcAction>(action: T, data: IpcActionParams[T]) => {
         const id = (Math.random() * Number.MAX_SAFE_INTEGER)>>>0;

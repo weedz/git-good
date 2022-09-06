@@ -402,7 +402,7 @@ export async function push(context: Context, data: IpcActionParams[IpcAction.PUS
         if (localRef.isBranch()) {
             result = await pushBranch(context, remote, localRef, data.force);
         } else if (localRef.isTag()) {
-            result = await pushTag(remote, localRef, auth, undefined, context);
+            result = await pushTag(remote, localRef, undefined, context);
         }
     }
 
@@ -448,7 +448,7 @@ async function pushBranch(context: Context, remote: Remote, localRef: Reference,
     return doPush(remote, localRef.name(), `heads/${remoteRefName}`, force, context);
 }
 
-async function pushTag(remote: Remote, localRef: Reference, auth: AuthConfig, remove = false, context?: Context) {
+async function pushTag(remote: Remote, localRef: Reference, remove = false, context?: Context) {
     // We can pass an empty localref to delete a remote ref
     return doPush(remote, remove ? "" : localRef.name(), `tags/${normalizeTagName(localRef.name())}`, undefined, context);
 }
