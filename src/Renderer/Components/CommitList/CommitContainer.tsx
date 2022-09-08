@@ -1,5 +1,4 @@
-import { h } from "preact";
-import { PureComponent } from "preact/compat";
+import { Component, h } from "preact";
 import { LoadCommitReturn } from "../../../Common/Actions";
 import ScrollContainer from "../ScrollContainer";
 import CommitListItem from "./CommitListItem";
@@ -7,16 +6,13 @@ import CommitListItem from "./CommitListItem";
 type Props = {
     commits: LoadCommitReturn[]
     loadMore: () => void
-    graph: {
-        [sha: string]: {
-            descendants: LoadCommitReturn[]
-            colorId: number
-        }
-    }
+    graph: Map<string, {
+        descendants: LoadCommitReturn[]
+        colorId: number
+    }>;
 }
 
-// eslint-disable-next-line react/prefer-stateless-function
-export default class CommitContainer extends PureComponent<Props> {
+export default class CommitContainer extends Component<Props> {
     checkScroll = (el: HTMLElement) => {
         const bottom = el.scrollTop + el.clientHeight;
         const percentScrolled = bottom / el.scrollHeight;

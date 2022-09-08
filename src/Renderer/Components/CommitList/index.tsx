@@ -8,7 +8,6 @@ import FileFilter from "./FileFilter";
 import HeadColors from "./HeadColors";
 import { Links } from "../LinkContainer";
 import CommitContainer from "./CommitContainer";
-import { GlobalLinks } from "../Link";
 import { filterCommit } from "../../Data/Utility";
 
 type State = {
@@ -20,13 +19,11 @@ const pageSize = 200;
 const historyLimit = 2000;
 
 export default class CommitList extends PureStoreComponent<unknown, State> {
-    graph: {
-        [sha: string]: {
-            descendants: LoadCommitReturn[]
-            colorId: number
-        }
-    } = {};
-    cursor: IpcActionReturn[IpcAction.LOAD_COMMITS]["cursor"];
+    graph: Map<string, {
+        descendants: LoadCommitReturn[]
+        colorId: number
+    }> = new Map();
+    cursor: string | null = null;
     color = 0;
     canFetchMore = true;
     loading = false;
@@ -40,38 +37,39 @@ export default class CommitList extends PureStoreComponent<unknown, State> {
 
     componentDidMount() {
         this.listen("selectedBranch", this.selectedBranch);
-        this.listen("branches", this.branchesUpdated);
+        this.listen("branches", (branches) => {
+            branches && this.selectedBranch(Store.selectedBranch);
+        });
         this.listen("repo", () => {
-            this.graph = {};
+            this.graph.clear();
             this.commits = [];
             this.forceUpdate();
         });
-        this.registerHandler(IpcAction.LOAD_COMMITS, this.commitsLoaded);
-
         this.listen("locks", locks => {
             if (Store.locks[Locks.COMMIT_LIST] !== locks[Locks.COMMIT_LIST]) {
                 this.forceUpdate();
             }
         });
+        this.registerHandler(IpcAction.LOAD_COMMITS, this.commitsLoaded);
 
-        this.getCommits(Store.selectedBranch);
+        this.selectedBranch(Store.selectedBranch);
     }
-    branchesUpdated = (branches: StoreType["branches"]) => {
-        branches && this.selectedBranch(Store.selectedBranch);
-    }
-    selectedBranch = (selection: StoreType["selectedBranch"]) => {
-        this.cursor = undefined;
+
+    resetBranchList() {
+        this.cursor = null;
         this.color = 0;
         this.canFetchMore = true;
-        this.getCommits(selection);
-    }
-    getCommits = (selection: StoreType["selectedBranch"]) => {
-        GlobalLinks.commits = {};
-        this.graph = {};
+        this.graph.clear();
         this.commits = [];
-        this.loadMoreCommits(selection);
     }
-    loadMoreCommits = (selection: StoreType["selectedBranch"]) => {
+
+    selectedBranch = (selection: StoreType["selectedBranch"]) => {
+        this.resetBranchList();
+        if (selection.branch || selection.history) {
+            this.loadMoreCommits(selection);
+        }
+    }
+    loadMoreCommits(selection: StoreType["selectedBranch"]) {
         if (!this.canFetchMore || this.loading) {
             return;
         }
@@ -114,36 +112,42 @@ export default class CommitList extends PureStoreComponent<unknown, State> {
         }
 
         for (const commit of fetched.commits) {
-            if (!this.graph[commit.sha]) {
-                this.graph[commit.sha] = {
+            let graphCommit = this.graph.get(commit.sha);
+            if (!graphCommit) {
+                graphCommit = {
                     colorId: this.color++ % HeadColors.length,
                     descendants: [],
                 };
+                this.graph.set(commit.sha, graphCommit);
             }
             for (let i = 0; i < commit.parents.length; i++) {
-                const parent = commit.parents[i];
-                if (!this.graph[parent]) {
-                    this.graph[parent] = {
+                let graphParent = this.graph.get(commit.parents[i]);
+                if (!graphParent) {
+                    graphParent = {
                         descendants: [],
-                        colorId: i === 0 ? this.graph[commit.sha].colorId : this.color++ % HeadColors.length,
+                        colorId: i === 0 ? graphCommit.colorId : this.color++ % HeadColors.length,
                     };
+                    this.graph.set(commit.parents[i], graphParent);
                 }
-                this.graph[parent].descendants.push(commit);
+                graphParent.descendants.push(commit);
             }
         }
 
-        // sent on last event
-        if ("cursor" in fetched) {
-            clearLock(Locks.BRANCH_LIST);
-            this.cursor = fetched.cursor;
+        clearLock(Locks.BRANCH_LIST);
+        this.cursor = fetched.cursor;
 
-            this.forceUpdate(() => {
-                this.loading = false;
-            });
-        }
+        this.forceUpdate(() => {
+            this.loading = false;
+        });
     }
     commitsLoaded = (result: IpcActionReturn[IpcAction.LOAD_COMMITS]) => {
-        this.commits = this.commits.concat(result.commits);
+        if (result.branch === Store.selectedBranch.branch) {
+            this.commits = this.commits.concat(result.commits);
+        } else {
+            this.resetBranchList();
+            this.commits = result.commits;
+        }
+
         this.handleCommits(result);
     }
     filter = (e: h.JSX.TargetedKeyboardEvent<HTMLInputElement>) => {

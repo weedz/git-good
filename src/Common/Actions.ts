@@ -348,7 +348,7 @@ export type LoadCommitReturn = {
 type LoadCommitsReturn = {
     commits: LoadCommitReturn[]
     branch: string
-    cursor?: string | undefined
+    cursor: string
 };
 type LoadFileCommitsReturn = {
     commits: Array<LoadCommitReturn & {

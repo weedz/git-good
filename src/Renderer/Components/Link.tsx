@@ -110,6 +110,9 @@ class Link<T = unknown> extends PureComponent<Props<T>, State> {
         if (selectedLinks[this.type] === this) {
             selectedLinks[this.type] = null;
         }
+        if (this.props.linkId) {
+            delete GlobalLinks[this.type][this.props.linkId];
+        }
     }
     render() {
         const props = {...this.props};
