@@ -3,6 +3,10 @@
   tab-size: 4;
 }
 
+:root {
+  --renamed-color: lightblue;
+}
+
 ::-webkit-scrollbar-corner {
   background: #000;
 }

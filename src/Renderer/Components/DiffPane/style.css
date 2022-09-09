@@ -81,7 +81,7 @@
 }
 .changed-files .file-renamed .status,
 .renamed {
-    color: blue;
+    color: var(--renamed-color);
 }
 .changed-files .file-conflicted,
 .conflicted {
