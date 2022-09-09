@@ -1406,10 +1406,23 @@ export async function compareRevisions(repo: Repository, revisions: { from: stri
         flags: Diff.FIND.RENAMES | Diff.FIND.IGNORE_WHITESPACE,
     });
 
+    const descendant = await Graph.descendantOf(repo, to.id(), from.id());
+    if (descendant) {
+        const revwalk = repo.createRevWalk();
+        revwalk.pushRange(`${from.id().tostrS()}~1..${to.id().tostrS()}`);
+        const commits = await revwalk.commitWalk(100);
+
+        const history = commits.map(compileHistoryCommit);
+
+        sendAction(IpcAction.LOAD_COMMITS, {
+            cursor: history[history.length - 1].sha,
+            commits: history,
+            branch: ""
+        });
+    }
+
     comparePatches.clear();
     return handleDiff(diff, comparePatches);
-
-    // Do something with `await Graph.descendantOf(repo, from.id(), to.id())` ?
 }
 
 function getCommitObj(commit: Commit): CommitObj {
