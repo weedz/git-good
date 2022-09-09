@@ -3,7 +3,7 @@ import * as fs from "fs/promises";
 import { tmpdir } from "os";
 import { dialog, shell } from "electron";
 import { Revparse, Credential, Repository, Revwalk, Commit, Diff, ConvenientPatch, ConvenientHunk, DiffLine, Object, Branch, Graph, Index, Reset, Checkout, DiffFindOptions, Reference, Oid, Signature, Remote, DiffOptions, IndexEntry, Error as NodeGitError, Tag, Stash, Status } from "nodegit";
-import { IpcAction, BranchObj, LineObj, HunkObj, PatchObj, CommitObj, IpcActionParams, RefType, StashObj, AsyncIpcActionReturnOrError, IpcActionReturn } from "../Common/Actions";
+import { IpcAction, BranchObj, LineObj, HunkObj, PatchObj, CommitObj, IpcActionParams, RefType, StashObj, AsyncIpcActionReturnOrError, IpcActionReturn, LoadFileCommitsReturn } from "../Common/Actions";
 import { normalizeLocalName, normalizeRemoteName, normalizeRemoteNameWithoutRemote, normalizeTagName, remoteName } from "../Common/Branch";
 import { gpgSign, gpgVerify } from "./GPG";
 import { AppConfig, AuthConfig } from "../Common/Config";
@@ -159,7 +159,7 @@ export async function initGetCommits(repo: Repository, params: IpcActionParams[I
 export async function getFileCommits(repo: Repository, params: IpcActionParams[IpcAction.LOAD_FILE_COMMITS]): AsyncIpcActionReturnOrError<IpcAction.LOAD_FILE_COMMITS> {
     const args = await initGetCommits(repo, params);
     if (!args) {
-        return Error(`Could not find revision`);
+        return null;
     }
     const revwalk = initRevwalk(repo, args.revwalkStart);
 
@@ -174,7 +174,7 @@ export async function getFileCommits(repo: Repository, params: IpcActionParams[I
         followRenames = true;
     }
 
-    const commits: IpcActionReturn[IpcAction.LOAD_FILE_COMMITS]["commits"] = [];
+    const commits: LoadFileCommitsReturn["commits"] = [];
 
     fileHistoryCache.clear();
 
@@ -216,7 +216,7 @@ export async function getFileCommits(repo: Repository, params: IpcActionParams[I
 export async function getCommits(repo: Repository, params: IpcActionParams[IpcAction.LOAD_COMMITS]) {
     const args = await initGetCommits(repo, params);
     if (!args) {
-        return Error(`Could not find revision`);
+        return null;
     }
 
     const revwalk = initRevwalk(repo, args.revwalkStart);

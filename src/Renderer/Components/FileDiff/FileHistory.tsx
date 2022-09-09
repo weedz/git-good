@@ -1,6 +1,6 @@
 import { Component, h } from "preact";
 import { ipcGetData } from "../../Data/IPC";
-import { IpcActionReturn, IpcAction } from "../../../Common/Actions";
+import { IpcAction, LoadFileCommitsReturn } from "../../../Common/Actions";
 import { updateStore } from "../../Data/store";
 import { DiffDelta, formatTimeAgo } from "../../../Common/Utils";
 import ScrollContainer from "../ScrollContainer";
@@ -13,7 +13,7 @@ const ITEM_HEIGHT = 50;
 const ACTION_ITEM_HEIGHT = 12;
 
 type Props = {
-    fileHistory: IpcActionReturn[IpcAction.LOAD_FILE_COMMITS]["commits"]
+    fileHistory: LoadFileCommitsReturn["commits"]
     openFileHistory: (path: string) => void
 }
 type State = {

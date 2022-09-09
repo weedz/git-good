@@ -189,7 +189,7 @@ function handleRemotes(remotes: IpcActionReturn[IpcAction.REMOTES]) {
 }
 
 function handleFileCommits(data: IpcActionReturnOrError<IpcAction.LOAD_FILE_COMMITS>) {
-    if (data instanceof Error) {
+    if (!data || data instanceof Error) {
         return;
     }
     updateStore({

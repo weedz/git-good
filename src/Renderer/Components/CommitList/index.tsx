@@ -1,6 +1,6 @@
 import { h } from "preact";
 import { ipcSendMessage } from "../../Data/IPC";
-import { IpcAction, IpcActionReturn, LoadCommitReturn, IpcActionParams, Locks, IpcResponse } from "../../../Common/Actions";
+import { IpcAction, IpcActionReturn, LoadCommitReturn, IpcActionParams, Locks, IpcResponse, LoadCommitsReturn } from "../../../Common/Actions";
 import { clearLock, openFileHistory, PureStoreComponent, setLock, Store, StoreType } from "../../Data/store";
 
 import "./style.css";
@@ -33,7 +33,7 @@ export default class CommitList extends PureStoreComponent<unknown, State> {
         fileResults: [],
     };
 
-    commits: IpcActionReturn[IpcAction.LOAD_COMMITS]["commits"] = [];
+    commits: LoadCommitsReturn["commits"] = [];
 
     componentDidMount() {
         this.listen("selectedBranch", this.selectedBranch);
@@ -141,6 +141,9 @@ export default class CommitList extends PureStoreComponent<unknown, State> {
         });
     }
     commitsLoaded = (result: IpcActionReturn[IpcAction.LOAD_COMMITS]) => {
+        if (!result) {
+            return;
+        }
         if (result.branch === Store.selectedBranch.branch) {
             this.commits = this.commits.concat(result.commits);
         } else {

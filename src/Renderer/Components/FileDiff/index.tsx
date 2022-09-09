@@ -1,5 +1,5 @@
 import { h } from "preact";
-import { HunkObj, IpcAction, LineObj, IpcActionReturn } from "../../../Common/Actions";
+import { HunkObj, IpcAction, LineObj, LoadFileCommitsReturn } from "../../../Common/Actions";
 import { DiffDelta } from "../../../Common/Utils";
 import { dismissibleWindowClosed, glyphWidth, showDismissibleWindow } from "../../Data";
 import { Store, closeFile, openFileHistory, PureStoreComponent, updateStore, StoreType, saveAppConfig } from "../../Data/store";
@@ -18,7 +18,7 @@ interface State {
         content: string
         line?: LineObj
     }>
-    fileHistory: null | IpcActionReturn[IpcAction.LOAD_FILE_COMMITS]["commits"]
+    fileHistory: null | LoadFileCommitsReturn["commits"]
 }
 
 // TODO: Fix this..
@@ -82,9 +82,11 @@ export default class FileDiff extends PureStoreComponent<unknown, State> {
         this.listen("currentFile", this.renderHunks);
         this.listen("diffUi");
         this.registerHandler(IpcAction.LOAD_FILE_COMMITS, commitsResult => {
-            this.setState({
-                fileHistory: commitsResult.commits || null
-            });
+            if (commitsResult) {
+                this.setState({
+                    fileHistory: commitsResult.commits || null
+                });
+            }
         });
     }
 

@@ -153,8 +153,8 @@ export type IpcActionParams = {
 
 export type IpcActionReturn = {
     [IpcAction.INIT]: null
-    [IpcAction.LOAD_COMMITS]: LoadCommitsReturn
-    [IpcAction.LOAD_FILE_COMMITS]: LoadFileCommitsReturn
+    [IpcAction.LOAD_COMMITS]: null | LoadCommitsReturn
+    [IpcAction.LOAD_FILE_COMMITS]: null | LoadFileCommitsReturn
     [IpcAction.LOAD_BRANCHES]: BranchesObj
     [IpcAction.LOAD_HEAD]: null | HeadBranchObj
     [IpcAction.LOAD_UPSTREAMS]: Array<{
@@ -345,12 +345,12 @@ export type LoadCommitReturn = {
         email: string
     }
 }
-type LoadCommitsReturn = {
+export type LoadCommitsReturn = {
     commits: LoadCommitReturn[]
     branch: string
     cursor: string
 };
-type LoadFileCommitsReturn = {
+export type LoadFileCommitsReturn = {
     commits: Array<LoadCommitReturn & {
         status?: DiffDelta
         path: string
