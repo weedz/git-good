@@ -12,7 +12,6 @@ type State = {
 }
 
 export default abstract class ScrollListView<T, P = unknown> extends Component<Props<T> & P, State> {
-    timeout!: number;
     sync = false;
     state = {
         startRenderAt: 0,
@@ -30,7 +29,7 @@ export default abstract class ScrollListView<T, P = unknown> extends Component<P
             this.setHeight(this.props);
         }
         if (this.containerRef.current) {
-            this.containerRef.current.onscroll = this.scrollHandler;
+            this.containerRef.current.addEventListener("scroll", this.checkScrollPosition);
             this.observer = new ResizeObserver(entries => {
                 for (const entry of entries) {
                     const cr = entry.contentRect;
@@ -44,7 +43,7 @@ export default abstract class ScrollListView<T, P = unknown> extends Component<P
     }
     componentWillUnmount() {
         if (this.containerRef.current) {
-            this.containerRef.current.onscroll = null;
+            this.containerRef.current.removeEventListener("scroll", this.checkScrollPosition);
         }
         if (this.observer) {
             this.observer.disconnect();
@@ -64,7 +63,6 @@ export default abstract class ScrollListView<T, P = unknown> extends Component<P
         return null;
     }
     checkScrollPosition = () => {
-        this.timeout = 0;
         if (this.containerRef.current) {
             this.lastScrollPosition = {
                 left: this.containerRef.current.scrollLeft,
@@ -80,12 +78,6 @@ export default abstract class ScrollListView<T, P = unknown> extends Component<P
                 this.props.scrollCallback?.(this.containerRef.current);
             }
             this.sync = false;
-        }
-    }
-    scrollHandler = (_: Event) => {
-        if (!this.timeout) {
-            window.clearTimeout(this.timeout);
-            this.timeout = window.setTimeout(this.checkScrollPosition, 30);
         }
     }
 }
