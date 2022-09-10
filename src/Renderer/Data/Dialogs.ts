@@ -1,6 +1,6 @@
 import { DialogProps, DialogTypes } from "../Components/Dialog/types";
 import { IpcAction } from "../../Common/Actions";
-import { BranchFromType, BranchType, normalizeLocalName, normalizeRemoteNameWithoutRemote, normalizeTagName, remoteName } from "../../Common/Branch";
+import { BranchFromType, BranchType, normalizeLocalName, normalizeRemoteNameWithoutRemote, normalizeTagName, getRemoteName } from "../../Common/Branch";
 import { ipcGetData, ipcSendMessage } from "./IPC";
 import { closeDialogWindow, createBranchFromSha, createBranchFromRef, openDialogWindow, setUpstream, renameLocalBranch, setDiffpaneSrc, saveAppConfig } from "./store";
 import { NativeDialog, NativeDialogData } from "../../Common/Dialog";
@@ -9,10 +9,10 @@ export async function openNativeDialog<D extends NativeDialog>(dialog: D, data: 
     return window.electronAPI.openNativeDialog(dialog, data);
 }
 
-export function openDialog_EditRemote(data: DialogProps[DialogTypes.EDIT_REMOTE]["data"]) {
-    const oldName = data.name;
+export function openDialog_EditRemote(dialogData: DialogProps[DialogTypes.EDIT_REMOTE]["data"]) {
+    const oldName = dialogData.name;
     openDialogWindow(DialogTypes.EDIT_REMOTE, {
-        data,
+        data: dialogData,
         async confirmCb(data) {
             if (await ipcGetData(IpcAction.EDIT_REMOTE, {oldName, ...data})) {
                 closeDialogWindow();
@@ -140,7 +140,7 @@ export function openDialog_SetUpstream(local: string, currentUpstream?: string) 
     let oldRemote = "origin";
     let branch = local;
     if (currentUpstream) {
-        oldRemote = remoteName(currentUpstream);
+        oldRemote = getRemoteName(currentUpstream);
         branch = normalizeRemoteNameWithoutRemote(currentUpstream);
     } else {
         branch = normalizeLocalName(branch);

@@ -90,7 +90,7 @@ module.exports = {
 		"no-proto": 2,
 		"no-redeclare": 2,
 		"no-shadow-restricted-names": 2,
-		"no-shadow": 0,
+		"@typescript-eslint/no-shadow": "error",
 		"no-spaced-func": 2,
 		"no-this-before-super": 2,
 		"no-undef-init": 2,

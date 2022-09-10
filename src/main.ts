@@ -546,14 +546,14 @@ const eventMap: {
         return !result;
     },
     [IpcAction.COMMIT]: async (repo, data) => {
-        const result = await provider.commit(repo, data);
+        const result = await provider.getCommit(repo, data);
         if (!(result instanceof Error)) {
             sendAction(IpcAction.LOAD_BRANCHES, await provider.getBranches(repo));
             await provider.sendRefreshWorkdirEvent(repo);
         }
         return result;
     },
-    [IpcAction.REMOTES]: provider.remotes,
+    [IpcAction.REMOTES]: provider.getRemotes,
     [IpcAction.RESOLVE_CONFLICT]: async (repo, {path}) => {
         const result = await provider.resolveConflict(repo, path);
         await provider.sendRefreshWorkdirEvent(repo);
@@ -576,7 +576,7 @@ const eventMap: {
 
         await provider.fetch([await repo.getRemote(data.name)]);
 
-        eventReply(event, IpcAction.REMOTES, await provider.remotes(repo));
+        eventReply(event, IpcAction.REMOTES, await provider.getRemotes(repo));
         eventReply(event, IpcAction.LOAD_BRANCHES, await provider.getBranches(repo));
 
         return true;
@@ -599,7 +599,7 @@ const eventMap: {
             return false;
         }
 
-        eventReply(event, IpcAction.REMOTES, await provider.remotes(repo));
+        eventReply(event, IpcAction.REMOTES, await provider.getRemotes(repo));
         eventReply(event, IpcAction.LOAD_BRANCHES, await provider.getBranches(repo));
 
         return true;
@@ -730,7 +730,7 @@ async function openRepo(repoPath: string) {
         body = `Profile set to '${profile?.profileName}'`;
     }
     sendEvent(AppEventType.NOTIFY, {title: "Repo opened", body});
-    sendAction(IpcAction.REMOTES, await provider.remotes(opened));
+    sendAction(IpcAction.REMOTES, await provider.getRemotes(opened));
     sendAction(IpcAction.LOAD_BRANCHES, await provider.getBranches(opened));
     sendAction(IpcAction.LOAD_STASHES, await provider.getStash(opened));
     provider.sendRefreshWorkdirEvent(opened);

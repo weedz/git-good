@@ -145,9 +145,9 @@ function renderTree(tree: Tree<PatchObj>, actions: ButtonAction[], contextMenu: 
                 currentActions = [
                     {
                         click: (e) => {
-                            const path = e.currentTarget.dataset.path;
-                            if (path) {
-                                resolveConflict(path);
+                            const thisPath = e.currentTarget.dataset.path;
+                            if (thisPath) {
+                                resolveConflict(thisPath);
                             }
                         },
                         label: "Resolve"

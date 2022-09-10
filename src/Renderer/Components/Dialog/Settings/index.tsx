@@ -40,12 +40,11 @@ export class Settings extends Component<SettingsProps, State> {
             return <p>Loading config...</p>
         }
 
-        const profile = this.state.editProfile && this.state.config.profiles[this.state.config.selectedProfile];
         const selectedProfile = this.state.config.profiles[this.state.config.selectedProfile];
 
         let formBody;
-        if (profile) {
-            formBody = <Profile profile={profile} cancelCb={() => this.setState({editProfile: null})} saveProfile={profile => {
+        if (this.state.editProfile) {
+            formBody = <Profile profile={selectedProfile} cancelCb={() => this.setState({editProfile: null})} saveProfile={profile => {
                 const profiles = this.state.config.profiles;
                 profiles[this.state.config.selectedProfile] = profile;
                 this.setState({

@@ -22,7 +22,7 @@ export function normalizeRemoteNameWithoutRemote(name: string) {
     return name.substring(name.indexOf("/") + 1);
 }
 
-export function remoteName(name: string) {
+export function getRemoteName(name: string) {
     name = normalizeRemoteName(name);
     return name.substring(0, name.indexOf("/"));
 }

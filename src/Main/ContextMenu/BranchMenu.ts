@@ -122,7 +122,7 @@ export function openRemoteMenu(data: Record<string, string>) {
                 if (result.response === 1) {
                     try {
                         await Remote.delete(currentRepo(), remote);
-                        sendAction(IpcAction.REMOTES, await provider.remotes(currentRepo()));
+                        sendAction(IpcAction.REMOTES, await provider.getRemotes(currentRepo()));
                         sendAction(IpcAction.LOAD_BRANCHES, await provider.getBranches(currentRepo()));
                     } catch (err) {
                         return err as Error;
@@ -155,7 +155,7 @@ export function openRemoteRefMenu(data: Record<string, string>) {
                     sendEvent(AppEventType.NOTIFY, {
                         title: `Branch '${refName}' deleted from remote`
                     });
-                    sendAction(IpcAction.REMOTES, await provider.remotes(currentRepo()));
+                    sendAction(IpcAction.REMOTES, await provider.getRemotes(currentRepo()));
                     sendAction(IpcAction.LOAD_BRANCHES, await provider.getBranches(currentRepo()));
                 }
             }

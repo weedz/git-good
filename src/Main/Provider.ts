@@ -4,7 +4,7 @@ import { tmpdir } from "os";
 import { dialog, shell } from "electron";
 import { Revparse, Credential, Repository, Revwalk, Commit, Diff, ConvenientPatch, ConvenientHunk, DiffLine, Object, Branch, Graph, Index, Reset, Checkout, DiffFindOptions, Reference, Oid, Signature, Remote, DiffOptions, IndexEntry, Error as NodeGitError, Tag, Stash, Status } from "nodegit";
 import { IpcAction, BranchObj, LineObj, HunkObj, PatchObj, CommitObj, IpcActionParams, RefType, StashObj, AsyncIpcActionReturnOrError, IpcActionReturn, LoadFileCommitsReturn } from "../Common/Actions";
-import { normalizeLocalName, normalizeRemoteName, normalizeRemoteNameWithoutRemote, normalizeTagName, remoteName } from "../Common/Branch";
+import { normalizeLocalName, normalizeRemoteName, normalizeRemoteNameWithoutRemote, normalizeTagName, getRemoteName } from "../Common/Branch";
 import { gpgSign, gpgVerify } from "./GPG";
 import { AppConfig, AuthConfig } from "../Common/Config";
 import { currentProfile, getAppConfig, getAuth, signatureFromProfile } from "./Config";
@@ -15,7 +15,9 @@ import { sendAction } from "./IPC";
 import { AppEventType } from "../Common/WindowEventTypes";
 
 declare module "nodegit" {
+    // eslint-disable-next-line @typescript-eslint/no-shadow
     export class Credential {
+        // TODO: Figure out the return type?
         static sshKeyFromAgent(username: string): unknown
         static sshKeyNew(username: string, publicKey: string, privateKey: string, passphrase: string): unknown
         static userpassPlaintextNew(username: string, password: string): unknown
@@ -239,10 +241,10 @@ export async function fetch(remotes: Remote[]) {
                 prune: 1,
                 callbacks: {
                     credentials: credentialsCallback,
-                    transferProgress: (stats: TransferProgress, remote: string) => {
+                    transferProgress: (stats: TransferProgress, remoteName: string) => {
                         update = true;
                         sendEvent(AppEventType.NOTIFY_FETCH_STATUS, {
-                            remote,
+                            remote: remoteName,
                             receivedObjects: stats.receivedObjects(),
                             totalObjects: stats.totalObjects(),
                             indexedDeltas: stats.indexedDeltas(),
@@ -377,7 +379,7 @@ async function pushHead(context: Context) {
         return false;
     }
 
-    const remote = await context.repo.getRemote(remoteName(upstream.name()));
+    const remote = await context.repo.getRemote(getRemoteName(upstream.name()));
 
     return pushBranch(context, remote, head);
 }
@@ -738,7 +740,7 @@ export async function getBranches(repo: Repository): AsyncIpcActionReturnOrError
     };
 }
 
-export async function remotes(repo: Repository): AsyncIpcActionReturnOrError<IpcAction.REMOTES> {
+export async function getRemotes(repo: Repository): AsyncIpcActionReturnOrError<IpcAction.REMOTES> {
     const remotes = await repo.getRemotes();
     return remotes.map(remote => ({
         name: remote.name(),
@@ -777,7 +779,7 @@ function onSignature(key: string) {
         };
     }
 }
-async function amend(parent: Commit, committer: Signature, message: string, gpgKey?: string) {
+async function amendCommit(parent: Commit, committer: Signature, message: string, gpgKey?: string) {
     const oid = await index.writeTree();
     const author = parent.author();
     if (gpgKey && currentProfile().gpg) {
@@ -787,7 +789,7 @@ async function amend(parent: Commit, committer: Signature, message: string, gpgK
     }
 }
 
-export async function commit(repo: Repository, params: IpcActionParams[IpcAction.COMMIT]) {
+export async function getCommit(repo: Repository, params: IpcActionParams[IpcAction.COMMIT]) {
     const profile = currentProfile();
     const committer = signatureFromProfile(profile);
     if (!committer.email()) {
@@ -806,7 +808,7 @@ export async function commit(repo: Repository, params: IpcActionParams[IpcAction
         const gpgKey = profile.gpg?.commit ? profile.gpg.key : undefined;
 
         if (params.amend) {
-            await amend(parent, committer, message, gpgKey);
+            await amendCommit(parent, committer, message, gpgKey);
         } else {
             const oid = await index.writeTree();
             const parents = emptyRepo ? null : [parent];
