@@ -133,7 +133,7 @@ export async function initGetCommits(repo: Repository, params: IpcActionParams[I
             else if ("branch" in params) {
                 if (params.branch.includes("refs/tags")) {
                     const ref = await repo.getReference(params.branch);
-                    start = await ref.peel(Object.TYPE.COMMIT) as unknown as Commit;
+                    start = await repo.getReferenceCommit(ref);
                 } else {
                     start = await repo.getReferenceCommit(params.branch);
                 }
@@ -493,12 +493,11 @@ export async function setUpstream(repo: Repository, local: string, remoteRefName
         try {
             await repo.getReference(remoteRefName);
         } catch (err) {
-            await Reference.create(repo, `refs/remotes/${remoteRefName}`, (await reference.peel(Object.TYPE.COMMIT)).id() as unknown as Oid, 0, "");
+            const refCommit = await repo.getReferenceCommit(reference);
+            await Reference.create(repo, `refs/remotes/${remoteRefName}`, refCommit.id(), 0, "");
         }
     }
-    const result = await Branch.setUpstream(reference, remoteRefName);
-
-    return result;
+    return Branch.setUpstream(reference, remoteRefName);
 }
 
 export async function deleteRef(repo: Repository, name: string) {
@@ -599,10 +598,10 @@ export async function getUpstreamRefs(repo: Repository): AsyncIpcActionReturnOrE
 
     for (const ref of refs) {
         if (ref.isBranch()) {
-            const headCommit = await ref.peel(Object.TYPE.COMMIT);
+            const headCommit = await repo.getReferenceCommit(ref);
             try {
                 const upstream = await Branch.upstream(ref);
-                const upstreamHead = await upstream.peel(Object.TYPE.COMMIT);
+                const upstreamHead = await repo.getReferenceCommit(upstream);
 
                 const upstreamObj: IpcActionReturn[IpcAction.LOAD_UPSTREAMS][0] = {
                     status: await Graph.aheadBehind(repo, headCommit.id(), upstreamHead.id()) as unknown as { ahead: number, behind: number },
@@ -1386,13 +1385,13 @@ export async function compareRevisions(repo: Repository, revisions: { from: stri
     // will search for a reference/branch matching the given name, and throws if not found. If it fails
     // we instead search for a commit matching the giving string.
     const from = await repo.getReference(revisions.from)
-        .then(ref => ref.peel(Object.TYPE.COMMIT) as unknown as Commit)
+        .then(ref => repo.getReferenceCommit(ref))
         .then(commit => commit.id().tostrS())
         .catch(() => revisions.from)
         .then(sha => repo.getCommit(sha));
 
     const to = await repo.getReference(revisions.to)
-        .then(ref => ref.peel(Object.TYPE.COMMIT) as unknown as Commit)
+        .then(ref => repo.getReferenceCommit(ref))
         .then(commit => commit.id().tostrS())
         .catch(() => revisions.to)
         .then(sha => repo.getCommit(sha));
