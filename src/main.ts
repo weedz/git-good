@@ -655,13 +655,13 @@ const eventMap: {
     [IpcAction.LOAD_STASHES]: provider.getStash,
     [IpcAction.GET_COMMIT_GPG_SIGN]: provider.getCommitGpgSign,
     [IpcAction.LOAD_TREE_AT_COMMIT]: provider.loadTreeAtCommit,
-}
+} as const;
 
 const ALLOWED_WHEN_NOT_IN_REPO = {
     [IpcAction.INIT]: true,
     [IpcAction.GET_SETTINGS]: true,
     [IpcAction.SAVE_SETTINGS]: true,
-};
+} as const;
 
 ipcMain.on("asynchronous-message", async (event, arg: EventArgs) => {
     const action = arg.action;
@@ -733,7 +733,7 @@ async function openRepo(repoPath: string) {
     sendAction(IpcAction.REMOTES, await provider.remotes(opened));
     sendAction(IpcAction.LOAD_BRANCHES, await provider.getBranches(opened));
     sendAction(IpcAction.LOAD_STASHES, await provider.getStash(opened));
-    await provider.sendRefreshWorkdirEvent(opened);
+    provider.sendRefreshWorkdirEvent(opened);
 
     return true;
 }
