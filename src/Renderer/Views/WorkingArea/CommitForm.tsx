@@ -1,5 +1,7 @@
 import { h } from "preact";
+import { IpcAction } from "../../../Common/Actions";
 import { commit } from "../../Data";
+import { ipcSendMessage } from "../../Data/IPC";
 import { notify, Store, StoreComponent, StoreType, updateStore } from "../../Data/store";
 
 type State = {
@@ -39,8 +41,7 @@ export default class CommitForm extends StoreComponent<Props, State> {
             this.setState(newState);
         }
     }
-    commit = async (e: h.JSX.TargetedEvent<HTMLInputElement, MouseEvent>) => {
-        e.preventDefault();
+    async commit() {
         const amend = this.state.amend;
         const message = this.state.commitMsg;
         updateStore({
@@ -68,22 +69,30 @@ export default class CommitForm extends StoreComponent<Props, State> {
     render() {
         let commitButton;
         if (this.state.amend) {
-            commitButton = <input className="fill" type="submit" name="amend" value="Amend" onClick={this.commit} disabled={!this.state.commitMsg.summary.length} />
+            commitButton = <button className="fill" type="submit" value="amend" disabled={!this.state.commitMsg.summary.length}>Amend</button>
         } else if (Store.repoStatus?.rebasing) {
-            commitButton = <input className="fill" type="submit" name="amend" value="Continue rebase" onClick={(e) => {
-                e.preventDefault();
-            }} />
+            commitButton = <button className="fill" type="submit" value="rebase">Continue rebase</button>
         } else {
-            commitButton = <input className="fill" type="submit" name="commit" value="Commit" onClick={this.commit} disabled={!this.props.staged || !this.state.commitMsg.summary.length} />
+            commitButton = <button className="fill" type="submit" value="commit" disabled={!this.props.staged || !this.state.commitMsg.summary.length}>Commit</button>
         }
 
-        return <form>
+        return <form onSubmit={e => {
+            e.preventDefault();
+            // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+            // @ts-ignore
+            const submitType = e.submitter.value;
+            if (submitType === "rebase") {
+                ipcSendMessage(IpcAction.CONTINUE_REBASE, null);
+            } else {
+                this.commit();
+            }
+        }}>
                 <div className="flex-row">
                     <h4>Commit Message</h4>
-                    <label style="align-self: center; margin-left: auto">
+                    {!Store.repoStatus?.rebasing && <label style="align-self: center; margin-left: auto">
                         <input type="checkbox" name="amend" onClick={this.setAmend} checked={this.state.amend} />
                         <span>Amend</span>
-                    </label>
+                    </label>}
                 </div>
                 <input type="text" style={{width: "100%"}} name="summary" placeholder="Summary" value={this.state.commitMsg.summary} onKeyUp={(e: h.JSX.TargetedEvent<HTMLInputElement, KeyboardEvent>) => {
                     this.updateMessage({summary: e.currentTarget.value});

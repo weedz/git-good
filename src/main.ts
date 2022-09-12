@@ -655,6 +655,14 @@ const eventMap: {
     [IpcAction.LOAD_STASHES]: provider.getStash,
     [IpcAction.GET_COMMIT_GPG_SIGN]: provider.getCommitGpgSign,
     [IpcAction.LOAD_TREE_AT_COMMIT]: provider.loadTreeAtCommit,
+    [IpcAction.CONTINUE_REBASE]: async (repo) => {
+        const result = await provider.continueRebase(repo);
+        if (result) {
+            await provider.sendRefreshWorkdirEvent(currentRepo());
+            sendAction(IpcAction.LOAD_BRANCHES, await provider.getBranches(repo));
+        }
+        return result;
+    },
 } as const;
 
 const ALLOWED_WHEN_NOT_IN_REPO = {

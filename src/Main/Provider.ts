@@ -7,7 +7,7 @@ import { IpcAction, BranchObj, LineObj, HunkObj, PatchObj, CommitObj, IpcActionP
 import { normalizeLocalName, normalizeRemoteName, normalizeRemoteNameWithoutRemote, normalizeTagName, getRemoteName } from "../Common/Branch";
 import { gpgSign, gpgVerify } from "./GPG";
 import { AppConfig, AuthConfig } from "../Common/Config";
-import { currentProfile, getAppConfig, getAuth, signatureFromProfile } from "./Config";
+import { currentProfile, getAppConfig, getAuth, signatureFromActiveProfile, signatureFromProfile } from "./Config";
 import { sendEvent } from "./WindowEvents";
 import type { TransferProgress } from "../../types/nodegit";
 import { Context, setLastKnownHead } from "./Context";
@@ -31,6 +31,8 @@ declare module "nodegit" {
             signature: Signature,
             beforeNextFn?: (rebase?: Rebase) => Promise<unknown> | unknown,
         ): Promise<Oid>;
+
+        continueRebase(signature: Signature, beforeNextFn?: (rebase?: Rebase) => Promise<unknown> | unknown): Promise<Oid>;
     }
 
     interface Tree {
@@ -243,6 +245,25 @@ export async function getCommits(repo: Repository, params: IpcActionParams[IpcAc
     };
 }
 
+export async function continueRebase(repo: Repository) {
+    if (!repo.isRebasing()) {
+        return false;
+    }
+
+    try {
+        const result = await repo.continueRebase(signatureFromActiveProfile());
+        console.log("Result:", result);
+        return Boolean(result);
+    } catch (err) {
+        console.log("Error:", err);
+        if (err instanceof Error) {
+            return err;
+        }
+    }
+
+    return false;
+}
+
 export async function fetch(remotes: Remote[]) {
     let update = false;
     try {
@@ -366,11 +387,12 @@ export async function pull(repo: Repository, branch: string | null, signature: S
 
     if (result) {
         if (currentBranch.name() !== ref.name()) {
-            await repo.checkoutBranch(currentBranch);
+            await repo.checkoutRef(currentBranch);
         }
     } else {
-        dialog.showErrorBox("Failed to pull", "unknown error..");
+        dialog.showErrorBox("Failed to pull", "Possible conflict, check index");
     }
+
     return !!result;
 }
 
