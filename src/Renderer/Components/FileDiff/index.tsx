@@ -1,8 +1,8 @@
 import { h } from "preact";
 import { HunkObj, IpcAction, LineObj, LoadFileCommitsReturn } from "../../../Common/Actions";
 import { DiffDelta } from "../../../Common/Utils";
-import { dismissibleWindowClosed, glyphWidth, showDismissibleWindow } from "../../Data";
-import { Store, closeFile, openFileHistory, PureStoreComponent, updateStore, StoreType, saveAppConfig } from "../../Data/store";
+import { closeFile, dismissibleWindowClosed, glyphWidth, openFileHistory, showDismissibleWindow } from "../../Data";
+import { Store, PureStoreComponent, updateStore, StoreType, saveAppConfig } from "../../Data/store";
 import FileHistory from "./FileHistory";
 import HunksContainer from "./HunksContainer";
 

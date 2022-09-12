@@ -1,8 +1,8 @@
 import { h } from "preact";
 import { GlobalLinks, unselectLink } from "../Components/Link";
-import { BranchObj, IpcAction, IpcActionReturn, IpcActionReturnOrError, IpcResponse, Locks } from "../../Common/Actions";
-import { openNativeDialog, openDialog_CompareRevisions, openDialog_Settings, openDialog_ViewCommit, openDialog_createTag, openDialog_BranchFrom, openDialog_AddRemote, openDialog_RenameRef, openDialog_SetUpstream, openDialog_EditRemote, openDialog_PushTag } from "./Dialogs";
-import { registerAppEventHandlers, registerHandler, ipcGetData } from "./IPC";
+import { BranchObj, IpcAction, IpcActionParams, IpcActionReturn, IpcActionReturnOrError, IpcResponse, Locks, PatchObj } from "../../Common/Actions";
+import { openDialog_CompareRevisions, openDialog_Settings, openDialog_ViewCommit, openDialog_createTag, openDialog_BranchFrom, openDialog_AddRemote, openDialog_RenameRef, openDialog_SetUpstream, openDialog_EditRemote, openDialog_PushTag } from "./Dialogs";
+import { registerAppEventHandlers, registerHandler, ipcGetData, ipcSendMessage, openNativeDialog } from "./IPC";
 import { Store, clearLock, setLock, updateStore, StoreType, notify, openDialogWindow, closeDialogWindow, setDiffpaneSrc } from "./store";
 import { Notification } from "../Components/Notification";
 import { humanReadableBytes } from "../../Common/Utils";
@@ -40,7 +40,7 @@ export function showDismissibleWindow(dismissCallback: () => void) {
 let _glyphWidth = 7.81;
 calculateGlyphWidth(13, "JetBrainsMonoNL Nerd Font Mono");
 
-ipcGetData(IpcAction.INIT, null);
+ipcSendMessage(IpcAction.INIT, null);
 ipcGetData(IpcAction.GET_SETTINGS, null).then(appConfig => {
     updateStore({
         appConfig,
@@ -66,6 +66,71 @@ export async function discardChanges(filePath: string) {
 }
 export async function discardAllChanges() {
     await openNativeDialog(NativeDialog.DISCARD_ALL_CHANGES, null);
+}
+
+export function resolveConflict(path: string) {
+    ipcSendMessage(IpcAction.RESOLVE_CONFLICT, {path});
+}
+
+export function checkoutBranch(branch: string) {
+    setLock(Locks.MAIN);
+    ipcSendMessage(IpcAction.CHECKOUT_BRANCH, branch);
+}
+
+export function openFile(params: (
+    {sha: string} |
+    {workDir: true, type: "staged" | "unstaged"} |
+    {compare: true}
+) & {patch: PatchObj}) {
+    const currentFile: StoreType["currentFile"] = {
+        patch: params.patch,
+    };
+    if ("sha" in params) {
+        currentFile.commitSHA = params.sha;
+    }
+    if (!params.patch.hunks) {
+        if ("sha" in params) {
+            ipcSendMessage(IpcAction.LOAD_HUNKS, {
+                sha: params.sha,
+                path: params.patch.actualFile.path,
+            });
+        } else if ("compare" in params) {
+            ipcSendMessage(IpcAction.LOAD_HUNKS, {
+                compare: true,
+                path: params.patch.actualFile.path,
+            });
+        } else {
+            ipcSendMessage(IpcAction.LOAD_HUNKS, {
+                workDir: true,
+                path: params.patch.actualFile.path,
+                type: params.type
+            });
+        }
+    }
+    updateStore({
+        currentFile
+    });
+}
+export function closeFile() {
+    updateStore({
+        currentFile: null
+    });
+    unselectLink("files");
+}
+
+export function commit(params: IpcActionParams[IpcAction.COMMIT]) {
+    return ipcGetData(IpcAction.COMMIT, params);
+}
+
+export function openFileHistory(file: string, sha?: string) {
+    ipcSendMessage(IpcAction.LOAD_FILE_COMMITS, {file, cursor: sha, startAtCursor: true});
+}
+
+export async function showStash(index: number) {
+    const patches = await ipcGetData(IpcAction.SHOW_STASH, index);
+    updateStore({
+        comparePatches: patches
+    });
 }
 
 function repoOpened(result: AppEventData[AppEventType.REPO_OPENED]) {
@@ -128,11 +193,9 @@ function mapHeads(heads: StoreType["heads"], refs: BranchObj[]) {
 }
 async function loadHEAD() {
     const head = await ipcGetData(IpcAction.LOAD_HEAD, null);
-    updateStore({
-        head
-    });
+    updateStore({ head });
 }
-export async function loadUpstreams() {
+async function loadUpstreams() {
     const upstreams = await ipcGetData(IpcAction.LOAD_UPSTREAMS, null);
 
     for (const upstream of upstreams) {
@@ -143,7 +206,7 @@ export async function loadUpstreams() {
         }
     }
 }
-function branchesLoaded(result: IpcActionReturn[IpcAction.LOAD_BRANCHES]) {
+async function branchesLoaded(result: IpcActionReturn[IpcAction.LOAD_BRANCHES]) {
     clearLock(Locks.BRANCH_LIST);
     Store.heads.clear();
     branchMap.clear();
@@ -152,12 +215,15 @@ function branchesLoaded(result: IpcActionReturn[IpcAction.LOAD_BRANCHES]) {
     mapHeads(Store.heads, result.remote);
     mapHeads(Store.heads, result.tags);
 
+    loadHEAD();
+
     updateStore({
         branches: result,
         heads: Store.heads,
     });
 
-    loadHEAD();
+    await loadUpstreams();
+    updateStore({ branches: Store.branches });
 }
 function stashLoaded(stash: IpcActionReturn[IpcAction.LOAD_STASHES]) {
     updateStore({
@@ -183,9 +249,7 @@ function handleCompareRevisions(data: IpcResponse<IpcAction.OPEN_COMPARE_REVISIO
 }
 
 function handleRemotes(remotes: IpcActionReturn[IpcAction.REMOTES]) {
-    updateStore({
-        remotes
-    });
+    updateStore({ remotes });
 }
 
 function handleFileCommits(data: IpcActionReturnOrError<IpcAction.LOAD_FILE_COMMITS>) {

@@ -4,7 +4,6 @@ import { BranchesObj, Locks } from "../../../Common/Actions";
 import { Store, PureStoreComponent, StoreType } from "../../Data/store";
 import { getBranchTree, filterBranches } from "./Utils";
 import BranchList from "./BranchList";
-import { loadUpstreams } from "../../Data";
 import StashList from "./StashList";
 
 type State = {
@@ -41,11 +40,6 @@ export default class Branches extends PureStoreComponent<unknown, State> {
             return this.setState({branches});
         }
         // Renders branches without upstream "graph" (ahead/behind)
-        this.setState({
-            branches: branchesToTree(branches, this.state.filter),
-        });
-
-        await loadUpstreams();
         this.setState({
             branches: branchesToTree(branches, this.state.filter),
         });

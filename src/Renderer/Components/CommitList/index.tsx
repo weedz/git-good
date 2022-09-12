@@ -1,7 +1,7 @@
 import { h } from "preact";
 import { ipcSendMessage } from "../../Data/IPC";
 import { IpcAction, IpcActionReturn, LoadCommitReturn, IpcActionParams, Locks, IpcResponse, LoadCommitsReturn } from "../../../Common/Actions";
-import { clearLock, openFileHistory, PureStoreComponent, setLock, Store, StoreType } from "../../Data/store";
+import { clearLock, PureStoreComponent, setLock, Store, StoreType } from "../../Data/store";
 
 import "./style.css";
 import FileFilter from "./FileFilter";
@@ -9,6 +9,7 @@ import HeadColors from "./HeadColors";
 import { Links } from "../LinkContainer";
 import CommitContainer from "./CommitContainer";
 import { filterCommit } from "../../Data/Utility";
+import { openFileHistory } from "../../Data";
 
 type State = {
     filter: undefined | string

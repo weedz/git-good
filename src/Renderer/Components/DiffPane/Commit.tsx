@@ -1,6 +1,6 @@
 import { h } from "preact";
-import { ipcGetData, ipcSendMessage } from "../../Data/IPC";
-import { IpcAction, CommitObj, PatchObj, IpcActionReturn, IpcResponse, Locks, FileObj } from "../../../Common/Actions";
+import { ipcGetData } from "../../Data/IPC";
+import { IpcAction, CommitObj, PatchObj, IpcActionReturn, Locks, FileObj } from "../../../Common/Actions";
 
 import "./style.css";
 import CommitMessage from "./CommitMessage";
@@ -51,31 +51,31 @@ export default class Commit extends StoreComponent<Props, State> {
     componentWillReceiveProps(props: Props) {
         if (props.sha !== this.props.sha) {
             this.resetView();
-            ipcSendMessage(IpcAction.LOAD_COMMIT, props.sha);
+            this.getCommit(props.sha);
         }
     }
     componentDidMount() {
         this.resetView();
-        ipcSendMessage(IpcAction.LOAD_COMMIT, this.props.sha);
-        
-        this.listen("diffOptions", () => this.state.commit && this.loadCommit(this.state.commit));
-        this.registerHandler(IpcAction.LOAD_COMMIT, commit => this.loadCommit(commit));
-        this.registerHandler(IpcAction.LOAD_PATCHES_WITHOUT_HUNKS, this.handlePatch);
-        this.registerHandler(IpcAction.GET_COMMIT_GPG_SIGN, this.handleGpgSign);
+        this.getCommit(this.props.sha);
+
+        this.listen("diffOptions", () => this.state.commit && this.loadPatches());
     }
-    loadCommit = (commit: IpcResponse<IpcAction.LOAD_COMMIT>) => {
+    loadPatches() {
+        ipcGetData(IpcAction.LOAD_PATCHES_WITHOUT_HUNKS, {sha: this.props.sha}).then(this.handlePatch);
+    }
+    async getCommit(sha: string) {
+        const commit = await ipcGetData(IpcAction.LOAD_COMMIT, sha);
+
         if (!commit || commit instanceof Error) {
             // FIXME: clearLock should not be called here.
             clearLock(Locks.COMMIT_LIST);
             return;
         }
 
-        this.setState({
-            commit
-        });
+        this.setState({ commit });
 
-        ipcSendMessage(IpcAction.LOAD_PATCHES_WITHOUT_HUNKS, {sha: this.props.sha});
-        ipcSendMessage(IpcAction.GET_COMMIT_GPG_SIGN, this.props.sha);
+        ipcGetData(IpcAction.GET_COMMIT_GPG_SIGN, this.props.sha).then(this.handleGpgSign);
+        this.loadPatches();
     }
     handlePatch = (patches: IpcActionReturn[IpcAction.LOAD_PATCHES_WITHOUT_HUNKS]) => {
         this.setState({

@@ -2,8 +2,7 @@ import { Component, Fragment, h } from "preact";
 import { IpcAction } from "../../../../Common/Actions";
 import { AppConfig } from "../../../../Common/Config";
 import { NativeDialog } from "../../../../Common/Dialog";
-import { openNativeDialog } from "../../../Data/Dialogs";
-import { ipcGetData, ipcSendMessage } from "../../../Data/IPC";
+import { ipcGetData, ipcSendMessage, openNativeDialog } from "../../../Data/IPC";
 import { SettingsProps } from "../types";
 import { Profile } from "./Profile";
 

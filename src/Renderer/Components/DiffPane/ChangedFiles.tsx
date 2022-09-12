@@ -1,11 +1,11 @@
 import { h, Component, Fragment } from "preact";
 import { PatchObj, CommitObj } from "../../../Common/Actions";
-import { openFile, resolveConflict } from "../../Data/store";
 import { DiffDelta } from "../../../Common/Utils";
 import Link from "../Link";
 import { Links } from "../LinkContainer";
 import { showFileMenu } from "./FileMenu";
 import { ensureTreePath, toggleTreeItem, Tree } from "../../Data/Tree";
+import { openFile, resolveConflict } from "../../Data";
 
 interface ButtonAction {
     label: string

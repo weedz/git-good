@@ -2,12 +2,7 @@ import { DialogProps, DialogTypes } from "../Components/Dialog/types";
 import { IpcAction } from "../../Common/Actions";
 import { BranchFromType, BranchType, normalizeLocalName, normalizeRemoteNameWithoutRemote, normalizeTagName, getRemoteName } from "../../Common/Branch";
 import { ipcGetData, ipcSendMessage } from "./IPC";
-import { closeDialogWindow, createBranchFromSha, createBranchFromRef, openDialogWindow, setUpstream, renameLocalBranch, setDiffpaneSrc, saveAppConfig } from "./store";
-import { NativeDialog, NativeDialogData } from "../../Common/Dialog";
-
-export async function openNativeDialog<D extends NativeDialog>(dialog: D, data: NativeDialogData[D]) {
-    return window.electronAPI.openNativeDialog(dialog, data);
-}
+import { closeDialogWindow, openDialogWindow, setDiffpaneSrc, saveAppConfig, createBranchFromRef, createBranchFromSha, renameLocalBranch, setUpstream } from "./store";
 
 export function openDialog_EditRemote(dialogData: DialogProps[DialogTypes.EDIT_REMOTE]["data"]) {
     const oldName = dialogData.name;

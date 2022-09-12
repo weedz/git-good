@@ -1,12 +1,13 @@
 import { h } from "preact";
 import "./style.css";
 import { normalizeLocalName } from "../../../Common/Branch";
-import { Store, checkoutBranch, updateStore, PureStoreComponent } from "../../Data/store";
+import { Store, updateStore, PureStoreComponent } from "../../Data/store";
 import { showHeadMenu, showLocalMenu, showRemoteMenu, showRemoteRefMenu, showRemotesMenu, showTagMenu } from "./Menu";
 import { branchesAheadBehind, getBranchTree, RenderBranchTree, RenderRemotes } from "./Utils";
 import Link from "../Link";
 import { Links } from "../LinkContainer";
 import { toggleTreeItem } from "../../Data/Tree";
+import { checkoutBranch } from "../../Data";
 
 function triggerCheckoutBranch(e: h.JSX.TargetedMouseEvent<HTMLAnchorElement>) {
     e.currentTarget.dataset.ref && checkoutBranch(e.currentTarget.dataset.ref);

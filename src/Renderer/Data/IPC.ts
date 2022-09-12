@@ -1,10 +1,13 @@
 import { IpcAction, IpcActionParams, IpcActionReturn, IpcPayload, IpcResponse } from "../../Common/Actions";
 import { AppEventData, AppEventType } from "../../Common/WindowEventTypes";
-import { openNativeDialog } from "./Dialogs";
-import { NativeDialog } from "../../Common/Dialog";
+import { NativeDialog, NativeDialogData } from "../../Common/Dialog";
 
 window.electronAPI.onAsyncReply(handleMessage);
 window.electronAPI.onAppEvent(handleAppEvent);
+
+export async function openNativeDialog<D extends NativeDialog>(dialog: D, data: NativeDialogData[D]) {
+    return window.electronAPI.openNativeDialog(dialog, data);
+}
 
 // We send null to callbacks when the action failed/returned an error
 const callbackHandlers: Map<number, (args: IpcActionReturn[IpcAction] | null) => void> = new Map();

@@ -1,5 +1,6 @@
 import { h } from "preact";
-import { commit, notify, Store, StoreComponent, StoreType, updateStore } from "../../Data/store";
+import { commit } from "../../Data";
+import { notify, Store, StoreComponent, StoreType, updateStore } from "../../Data/store";
 
 type State = {
     commitMsg: StoreType["commitMsg"]

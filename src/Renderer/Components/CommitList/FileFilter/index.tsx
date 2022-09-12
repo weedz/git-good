@@ -14,7 +14,7 @@ type State = {
 
 export default class FileFilter extends StoreComponent<{filterByFile: (file: string | undefined) => void}, State> {
     // eslint-disable-next-line no-undef
-    findFileTimeout?: NodeJS.Timeout;
+    findFileTimeout?: number;
 
     componentDidMount() {
         this.registerHandler(IpcAction.FIND_FILE, this.handleFindFile);
@@ -38,11 +38,11 @@ export default class FileFilter extends StoreComponent<{filterByFile: (file: str
     }
     
     findFiles = (e: h.JSX.TargetedKeyboardEvent<HTMLInputElement>) => {
-        this.findFileTimeout && clearTimeout(this.findFileTimeout);
+        window.clearTimeout(this.findFileTimeout);
         
         if (e.currentTarget.value) {
             const value = e.currentTarget.value;
-            this.findFileTimeout = setTimeout(() => {
+            this.findFileTimeout = window.setTimeout(() => {
                 ipcSendMessage(IpcAction.FIND_FILE, value);
             }, 250);
             this.setState({

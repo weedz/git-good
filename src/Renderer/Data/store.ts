@@ -1,13 +1,12 @@
+import { createStore, PartialStoreListener } from "@weedzcokie/store";
 import { AnyComponent, Component, JSX } from "preact";
 import { PureComponent } from "preact/compat";
-import { createStore, PartialStoreListener } from "@weedzcokie/store";
-import { DialogProps, DialogTypes } from "../Components/Dialog/types";
-import { unselectLink } from "../Components/Link";
-import { IpcAction, BranchesObj, BranchObj, PatchObj, Locks, RepoStatus, IpcActionParams, IpcActionReturn, HeadBranchObj, StashObj } from "../../Common/Actions";
-import { registerHandler, ipcSendMessage, ipcGetData } from "./IPC";
-import { Notification } from "../Components/Notification";
+import { BranchesObj, BranchObj, HeadBranchObj, IpcAction, IpcActionReturn, Locks, PatchObj, RepoStatus, StashObj } from "../../Common/Actions";
 import { AppConfig } from "../../Common/Config";
 import { NotificationInit, NotificationPosition } from "../../Common/WindowEventTypes";
+import { DialogProps, DialogTypes } from "../Components/Dialog/types";
+import { Notification } from "../Components/Notification";
+import { ipcGetData, registerHandler } from "./IPC";
 
 export type DialogWindow = {
     type: DialogTypes
@@ -128,22 +127,16 @@ export function notify(notificationData: NotificationInit & {body?: null | strin
     const notification = new Notification(notificationData.title, notificationData.body || null, notificationData.classList || [], deleteNotification[position], notificationData.time ?? 5000);
 
     Store.notifications[position].set(notification.id, notification);
-    store.updateStore({
+    updateStore({
         notifications: Store.notifications
     });
 
     return notification;
 }
 const deleteNotification: {[K in NotificationPosition]: (id: number) => void} = {
-    [NotificationPosition.DEFAULT]: (id) => Store.notifications[NotificationPosition.DEFAULT].delete(id) && store.updateStore({ notifications: Store.notifications }),
+    [NotificationPosition.DEFAULT]: (id) => Store.notifications[NotificationPosition.DEFAULT].delete(id) && updateStore({ notifications: Store.notifications }),
 }
 
-// Lock CommitList UI when loading commit info
-store.subscribe("diffPaneSrc", sha => {
-    if (sha) {
-        setLock(Locks.COMMIT_LIST);
-    }
-});
 export async function saveAppConfig(appConfig: AppConfig) {
     if (appConfig && await ipcGetData(IpcAction.SAVE_SETTINGS, appConfig)) {
         updateStore({ appConfig });
@@ -155,65 +148,7 @@ export async function saveAppConfig(appConfig: AppConfig) {
 
 // TODO: Most of these functions should probably be in Renderer/IPC.ts or Renderer/index.ts
 
-export function resolveConflict(path: string) {
-    ipcSendMessage(IpcAction.RESOLVE_CONFLICT, {path});
-}
-
-export function checkoutBranch(branch: string) {
-    setLock(Locks.MAIN);
-    ipcSendMessage(IpcAction.CHECKOUT_BRANCH, branch);
-}
-
-export function openFile(params: (
-    {sha: string} |
-    {workDir: true, type: "staged" | "unstaged"} |
-    {compare: true}
-) & {patch: PatchObj}) {
-    const currentFile: StoreType["currentFile"] = {
-        patch: params.patch,
-    };
-    if ("sha" in params) {
-        currentFile.commitSHA = params.sha;
-    }
-    if (!params.patch.hunks) {
-        if ("sha" in params) {
-            ipcSendMessage(IpcAction.LOAD_HUNKS, {
-                sha: params.sha,
-                path: params.patch.actualFile.path,
-            });
-        } else if ("compare" in params) {
-            ipcSendMessage(IpcAction.LOAD_HUNKS, {
-                compare: true,
-                path: params.patch.actualFile.path,
-            });
-        } else {
-            ipcSendMessage(IpcAction.LOAD_HUNKS, {
-                workDir: true,
-                path: params.patch.actualFile.path,
-                type: params.type
-            });
-        }
-    }
-    store.updateStore({
-        currentFile
-    });
-}
-export function closeFile() {
-    store.updateStore({
-        currentFile: null
-    });
-    unselectLink("files");
-}
-
-export function setLock(lock: Locks) {
-    store.updateStore({locks: {...Store.locks, [lock]: true}});
-}
-export function clearLock(lock: Locks) {
-    store.updateStore({locks: {...Store.locks, [lock]: false}});
-}
-
 export function createBranchFromSha(sha: string, name: string,  checkout: boolean) {
-    setLock(Locks.BRANCH_LIST);
     return ipcGetData(IpcAction.CREATE_BRANCH, {
         sha,
         name,
@@ -221,7 +156,6 @@ export function createBranchFromSha(sha: string, name: string,  checkout: boolea
     });
 }
 export function createBranchFromRef(ref: string, name: string, checkout: boolean) {
-    setLock(Locks.BRANCH_LIST);
     return ipcGetData(IpcAction.CREATE_BRANCH_FROM_REF, {
         ref,
         name,
@@ -229,7 +163,6 @@ export function createBranchFromRef(ref: string, name: string, checkout: boolean
     });
 }
 export function renameLocalBranch(oldName: string, newName: string) {
-    setLock(Locks.BRANCH_LIST);
     return ipcGetData(IpcAction.RENAME_LOCAL_BRANCH, {
         ref: oldName,
         name: newName
@@ -243,12 +176,15 @@ export function setUpstream(local: string, remote: string | null) {
     });
 }
 
-export function commit(params: IpcActionParams[IpcAction.COMMIT]) {
-    return ipcGetData(IpcAction.COMMIT, params);
+export function setLock(lock: Locks) {
+    updateStore({locks: {...Store.locks, [lock]: true}});
+}
+export function clearLock(lock: Locks) {
+    updateStore({locks: {...Store.locks, [lock]: false}});
 }
 
 export function openDialogWindow<T extends DialogTypes>(type: T, props: DialogProps[T]) {
-    store.updateStore({
+    updateStore({
         dialogWindow: {
             type,
             props
@@ -256,24 +192,14 @@ export function openDialogWindow<T extends DialogTypes>(type: T, props: DialogPr
     });
 }
 export function closeDialogWindow() {
-    store.updateStore({
+    updateStore({
         dialogWindow: null
     });
 }
 
-export function openFileHistory(file: string, sha?: string) {
-    ipcSendMessage(IpcAction.LOAD_FILE_COMMITS, {file, cursor: sha, startAtCursor: true});
-}
-
-export async function showStash(index: number) {
-    const patches = await ipcGetData(IpcAction.SHOW_STASH, index);
-    store.updateStore({
-        comparePatches: patches
-    });
-}
-
 export function setDiffpaneSrc(diffPaneSrc: StoreType["diffPaneSrc"]) {
-    store.updateStore({
-        diffPaneSrc
-    });
+    // Lock CommitList UI when loading commit info
+    setLock(Locks.COMMIT_LIST);
+
+    updateStore({ diffPaneSrc });
 }

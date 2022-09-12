@@ -1,7 +1,7 @@
 import type { OpenDialogOptions } from "electron/renderer";
 import { LoadCommitReturn } from "../../Common/Actions";
 import { NativeDialog } from "../../Common/Dialog";
-import { openNativeDialog } from "./Dialogs";
+import { openNativeDialog } from "./IPC";
 
 export async function selectFile(cb: (data: string) => void, options: OpenDialogOptions = {}) {
     const filePaths = await openNativeDialog(NativeDialog.OPEN_FILE, options);

@@ -65,7 +65,7 @@ app.whenReady().then(() => {
     );
 
     win.addListener("focus", async () => {
-        if (currentRepo() && !provider.isRefreshingWorkdir() && getAppConfig().ui.refreshWorkdirOnFocus) {
+        if (getAppConfig().ui.refreshWorkdirOnFocus && currentRepo() && !provider.isRefreshingWorkdir()) {
             const currentHead = await currentRepo().getHeadCommit();
             if (!getLastKnownHead() || !currentHead.id().equal(getLastKnownHead())) {
                 sendAction(IpcAction.LOAD_BRANCHES, await provider.getBranches(currentRepo()));
@@ -730,9 +730,10 @@ async function openRepo(repoPath: string) {
         body = `Profile set to '${profile?.profileName}'`;
     }
     sendEvent(AppEventType.NOTIFY, {title: "Repo opened", body});
-    sendAction(IpcAction.REMOTES, await provider.getRemotes(opened));
-    sendAction(IpcAction.LOAD_BRANCHES, await provider.getBranches(opened));
-    sendAction(IpcAction.LOAD_STASHES, await provider.getStash(opened));
+    provider.getRemotes(opened).then(remotes => sendAction(IpcAction.REMOTES, remotes));
+    provider.getBranches(opened).then(branches => sendAction(IpcAction.LOAD_BRANCHES, branches));
+    provider.getStash(opened).then(stash => sendAction(IpcAction.LOAD_STASHES, stash));
+
     provider.sendRefreshWorkdirEvent(opened);
 
     return true;
