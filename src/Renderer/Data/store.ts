@@ -144,9 +144,8 @@ store.subscribe("diffPaneSrc", sha => {
         setLock(Locks.COMMIT_LIST);
     }
 });
-export function saveAppConfig(appConfig: AppConfig) {
-    if (appConfig) {
-        ipcSendMessage(IpcAction.SAVE_SETTINGS, appConfig);
+export async function saveAppConfig(appConfig: AppConfig) {
+    if (appConfig && await ipcGetData(IpcAction.SAVE_SETTINGS, appConfig)) {
         updateStore({ appConfig });
         if (appConfig.diffOptions !== Store.diffOptions) {
             updateStore({ diffOptions: appConfig.diffOptions });
