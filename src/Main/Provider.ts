@@ -2,7 +2,7 @@ import { join } from "path";
 import * as fs from "fs/promises";
 import { tmpdir } from "os";
 import { dialog, shell } from "electron";
-import { Revparse, Credential, Repository, Revwalk, Commit, Diff, ConvenientPatch, ConvenientHunk, DiffLine, Object, Branch, Graph, Index, Reset, Checkout, DiffFindOptions, Reference, Oid, Signature, Remote, DiffOptions, IndexEntry, Error as NodeGitError, Tag, Stash, Status } from "nodegit";
+import { Revparse, Credential, Repository, Revwalk, Commit, Diff, ConvenientPatch, ConvenientHunk, DiffLine, Object, Branch, Graph, Index, Reset, Checkout, DiffFindOptions, Reference, Oid, Signature, Remote, DiffOptions, IndexEntry, Error as NodeGitError, Tag, Stash, Status, Rebase } from "nodegit";
 import { IpcAction, BranchObj, LineObj, HunkObj, PatchObj, CommitObj, IpcActionParams, RefType, StashObj, AsyncIpcActionReturnOrError, IpcActionReturn, LoadFileCommitsReturn } from "../Common/Actions";
 import { normalizeLocalName, normalizeRemoteName, normalizeRemoteNameWithoutRemote, normalizeTagName, getRemoteName } from "../Common/Branch";
 import { gpgSign, gpgVerify } from "./GPG";
@@ -21,6 +21,16 @@ declare module "nodegit" {
         static sshKeyFromAgent(username: string): unknown
         static sshKeyNew(username: string, publicKey: string, privateKey: string, passphrase: string): unknown
         static userpassPlaintextNew(username: string, password: string): unknown
+    }
+
+    interface Repository {
+        rebaseBranches(
+            branch: string | Reference,
+            upstream: string | Reference,
+            onto: string | Reference,
+            signature: Signature,
+            beforeNextFn?: (rebase?: Rebase) => Promise<unknown> | unknown,
+        ): Promise<Oid>;
     }
 
     interface Tree {
@@ -345,9 +355,7 @@ export async function pull(repo: Repository, branch: string | null, signature: S
             result = !await Reset.reset(repo, originHead, Reset.TYPE.HARD, {});
             index = await repo.refreshIndex();
         } else {
-            result = await repo.rebaseBranches(ref.name(), upstream.name(), upstream.name(), signature, (..._args: unknown[]) => {
-                // console.log("beforeNextFn:", args);
-            });
+            result = await repo.rebaseBranches(ref, upstream, upstream, signature);
         }
     } catch (err) {
         if (err instanceof Error) {
