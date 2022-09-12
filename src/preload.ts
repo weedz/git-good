@@ -41,7 +41,7 @@ contextBridge.exposeInMainWorld("electronAPI", {
     },
     requestClientData: (callback: <E extends RendererRequestEvents>(payload: RendererRequestPayload<E>) => Promise<RendererRequestData[E]>) => {
         ipcRenderer.on("request-client-data", async (_, payload) => {
-            const response = await callback(payload.data).catch(e => Error(e));
+            const response = await callback(payload).catch(e => Error(e));
             ipcRenderer.send("response-client-data", {
                 id: payload.id,
                 data: response,
