@@ -10,6 +10,7 @@ import { Links } from "../LinkContainer";
 import CommitContainer from "./CommitContainer";
 import { filterCommit } from "../../Data/Utility";
 import { openFileHistory } from "../../Data";
+import { HISTORY_REF } from "../../../Common/Branch";
 
 type State = {
     filter: undefined | string
@@ -37,14 +38,13 @@ export default class CommitList extends PureStoreComponent<unknown, State> {
     commits: LoadCommitsReturn["commits"] = [];
 
     componentDidMount() {
-        this.listen("selectedBranch", this.selectedBranch);
+        this.listen("selectedBranch", (selection) => {
+            if (selection && selection !== Store.selectedBranch) {
+                this.selectedBranch(selection);
+            }
+        });
         this.listen("branches", (branches) => {
             branches && this.selectedBranch(Store.selectedBranch);
-        });
-        this.listen("repo", () => {
-            this.graph.clear();
-            this.commits = [];
-            this.forceUpdate();
         });
         this.listen("locks", locks => {
             if (Store.locks[Locks.COMMIT_LIST] !== locks[Locks.COMMIT_LIST]) {
@@ -53,10 +53,9 @@ export default class CommitList extends PureStoreComponent<unknown, State> {
         });
         this.registerHandler(IpcAction.LOAD_COMMITS, this.commitsLoaded);
 
-        this.selectedBranch(Store.selectedBranch);
     }
 
-    resetBranchList() {
+    resetCommitList() {
         this.cursor = null;
         this.color = 0;
         this.canFetchMore = true;
@@ -65,8 +64,8 @@ export default class CommitList extends PureStoreComponent<unknown, State> {
     }
 
     selectedBranch = (selection: StoreType["selectedBranch"]) => {
-        this.resetBranchList();
-        if (selection.branch || selection.history) {
+        this.resetCommitList();
+        if (selection) {
             this.loadMoreCommits(selection);
         }
     }
@@ -78,7 +77,7 @@ export default class CommitList extends PureStoreComponent<unknown, State> {
 
         setLock(Locks.BRANCH_LIST);
         let options: IpcActionParams[IpcAction.LOAD_COMMITS];
-        if (selection.history) {
+        if (selection === HISTORY_REF) {
             options = {
                 num: historyLimit,
                 history: true,
@@ -86,7 +85,7 @@ export default class CommitList extends PureStoreComponent<unknown, State> {
         } else {
             options = {
                 num: pageSize,
-                branch: selection.branch || "HEAD",
+                branch: selection || "refs/HEAD",
             };
         }
 
@@ -97,6 +96,7 @@ export default class CommitList extends PureStoreComponent<unknown, State> {
         ipcSendMessage(IpcAction.LOAD_COMMITS, options);
     }
     handleCommits(fetched: IpcResponse<IpcAction.LOAD_COMMITS>) {
+        this.loading = false;
         if (!fetched || fetched instanceof Error) {
             return;
         }
@@ -104,11 +104,7 @@ export default class CommitList extends PureStoreComponent<unknown, State> {
         if (fetched.commits.length === 0) {
             this.canFetchMore = false;
         }
-        if (fetched.branch === "history") {
-            if (!Store.selectedBranch.history) {
-                return;
-            }
-        } else if (fetched.branch && fetched.branch !== Store.selectedBranch.branch) {
+        if (fetched.branch && fetched.branch !== Store.selectedBranch) {
             return;
         }
 
@@ -137,18 +133,16 @@ export default class CommitList extends PureStoreComponent<unknown, State> {
         clearLock(Locks.BRANCH_LIST);
         this.cursor = fetched.cursor;
 
-        this.forceUpdate(() => {
-            this.loading = false;
-        });
+        this.forceUpdate();
     }
     commitsLoaded = (result: IpcActionReturn[IpcAction.LOAD_COMMITS]) => {
         if (!result) {
             return;
         }
-        if (result.branch === Store.selectedBranch.branch) {
-            this.commits = this.commits.concat(result.commits);
+        if (result.branch === Store.selectedBranch) {
+            this.commits.push(...result.commits)
         } else {
-            this.resetBranchList();
+            this.resetCommitList();
             this.commits = result.commits;
         }
 
@@ -185,7 +179,7 @@ export default class CommitList extends PureStoreComponent<unknown, State> {
                     {
                         this.commits.length
                             ? <CommitContainer
-                                loadMore={() => !Store.selectedBranch.history && this.loadMoreCommits(Store.selectedBranch)}
+                                loadMore={() => Store.selectedBranch !== HISTORY_REF && this.loadMoreCommits(Store.selectedBranch)}
                                 commits={this.filterCommits()}
                                 graph={this.graph} />
                             : "No commits yet?"

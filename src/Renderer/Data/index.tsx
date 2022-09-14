@@ -9,6 +9,7 @@ import { humanReadableBytes } from "../../Common/Utils";
 import { AppEventData, AppEventType, RendererRequestArgs, RendererRequestData, RendererRequestEvents, RendererRequestPayload } from "../../Common/WindowEventTypes";
 import { DialogTypes } from "../Components/Dialog/types";
 import { NativeDialog } from "../../Common/Dialog";
+import { HEAD_REF } from "../../Common/Branch";
 
 const dismissibleWindows: Set<() => void> = new Set();
 const dismissibleWindowsStack: Array<() => void> = [];
@@ -150,9 +151,7 @@ function repoOpened(result: AppEventData[AppEventType.REPO_OPENED]) {
             path: result.path,
         },
         repoStatus: result.status,
-        selectedBranch: {
-            branch: "HEAD"
-        },
+        selectedBranch: HEAD_REF,
     });
 }
 
@@ -223,7 +222,7 @@ async function branchesLoaded(result: IpcActionReturn[IpcAction.LOAD_BRANCHES]) 
     });
 
     await loadUpstreams();
-    updateStore({ branches: Store.branches });
+    updateStore({ heads: Store.heads });
 }
 function stashLoaded(stash: IpcActionReturn[IpcAction.LOAD_STASHES]) {
     updateStore({

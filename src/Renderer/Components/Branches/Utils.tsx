@@ -20,7 +20,7 @@ export function branchesAheadBehind(ref: BranchObj) {
 
 function selectAction(c: Link<string>) {
     if (c.props.linkData) {
-        updateStore({selectedBranch: {branch: c.props.linkData}});
+        updateStore({selectedBranch: c.props.linkData});
     }
 }
 

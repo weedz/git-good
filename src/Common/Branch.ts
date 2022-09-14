@@ -8,6 +8,9 @@ export enum BranchFromType {
     COMMIT,
 }
 
+export const HISTORY_REF = "refs/*" as const;
+export const HEAD_REF = "HEAD" as const;
+
 /**
  * omits the "refs/remotes/" part of the name
  */

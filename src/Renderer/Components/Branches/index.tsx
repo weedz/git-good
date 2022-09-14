@@ -30,6 +30,7 @@ export default class Branches extends PureStoreComponent<unknown, State> {
             }
         });
         this.listen("branches", this.loadBranches);
+        this.listen("heads", (_) => this.loadBranches(Store.branches));
         if (Store.branches) {
             this.loadBranches(Store.branches);
         }

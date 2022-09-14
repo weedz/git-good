@@ -4,7 +4,7 @@ import { tmpdir } from "os";
 import { dialog, shell } from "electron";
 import { Revparse, Credential, Repository, Revwalk, Commit, Diff, ConvenientPatch, ConvenientHunk, DiffLine, Object, Branch, Graph, Index, Reset, Checkout, DiffFindOptions, Reference, Oid, Signature, Remote, DiffOptions, IndexEntry, Error as NodeGitError, Tag, Stash, Status, Rebase } from "nodegit";
 import { IpcAction, BranchObj, LineObj, HunkObj, PatchObj, CommitObj, IpcActionParams, RefType, StashObj, AsyncIpcActionReturnOrError, IpcActionReturn, LoadFileCommitsReturn } from "../Common/Actions";
-import { normalizeLocalName, normalizeRemoteName, normalizeRemoteNameWithoutRemote, normalizeTagName, getRemoteName } from "../Common/Branch";
+import { normalizeLocalName, normalizeRemoteName, normalizeRemoteNameWithoutRemote, normalizeTagName, getRemoteName, HISTORY_REF } from "../Common/Branch";
 import { gpgSign, gpgVerify } from "./GPG";
 import { AppConfig, AuthConfig } from "../Common/Config";
 import { currentProfile, getAppConfig, getAuth, signatureFromActiveProfile, signatureFromProfile } from "./Config";
@@ -127,7 +127,7 @@ export async function initGetCommits(repo: Repository, params: IpcActionParams[I
     let revwalkStart: "refs/*" | Oid;
     // FIXME: organize this...
     if ("history" in params) {
-        branch = "history";
+        branch = HISTORY_REF;
         revwalkStart = "refs/*";
     } else {
         let start: Commit | null = null;
@@ -146,8 +146,13 @@ export async function initGetCommits(repo: Repository, params: IpcActionParams[I
             }
             else if ("branch" in params) {
                 if (params.branch.includes("refs/tags")) {
-                    const ref = await repo.getReference(params.branch);
-                    start = await repo.getReferenceCommit(ref);
+                    try {
+                        start = await repo.getReferenceCommit(params.branch);
+                    } catch (err) {
+                        // Soft tag?
+                        const ref = await repo.getTagByName(params.branch);
+                        revwalkStart = ref.targetId();
+                    }
                 } else {
                     start = await repo.getReferenceCommit(params.branch);
                 }
@@ -156,12 +161,12 @@ export async function initGetCommits(repo: Repository, params: IpcActionParams[I
             }
         } catch (err) {
             // could not find requested ref
-            console.info("initGetCommits(): could not find requested ref, using head");
+            console.info("initGetCommits(): could not find requested ref, using head", err);
         }
         if (!start) {
             start = await repo.getHeadCommit();
         }
-        revwalkStart = start.id();
+        revwalkStart ??= start.id();
     }
 
     return {

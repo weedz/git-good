@@ -2,6 +2,7 @@ import { createStore, PartialStoreListener } from "@weedzcokie/store";
 import { AnyComponent, Component, JSX } from "preact";
 import { PureComponent } from "preact/compat";
 import { BranchesObj, BranchObj, HeadBranchObj, IpcAction, IpcActionReturn, Locks, PatchObj, RepoStatus, StashObj } from "../../Common/Actions";
+import { HEAD_REF } from "../../Common/Branch";
 import { AppConfig } from "../../Common/Config";
 import { NotificationInit, NotificationPosition } from "../../Common/WindowEventTypes";
 import { DialogProps, DialogTypes } from "../Components/Dialog/types";
@@ -33,7 +34,7 @@ export type StoreType = {
     }
     locks: Record<Locks, boolean>
     dialogWindow: null | DialogWindow
-    selectedBranch: {branch?: string, history?: boolean}
+    selectedBranch: undefined | string
     diffPaneSrc: string | null
     viewChanges: null
     comparePatches: PatchObj[]
@@ -68,7 +69,7 @@ const store = createStore<StoreType>({
         [Locks.COMMIT_LIST]: false,
     },
     dialogWindow: null,
-    selectedBranch: {branch: "HEAD"},
+    selectedBranch: HEAD_REF,
     diffPaneSrc: "",
     viewChanges: null,
     comparePatches: [],
