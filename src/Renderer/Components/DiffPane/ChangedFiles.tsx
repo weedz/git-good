@@ -91,24 +91,27 @@ function getFileCssClass(status: DiffDelta) {
         return "file-conflicted";
     }
 }
+function checkActions(patch: PatchObj, actions: ButtonAction[]): ButtonAction[] {
+    if (patch.status === DiffDelta.CONFLICTED) {
+        return [
+            {
+                click: (e) => {
+                    const path = e.currentTarget.dataset.path;
+                    if (path) {
+                        resolveConflict(path);
+                    }
+                },
+                label: "Resolve"
+            }
+        ];
+    }
+    return actions;
+}
 
 function renderPaths(patches: PatchObj[], actions: ButtonAction[], contextMenu: (e: h.JSX.TargetedMouseEvent<HTMLLIElement>) => void, selectAction: (data: Link<PatchObj>) => void) {
     const paths = [];
     for (const patch of patches) {
         const typeCss = getFileCssClass(patch.status);
-        if (patch.status === DiffDelta.CONFLICTED) {
-            actions = [
-                {
-                    click: (e) => {
-                        const path = e.currentTarget.dataset.path;
-                        if (path) {
-                            resolveConflict(path);
-                        }
-                    },
-                    label: "Resolve"
-                }
-            ];
-        }
 
         const lastSlash = patch.actualFile.path.lastIndexOf("/") + 1;
         const path = patch.actualFile.path.substring(0, lastSlash);
@@ -124,7 +127,7 @@ function renderPaths(patches: PatchObj[], actions: ButtonAction[], contextMenu: 
                     </div>
                 </Link>
                 <div className="action-group">
-                    {actions.map(action => <button key={patch.actualFile.path} data-path={patch.actualFile.path} onClick={action.click}>{action.label}</button>)}
+                    {checkActions(patch, actions).map(action => <button key={patch.actualFile.path} data-path={patch.actualFile.path} onClick={action.click}>{action.label}</button>)}
                 </div>
             </li>
         );
@@ -140,20 +143,6 @@ function renderTree(tree: Tree<PatchObj>, actions: ButtonAction[], contextMenu: 
         if (child.item) {
             const patch = child.item;
             const typeCss = getFileCssClass(patch.status);
-            let currentActions = actions;
-            if (patch.status === DiffDelta.CONFLICTED) {
-                currentActions = [
-                    {
-                        click: (e) => {
-                            const thisPath = e.currentTarget.dataset.path;
-                            if (thisPath) {
-                                resolveConflict(thisPath);
-                            }
-                        },
-                        label: "Resolve"
-                    }
-                ];
-            }
             items.push(
                 <li onContextMenu={contextMenu} key={patch.actualFile.path} data-path={patch.actualFile.path}>
                     <Link className={`${typeCss} flex-row`} linkData={patch} selectAction={selectAction}>
@@ -163,7 +152,7 @@ function renderTree(tree: Tree<PatchObj>, actions: ButtonAction[], contextMenu: 
                         </div>
                     </Link>
                     <div className="action-group">
-                        {currentActions.map(action => <button key={patch.actualFile.path} data-path={patch.actualFile.path} onClick={action.click}>{action.label}</button>)}
+                        {checkActions(patch, actions).map(action => <button key={patch.actualFile.path} data-path={patch.actualFile.path} onClick={action.click}>{action.label}</button>)}
                     </div>
                 </li>
             );
