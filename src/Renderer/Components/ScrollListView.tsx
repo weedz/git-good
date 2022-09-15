@@ -11,6 +11,8 @@ type State = {
     totalHeight: number
 }
 
+const EXTRA_ITEMS_TO_RENDE = 5;
+
 export default abstract class ScrollListView<T, P = unknown> extends Component<Props<T> & P, State> {
     sync = false;
     state = {
@@ -34,7 +36,7 @@ export default abstract class ScrollListView<T, P = unknown> extends Component<P
                 for (const entry of entries) {
                     const cr = entry.contentRect;
                     this.setState({
-                        itemsToRender: Math.ceil(cr.height / this.props.itemHeight) + 1
+                        itemsToRender: Math.ceil(cr.height / this.props.itemHeight) + EXTRA_ITEMS_TO_RENDE*2
                     });
                 }
             });
@@ -68,7 +70,7 @@ export default abstract class ScrollListView<T, P = unknown> extends Component<P
                 left: this.containerRef.current.scrollLeft,
                 top: this.containerRef.current.scrollTop,
             };
-            const startLine = Math.floor(this.containerRef.current.scrollTop / this.props.itemHeight);
+            const startLine = Math.max(0, Math.floor(this.containerRef.current.scrollTop / this.props.itemHeight) - EXTRA_ITEMS_TO_RENDE);
             if (startLine !== this.state.startRenderAt) {
                 this.setState({
                     startRenderAt: startLine
