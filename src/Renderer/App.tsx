@@ -3,7 +3,7 @@ import { h, Fragment } from "preact";
 import Main from "./Views/Main";
 import Changes from "./Components/Changes";
 import Branches from "./Components/Branches";
-import { Store, StoreComponent } from "./Data/store";
+import { lockChanged, Store, StoreComponent } from "./Data/store";
 import { Locks } from "../Common/Actions";
 import Dialog from "./Components/Dialog";
 import FileDiff from "./Components/FileDiff";
@@ -23,7 +23,7 @@ export default class App extends StoreComponent {
         });
 
         this.listen("locks", locks => {
-            if (Store.locks[Locks.MAIN] !== locks[Locks.MAIN]) {
+            if (lockChanged(Locks.MAIN, locks)) {
                 this.forceUpdate();
             }
         });

@@ -89,6 +89,7 @@ type StoreKeys = keyof StoreType;
 
 export const Store = store.Store;
 export const updateStore = store.updateStore;
+export const mergeUpdateStore = store.mergeUpdateStore;
 
 export abstract class StoreComponent<P = unknown, S = unknown> extends Component<P, S> {
     listeners: Array<() => void> = [];
@@ -178,10 +179,17 @@ export function setUpstream(local: string, remote: string | null) {
 }
 
 export function setLock(lock: Locks) {
-    updateStore({locks: {...Store.locks, [lock]: true}});
+    mergeUpdateStore({
+        locks: {[lock]: true}
+    });
 }
 export function clearLock(lock: Locks) {
-    updateStore({locks: {...Store.locks, [lock]: false}});
+    mergeUpdateStore({
+        locks: {[lock]: false}
+    });
+}
+export function lockChanged<L extends Locks>(lock: L, locks: Partial<StoreType["locks"]>) {
+    return locks[lock] !== undefined && locks[lock] !== Store.locks[lock];
 }
 
 export function openDialogWindow<T extends DialogTypes>(type: T, props: DialogProps[T]) {

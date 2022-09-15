@@ -1,14 +1,14 @@
 lockfileVersion: 5.4
 
 overrides:
-  nan: github:VerteDinde/nan#deprecate_accessor_signature
+  nan: github:weedz/nan#main
 
 specifiers:
   '@types/node': ^16.11.58
   '@types/nodegit': ^0.27.10
   '@typescript-eslint/eslint-plugin': ^5.36.2
   '@typescript-eslint/parser': ^5.36.2
-  '@weedzcokie/store': ^1.0.5
+  '@weedzcokie/store': ^1.1.2
   asar: ^3.2.0
   electron: ^20.1.3
   electron-builder: ^23.3.3
@@ -22,7 +22,7 @@ specifiers:
   typescript: ^4.8.3
 
 dependencies:
-  '@weedzcokie/store': 1.0.5
+  '@weedzcokie/store': 1.1.2
   nodegit: 0.28.0-alpha.18
 
 devDependencies:
@@ -503,8 +503,8 @@ packages:
       eslint-visitor-keys: 3.3.0
     dev: true
 
-  /@weedzcokie/store/1.0.5:
-    resolution: {integrity: sha512-C4JSYz1OBIySj/+q/kWH0IzmnenASaM10BRSQHA0EeAVh2bAoOaXV9Hvm5K0J1J03//51rcMxHTtTDu40NGgqA==}
+  /@weedzcokie/store/1.1.2:
+    resolution: {integrity: sha512-fcny0kp23hdWCTvEqUW2yG95N6cgXs6LhSOj5kRVeJuRCuzaYTjQrMQvJSD+3SQEspeaWB596GS19oKbVj4AbA==}
     dev: false
 
   /abbrev/1.1.1:
@@ -3184,7 +3184,7 @@ packages:
       got: 10.7.0
       json5: 2.2.1
       lodash: 4.17.21
-      nan: github.com/VerteDinde/nan/1719071c1b74e569f7e6f57c589fc9e5020a3f6e
+      nan: github.com/weedz/nan/a679b69b92e1997f6b40f1d3981a58a0021e1b99
       node-gyp: 8.4.1
       ramda: 0.25.0
       tar-fs: 1.16.3
@@ -4324,8 +4324,8 @@ packages:
     engines: {node: '>=10'}
     dev: true
 
-  github.com/VerteDinde/nan/1719071c1b74e569f7e6f57c589fc9e5020a3f6e:
-    resolution: {tarball: https://codeload.github.com/VerteDinde/nan/tar.gz/1719071c1b74e569f7e6f57c589fc9e5020a3f6e}
+  github.com/weedz/nan/a679b69b92e1997f6b40f1d3981a58a0021e1b99:
+    resolution: {tarball: https://codeload.github.com/weedz/nan/tar.gz/a679b69b92e1997f6b40f1d3981a58a0021e1b99}
     name: nan
     version: 2.16.0
     dev: false

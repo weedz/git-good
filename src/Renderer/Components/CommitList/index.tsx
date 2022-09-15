@@ -1,7 +1,7 @@
 import { h } from "preact";
 import { ipcSendMessage } from "../../Data/IPC";
 import { IpcAction, IpcActionReturn, LoadCommitReturn, IpcActionParams, Locks, IpcResponse, LoadCommitsReturn } from "../../../Common/Actions";
-import { clearLock, PureStoreComponent, setLock, Store, StoreType } from "../../Data/store";
+import { clearLock, lockChanged, PureStoreComponent, setLock, Store, StoreType } from "../../Data/store";
 
 import "./style.css";
 import FileFilter from "./FileFilter";
@@ -47,12 +47,11 @@ export default class CommitList extends PureStoreComponent<unknown, State> {
             branches && this.selectedBranch(Store.selectedBranch);
         });
         this.listen("locks", locks => {
-            if (Store.locks[Locks.COMMIT_LIST] !== locks[Locks.COMMIT_LIST]) {
+            if (lockChanged(Locks.COMMIT_LIST, locks)) {
                 this.forceUpdate();
             }
         });
         this.registerHandler(IpcAction.LOAD_COMMITS, this.commitsLoaded);
-
     }
 
     resetCommitList() {
@@ -96,7 +95,6 @@ export default class CommitList extends PureStoreComponent<unknown, State> {
         ipcSendMessage(IpcAction.LOAD_COMMITS, options);
     }
     handleCommits(fetched: IpcResponse<IpcAction.LOAD_COMMITS>) {
-        this.loading = false;
         if (!fetched || fetched instanceof Error) {
             return;
         }
@@ -130,12 +128,12 @@ export default class CommitList extends PureStoreComponent<unknown, State> {
             }
         }
 
-        clearLock(Locks.BRANCH_LIST);
         this.cursor = fetched.cursor;
-
         this.forceUpdate();
     }
     commitsLoaded = (result: IpcActionReturn[IpcAction.LOAD_COMMITS]) => {
+        clearLock(Locks.BRANCH_LIST);
+        this.loading = false;
         if (!result) {
             return;
         }

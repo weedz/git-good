@@ -37,11 +37,11 @@
     "typescript": "^4.8.3"
   },
   "dependencies": {
-    "@weedzcokie/store": "^1.0.5",
+    "@weedzcokie/store": "^1.1.2",
     "nodegit": "^0.28.0-alpha.18"
   },
   "resolutions": {
-    "nan": "github:VerteDinde/nan#deprecate_accessor_signature"
+    "nan": "github:weedz/nan#main"
   },
   "build": {
     "afterPack": "./scripts/after-pack.js",

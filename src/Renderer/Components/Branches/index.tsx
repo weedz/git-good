@@ -1,7 +1,7 @@
 import { h, Fragment } from "preact";
 import "./style.css";
 import { BranchesObj, Locks } from "../../../Common/Actions";
-import { Store, PureStoreComponent, StoreType } from "../../Data/store";
+import { Store, PureStoreComponent, StoreType, lockChanged } from "../../Data/store";
 import { getBranchTree, filterBranches } from "./Utils";
 import BranchList from "./BranchList";
 import StashList from "./StashList";
@@ -25,7 +25,7 @@ function branchesToTree(branches: BranchesObj, filter: string | null) {
 export default class Branches extends PureStoreComponent<unknown, State> {
     componentDidMount() {
         this.listen("locks", locks => {
-            if (Store.locks[Locks.BRANCH_LIST] !== locks[Locks.BRANCH_LIST]) {
+            if (lockChanged(Locks.BRANCH_LIST, locks)) {
                 this.forceUpdate();
             }
         });
