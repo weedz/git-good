@@ -1008,27 +1008,27 @@ export async function unstageFile(repo: Repository, filePath: string): AsyncIpcA
 }
 // Returns the number of staged files
 export async function stageAllFiles(repo: Repository) {
-    const statusList = await repo.getStatusExt({
+    const statusList = await repo.getStatus({
         show: Status.SHOW.WORKDIR_ONLY,
         flags: Status.OPT.INCLUDE_UNTRACKED | Status.OPT.RECURSE_UNTRACKED_DIRS,
     });
     await index.read(0);
-    for (const statusItem of statusList) {
-        await stageSingleFile(repo, statusItem.path());
-    }
+    await Promise.all(statusList.map(
+        statusItem => stageSingleFile(repo, statusItem.path())
+    ));
     await index.write();
     return statusList.length;
 }
 // Returns the number of unstaged files
 export async function unstageAllFiles(repo: Repository) {
-    const statusList = await repo.getStatusExt({
+    const statusList = await repo.getStatus({
         show: Status.SHOW.INDEX_ONLY,
         flags: Status.OPT.INCLUDE_UNTRACKED | Status.OPT.RECURSE_UNTRACKED_DIRS,
     });
     const head = await repo.getHeadCommit();
-    for (const statusItem of statusList) {
-        await unstageSingleFile(repo, head, statusItem.path());
-    }
+    await Promise.all(statusList.map(
+        statusItem => unstageSingleFile(repo, head, statusItem.path())
+    ));
     await index.read(0);
     return statusList.length;
 }
@@ -1076,13 +1076,13 @@ export async function discardChanges(repo: Repository, filePath: string) {
     return discardSingleFile(repo, filePath);
 }
 export async function discardAllChanges(repo: Repository) {
-    const statusList = await repo.getStatusExt({
+    const statusList = await repo.getStatus({
         show: Status.SHOW.WORKDIR_ONLY,
         flags: Status.OPT.INCLUDE_UNTRACKED | Status.OPT.RECURSE_UNTRACKED_DIRS,
     });
-    for (const statusItem of statusList) {
-        await discardSingleFile(repo, statusItem.path());
-    }
+    await Promise.all(statusList.map(
+        statusItem => discardSingleFile(repo, statusItem.path())
+    ));
     return statusList.length;
 }
 
