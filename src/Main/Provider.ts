@@ -1253,7 +1253,7 @@ async function loadConflictedPatch(repo: Repository, path: string): Promise<Hunk
             const content = fileContent.subarray(start, end + 9).toString();
             const startLine = fileContent.subarray(0, start).filter(chr => chr === lineFeedCodepoint).length + 1;
     
-            const lines = content.toString().split("\n").map((line, index): LineObj => ({
+            const lines = content.split("\n").map((line, index): LineObj => ({
                 content: line,
                 type: "",
                 newLineno: index + startLine,
