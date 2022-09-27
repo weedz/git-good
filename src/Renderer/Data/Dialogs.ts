@@ -2,7 +2,7 @@ import { DialogProps, DialogTypes } from "../Components/Dialog/types";
 import { IpcAction } from "../../Common/Actions";
 import { BranchFromType, BranchType, normalizeLocalName, normalizeRemoteNameWithoutRemote, normalizeTagName, getRemoteName } from "../../Common/Branch";
 import { ipcGetData, ipcSendMessage } from "./IPC";
-import { closeDialogWindow, openDialogWindow, setDiffpaneSrc, saveAppConfig, createBranchFromRef, createBranchFromSha, renameLocalBranch, setUpstream } from "./store";
+import { closeDialogWindow, openDialogWindow, saveAppConfig, createBranchFromRef, createBranchFromSha, renameLocalBranch, setUpstream } from "./store";
 
 export function openDialog_EditRemote(dialogData: DialogProps[DialogTypes.EDIT_REMOTE]["data"]) {
     const oldName = dialogData.name;
@@ -24,42 +24,6 @@ export function openDialog_AddRemote() {
         async confirmCb(data) {
             if (await ipcGetData(IpcAction.NEW_REMOTE, data)) {
                 closeDialogWindow();
-            }
-        },
-        cancelCb() {
-            closeDialogWindow();
-        },
-    });
-}
-
-export function openDialog_CompareRevisions() {
-    openDialogWindow(DialogTypes.COMPARE, {
-        confirmCb(from, to) {
-            closeDialogWindow();
-            if (from && to) {
-                ipcSendMessage(IpcAction.OPEN_COMPARE_REVISIONS, {
-                    from,
-                    to
-                });
-            }
-        },
-        cancelCb() {
-            closeDialogWindow();
-        },
-    });
-}
-
-export function openDialog_ViewCommit() {
-    openDialogWindow(DialogTypes.VIEW_COMMIT, {
-        async confirmCb(sha) {
-            closeDialogWindow();
-            if (sha) {
-                try {
-                    sha = await ipcGetData(IpcAction.PARSE_REVSPEC, sha);
-                    setDiffpaneSrc(sha);
-                } catch (e) {
-                    // Invalid revspec
-                }
             }
         },
         cancelCb() {

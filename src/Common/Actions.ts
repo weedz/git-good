@@ -44,7 +44,6 @@ export const enum IpcAction {
     CREATE_BRANCH_FROM_REF,
     RENAME_LOCAL_BRANCH,
     FIND_FILE,
-    OPEN_COMPARE_REVISIONS,
     REMOTES,
     RESOLVE_CONFLICT,
     EDIT_REMOTE,
@@ -55,7 +54,6 @@ export const enum IpcAction {
     GET_SETTINGS,
     FILE_DIFF_AT,
     CREATE_TAG,
-    PARSE_REVSPEC,
     LOAD_STASHES,
     GET_COMMIT_GPG_SIGN,
     LOAD_TREE_AT_COMMIT,
@@ -126,7 +124,6 @@ export type IpcActionParams = {
         name: string
     }
     [IpcAction.FIND_FILE]: string
-    [IpcAction.OPEN_COMPARE_REVISIONS]: {from: string, to: string}
     [IpcAction.REMOTES]: null
     [IpcAction.RESOLVE_CONFLICT]: {path: string}
     [IpcAction.EDIT_REMOTE]: {oldName: string, name: string, pullFrom: string, pushTo: string | null}
@@ -146,7 +143,6 @@ export type IpcActionParams = {
         fromCommit: boolean
         annotation?: string
     }
-    [IpcAction.PARSE_REVSPEC]: string
     [IpcAction.LOAD_STASHES]: null
     [IpcAction.GET_COMMIT_GPG_SIGN]: string
     [IpcAction.LOAD_TREE_AT_COMMIT]: string
@@ -190,7 +186,6 @@ export type IpcActionReturn = {
     [IpcAction.CREATE_BRANCH_FROM_REF]: boolean
     [IpcAction.RENAME_LOCAL_BRANCH]: boolean
     [IpcAction.FIND_FILE]: string[]
-    [IpcAction.OPEN_COMPARE_REVISIONS]: PatchObj[]
     [IpcAction.REMOTES]: {
         name: string
         pushTo: string | null
@@ -205,7 +200,6 @@ export type IpcActionReturn = {
     [IpcAction.REPO_PROFILE]: boolean
     [IpcAction.FILE_DIFF_AT]: PatchObj | false
     [IpcAction.CREATE_TAG]: boolean
-    [IpcAction.PARSE_REVSPEC]: string
     [IpcAction.LOAD_STASHES]: StashObj[]
     [IpcAction.GET_COMMIT_GPG_SIGN]: false | {
         signature: {

@@ -1,7 +1,7 @@
 import { h } from "preact";
 import { GlobalLinks, unselectLink } from "../Components/Link";
 import { BranchObj, IpcAction, IpcActionParams, IpcActionReturn, IpcActionReturnOrError, IpcResponse, Locks, PatchObj } from "../../Common/Actions";
-import { openDialog_CompareRevisions, openDialog_Settings, openDialog_ViewCommit, openDialog_createTag, openDialog_BranchFrom, openDialog_AddRemote, openDialog_RenameRef, openDialog_SetUpstream, openDialog_EditRemote, openDialog_PushTag } from "./Dialogs";
+import { openDialog_Settings, openDialog_createTag, openDialog_BranchFrom, openDialog_AddRemote, openDialog_RenameRef, openDialog_SetUpstream, openDialog_EditRemote, openDialog_PushTag } from "./Dialogs";
 import { registerAppEventHandlers, registerHandler, ipcGetData, ipcSendMessage, openNativeDialog } from "./IPC";
 import { Store, clearLock, setLock, updateStore, StoreType, notify, openDialogWindow, closeDialogWindow, setDiffpaneSrc } from "./store";
 import { Notification } from "../Components/Notification";
@@ -238,7 +238,7 @@ function updateCurrentBranch(head: IpcResponse<IpcAction.CHECKOUT_BRANCH>) {
     }
 }
 
-function handleCompareRevisions(data: IpcResponse<IpcAction.OPEN_COMPARE_REVISIONS>) {
+function handleCompareRevisions(data: AppEventData[AppEventType.OPEN_COMPARE_REVISIONS]) {
     if (data && !(data instanceof Error)) {
         unselectLink("commits");
         updateStore({
@@ -308,8 +308,6 @@ registerAppEventHandlers({
     [AppEventType.OPEN_SETTINGS]: openSettings,
     [AppEventType.LOCK_UI]: setLock,
     [AppEventType.UNLOCK_UI]: clearLock,
-    [AppEventType.BEGIN_COMPARE_REVISIONS]: openDialog_CompareRevisions,
-    [AppEventType.BEGIN_VIEW_COMMIT]: openDialog_ViewCommit,
     [AppEventType.UNSELECT_LINK]: (linkType) => unselectLink(linkType),
     [AppEventType.SET_DIFFPANE]: (sha) => setDiffpaneSrc(sha),
     [AppEventType.NOTIFY]: notify,
@@ -331,13 +329,13 @@ registerAppEventHandlers({
         openDialog_SetUpstream(data.local, data.remote);
     },
     [AppEventType.REFRESH_WORKDIR]: updateRepoStatus,
+    [AppEventType.OPEN_COMPARE_REVISIONS]: handleCompareRevisions
 });
 
 
 registerHandler(IpcAction.LOAD_BRANCHES, branchesLoaded);
 registerHandler(IpcAction.CHECKOUT_BRANCH, updateCurrentBranch);
 registerHandler(IpcAction.LOAD_HUNKS, loadHunks);
-registerHandler(IpcAction.OPEN_COMPARE_REVISIONS, handleCompareRevisions);
 registerHandler(IpcAction.REMOTES, handleRemotes);
 registerHandler(IpcAction.LOAD_PATCHES_WITHOUT_HUNKS, () => clearLock(Locks.COMMIT_LIST));
 registerHandler(IpcAction.LOAD_STASHES, stashLoaded);
@@ -382,7 +380,31 @@ const rendererActions: {
                 resolve(null);
             }
         });
-    })
+    }),
+    [RendererRequestEvents.GET_COMMIT_SHA_DIALOG]: () => new Promise((resolve) => {
+        openDialogWindow(DialogTypes.VIEW_COMMIT, {
+            confirmCb(data) {
+                closeDialogWindow();
+                resolve(data);
+            },
+            cancelCb() {
+                closeDialogWindow();
+                resolve(null);
+            }
+        });
+    }),
+    [RendererRequestEvents.COMPARE_REVISIONS_DIALOG]: () => new Promise((resolve) => {
+        openDialogWindow(DialogTypes.COMPARE, {
+            confirmCb(from, to) {
+                closeDialogWindow();
+                resolve({from, to});
+            },
+            cancelCb() {
+                closeDialogWindow();
+                resolve(null);
+            }
+        });
+    }),
 };
 
 async function handleRequestClientData<E extends RendererRequestEvents>(payload: RendererRequestPayload<E>) {

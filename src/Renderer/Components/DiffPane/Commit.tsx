@@ -52,6 +52,8 @@ export default class Commit extends StoreComponent<Props, State> {
         if (props.sha !== this.props.sha) {
             this.resetView();
             this.getCommit(props.sha);
+        } else {
+            clearLock(Locks.COMMIT_LIST);
         }
     }
     componentDidMount() {

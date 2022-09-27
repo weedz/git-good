@@ -128,7 +128,7 @@ function applyAppMenu() {
                     label: "Clone...",
                     async click() {
                         const data = await requestClientData(RendererRequestEvents.CLONE_DIALOG, null);
-                        if (data.target && data.source) {
+                        if (data) {
                             try {
                                 const clonedRepo = await Clone.clone(data.source, data.target, {
                                     fetchOpts: {
@@ -151,7 +151,7 @@ function applyAppMenu() {
                     label: "Init...",
                     async click() {
                         const data = await requestClientData(RendererRequestEvents.INIT_DIALOG, null);
-                        if (data.source) {
+                        if (data) {
                             const initialRepo = await Repository.init(data.source, 0);
                             await openRepo(initialRepo.workdir());
                         }
@@ -314,16 +314,25 @@ function applyAppMenu() {
                 },
                 {
                     label: "Compare revisions...",
-                    click() {
-                        // TODO: implement with requestClientData
-                        sendEvent(AppEventType.BEGIN_COMPARE_REVISIONS, null);
+                    async click() {
+                        const revisions = await requestClientData(RendererRequestEvents.COMPARE_REVISIONS_DIALOG, null);
+                        if (revisions) {
+                            const compare = await provider.tryCompareRevisions(currentRepo(), revisions);
+                            if (compare instanceof Error) {
+                                dialog.showErrorBox("Error", compare.toString());
+                            } else {
+                                sendEvent(AppEventType.OPEN_COMPARE_REVISIONS, compare);
+                            }
+                        }
                     }
                 },
                 {
                     label: "View commit...",
-                    click() {
-                        // TODO: implement with requestClientData
-                        sendEvent(AppEventType.BEGIN_VIEW_COMMIT, null);
+                    async click() {
+                        const commitSha = await requestClientData(RendererRequestEvents.GET_COMMIT_SHA_DIALOG, null);
+                        if (commitSha) {
+                            sendEvent(AppEventType.SET_DIFFPANE, commitSha);
+                        }
                     }
                 },
                 {
@@ -539,7 +548,6 @@ const eventMap: {
         return !!renamedRef;
     },
     [IpcAction.FIND_FILE]: provider.findFile,
-    [IpcAction.OPEN_COMPARE_REVISIONS]: provider.tryCompareRevisions,
     [IpcAction.PUSH]: async (repo, data) => {
         const result = await provider.push(getContext(), data);
         if (!(result instanceof Error)) {
@@ -654,13 +662,6 @@ const eventMap: {
             sendAction(IpcAction.LOAD_BRANCHES, await provider.getBranches(repo));
         }
         return result;
-    },
-    [IpcAction.PARSE_REVSPEC]: async (repo, sha) => {
-        const oid = await provider.parseRevspec(repo, sha);
-        if (oid instanceof Error) {
-            return oid;
-        }
-        return oid.tostrS();
     },
     [IpcAction.LOAD_STASHES]: provider.getStash,
     [IpcAction.GET_COMMIT_GPG_SIGN]: provider.getCommitGpgSign,

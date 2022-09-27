@@ -1,4 +1,4 @@
-import type { Locks, RepoStatus } from "./Actions";
+import type { Locks, PatchObj, RepoStatus } from "./Actions";
 import { BranchFromType, BranchType } from "./Branch";
 
 export type LinkTypes = "commits" | "branches" | "files";
@@ -8,8 +8,6 @@ export const enum AppEventType {
     OPEN_SETTINGS,
     LOCK_UI,
     UNLOCK_UI,
-    BEGIN_COMPARE_REVISIONS,
-    BEGIN_VIEW_COMMIT,
     UNSELECT_LINK,
     SET_DIFFPANE,
     NOTIFY,
@@ -23,6 +21,7 @@ export const enum AppEventType {
     DIALOG_PUSH_TAG,
     DIALOG_SET_UPSTREAM,
     REFRESH_WORKDIR,
+    OPEN_COMPARE_REVISIONS,
 }
 
 export type AppEventData = {
@@ -34,12 +33,9 @@ export type AppEventData = {
     [AppEventType.OPEN_SETTINGS]: null
     [AppEventType.LOCK_UI]: Locks
     [AppEventType.UNLOCK_UI]: Locks
-    [AppEventType.BEGIN_COMPARE_REVISIONS]: null
-    [AppEventType.BEGIN_VIEW_COMMIT]: null
     [AppEventType.UNSELECT_LINK]: LinkTypes
     [AppEventType.SET_DIFFPANE]: string
     [AppEventType.NOTIFY]: NotificationInit
-    [AppEventType.BEGIN_COMPARE_REVISIONS]: null
     [AppEventType.NOTIFY_FETCH_STATUS]: {done: boolean, update: boolean} | {
         remote: string
         totalDeltas: number
@@ -84,6 +80,7 @@ export type AppEventData = {
         staged: number
         status: RepoStatus
     }
+    [AppEventType.OPEN_COMPARE_REVISIONS]: PatchObj[]
 }
 
 export enum NotificationPosition {
@@ -102,12 +99,16 @@ export const enum RendererRequestEvents {
     CLONE_DIALOG = 0,
     INIT_DIALOG,
     FILE_HISTORY_DIALOG,
+    GET_COMMIT_SHA_DIALOG,
+    COMPARE_REVISIONS_DIALOG
 }
 
 export type RendererRequestArgs = {
     [RendererRequestEvents.CLONE_DIALOG]: null
     [RendererRequestEvents.INIT_DIALOG]: null
     [RendererRequestEvents.FILE_HISTORY_DIALOG]: null
+    [RendererRequestEvents.GET_COMMIT_SHA_DIALOG]: null
+    [RendererRequestEvents.COMPARE_REVISIONS_DIALOG]: null
 }
 
 export type RendererRequestData = {
@@ -119,6 +120,11 @@ export type RendererRequestData = {
         source: string
     }
     [RendererRequestEvents.FILE_HISTORY_DIALOG]: string
+    [RendererRequestEvents.GET_COMMIT_SHA_DIALOG]: string
+    [RendererRequestEvents.COMPARE_REVISIONS_DIALOG]: {
+        from: string
+        to: string
+    }
 }
 
 export type RendererRequestPayload<E extends RendererRequestEvents> = {

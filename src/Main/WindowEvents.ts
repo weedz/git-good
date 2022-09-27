@@ -20,7 +20,7 @@ export async function requestClientData<T extends RendererRequestEvents>(event: 
         event,
         data: args,
     });
-    return new Promise<RendererRequestData[T]>((resolve, _reject) => {
+    return new Promise<null | RendererRequestData[T]>(resolve => {
         // calbackHandlers get cleaned up in handler for "response-client-data"
         callbackHandlers[id] = resolve as unknown as (args: RendererRequestData[RendererRequestEvents]) => void;
     });

@@ -1404,7 +1404,7 @@ export async function getCommitPatches(sha: string, diffOptions?: AppConfig["dif
     return handleDiff(diff, commit.patches);
 }
 
-export async function tryCompareRevisions(repo: Repository, revisions: { from: string, to: string }): AsyncIpcActionReturnOrError<IpcAction.OPEN_COMPARE_REVISIONS> {
+export async function tryCompareRevisions(repo: Repository, revisions: { from: string, to: string }) {
     try {
         return await compareRevisions(repo, revisions)
     }
@@ -1417,7 +1417,7 @@ export async function tryCompareRevisions(repo: Repository, revisions: { from: s
     return Error("Unknown error, revisions not found?");
 }
 
-export async function compareRevisions(repo: Repository, revisions: { from: string, to: string }): AsyncIpcActionReturnOrError<IpcAction.OPEN_COMPARE_REVISIONS> {
+export async function compareRevisions(repo: Repository, revisions: { from: string, to: string }) {
     // revisions.{to,from} is either a reference/branch or a commit sha. The `repo.getReference()` path
     // will search for a reference/branch matching the given name, and throws if not found. If it fails
     // we instead search for a commit matching the giving string.
