@@ -345,9 +345,9 @@ registerHandler(IpcAction.LOAD_FILE_COMMITS, handleFileCommits);
 
 
 const rendererActions: {
-    [E in RendererRequestEvents]: (data: RendererRequestArgs[E]) => Promise<RendererRequestData[E]>
+    [E in RendererRequestEvents]: (data: RendererRequestArgs[E]) => Promise<null | RendererRequestData[E]>
 } = {
-    [RendererRequestEvents.CLONE_DIALOG]: () => new Promise((resolve, reject) => {
+    [RendererRequestEvents.CLONE_DIALOG]: () => new Promise((resolve) => {
         openDialogWindow(DialogTypes.CLONE_REPOSITORY, {
             confirmCb(data) {
                 closeDialogWindow();
@@ -355,11 +355,11 @@ const rendererActions: {
             },
             cancelCb() {
                 closeDialogWindow();
-                reject();
+                resolve(null);
             }
-        })
+        });
     }),
-    [RendererRequestEvents.INIT_DIALOG]: () => new Promise((resolve, reject) => {
+    [RendererRequestEvents.INIT_DIALOG]: () => new Promise((resolve) => {
         openDialogWindow(DialogTypes.INIT_REPOSITORY, {
             confirmCb(data) {
                 closeDialogWindow();
@@ -367,9 +367,21 @@ const rendererActions: {
             },
             cancelCb() {
                 closeDialogWindow();
-                reject();
+                resolve(null);
             }
-        })
+        });
+    }),
+    [RendererRequestEvents.FILE_HISTORY_DIALOG]: () => new Promise((resolve) => {
+        openDialogWindow(DialogTypes.FILE_HISTORY, {
+            confirmCb(data) {
+                closeDialogWindow();
+                resolve(data);
+            },
+            cancelCb() {
+                closeDialogWindow();
+                resolve(null);
+            }
+        });
     })
 };
 

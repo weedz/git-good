@@ -14,6 +14,7 @@ export enum DialogTypes {
     VIEW_COMMIT,
     CLONE_REPOSITORY,
     INIT_REPOSITORY,
+    FILE_HISTORY
 }
 
 export type DialogProps = {
@@ -29,6 +30,7 @@ export type DialogProps = {
     [DialogTypes.VIEW_COMMIT]: PushTagProps
     [DialogTypes.CLONE_REPOSITORY]: CloneRepoProps
     [DialogTypes.INIT_REPOSITORY]: InitRepoProps
+    [DialogTypes.FILE_HISTORY]: FileHistoryProps
 }
 
 interface DialogBaseProps {
@@ -87,4 +89,7 @@ interface CloneRepoProps extends DialogBaseProps {
 }
 interface InitRepoProps extends DialogBaseProps {
     confirmCb: (target: string) => void
+}
+interface FileHistoryProps extends DialogBaseProps {
+    confirmCb: (filePath: string) => void
 }

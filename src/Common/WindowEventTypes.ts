@@ -101,11 +101,13 @@ export type NotificationInit = {
 export const enum RendererRequestEvents {
     CLONE_DIALOG = 0,
     INIT_DIALOG,
+    FILE_HISTORY_DIALOG,
 }
 
 export type RendererRequestArgs = {
     [RendererRequestEvents.CLONE_DIALOG]: null
     [RendererRequestEvents.INIT_DIALOG]: null
+    [RendererRequestEvents.FILE_HISTORY_DIALOG]: null
 }
 
 export type RendererRequestData = {
@@ -116,6 +118,7 @@ export type RendererRequestData = {
     [RendererRequestEvents.INIT_DIALOG]: {
         source: string
     }
+    [RendererRequestEvents.FILE_HISTORY_DIALOG]: string
 }
 
 export type RendererRequestPayload<E extends RendererRequestEvents> = {

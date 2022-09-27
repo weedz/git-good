@@ -327,7 +327,7 @@ interface LoadCommitsParamBranch {
 }
 type LoadFileCommitsParam = {
     /** SHA of last fetched commit */
-    cursor: string | undefined
+    cursor?: string
     startAtCursor?: boolean
     num?: number
     file: string

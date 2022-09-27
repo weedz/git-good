@@ -326,6 +326,16 @@ function applyAppMenu() {
                         sendEvent(AppEventType.BEGIN_VIEW_COMMIT, null);
                     }
                 },
+                {
+                    label: "File history...",
+                    async click() {
+                        const filePath = await requestClientData(RendererRequestEvents.FILE_HISTORY_DIALOG, null);
+                        if (filePath) {
+                            const commits = await provider.getFileCommits(currentRepo(), { file: filePath });
+                            sendAction(IpcAction.LOAD_FILE_COMMITS, commits);
+                        }
+                    }
+                },
             ]
         }, {
             label: "Stash",

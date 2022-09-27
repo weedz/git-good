@@ -7,7 +7,7 @@ import { AppEventData, AppEventType, RendererRequestData, RendererRequestEvents,
 export interface IContextMenuApi {
     openContextMenu: <M extends ContextMenu>(menu: M, data: ContextMenuData[M]) => void
     openNativeDialog: <D extends NativeDialog>(dialog: D, data: NativeDialogData[D]) => NativeDialogReturn[D]
-    requestClientData: (callback: <E extends RendererRequestEvents>(payload: RendererRequestPayload<E>) => Promise<RendererRequestData[E]>) => void
+    requestClientData: (callback: <E extends RendererRequestEvents>(payload: RendererRequestPayload<E>) => Promise<null | RendererRequestData[E]>) => void
     onAsyncReply: (callback: (payload: IpcPayload<IpcAction>) => void) => void
     sendAsyncMessage: <T extends IpcAction>(action: T, data: IpcActionParams[T]) => number
     onAppEvent: <T extends AppEventType>(callback: (payload: {data: AppEventData[T], event: T}) => void) => void

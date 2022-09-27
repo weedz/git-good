@@ -15,6 +15,7 @@ import { ViewCommit } from "./ViewCommit";
 import { CloneRepositoryDialog } from "./CloneRepository";
 import { InitRepositoryDialog } from "./InitRepository";
 import { dismissibleWindowClosed, showDismissibleWindow } from "../../Data";
+import { FileHistory } from "./FileHistory";
 
 const dialogTypes = {
     [DialogTypes.NEW_BRANCH]: NewBranch,
@@ -29,6 +30,7 @@ const dialogTypes = {
     [DialogTypes.VIEW_COMMIT]: ViewCommit,
     [DialogTypes.CLONE_REPOSITORY]: CloneRepositoryDialog,
     [DialogTypes.INIT_REPOSITORY]: InitRepositoryDialog,
+    [DialogTypes.FILE_HISTORY]: FileHistory,
 };
 
 type State = {
