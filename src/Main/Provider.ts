@@ -1418,20 +1418,15 @@ export async function tryCompareRevisions(repo: Repository, revisions: { from: s
 }
 
 export async function compareRevisions(repo: Repository, revisions: { from: string, to: string }) {
-    // revisions.{to,from} is either a reference/branch or a commit sha. The `repo.getReference()` path
-    // will search for a reference/branch matching the given name, and throws if not found. If it fails
-    // we instead search for a commit matching the giving string.
-    const from = await repo.getReference(revisions.from)
-        .then(ref => repo.getReferenceCommit(ref))
-        .then(commit => commit.id().tostrS())
-        .catch(() => revisions.from)
-        .then(sha => repo.getCommit(sha));
+    const revFrom = await Revparse.single(repo, revisions.from);
+    const revTo = await Revparse.single(repo, revisions.to);
 
-    const to = await repo.getReference(revisions.to)
-        .then(ref => repo.getReferenceCommit(ref))
-        .then(commit => commit.id().tostrS())
-        .catch(() => revisions.to)
-        .then(sha => repo.getCommit(sha));
+    // If revisions.{from,to} is a Tag ref we need to "peel" to a commit object
+    const fromCommit = await revFrom.peel(Object.TYPE.COMMIT);
+    const toCommit = await revTo.peel(Object.TYPE.COMMIT);
+
+    const from = await repo.getCommit(fromCommit.id().tostrS());
+    const to = await repo.getCommit(toCommit.id().tostrS());
 
     // TODO: fix this. Merge commits are a bit messy without this.
     const fromTree = await from.getTree();
