@@ -87,7 +87,7 @@ export class Profile extends Component<Props, State> {
                         <label for="access-token">Username/password</label>
                         {this.state.config.authType === "userpass" && (
                             <div>
-                                {!this.state.showUserPass ? <button onClick={() => this.setState({showUserPass: true})}>Show username/password</button> : (
+                                {!this.state.showUserPass ? <button type="button" onClick={() => this.setState({showUserPass: true})}>Show username/password</button> : (
                                     <Fragment>
                                     <div>
                                         <label for="auth-username">Username:</label>
