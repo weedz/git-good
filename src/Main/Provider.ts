@@ -4,7 +4,7 @@ import { tmpdir } from "os";
 import { dialog, shell } from "electron";
 import { Revparse, Credential, Repository, Revwalk, Commit, Diff, ConvenientPatch, ConvenientHunk, DiffLine, Object, Branch, Graph, Index, Reset, Checkout, DiffFindOptions, Reference, Oid, Signature, Remote, DiffOptions, IndexEntry, Error as NodeGitError, Tag, Stash, Status, Rebase } from "nodegit";
 import { IpcAction, BranchObj, LineObj, HunkObj, PatchObj, CommitObj, IpcActionParams, RefType, StashObj, AsyncIpcActionReturnOrError, IpcActionReturn, LoadFileCommitsReturn } from "../Common/Actions";
-import { normalizeLocalName, normalizeRemoteName, normalizeRemoteNameWithoutRemote, normalizeTagName, getRemoteName, HISTORY_REF } from "../Common/Branch";
+import { normalizeLocalName, normalizeRemoteName, normalizeRemoteNameWithoutRemote, normalizeTagName, getRemoteName, HISTORY_REF, HEAD_REF } from "../Common/Branch";
 import { gpgSign, gpgVerify } from "./GPG";
 import { AppConfig, AuthConfig } from "../Common/Config";
 import { currentProfile, getAppConfig, getAuth, signatureFromActiveProfile, signatureFromProfile } from "./Config";
@@ -123,12 +123,12 @@ export async function initGetCommits(repo: Repository, params: IpcActionParams[I
     if (repo.isEmpty()) {
         return false;
     }
-    let branch = "HEAD";
-    let revwalkStart: "refs/*" | Oid;
+    let branch: string = HEAD_REF;
+    let revwalkStart: typeof HISTORY_REF | Oid;
     // FIXME: organize this...
     if ("history" in params) {
         branch = HISTORY_REF;
-        revwalkStart = "refs/*";
+        revwalkStart = HISTORY_REF;
     } else {
         let start: Commit | null = null;
         if ("branch" in params) {
@@ -818,9 +818,9 @@ async function amendCommit(parent: Commit, committer: Signature, message: string
     const oid = await index.writeTree();
     const author = parent.author();
     if (gpgKey && currentProfile().gpg) {
-        await parent.amendWithSignature("HEAD", author, committer, "utf8", message, oid, onSignature(gpgKey));
+        await parent.amendWithSignature(HEAD_REF, author, committer, "utf8", message, oid, onSignature(gpgKey));
     } else {
-        await parent.amend("HEAD", author, committer, "utf8", message, oid);
+        await parent.amend(HEAD_REF, author, committer, "utf8", message, oid);
     }
 }
 
@@ -850,11 +850,11 @@ export async function getCommit(repo: Repository, params: IpcActionParams[IpcAct
             if (gpgKey && currentProfile().gpg) {
                 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
                 // @ts-ignore, `parents` can be null for the "ROOT" commit (empty repository) https://libgit2.org/libgit2/#HEAD/group/commit/git_commit_create
-                await repo.createCommitWithSignature("HEAD", committer, committer, message, oid, parents, onSignature(gpgKey));
+                await repo.createCommitWithSignature(HEAD_REF, committer, committer, message, oid, parents, onSignature(gpgKey));
             } else {
                 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
                 // @ts-ignore
-                await repo.createCommit("HEAD", committer, committer, message, oid, parents);
+                await repo.createCommit(HEAD_REF, committer, committer, message, oid, parents);
             }
         }
     } catch (err) {

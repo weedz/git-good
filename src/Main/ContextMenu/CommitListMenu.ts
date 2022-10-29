@@ -1,6 +1,6 @@
 import { clipboard } from "electron";
 import { Menu, MenuItemConstructorOptions } from "electron/main";
-import { BranchFromType } from "../../Common/Branch";
+import { BranchFromType, HEAD_REF } from "../../Common/Branch";
 import { AppEventType, LinkTypes } from "../../Common/WindowEventTypes";
 import { currentRepo } from "../Context";
 import { tryCompareRevisions } from "../Provider";
@@ -23,7 +23,7 @@ export function openCommitMenu(data: Record<string, string>) {
                 sendEvent(AppEventType.UNSELECT_LINK, LinkTypes.COMMITS);
                 tryCompareRevisions(currentRepo(), {
                     from: data.sha,
-                    to: "HEAD"
+                    to: HEAD_REF
                 });
             }
         },

@@ -37,7 +37,7 @@ export default class BranchList extends PureStoreComponent<Props> {
 
         const headRef: h.JSX.Element[] = [];
         if (Store.head) {
-            headRef.push(<span>&nbsp;({Store.head.name === "HEAD" ? `detached ${Store.head.headSHA.substring(0, 8)}` : normalizeLocalName(Store.head.name)})</span>);
+            headRef.push(<span>&nbsp;({Store.head.name === HEAD_REF ? `detached ${Store.head.headSHA.substring(0, 8)}` : normalizeLocalName(Store.head.name)})</span>);
 
             const remote = Store.heads.get(Store.head.headSHA)?.find(head => head.name === Store.head?.name);
 
