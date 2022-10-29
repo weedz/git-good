@@ -6,6 +6,7 @@ import { Links } from "../LinkContainer";
 import { showFileMenu } from "./FileMenu";
 import { ensureTreePath, toggleTreeItem, Tree } from "../../Data/Tree";
 import { openFile, resolveConflict } from "../../Data";
+import { LinkTypes } from "../../../Common/WindowEventTypes";
 
 interface ButtonAction {
     label: string
@@ -255,7 +256,7 @@ export default class ChangedFiles extends Component<Props, State> {
                     {deltas.deleted > 0 && <li class="deleted">{deltas.deleted} deleted</li>}
                     {deltas.renamed > 0 && <li class="renamed">{deltas.renamed} renamed</li>}
                 </ul>
-                <Links.Provider value="files">
+                <Links.Provider value={LinkTypes.FILES}>
                     <ul class="diff-view block-list">
                         {files}
                     </ul>

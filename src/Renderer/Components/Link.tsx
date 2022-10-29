@@ -8,31 +8,31 @@ export const GlobalLinks: {
         [key: string]: Link
     }
 } = {
-    commits: {},
-    branches: {},
-    files: {}
- };
+    [LinkTypes.COMMITS]: {},
+    [LinkTypes.BRANCHES]: {},
+    [LinkTypes.FILES]: {}
+};
 
 const selectedLinks: {
     [key in LinkTypes]: Link<unknown> | null
 } = {
-    commits: null,
-    branches: null,
-    files: null
-}
+    [LinkTypes.COMMITS]: null,
+    [LinkTypes.BRANCHES]: null,
+    [LinkTypes.FILES]: null
+};
 
 const selectedIds: {
     [key in LinkTypes]: string | undefined
 } = {
-    commits: undefined,
-    branches: undefined,
-    files: undefined
-}
+    [LinkTypes.COMMITS]: undefined,
+    [LinkTypes.BRANCHES]: undefined,
+    [LinkTypes.FILES]: undefined
+};
 
 interface Props<T> extends h.JSX.HTMLAttributes<HTMLAnchorElement> {
     selectTarget?: () => Link
     selectAction?: (arg: Link<T>) => void
-    type?: LinkTypes
+    linkType?: LinkTypes
     linkId?: string
     linkData?: T
 }
@@ -62,7 +62,7 @@ class Link<T = unknown> extends PureComponent<Props<T>, State> {
     type!: LinkTypes;
 
     componentDidMount() {
-        this.type = this.props.type || this.context;
+        this.type = this.props.linkType ?? this.context;
         if (this.props.linkId) {
             GlobalLinks[this.type][this.props.linkId] = this as Link<unknown>;
 
@@ -119,12 +119,7 @@ class Link<T = unknown> extends PureComponent<Props<T>, State> {
         delete props.linkData;
         delete props.selectAction;
         delete props.selectTarget;
-        delete props.type;
-
-        if (!this.type) {
-            // Set type from context provider (LinkContainer)
-            this.type = this.context;
-        }
+        delete props.linkType;
 
         const classNames = props.class ? [props.class] : [];
         delete props.class;
@@ -133,7 +128,7 @@ class Link<T = unknown> extends PureComponent<Props<T>, State> {
             classNames.push("selected");
         }
 
-        return <a ref={this.ref} class={classNames.join(" ")} href="#" onClick={this.onClick} {...props}>{props.children}</a>;
+        return <a ref={this.ref} class={classNames.join(" ")} href="#" onClick={this.onClick} {...props as h.JSX.HTMLAttributes<HTMLAnchorElement>}>{props.children}</a>;
     }
 }
 

@@ -8,6 +8,7 @@ import ChangedFiles from "./ChangedFiles";
 import { clearLock, Store, StoreComponent } from "../../Data/store";
 import { triggerAction } from "../Link";
 import { DiffDelta } from "../../../Common/Utils";
+import { LinkTypes } from "../../../Common/WindowEventTypes";
 
 interface State {
     commit: null | CommitObj
@@ -84,7 +85,7 @@ export default class Commit extends StoreComponent<Props, State> {
             patches,
         }, () => {
             if (Store.currentFile) {
-                triggerAction("files");
+                triggerAction(LinkTypes.FILES);
             }
         });
     }

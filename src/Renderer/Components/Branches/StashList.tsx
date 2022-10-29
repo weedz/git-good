@@ -5,6 +5,7 @@ import { PureStoreComponent, Store } from "../../Data/store";
 import Link from "../Link";
 import { showStashMenu } from "./Menu";
 import { showStash } from "../../Data";
+import { LinkTypes } from "../../../Common/WindowEventTypes";
 
 function selectStashItem(item: Link<StashObj>) {
     if (item.props.linkData?.index !== undefined) {
@@ -24,7 +25,7 @@ export default class StashList extends PureStoreComponent {
                     <ul class="tree-list block-list">
                         {Store.stash.map(stash => (
                             <li key={stash.oid} title={stash.msg}>
-                                <Link type="commits" style={{textIndent: "1em"}} linkId={stash.oid} linkData={stash} data-index={stash.index} onContextMenu={showStashMenu} selectAction={selectStashItem}>
+                                <Link linkType={LinkTypes.COMMITS} style={{textIndent: "1em"}} linkId={stash.oid} linkData={stash} data-index={stash.index} onContextMenu={showStashMenu} selectAction={selectStashItem}>
                                     {stash.index}:{stash.msg.substring(0, 30)}
                                 </Link>
                             </li>

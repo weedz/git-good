@@ -6,7 +6,7 @@ import { registerAppEventHandlers, registerHandler, ipcGetData, ipcSendMessage, 
 import { Store, clearLock, setLock, updateStore, StoreType, notify, openDialogWindow, closeDialogWindow, setDiffpaneSrc } from "./store";
 import { Notification } from "../Components/Notification";
 import { humanReadableBytes } from "../../Common/Utils";
-import { AppEventData, AppEventType, RendererRequestArgs, RendererRequestData, RendererRequestEvents, RendererRequestPayload } from "../../Common/WindowEventTypes";
+import { AppEventData, AppEventType, RendererRequestArgs, RendererRequestData, RendererRequestEvents, RendererRequestPayload, LinkTypes } from "../../Common/WindowEventTypes";
 import { DialogTypes } from "../Components/Dialog/types";
 import { NativeDialog } from "../../Common/Dialog";
 import { HEAD_REF } from "../../Common/Branch";
@@ -116,7 +116,7 @@ export function closeFile() {
     updateStore({
         currentFile: null
     });
-    unselectLink("files");
+    unselectLink(LinkTypes.FILES);
 }
 
 export function commit(params: IpcActionParams[IpcAction.COMMIT]) {
@@ -139,9 +139,13 @@ function repoOpened(result: AppEventData[AppEventType.REPO_OPENED]) {
     clearLock(Locks.BRANCH_LIST);
     clearLock(Locks.COMMIT_LIST);
 
-    GlobalLinks.branches = {};
-    GlobalLinks.commits = {};
-    GlobalLinks.files = {};
+    GlobalLinks[LinkTypes.COMMITS] = {};
+    GlobalLinks[LinkTypes.BRANCHES] = {};
+    GlobalLinks[LinkTypes.FILES] = {};
+
+    unselectLink(LinkTypes.COMMITS);
+    unselectLink(LinkTypes.BRANCHES);
+    unselectLink(LinkTypes.FILES);
 
     updateStore({
         diffPaneSrc: null,
@@ -240,7 +244,7 @@ function updateCurrentBranch(head: IpcResponse<IpcAction.CHECKOUT_BRANCH>) {
 
 function handleCompareRevisions(data: AppEventData[AppEventType.OPEN_COMPARE_REVISIONS]) {
     if (data && !(data instanceof Error)) {
-        unselectLink("commits");
+        unselectLink(LinkTypes.COMMITS);
         updateStore({
             comparePatches: data,
         });

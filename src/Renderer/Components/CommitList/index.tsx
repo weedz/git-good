@@ -11,6 +11,7 @@ import CommitContainer from "./CommitContainer";
 import { filterCommit } from "../../Data/Utility";
 import { openFileHistory } from "../../Data";
 import { HISTORY_REF } from "../../../Common/Branch";
+import { LinkTypes } from "../../../Common/WindowEventTypes";
 
 type State = {
     filter: undefined | string
@@ -173,7 +174,7 @@ export default class CommitList extends PureStoreComponent<unknown, State> {
                     <input type="text" value={this.state.filter} onKeyUp={this.filter} placeholder="sha,message" />
                     <FileFilter filterByFile={this.filterByFile} />
                 </div>
-                <Links.Provider value="commits">
+                <Links.Provider value={LinkTypes.COMMITS}>
                     {
                         this.commits.length
                             ? <CommitContainer

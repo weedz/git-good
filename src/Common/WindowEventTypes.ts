@@ -1,7 +1,11 @@
 import type { Locks, PatchObj, RepoStatus } from "./Actions";
 import { BranchFromType, BranchType } from "./Branch";
 
-export type LinkTypes = "commits" | "branches" | "files";
+export enum LinkTypes {
+    COMMITS = 0,
+    BRANCHES,
+    FILES,
+}
 
 export const enum AppEventType {
     REPO_OPENED = 0,

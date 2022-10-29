@@ -7,6 +7,7 @@ import { Store, StoreComponent } from "../../Data/store";
 import { triggerAction } from "../../Components/Link";
 import { discardAllChanges, discardChanges } from "../../Data";
 import CommitForm from "./CommitForm";
+import { LinkTypes } from "../../../Common/WindowEventTypes";
 
 function stageFile(e: h.JSX.TargetedEvent<HTMLButtonElement, MouseEvent>) {
     const path = e.currentTarget.dataset.path;
@@ -64,7 +65,7 @@ export default class WorkingArea extends StoreComponent<unknown, State> {
         }, () => {
             // FIXME: This refreshes an open editor. We could probably handle this somewhere else?
             if (Store.currentFile) {
-                triggerAction("files");
+                triggerAction(LinkTypes.FILES);
             }
         });
     }

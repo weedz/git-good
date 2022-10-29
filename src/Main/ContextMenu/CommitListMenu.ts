@@ -1,7 +1,7 @@
 import { clipboard } from "electron";
 import { Menu, MenuItemConstructorOptions } from "electron/main";
 import { BranchFromType } from "../../Common/Branch";
-import { AppEventType } from "../../Common/WindowEventTypes";
+import { AppEventType, LinkTypes } from "../../Common/WindowEventTypes";
 import { currentRepo } from "../Context";
 import { tryCompareRevisions } from "../Provider";
 import { sendEvent } from "../WindowEvents";
@@ -20,7 +20,7 @@ export function openCommitMenu(data: Record<string, string>) {
         {
             label: "Diff...",
             click() {
-                sendEvent(AppEventType.UNSELECT_LINK, "commits");
+                sendEvent(AppEventType.UNSELECT_LINK, LinkTypes.COMMITS);
                 tryCompareRevisions(currentRepo(), {
                     from: data.sha,
                     to: "HEAD"

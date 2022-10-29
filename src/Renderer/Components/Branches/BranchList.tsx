@@ -8,6 +8,7 @@ import Link from "../Link";
 import { Links } from "../LinkContainer";
 import { toggleTreeItem } from "../../Data/Tree";
 import { checkoutBranch } from "../../Data";
+import { LinkTypes } from "../../../Common/WindowEventTypes";
 
 function triggerCheckoutBranch(e: h.JSX.TargetedMouseEvent<HTMLAnchorElement>) {
     e.currentTarget.dataset.ref && checkoutBranch(e.currentTarget.dataset.ref);
@@ -49,7 +50,7 @@ export default class BranchList extends PureStoreComponent<Props> {
         }
 
         return (
-            <Links.Provider value="branches">
+            <Links.Provider value={LinkTypes.BRANCHES}>
                 <h4>Refs</h4>
                 <ul class="block-list">
                     <li><Link selectAction={selectHistory}>History</Link></li>

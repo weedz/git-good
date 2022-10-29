@@ -1,5 +1,6 @@
 import { h } from "preact";
 import { BranchObj, LoadCommitReturn, RefType } from "../../../Common/Actions";
+import { LinkTypes } from "../../../Common/WindowEventTypes";
 import { Store, setDiffpaneSrc } from "../../Data/store";
 import { showLocalMenu, showRemoteRefMenu, showTagMenu } from "../Branches/Menu";
 import Link, { GlobalLinks } from "../Link";
@@ -36,7 +37,7 @@ function CommitGraph(props: CommonProps) {
                 }
                 return (
                     <li key={child.sha}>
-                        <Link selectTarget={() => GlobalLinks.commits[child.sha]} style={{ color: HeadColors[commit.colorId].color }}>{child.sha.substring(0, 7)}</Link>
+                        <Link selectTarget={() => GlobalLinks[LinkTypes.COMMITS][child.sha]} style={{ color: HeadColors[commit.colorId].color }}>{child.sha.substring(0, 7)}</Link>
                     </li>
                 )
             })}
@@ -70,7 +71,7 @@ function CommitReferences(props: {
                 } else if (ref.type === RefType.TAG) {
                     menu = showTagMenu;
                 }
-                return <li key={ref.name}><Link type="branches" onContextMenu={menu} selectTarget={() => GlobalLinks.branches[ref.name]} style={{ backgroundColor: HeadColors[props.graphCommit.colorId].background }} data-ref={ref.name}>{ref.normalizedName}</Link></li>
+                return <li key={ref.name}><Link linkType={LinkTypes.BRANCHES} onContextMenu={menu} selectTarget={() => GlobalLinks[LinkTypes.BRANCHES][ref.name]} style={{ backgroundColor: HeadColors[props.graphCommit.colorId].background }} data-ref={ref.name}>{ref.normalizedName}</Link></li>
             })}
         </ul>
     );

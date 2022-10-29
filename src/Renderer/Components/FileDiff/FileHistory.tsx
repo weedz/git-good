@@ -8,6 +8,7 @@ import Link from "../Link";
 import { showFileHistoryCommitMenu } from "./FileHistoryMenu";
 import { filterCommit } from "../../Data/Utility";
 import { Links } from "../LinkContainer";
+import { LinkTypes } from "../../../Common/WindowEventTypes";
 
 const ITEM_HEIGHT = 50;
 const ACTION_ITEM_HEIGHT = 12;
@@ -30,7 +31,7 @@ export default class CommitContainer extends Component<Props, State> {
             <div id="file-history-commits" class="pane">
                 <h4>File history</h4>
                 <input type="text" placeholder="Sha/message/author" title="Search/Filter" onInput={e => this.updateFilter(e.currentTarget.value)} />
-                <Links.Provider value="files">
+                <Links.Provider value={LinkTypes.FILES}>
                     {!this.props.fileHistory.length ? (
                         <p>Loading...</p>
                     ) : <ScrollContainer items={fileHistory} itemHeight={ITEM_HEIGHT} renderItems={(commits, start) => {
