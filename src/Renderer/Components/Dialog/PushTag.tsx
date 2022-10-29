@@ -7,7 +7,7 @@ export function PushTag(dialog: PushTagProps) {
     const data = {
         remote: ""
     };
-    return <div className="dialog-window">
+    return <div class="dialog-window">
         <form onSubmit={e => {
             e.preventDefault();
             dialog.confirmCb(data.remote);

@@ -3,14 +3,14 @@ import ScrollListView from "./ScrollListView";
 
 type Props<T> = {
     containerId?: string
-    className?: string
+    class?: string
     renderItems: (items: T[], start: number) => Array<h.JSX.Element>
 }
 
 export default class ScrollContainer<T> extends ScrollListView<T, Props<T>> {
     render() {
         return (
-            <div ref={this.containerRef} id={this.props.containerId} className={`scroll-container ${this.props.className || ""}`}>
+            <div ref={this.containerRef} id={this.props.containerId} class={`scroll-container ${this.props.class || ""}`}>
                 <ul
                     style={{
                         position: "relative",

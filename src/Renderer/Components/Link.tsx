@@ -126,14 +126,14 @@ class Link<T = unknown> extends PureComponent<Props<T>, State> {
             this.type = this.context;
         }
 
-        const classNames = props.className ? [props.className] : [];
-        delete props.className;
+        const classNames = props.class ? [props.class] : [];
+        delete props.class;
 
         if (this.state.selected || this.props.linkId && selectedIds[this.type] === this.props.linkId) {
             classNames.push("selected");
         }
 
-        return <a ref={this.ref} className={classNames.join(" ")} href="#" onClick={this.onClick} {...props}>{props.children}</a>;
+        return <a ref={this.ref} class={classNames.join(" ")} href="#" onClick={this.onClick} {...props}>{props.children}</a>;
     }
 }
 

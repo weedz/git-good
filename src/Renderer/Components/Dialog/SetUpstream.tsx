@@ -8,7 +8,7 @@ export function SetUpstream(dialog: SetUpstreamProps) {
         branch: dialog.data.branch,
         remote: dialog.data.remote
     };
-    return <div className="dialog-window">
+    return <div class="dialog-window">
         <form onSubmit={e => {
             e.preventDefault();
             dialog.confirmCb(data.remote, data.branch);

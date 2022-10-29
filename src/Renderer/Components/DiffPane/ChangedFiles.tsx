@@ -119,14 +119,14 @@ function renderPaths(patches: PatchObj[], actions: ButtonAction[], contextMenu: 
 
         paths.push(
             <li onContextMenu={contextMenu} key={patch.actualFile.path} data-path={patch.actualFile.path}>
-                <Link className={`${typeCss} flex-row`} linkData={patch} selectAction={selectAction}>
-                    <span className="status">{getType(patch.status)}</span>&nbsp;
+                <Link class={`${typeCss} flex-row`} linkData={patch} selectAction={selectAction}>
+                    <span class="status">{getType(patch.status)}</span>&nbsp;
                     <div title={patch.actualFile.path} style="min-width: 0;display:flex">
-                        <span className="file-path truncate">{path}</span>
-                        <span className="basename truncate">{basename}</span>
+                        <span class="file-path truncate">{path}</span>
+                        <span class="basename truncate">{basename}</span>
                     </div>
                 </Link>
-                <div className="action-group">
+                <div class="action-group">
                     {checkActions(patch, actions).map(action => <button key={patch.actualFile.path} data-path={patch.actualFile.path} onClick={action.click}>{action.label}</button>)}
                 </div>
             </li>
@@ -145,20 +145,20 @@ function renderTree(tree: Tree<PatchObj>, actions: ButtonAction[], contextMenu: 
             const typeCss = getFileCssClass(patch.status);
             items.push(
                 <li onContextMenu={contextMenu} key={patch.actualFile.path} data-path={patch.actualFile.path}>
-                    <Link className={`${typeCss} flex-row`} linkData={patch} selectAction={selectAction}>
-                        <span className="status">{getType(patch.status)}</span>
+                    <Link class={`${typeCss} flex-row`} linkData={patch} selectAction={selectAction}>
+                        <span class="status">{getType(patch.status)}</span>
                         <div title={patch.actualFile.path} style="display:flex">
                             <span style={{textIndent: "0.5em"}}>{path}</span>
                         </div>
                     </Link>
-                    <div className="action-group">
+                    <div class="action-group">
                         {checkActions(patch, actions).map(action => <button key={patch.actualFile.path} data-path={patch.actualFile.path} onClick={action.click}>{action.label}</button>)}
                     </div>
                 </li>
             );
         } else {
             items.push(
-                <li className="sub-tree" key={path}>
+                <li class="sub-tree" key={path}>
                     <a href="#" onClick={toggleTreeItem}><span style={{textIndent: "0"}}>{path}</span></a>
                     {renderTree(child, actions, contextMenu, selectAction, indent + 1)}
                 </li>
@@ -166,7 +166,7 @@ function renderTree(tree: Tree<PatchObj>, actions: ButtonAction[], contextMenu: 
         }
     }
     return (
-        <ul style={{textIndent: `${indent}em`}} className="tree-list block-list">
+        <ul style={{textIndent: `${indent}em`}} class="tree-list block-list">
             {items}
         </ul>
     );
@@ -236,10 +236,10 @@ export default class ChangedFiles extends Component<Props, State> {
             : renderTreeFromPatches(patches.slice(0, 1000), this.props.actions || [], this.fileContextMenu, this.openFile);
 
         return (
-            <div className="changed-files inset">
-                <div className="flex-row btn-group" style="margin: auto">
-                    <button className={this.state.renderType === RenderType.PATH ? "selected" : undefined} onClick={() => this.setState({renderType: RenderType.PATH})}>Path</button>
-                    <button className={this.state.renderType === RenderType.TREE ? "selected" : undefined} onClick={() => this.setState({renderType: RenderType.TREE})}>Tree</button>
+            <div class="changed-files inset">
+                <div class="flex-row btn-group" style="margin: auto">
+                    <button class={this.state.renderType === RenderType.PATH ? "selected" : undefined} onClick={() => this.setState({renderType: RenderType.PATH})}>Path</button>
+                    <button class={this.state.renderType === RenderType.TREE ? "selected" : undefined} onClick={() => this.setState({renderType: RenderType.TREE})}>Tree</button>
                     {this.state.renderType === RenderType.TREE && <span style="align-self:center;position:absolute;right:0;cursor:pointer;user-select:none" onClick={(e) => {
                         const fileContainer = e.currentTarget.closest(".changed-files")?.querySelector(".diff-view.block-list");
                         if (fileContainer) {
@@ -249,14 +249,14 @@ export default class ChangedFiles extends Component<Props, State> {
                         }
                     }}>Expand all</span>}
                 </div>
-                <ul className="file-types">
-                    {deltas.modified > 0 && <li className="modified">{deltas.modified} modified</li>}
-                    {deltas.added > 0 && <li className="added">{deltas.added} added</li>}
-                    {deltas.deleted > 0 && <li className="deleted">{deltas.deleted} deleted</li>}
-                    {deltas.renamed > 0 && <li className="renamed">{deltas.renamed} renamed</li>}
+                <ul class="file-types">
+                    {deltas.modified > 0 && <li class="modified">{deltas.modified} modified</li>}
+                    {deltas.added > 0 && <li class="added">{deltas.added} added</li>}
+                    {deltas.deleted > 0 && <li class="deleted">{deltas.deleted} deleted</li>}
+                    {deltas.renamed > 0 && <li class="renamed">{deltas.renamed} renamed</li>}
                 </ul>
                 <Links.Provider value="files">
-                    <ul className="diff-view block-list">
+                    <ul class="diff-view block-list">
                         {files}
                     </ul>
                 </Links.Provider>

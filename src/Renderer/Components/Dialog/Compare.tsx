@@ -7,7 +7,7 @@ export function Compare(dialog: CompareProps) {
         from: dialog.data?.from || "",
         to: dialog.data?.to || ""
     };
-    return <div className="dialog-window">
+    return <div class="dialog-window">
         <form onSubmit={e => {
             e.preventDefault();
             dialog.confirmCb(data.from, data.to);

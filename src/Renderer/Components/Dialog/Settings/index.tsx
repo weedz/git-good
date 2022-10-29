@@ -56,7 +56,7 @@ export class Settings extends Component<SettingsProps, State> {
             }} />;
         } else {
             formBody = <Fragment>
-                <div className="pane">
+                <div class="pane">
                     <h3>Profiles</h3>
                     <select onInput={e => this.setConfig("selectedProfile", Number.parseInt(e.currentTarget.value, 10) || 0)}>
                         {this.state.config.profiles.map((profile, idx) => (
@@ -117,21 +117,21 @@ export class Settings extends Component<SettingsProps, State> {
                         }
                     }}>Delete</button>
                 </div>
-                <div className="pane">
+                <div class="pane">
                     <h3>Terminal</h3>
                     <div>
                         <label for="terminal-app">Terminal application:</label>
                         <input id="terminal-app" type="text" name="terminal-app" value={this.state.config.terminal || ""} onInput={e => this.setConfig("terminal", e.currentTarget.value)} />
                     </div>
                 </div>
-                <div className="pane">
+                <div class="pane">
                     <h3>UI</h3>
                     <div>
                         <label for="ssh-agent">Refresh workdir on focus:</label>
                         <input id="ssh-agent" type="checkbox" name="ssh-agent" checked={this.state.config.ui.refreshWorkdirOnFocus} onInput={e => this.setUIConfig("refreshWorkdirOnFocus", e.currentTarget.checked)} />
                     </div>
                 </div>
-                <div className="pane">
+                <div class="pane">
                     <h3>Git</h3>
                     <div>
                         <label for="commitlist-sort-order">Commitlist sort order:</label>
@@ -147,7 +147,7 @@ export class Settings extends Component<SettingsProps, State> {
             </Fragment>
         }
 
-        return <div className="dialog-window" style={{
+        return <div class="dialog-window" style={{
             width: "100%",
             height: "100%",
             overflowY: "auto",

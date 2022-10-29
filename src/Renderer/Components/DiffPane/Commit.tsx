@@ -97,11 +97,11 @@ export default class Commit extends StoreComponent<Props, State> {
     }
     render() {
         if (!this.state.commit) {
-            return <div id="diff-pane" className="pane" />;
+            return <div id="diff-pane" class="pane" />;
         }
 
         return (
-            <div id="diff-pane" className="pane">
+            <div id="diff-pane" class="pane">
                 <CommitMessage commit={this.state.commit} />
                 <div>
                     <label>

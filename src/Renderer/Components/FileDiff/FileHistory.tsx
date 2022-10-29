@@ -27,7 +27,7 @@ export default class CommitContainer extends Component<Props, State> {
     render() {
         const fileHistory = this.state.filter ? this.props.fileHistory.filter(item => filterCommit(this.state.filter, item)) : this.props.fileHistory;
         return (
-            <div id="file-history-commits" className="pane">
+            <div id="file-history-commits" class="pane">
                 <h4>File history</h4>
                 <input type="text" placeholder="Sha/message/author" title="Search/Filter" onInput={e => this.updateFilter(e.currentTarget.value)} />
                 <Links.Provider value="files">
@@ -43,7 +43,7 @@ export default class CommitContainer extends Component<Props, State> {
                                 status = " added";
                             } else if (commit.status === DiffDelta.RENAMED) {
                                 status = " renamed";
-                                action = <Link selectAction={() => this.props.openFileHistory(commit.path)} title={commit.path}><span className="renamed">RENAMED</span>&nbsp;&gt;&nbsp;{commit.path}</Link>;
+                                action = <Link selectAction={() => this.props.openFileHistory(commit.path)} title={commit.path}><span class="renamed">RENAMED</span>&nbsp;&gt;&nbsp;{commit.path}</Link>;
                                 height = `${ITEM_HEIGHT + ACTION_ITEM_HEIGHT}px`;
                             } else if (commit.status === DiffDelta.DELETED) {
                                 status = " deleted";
@@ -65,13 +65,13 @@ export default class CommitContainer extends Component<Props, State> {
                                                 },
                                             });
                                         }
-                                    }} title={commit.message} className="flex-column" data-sha={commit.sha} data-path={commit.path}>
-                                        <div className="flex-row">
-                                            <span className="msg">{commit.message.substring(0, commit.message.indexOf("\n")>>>0 || 60)}</span>
+                                    }} title={commit.message} class="flex-column" data-sha={commit.sha} data-path={commit.path}>
+                                        <div class="flex-row">
+                                            <span class="msg">{commit.message.substring(0, commit.message.indexOf("\n")>>>0 || 60)}</span>
                                         </div>
-                                        <div className="flex-row space-between">
-                                            <span className={status}>{commit.sha.substring(0,8)}</span>
-                                            <span className="date">{formatTimeAgo(new Date(commit.date))}</span>
+                                        <div class="flex-row space-between">
+                                            <span class={status}>{commit.sha.substring(0,8)}</span>
+                                            <span class="date">{formatTimeAgo(new Date(commit.date))}</span>
                                         </div>
                                     </Link>
                                     {action}

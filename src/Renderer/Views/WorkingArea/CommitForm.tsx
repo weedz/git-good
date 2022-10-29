@@ -69,11 +69,11 @@ export default class CommitForm extends StoreComponent<Props, State> {
     render() {
         let commitButton;
         if (this.state.amend) {
-            commitButton = <button className="fill" type="submit" value="amend" disabled={!this.state.commitMsg.summary.length}>Amend</button>
+            commitButton = <button class="fill" type="submit" value="amend" disabled={!this.state.commitMsg.summary.length}>Amend</button>
         } else if (Store.repoStatus?.rebasing) {
-            commitButton = <button className="fill" type="submit" value="rebase">Continue rebase</button>
+            commitButton = <button class="fill" type="submit" value="rebase">Continue rebase</button>
         } else {
-            commitButton = <button className="fill" type="submit" value="commit" disabled={!this.props.staged || !this.state.commitMsg.summary.length}>Commit</button>
+            commitButton = <button class="fill" type="submit" value="commit" disabled={!this.props.staged || !this.state.commitMsg.summary.length}>Commit</button>
         }
 
         return <form onSubmit={e => {
@@ -87,7 +87,7 @@ export default class CommitForm extends StoreComponent<Props, State> {
                 this.commit();
             }
         }}>
-                <div className="flex-row">
+                <div class="flex-row">
                     <h4>Commit Message</h4>
                     {!Store.repoStatus?.rebasing && <label style="align-self: center; margin-left: auto">
                         <input type="checkbox" name="amend" onClick={this.setAmend} checked={this.state.amend} />
@@ -102,7 +102,7 @@ export default class CommitForm extends StoreComponent<Props, State> {
                     this.updateMessage({body: e.currentTarget.value});
                 }} value={this.state.commitMsg.body} />
                 <br />
-                <div className="flex-row">
+                <div class="flex-row">
                     {commitButton}
                 </div>
             </form>;

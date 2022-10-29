@@ -27,7 +27,7 @@ interface CommonProps {
 }
 function CommitGraph(props: CommonProps) {
     return (
-        <ul className="commit-graph">
+        <ul class="commit-graph">
             {props.graphCommit.descendants.map(child => {
                 const commit = props.graph.get(child.sha);
                 if (!commit) {
@@ -48,8 +48,8 @@ function GraphContainer(props: CommonProps & {
     isMerge: boolean
 }) {
     return (
-        <div className="graph-container">
-            <span className={props.isMerge ? "graph-indicator small" : "graph-indicator"} style={{ backgroundColor: HeadColors[props.graphCommit.colorId].color }} />
+        <div class="graph-container">
+            <span class={props.isMerge ? "graph-indicator small" : "graph-indicator"} style={{ backgroundColor: HeadColors[props.graphCommit.colorId].color }} />
             {props.graphCommit.descendants.length > 0 && <CommitGraph graph={props.graph} graphCommit={props.graphCommit} />}
         </div>
     );
@@ -60,7 +60,7 @@ function CommitReferences(props: {
     graphCommit: CommonProps["graphCommit"]
 }) {
     return (
-        <ul className="commit-refs">
+        <ul class="commit-refs">
             {props.head.map(ref => {
                 let menu;
                 if (ref.type === RefType.LOCAL) {
@@ -91,13 +91,13 @@ export default function CommitListItem(props: Props) {
         return null;
     }
     return (
-        <li className="short" style={props.style}>
-            <div className="commit-refs-container">
+        <li class="short" style={props.style}>
+            <div class="commit-refs-container">
                 {head && <CommitReferences graphCommit={graphCommit} head={head} />}
             </div>
             <GraphContainer isMerge={props.commit.parents.length > 1} graphCommit={graphCommit} graph={props.graph} />
             <Link selectAction={selectCommit} linkId={props.commit.sha} linkData={props.commit.sha} data-sha={props.commit.sha} onContextMenu={showCommitMenu} title={props.commit.message}>
-                <span className="msg">{props.commit.message.substring(0, props.commit.message.indexOf("\n") >>> 0 || 60)}</span>
+                <span class="msg">{props.commit.message.substring(0, props.commit.message.indexOf("\n") >>> 0 || 60)}</span>
             </Link>
         </li>
     );

@@ -34,7 +34,7 @@ export default class HunksContainer extends ScrollListView<Line, Props> {
             const top = key * ITEM_HEIGHT;
             if (line.type === "header") {
                 lines.push(
-                    <li key={key} className="header" style={{position: "absolute", top, height: ITEM_HEIGHT, width: "100%"}}>
+                    <li key={key} class="header" style={{position: "absolute", top, height: ITEM_HEIGHT, width: "100%"}}>
                         <div>{line.content}</div>
                     </li>
                 );
@@ -48,9 +48,9 @@ export default class HunksContainer extends ScrollListView<Line, Props> {
                         top,
                         height: ITEM_HEIGHT,
                         width: "100%"
-                        }} className={line.line.type && `diff-line ${line.line.type === "+" ? "new" : "old"}` || "diff-line"}
+                        }} class={line.line.type && `diff-line ${line.line.type === "+" ? "new" : "old"}` || "diff-line"}
                     >
-                        <div className="diff-line-content">{line.content}</div>
+                        <div class="diff-line-content">{line.content}</div>
                     </li>
                 );
                 type.push(
@@ -59,7 +59,7 @@ export default class HunksContainer extends ScrollListView<Line, Props> {
                         top,
                         height: ITEM_HEIGHT
                     }}>
-                        <span className="diff-type">{line.line.type}</span>
+                        <span class="diff-type">{line.line.type}</span>
                     </li>
                 );
                 if (!this.props.hideOldGlyphs) {
@@ -68,7 +68,7 @@ export default class HunksContainer extends ScrollListView<Line, Props> {
                             position: "absolute",
                             top,
                             height: ITEM_HEIGHT
-                        }}><span className="diff-line-number">{line.line.oldLineno}</span></li>);
+                        }}><span class="diff-line-number">{line.line.oldLineno}</span></li>);
                     } else {
                         oldGlyphs.push(<li key={key} />);
                     }
@@ -79,7 +79,7 @@ export default class HunksContainer extends ScrollListView<Line, Props> {
                             position: "absolute",
                             top,
                             height: ITEM_HEIGHT
-                        }}><span className="diff-line-number">{line.line.newLineno}</span></li>);
+                        }}><span class="diff-line-number">{line.line.newLineno}</span></li>);
                     } else {
                         newGlyphs.push(<li key={key} />);
                     }
@@ -93,7 +93,7 @@ export default class HunksContainer extends ScrollListView<Line, Props> {
         });
 
         return (
-            <div ref={this.containerRef} className="hunks inline" style={{
+            <div ref={this.containerRef} class="hunks inline" style={{
                 display: "flex",
                 flex: 1,
                 overflow: "auto",

@@ -8,7 +8,7 @@ export default class NotificationsContainer extends PureStoreComponent<{position
     }
     render() {
         return (
-            <ul className="notifications-container">
+            <ul class="notifications-container">
                 {Array.from(Store.notifications[this.props.position].values()).map(Notification => Notification.item)}
             </ul>
         );

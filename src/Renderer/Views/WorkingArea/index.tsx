@@ -71,7 +71,7 @@ export default class WorkingArea extends StoreComponent<unknown, State> {
 
     render() {
         return (
-            <div id="working-area" className="pane">
+            <div id="working-area" class="pane">
                 <div id="unstaged-changes">
                     <h4>
                         <span>Unstaged ({this.state.unstaged.length})</span>

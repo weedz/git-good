@@ -6,7 +6,7 @@ export function FileHistory(dialog: DialogProps[DialogTypes.FILE_HISTORY]) {
     const data = {
         filePath: "",
     };
-    return <div className="dialog-window">
+    return <div class="dialog-window">
         <form onSubmit={e => {
             e.preventDefault();
             dialog.confirmCb(data.filePath);

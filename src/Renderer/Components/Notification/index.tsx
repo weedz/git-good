@@ -93,12 +93,12 @@ class NotificationComponent extends Component<Props, State> {
     }
     render() {
         return (
-            <li className={`notification ${Array.from(this.classes.values()).join(" ")}`} onMouseEnter={this.props.clearTimer} onMouseLeave={this.props.resetTimer}>
+            <li class={`notification ${Array.from(this.classes.values()).join(" ")}`} onMouseEnter={this.props.clearTimer} onMouseLeave={this.props.resetTimer}>
                 <header>
-                    <div className="toolbar">
+                    <div class="toolbar">
                         {/* FIXME: Change "expand" icons */}
-                        <span className="expand" onClick={() => this.toggleClass("expanded")}>{this.classes.has("expanded") ? "-" : "+"}</span>
-                        <span className="close" onClick={this.props.close}>x</span>
+                        <span class="expand" onClick={() => this.toggleClass("expanded")}>{this.classes.has("expanded") ? "-" : "+"}</span>
+                        <span class="close" onClick={this.props.close}>x</span>
                     </div>
                     <h4>{this.state.title}</h4>
                 </header>

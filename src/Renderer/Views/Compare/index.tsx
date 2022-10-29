@@ -9,7 +9,7 @@ type Props = {
 
 export default function Compare(props: Props) {
     return (
-        <div id="diff-pane" className="pane">
+        <div id="diff-pane" class="pane">
             <ChangedFiles patches={props.patches} compare />
         </div>
     );

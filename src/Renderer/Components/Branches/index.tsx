@@ -63,12 +63,12 @@ export default class Branches extends PureStoreComponent<unknown, State> {
 
         return (
             <Fragment>
-                <div id="branch-pane" className={`pane${Store.locks[Locks.BRANCH_LIST] ? " disabled" : ""}`}>
+                <div id="branch-pane" class={`pane${Store.locks[Locks.BRANCH_LIST] ? " disabled" : ""}`}>
                     <BranchList branches={this.state.branches} />
                     <hr />
                     <StashList />
                 </div>
-                <div className="pane">
+                <div class="pane">
                     <input type="text" placeholder="Filter..." onKeyUp={this.filter} />
                 </div>
             </Fragment>

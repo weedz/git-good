@@ -51,24 +51,24 @@ export default class BranchList extends PureStoreComponent<Props> {
         return (
             <Links.Provider value="branches">
                 <h4>Refs</h4>
-                <ul className="block-list">
+                <ul class="block-list">
                     <li><Link selectAction={selectHistory}>History</Link></li>
                     {Store.head && <li><Link selectAction={selectHead} onContextMenu={showHeadMenu} data-ref={Store.head.name} data-remote={Store.head.remote}>HEAD{headRef}</Link></li>}
                 </ul>
                 <hr />
                 {this.props.branches &&
-                <ul className="tree-list block-list">
-                    <li className="sub-tree">
+                <ul class="tree-list block-list">
+                    <li class="sub-tree">
                         <a href="#" onClick={toggleTreeItem}>Local</a>
                         <RenderBranchTree branches={this.props.branches.local} contextMenu={showLocalMenu} dblClick={triggerCheckoutBranch} indent={1} />
                     </li>
                     <hr />
-                    <li className="sub-tree">
+                    <li class="sub-tree">
                         <a href="#" onClick={toggleTreeItem} onContextMenu={showRemotesMenu}>Remote</a>
                         <RenderRemotes branches={this.props.branches.remote} remoteContextMenu={showRemoteMenu} contextMenu={showRemoteRefMenu} />
                     </li>
                     <hr />
-                    <li className="sub-tree">
+                    <li class="sub-tree">
                         <a href="#" onClick={toggleTreeItem}>Tags</a>
                         <RenderBranchTree branches={this.props.branches.tags} contextMenu={showTagMenu} indent={1} />
                     </li>

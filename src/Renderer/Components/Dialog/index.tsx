@@ -45,8 +45,8 @@ export default class Dialog extends StoreComponent<unknown, State> {
                 const props = dialogWindow.props;
     
                 const view = <Fragment>
-                    <div className="dialog-window-backdrop" />
-                    <div className="dialog-window-container">
+                    <div class="dialog-window-backdrop" />
+                    <div class="dialog-window-container">
                         {
                             // eslint-disable-next-line @typescript-eslint/ban-ts-comment
                         // @ts-ignore, type guarded by Store.openDialogWindow. TODO: get better at types and fix this..

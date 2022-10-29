@@ -6,7 +6,7 @@ export function ViewCommit(dialog: ViewCommitProps) {
     const data = {
         sha: dialog.data?.sha || "",
     };
-    return <div className="dialog-window">
+    return <div class="dialog-window">
         <form onSubmit={e => {
             e.preventDefault();
             dialog.confirmCb(data.sha);

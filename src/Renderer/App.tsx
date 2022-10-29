@@ -41,7 +41,7 @@ export default class App extends StoreComponent {
         </>
         : <p>Open a repo with File &gt; Open repository...</p>;
         return (
-            <div id="main-window" className={Store.locks[Locks.MAIN] ? "disabled" : ""}>
+            <div id="main-window" class={Store.locks[Locks.MAIN] ? "disabled" : ""}>
                 <Dialog />
                 {mainContent}
             </div>

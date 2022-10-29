@@ -7,7 +7,7 @@ export function CreateTag(dialog: CreateTagProps) {
         name: "",
         annotation: "",
     };
-    return <div className="dialog-window">
+    return <div class="dialog-window">
         <form onSubmit={e => {
             e.preventDefault();
             dialog.confirmCb(data);

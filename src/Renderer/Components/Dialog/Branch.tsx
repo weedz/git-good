@@ -7,7 +7,7 @@ function BranchDialog(dialog: BranchProps & {title: string}) {
         branchName: dialog.data || "",
         checkout: false,
     };
-    return <div className="dialog-window">
+    return <div class="dialog-window">
         <form onSubmit={e => {
             e.preventDefault();
             dialog.confirmCb(data.branchName, data.checkout);

@@ -9,7 +9,7 @@ interface State {
 
 export class CloneRepositoryDialog extends Component<DialogProps[DialogTypes.CLONE_REPOSITORY], State> {
     render() {
-        return <div className="dialog-window">
+        return <div class="dialog-window">
             <form onSubmit={e => {
                 e.preventDefault();
                 this.props.confirmCb(this.state);

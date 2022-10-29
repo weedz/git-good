@@ -189,32 +189,32 @@ export default class FileDiff extends PureStoreComponent<unknown, State> {
         }
 
         return (
-            <div className={`${classes.join(" ")}`} id="file-diff-container">
+            <div class={`${classes.join(" ")}`} id="file-diff-container">
                 {!!this.state.fileHistory && <FileHistory openFileHistory={path => {
                     this.setState({
                         fileHistory: []
                     });
                     openFileHistory(path);
                 }} fileHistory={this.state.fileHistory} />}
-                <div id="file-diff" className="pane">
+                <div id="file-diff" class="pane">
                     <h2>{patch.actualFile.path}<a href="#" onClick={this.closeActiveFileDiff}>&times;</a></h2>
                     {patch.status === DiffDelta.RENAMED && <h4>{patch.oldFile.path} &rArr; {patch.newFile.path} ({patch.similarity}%)</h4>}
-                    <p>{patch.hunks?.length} chunks,&nbsp;<span className="added">+{patch.lineStats.total_additions}</span>&nbsp;<span className="deleted">-{patch.lineStats.total_deletions}</span></p>
-                    <ul className="file-diff-toolbar flex-row">
-                        <li className="btn-group">
-                            <button className={this.state.fileHistory ? "active" : undefined} onClick={() => {
+                    <p>{patch.hunks?.length} chunks,&nbsp;<span class="added">+{patch.lineStats.total_additions}</span>&nbsp;<span class="deleted">-{patch.lineStats.total_deletions}</span></p>
+                    <ul class="file-diff-toolbar flex-row">
+                        <li class="btn-group">
+                            <button class={this.state.fileHistory ? "active" : undefined} onClick={() => {
                                 this.setState({fileHistory: []});
                                 openFileHistory(patch.actualFile.path, Store.currentFile?.commitSHA);
                             }}>History</button>
                         </li>
-                        <li className="btn-group">
-                            <button className={this.state.fullWidth ? "active" : undefined} onClick={() => this.setState({fullWidth: !this.state.fullWidth})}>Fullscreen</button>
+                        <li class="btn-group">
+                            <button class={this.state.fullWidth ? "active" : undefined} onClick={() => this.setState({fullWidth: !this.state.fullWidth})}>Fullscreen</button>
                         </li>
                         <li>
-                            <button className={Store.diffOptions.ignoreWhitespace ? "active" : undefined} onClick={() => setDiffOption("ignoreWhitespace", !Store.diffOptions.ignoreWhitespace)}>Ignore whitespace</button>
+                            <button class={Store.diffOptions.ignoreWhitespace ? "active" : undefined} onClick={() => setDiffOption("ignoreWhitespace", !Store.diffOptions.ignoreWhitespace)}>Ignore whitespace</button>
                         </li>
-                        <li className="btn-group">
-                            <button className={Store.diffUi.sideBySide ? "active" : undefined} onClick={() => setDiffUiOption("sideBySide", !Store.diffUi.sideBySide)}>Side-by-side</button>
+                        <li class="btn-group">
+                            <button class={Store.diffUi.sideBySide ? "active" : undefined} onClick={() => setDiffUiOption("sideBySide", !Store.diffUi.sideBySide)}>Side-by-side</button>
                         </li>
                     </ul>
                     {hunks}

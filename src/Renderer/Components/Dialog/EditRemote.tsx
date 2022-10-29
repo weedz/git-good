@@ -4,7 +4,7 @@ import { RemoteProps } from "./types";
 
 export function EditRemote(dialog: RemoteProps) {
     const data = dialog.data;
-    return <div className="dialog-window">
+    return <div class="dialog-window">
         <form onSubmit={e => {
             e.preventDefault();
             dialog.confirmCb(data);

@@ -167,7 +167,7 @@ export default class CommitList extends PureStoreComponent<unknown, State> {
 
     render() {
         return (
-            <div id="commits-pane" className={`pane${Store.locks[Locks.COMMIT_LIST] ? " disabled" : ""}`}>
+            <div id="commits-pane" class={`pane${Store.locks[Locks.COMMIT_LIST] ? " disabled" : ""}`}>
                 <h4>Commits</h4>
                 <div style="padding: 5px 0; border-bottom: 1px solid #555;">
                     <input type="text" value={this.state.filter} onKeyUp={this.filter} placeholder="sha,message" />

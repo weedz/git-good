@@ -10,9 +10,9 @@ export default class Changes extends PureStoreComponent<unknown> {
     render() {
         const changes = Store.workDir.staged + Store.workDir.unstaged;
         return (
-            <div id="changes-pane" className="pane">
+            <div id="changes-pane" class="pane">
                 <h4>Working area</h4>
-                <ul className="block-list">
+                <ul class="block-list">
                     {Store.repoStatus?.bisecting && <li><span>Bisecting</span></li>}
                     {Store.repoStatus?.merging && <li><span>Merging</span></li>}
                     {Store.repoStatus?.rebasing && <li><span>Rebasing</span></li>}

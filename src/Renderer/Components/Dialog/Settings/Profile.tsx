@@ -53,7 +53,7 @@ export class Profile extends Component<Props, State> {
                 this.props.saveProfile(this.state.config);
             }}>
                 <input type="text" value={this.state.config.profileName} onInput={e => e.currentTarget.value.length > 0 && this.setConfigKey("profileName", e.currentTarget.value)} />
-                <div className="pane">
+                <div class="pane">
                     <h3>Auth type</h3>
                     <div>
                         <input id="ssh" type="radio" name="auth-type" checked={this.state.config.authType !== "userpass"} value="ssh" onInput={this.setAuth} />
@@ -103,7 +103,7 @@ export class Profile extends Component<Props, State> {
                         )}
                     </div>
                 </div>
-                <div className="pane">
+                <div class="pane">
                     <h3>Git credentials</h3>
                     <div>
                         <label for="git-email">Email:</label>
@@ -114,7 +114,7 @@ export class Profile extends Component<Props, State> {
                         <input type="text" id="git-name" name="name" value={this.state.config.gitName} onKeyUp={e => this.setConfigKey("gitName", e.currentTarget.value)} />
                     </div>
                 </div>
-                <div className="pane">
+                <div class="pane">
                     <h3>GPG</h3>
                     <label>
                         <span>Enable gpg:</span>

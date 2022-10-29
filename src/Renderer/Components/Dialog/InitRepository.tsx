@@ -8,7 +8,7 @@ interface State {
 
 export class InitRepositoryDialog extends Component<DialogProps[DialogTypes.INIT_REPOSITORY], State> {
     render() {
-        return <div className="dialog-window">
+        return <div class="dialog-window">
             <form onSubmit={e => {
                 e.preventDefault();
                 this.props.confirmCb(this.state.target);

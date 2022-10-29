@@ -8,7 +8,7 @@ export function AddRemote(dialog: DialogProps[DialogTypes.ADD_REMOTE]) {
         pullFrom: "",
         pushTo: null,
     };
-    return <div className="dialog-window">
+    return <div class="dialog-window">
         <form onSubmit={e => {
             e.preventDefault();
             dialog.confirmCb(data);

@@ -45,7 +45,7 @@ export class RenderBranchTree extends PureComponent<{
                 );
             } else {
                 items.push(
-                    <li className="sub-tree" key={item}>
+                    <li class="sub-tree" key={item}>
                         <a style={{textIndent: `${this.props.indent}em`}} href="#" onClick={toggleTreeItem}>{item}</a>
                         <RenderBranchTree branches={child} contextMenu={this.props.contextMenu} dblClick={this.props.dblClick} indent={this.props.indent + 1} />
                     </li>
@@ -53,7 +53,7 @@ export class RenderBranchTree extends PureComponent<{
             }
         }
         return (
-            <ul className="tree-list block-list">
+            <ul class="tree-list block-list">
                 {items}
             </ul>
         );
@@ -70,14 +70,14 @@ export class RenderRemotes extends PureComponent<{
         const items = [];
         for (const [item, child] of this.props.branches.children.entries()) {
             items.push(
-                <li className="sub-tree" key={item}>
+                <li class="sub-tree" key={item}>
                     <a style={{textIndent: `1em`}} href="#" onClick={toggleTreeItem} onContextMenu={this.props.remoteContextMenu} data-remote={item}>{item}</a>
                     <RenderBranchTree branches={child} contextMenu={this.props.contextMenu} indent={2} />
                 </li>
             );
         }
         return (
-            <ul className="tree-list block-list">
+            <ul class="tree-list block-list">
                 {items}
             </ul>
         )
