@@ -5,6 +5,13 @@ Just a simple git client using electron and nodegit, focus on lightweight and pe
 
 Follow instructions from <https://github.com/nodegit/nodegit>.
 
+### Linux
+
+```
+JOBS=max npm_config_openssl_bin_url=skip pnpm run electron-rebuild
+pnpm run dist
+```
+
 ### Arch Linux
 
 PKGBUILD is available from <https://github.com/weedz/git-good-pkgbuild>.

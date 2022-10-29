@@ -878,6 +878,7 @@ export async function createTag(repo: Repository, data: IpcActionParams[IpcActio
         }
 
         if (gpgKey && currentProfile().gpg) {
+            // TODO: Change this when https://github.com/nodegit/nodegit/pull/1945 lands
             await Tag.createWithSignature(repo, data.name, id, tagger, data.annotation || "", 0, onSignature(gpgKey));
         } else if (data.annotation) {
             await repo.createTag(id, data.name, data.annotation);

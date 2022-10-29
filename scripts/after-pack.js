@@ -1,5 +1,5 @@
 const fs = require("fs");
-const asar = require('asar');
+const asar = require("@electron/asar");
 
 let nodegitPathList = [
     "node_modules/nodegit/.github",
