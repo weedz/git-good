@@ -1,7 +1,7 @@
 import type { Locks, PatchObj, RepoStatus } from "./Actions";
 import { BranchFromType, BranchType } from "./Branch";
 
-export enum LinkTypes {
+export const enum LinkTypes {
     COMMITS = 0,
     BRANCHES,
     FILES,
