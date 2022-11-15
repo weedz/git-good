@@ -1,5 +1,4 @@
-import { createRef, h } from "preact";
-import { PureComponent } from "preact/compat";
+import { Component, createRef, h } from "preact";
 import { LinkTypes } from "../../Common/WindowEventTypes";
 import { Links } from "./LinkContainer";
 
@@ -57,7 +56,7 @@ export function triggerAction(type: LinkTypes) {
     }
 }
 
-class Link<T = unknown> extends PureComponent<Props<T>, State> {
+class Link<T = unknown> extends Component<Props<T>, State> {
     ref = createRef<HTMLAnchorElement>();
     type!: LinkTypes;
 

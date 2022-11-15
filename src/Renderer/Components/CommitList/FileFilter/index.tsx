@@ -13,7 +13,6 @@ type State = {
 };
 
 export default class FileFilter extends StoreComponent<{filterByFile: (file: string | undefined) => void}, State> {
-    // eslint-disable-next-line no-undef
     findFileTimeout?: number;
 
     componentDidMount() {

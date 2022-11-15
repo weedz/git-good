@@ -1,6 +1,5 @@
 import { createStore, PartialStoreListener } from "@weedzcokie/store";
 import { AnyComponent, Component, JSX } from "preact";
-import { PureComponent } from "preact/compat";
 import { BranchesObj, BranchObj, HeadBranchObj, IpcAction, IpcActionReturn, Locks, PatchObj, RepoStatus, StashObj } from "../../Common/Actions";
 import { HEAD_REF } from "../../Common/Branch";
 import { AppConfig } from "../../Common/Config";
@@ -107,7 +106,7 @@ export abstract class StoreComponent<P = unknown, S = unknown> extends Component
         }
     }
 }
-export abstract class PureStoreComponent<P = unknown, S = unknown> extends PureComponent<P, S> {
+export abstract class PureStoreComponent<P = unknown, S = unknown> extends Component<P, S> {
     listeners: Array<() => void> = [];
 
     listen<T extends StoreKeys>(key: T, cb: PartialStoreListener<StoreType, T> = () => this.forceUpdate()) {
