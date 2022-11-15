@@ -53,7 +53,7 @@ async function clean(resourceDir) {
     }
     
     await asar.createPackageWithOptions(`${resourceDir}/app`, `${resourceDir}/app.asar`, {
-        unpackDir: "**"
+        unpackDir: "node_modules/nodegit",
     });
     fs.rmSync(`${resourceDir}/app`, { recursive: true });
 
