@@ -24,7 +24,6 @@ specifiers:
   typescript: ^4.8.4
 
 dependencies:
-  '@weedzcokie/store': 1.1.3
   nodegit: github.com/weedz/nodegit/7175907a9fccc798c2bb32cc5f2239fba781cd63
 
 devDependencies:
@@ -35,6 +34,7 @@ devDependencies:
   '@types/nodegit': 0.28.0
   '@typescript-eslint/eslint-plugin': 5.43.0_yy4vf4gcvxiubmg7fqa55dqe2i
   '@typescript-eslint/parser': 5.43.0_rmayb2veg2btbq6mbmnyivgasy
+  '@weedzcokie/store': 1.1.3
   electron: 21.2.3
   electron-builder: 23.6.0
   esbuild: 0.15.13
@@ -537,7 +537,7 @@ packages:
 
   /@weedzcokie/store/1.1.3:
     resolution: {integrity: sha512-/QQN6Z1miYo1wgIaO6TYlVdvjdq//L1h2uQ1svkkHsAxV7amjhEJub7YVLTxqb9QshGLsn2k8Y5OYFqWbkW37g==}
-    dev: false
+    dev: true
 
   /abbrev/1.1.1:
     resolution: {integrity: sha512-nne9/IiQ/hzIhY6pdDnbBtz7DjPTKrY00P/zvPSm5pOFkl6xuGrGnXn/VtTNNfNtAfZ9/1RtehkszU9qcTii0Q==}
