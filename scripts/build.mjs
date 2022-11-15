@@ -1,6 +1,8 @@
 import { execSync } from "node:child_process";
 import { build, analyzeMetafile } from "esbuild";
 
+import { BuildPlugin } from "@datadog/build-plugin/dist/esbuild/index.js";
+
 /** @type {import("esbuild").Plugin} */
 const envPlugin = {
     name: "env",
@@ -40,9 +42,16 @@ const result = await build({
     external: [
         "nodegit",
         "electron",
+        "electron/main",
+        "electron/renderer",
     ],
     outdir: "dist",
-    plugins: [envPlugin],
+    plugins: [
+        envPlugin,
+        BuildPlugin({
+            output: true
+        }),
+    ],
     minify: production,
     sourcemap: !production,
     watch: !production && {
