@@ -29,6 +29,15 @@ const envPlugin = {
 
 const production = process.env.NODE_ENV !== "development";
 
+const plugins = [
+    envPlugin,
+];
+if (production) {
+    plugins.push(BuildPlugin({
+        output: true
+    }));
+}
+
 const result = await build({
     entryPoints: {
         main: "src/main.ts",
@@ -46,12 +55,7 @@ const result = await build({
         "electron/renderer",
     ],
     outdir: "dist",
-    plugins: [
-        envPlugin,
-        BuildPlugin({
-            output: true
-        }),
-    ],
+    plugins,
     minify: production,
     sourcemap: !production,
     watch: !production && {
