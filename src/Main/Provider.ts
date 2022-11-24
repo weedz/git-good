@@ -376,10 +376,10 @@ export async function pull(repo: Repository, branch: string | null, signature: S
     try {
         if (hardReset) {
             const originHead = await repo.getBranchCommit(upstream);
-    
-            // Returns 0 on success
-            result = !await Reset.reset(repo, originHead, Reset.TYPE.HARD, {});
+
+            await Reset.reset(repo, originHead, Reset.TYPE.HARD, {});
             index = await repo.refreshIndex();
+            result = true;
         } else {
             result = await repo.rebaseBranches(ref, upstream, upstream, signature);
         }
