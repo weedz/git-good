@@ -307,6 +307,27 @@ function handleNotificationPush(status: AppEventData[AppEventType.NOTIFY_PUSH_ST
     }
 }
 
+let cloneNotification: null | Notification;
+function handleNotificationClone(status: AppEventData[AppEventType.NOTIFY_CLONE_STATUS]) {
+    if (!cloneNotification) {
+        cloneNotification = notify({title: "Cloning...", time: 0});
+    }
+    if ("done" in status) {
+        if (status.done) {
+            cloneNotification.update({
+                title: "Cloned!",
+                body: `Cloned '${status.source}' into '${status.target}'`,
+                time: 3000
+            });
+            cloneNotification = null;
+        }
+    } else if (status.receivedObjects == status.totalObjects) {
+        cloneNotification.update({body: <p>Resolving deltas {status.indexedDeltas}/{status.totalDeltas}</p>});
+    } else if (status.totalObjects > 0) {
+        cloneNotification.update({body: <p>Received {status.receivedObjects}/{status.totalObjects} objects ({status.indexedObjects}) in {humanReadableBytes(status.receivedBytes)}</p>});
+    }
+}
+
 registerAppEventHandlers({
     [AppEventType.REPO_OPENED]: repoOpened,
     [AppEventType.OPEN_SETTINGS]: openSettings,
@@ -317,6 +338,7 @@ registerAppEventHandlers({
     [AppEventType.NOTIFY]: notify,
     [AppEventType.NOTIFY_FETCH_STATUS]: handleNotificationFetch,
     [AppEventType.NOTIFY_PUSH_STATUS]: handleNotificationPush,
+    [AppEventType.NOTIFY_CLONE_STATUS]: handleNotificationClone,
     [AppEventType.DIALOG_ADD_REMOTE]: openDialog_AddRemote,
     [AppEventType.DIALOG_BRANCH_FROM]: (data) => {
         openDialog_BranchFrom(data.sha, data.type);

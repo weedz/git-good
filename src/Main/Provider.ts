@@ -2,7 +2,7 @@ import { join } from "path";
 import * as fs from "fs/promises";
 import { tmpdir } from "os";
 import { dialog, shell } from "electron";
-import { Revparse, Credential, Repository, Revwalk, Commit, Diff, ConvenientPatch, ConvenientHunk, DiffLine, Object, Branch, Graph, Index, Reset, Checkout, DiffFindOptions, Reference, Oid, Signature, Remote, DiffOptions, IndexEntry, Error as NodeGitError, Tag, Stash, Status, Rebase } from "nodegit";
+import { Revparse, Credential, Repository, Revwalk, Commit, Diff, ConvenientPatch, ConvenientHunk, DiffLine, Object, Branch, Graph, Index, Reset, Checkout, DiffFindOptions, Reference, Oid, Signature, Remote, DiffOptions, IndexEntry, Error as NodeGitError, Tag, Stash, Status, Rebase, Clone } from "nodegit";
 import { IpcAction, BranchObj, LineObj, HunkObj, PatchObj, CommitObj, IpcActionParams, RefType, StashObj, AsyncIpcActionReturnOrError, IpcActionReturn, LoadFileCommitsReturn } from "../Common/Actions";
 import { normalizeLocalName, normalizeRemoteName, normalizeRemoteNameWithoutRemote, normalizeTagName, getRemoteName, HISTORY_REF, HEAD_REF } from "../Common/Branch";
 import { gpgSign, gpgVerify } from "./GPG";
@@ -318,6 +318,36 @@ export async function fetchFrom(repo: Repository, params: IpcActionParams[IpcAct
     const remotes = params?.remote ? [await repo.getRemote(params.remote)] : await repo.getRemotes();
 
     return fetch(remotes);
+}
+
+export async function clone(source: string, targetDir: string) {
+    sendEvent(AppEventType.NOTIFY_CLONE_STATUS, {
+        done: false,
+    });
+    const clonedRepo = await Clone.clone(source, targetDir, {
+        fetchOpts: {
+            callbacks: {
+                credentials: credentialsCallback,
+                transferProgress: (stats: TransferProgress) => {
+                    sendEvent(AppEventType.NOTIFY_CLONE_STATUS, {
+                        receivedObjects: stats.receivedObjects(),
+                        totalObjects: stats.totalObjects(),
+                        indexedDeltas: stats.indexedDeltas(),
+                        totalDeltas: stats.totalDeltas(),
+                        indexedObjects: stats.indexedObjects(),
+                        receivedBytes: stats.receivedBytes(),
+                    });
+                },
+            }
+        }
+    });
+    sendEvent(AppEventType.NOTIFY_CLONE_STATUS, {
+        done: true,
+        source,
+        target: targetDir,
+    });
+
+    return clonedRepo;
 }
 
 export async function pull(repo: Repository, branch: string | null, signature: Signature) {

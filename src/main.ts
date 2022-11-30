@@ -5,7 +5,7 @@ import { shell, clipboard, screen } from "electron";
 import { app, BrowserWindow, ipcMain, Menu, dialog, MenuItemConstructorOptions, IpcMainEvent } from "electron/main";
 
 
-import { Clone, Commit, Object, Reference, Remote, Repository, Stash } from "nodegit";
+import { Commit, Object, Reference, Remote, Repository, Stash } from "nodegit";
 
 import { isMac, isWindows } from "./Main/Utils";
 import { addRecentRepository, clearRepoProfile, currentProfile, diffOptionsIsEqual, getAppConfig, getRecentRepositories, getRepoProfile, saveAppConfig, setCurrentProfile, setRepoProfile, signatureFromActiveProfile, signatureFromProfile } from "./Main/Config";
@@ -130,13 +130,7 @@ function applyAppMenu() {
                         const data = await requestClientData(RendererRequestEvents.CLONE_DIALOG, null);
                         if (data) {
                             try {
-                                const clonedRepo = await Clone.clone(data.source, data.target, {
-                                    fetchOpts: {
-                                        callbacks: {
-                                            credentials: provider.credentialsCallback
-                                        }
-                                    }
-                                });
+                                const clonedRepo = await provider.clone(data.source, data.target);
                                 await openRepo(clonedRepo.workdir());
                             } catch (err) {
                                 console.warn(err);

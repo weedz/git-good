@@ -17,6 +17,7 @@ export const enum AppEventType {
     NOTIFY,
     NOTIFY_FETCH_STATUS,
     NOTIFY_PUSH_STATUS,
+    NOTIFY_CLONE_STATUS,
     DIALOG_BRANCH_FROM,
     DIALOG_CREATE_TAG,
     DIALOG_ADD_REMOTE,
@@ -53,6 +54,20 @@ export type AppEventData = {
         totalObjects: number
         transferedObjects: number
         bytes: number
+    }
+    [AppEventType.NOTIFY_CLONE_STATUS]: {
+        done: false
+    } | {
+        done: true
+        source: string
+        target: string
+    } | {
+        totalDeltas: number
+        indexedDeltas: number
+        receivedObjects: number
+        totalObjects: number
+        indexedObjects: number
+        receivedBytes: number
     }
     [AppEventType.DIALOG_BRANCH_FROM]: {
         sha: string
