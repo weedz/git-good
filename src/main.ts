@@ -716,6 +716,9 @@ async function openRepoDialog() {
 }
 
 async function openRepo(repoPath: string) {
+    if (repoPath.endsWith("/")) {
+        repoPath = repoPath.slice(0, -1);
+    }
     const opened = await provider.openRepo(repoPath);
 
     if(!opened) {
