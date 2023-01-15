@@ -1,5 +1,6 @@
 import { execSync } from "node:child_process";
 import { build, analyzeMetafile } from "esbuild";
+import esbuild from "esbuild";
 
 import { BuildPlugin } from "@datadog/build-plugin/dist/esbuild/index.js";
 
@@ -38,7 +39,24 @@ if (production) {
     }));
 }
 
-const result = await build({
+if (!production) {
+    /** @type {import("esbuild").Plugin} */
+    const watchPlugin = {
+        name: 'watch-plugin',
+        setup(build) {
+            build.onStart(() => {
+                console.log("building...");
+            });
+            build.onEnd(result => {
+                console.log("Errors:", result.errors)
+                console.log("Warnings:", result.warnings);
+            });
+        },
+    };
+    plugins.push(watchPlugin);
+}
+
+const ctx = await esbuild.context({
     entryPoints: {
         main: "src/main.ts",
         preload: "src/preload.ts",
@@ -58,15 +76,16 @@ const result = await build({
     plugins,
     minify: production,
     sourcemap: !production,
-    watch: !production && {
-        onRebuild(errors, result) {
-            console.log("Errors:", errors);
-            console.log("Result:", result);
-        }
-    }
 });
 
-if (result.metafile) {
-    const analyzeLog = await analyzeMetafile(result.metafile);
-    console.log(analyzeLog);
+
+if (!production) {
+    await ctx.watch();
+} else {
+    const result = await ctx.rebuild();
+    if (result.metafile) {
+        const analyzeLog = await analyzeMetafile(result.metafile);
+        console.log(analyzeLog);
+    }
+    ctx.dispose();
 }
