@@ -25,19 +25,19 @@
     "@datadog/build-plugin": "^1.0.3",
     "@electron/asar": "^3.2.3",
     "@electron/rebuild": "^3.2.10",
-    "@types/node": "^18.11.18",
+    "@types/node": "^18.13.0",
     "@types/nodegit": "^0.28.2",
-    "@typescript-eslint/eslint-plugin": "^5.49.0",
-    "@typescript-eslint/parser": "^5.49.0",
+    "@typescript-eslint/eslint-plugin": "^5.51.0",
+    "@typescript-eslint/parser": "^5.51.0",
     "@weedzcokie/store": "^1.1.3",
-    "electron": "^22.1.0",
+    "electron": "^23.0.0",
     "electron-builder": "^23.6.0",
-    "esbuild": "^0.17.4",
-    "eslint": "^8.32.0",
+    "esbuild": "^0.17.6",
+    "eslint": "^8.33.0",
     "eslint-plugin-import": "^2.27.5",
-    "eslint-plugin-react": "^7.32.1",
-    "preact": "^10.11.3",
-    "typescript": "^4.9.4"
+    "eslint-plugin-react": "^7.32.2",
+    "preact": "^10.12.0",
+    "typescript": "^4.9.5"
   },
   "dependencies": {
     "nodegit": "0.28.0-alpha.20"
@@ -49,7 +49,9 @@
   },
   "pnpm": {
     "peerDependencyRules": {
-      "ignoreMissing": ["webpack"]
+      "ignoreMissing": [
+        "webpack"
+      ]
     }
   },
   "build": {
