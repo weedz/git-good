@@ -32,6 +32,31 @@ Install <https://github.com/Microsoft/vcpkg> (C and C++ package manager for wind
 > vcpgk install openssl
 ```
 
+#### vcpkg
+
+Follow instuctions here, <https://github.com/Microsoft/vcpkg>.
+
+1. Clone to something like `C:\dev\vcpkg`. And run the "bootstrap" script.
+2. On windows we need `openssl@1.1.1`. In order to install this with `vcpkg` we need a `vcpkg.json` file. Create the following file in `C:\dev`:
+   ```json
+   {
+        "dependencies": [
+            "openssl"
+        ],
+        "builtin-baseline": "2ac61f87f69f0484b8044f95ab274038fbaf7bdd",
+        "overrides": [
+            {
+                "name": "openssl",
+                "version-string": "1.1.1n"
+            }
+        ]
+    }
+    ```
+    (What is `builtin-baseline`, <https://learn.microsoft.com/en-us/vcpkg/users/examples/versioning.getting-started#builtin-baseline>)
+    And run `.\vcpkg\vcpkg.exe install` in `C:\dev`.
+3. Make sure to use correct Visual Studio version, <https://github.com/nodejs/node-gyp#on-windows>. Does not build with msvs2022. Need msvs2019: `npm config set msvs_version 2019`
+4. Seems like the "postinstall" script for `nodegit` will fail on windows. But the `electron-rebuild` script will succeed.
+
 ## Start
 
 Install node modules:
