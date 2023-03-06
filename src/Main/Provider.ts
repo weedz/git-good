@@ -324,7 +324,7 @@ export async function clone(source: string, targetDir: string) {
     sendEvent(AppEventType.NOTIFY_CLONE_STATUS, {
         done: false,
     });
-    const clonedRepo = await Clone.clone(source, targetDir, {
+    const clonedRepo = await Clone(source, targetDir, {
         fetchOpts: {
             callbacks: {
                 credentials: credentialsCallback,
