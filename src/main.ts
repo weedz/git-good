@@ -268,9 +268,6 @@ function applyAppMenu() {
                 {
                     label: "Fetch all",
                     async click() {
-                        if (!repo) {
-                            return dialog.showErrorBox("Error", "Not in a repository");
-                        }
                         await provider.fetchFrom(repo, null);
                         sendAction(IpcAction.LOAD_BRANCHES, await provider.getBranches(repo));
                     }
