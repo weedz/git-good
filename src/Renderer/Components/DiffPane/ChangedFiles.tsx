@@ -50,6 +50,8 @@ function getType(status: number) {
             return "C";
         case DiffDelta.UNMODIFIED:
             return <>&nbsp;</>
+        default:
+            return ""
     }
 }
 
@@ -78,18 +80,21 @@ function calcDeltas(patches: Props["patches"]) {
 }
 
 function getFileCssClass(status: DiffDelta) {
-    if (status === DiffDelta.MODIFIED) {
-        return "file-modified";
-    } else if (status === DiffDelta.DELETED) {
-        return "file-deleted";
-    } else if (status === DiffDelta.ADDED) {
-        return "file-added";
-    } else if (status === DiffDelta.RENAMED) {
-        return "file-renamed";
-    } else if (status === DiffDelta.UNTRACKED) {
-        return "file-untracked";
-    } else if (status === DiffDelta.CONFLICTED) {
-        return "file-conflicted";
+    switch (status) {
+        case DiffDelta.MODIFIED:
+            return "file-modified";
+        case DiffDelta.DELETED:
+            return "file-deleted";
+        case DiffDelta.ADDED:
+            return "file-added";
+        case DiffDelta.RENAMED:
+            return "file-renamed";
+        case DiffDelta.UNTRACKED:
+            return "file-untracked";
+        case DiffDelta.CONFLICTED:
+            return "file-conflicted";
+        default:
+            return "";
     }
 }
 function checkActions(patch: PatchObj, actions: ButtonAction[]): ButtonAction[] {

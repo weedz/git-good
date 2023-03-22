@@ -91,6 +91,7 @@ export function openDialog_RenameRef(sha: string, type: BranchType) {
                         // return renameRemoteBranch(sha, newName);
                 }
             }
+            return null;
         }
     });
 }

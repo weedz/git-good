@@ -101,6 +101,7 @@ export function setCurrentProfile(profileId: number) {
         appConfig.selectedProfile = profileId;
         return currentProfile();
     }
+    return null;
 }
 
 export function setRepoProfile(repo: Repository, profileId: number) {

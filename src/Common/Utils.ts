@@ -34,6 +34,8 @@ export function formatTimeAgo(date: Date) {
         }
         duration /= division.amount;
     }
+    // NOTE: Should never reach this
+    return formatter.format(Math.round(duration), "seconds");
 }
 /**
  * Returns the supplied number of bytes formated as KiB/MiB/GiB with a precision of 2 decimal places
