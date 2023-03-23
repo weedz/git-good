@@ -13,9 +13,6 @@ export function openDialog_EditRemote(dialogData: DialogProps[DialogTypes.EDIT_R
                 closeDialogWindow();
             }
         },
-        cancelCb() {
-            closeDialogWindow();
-        },
     });
 }
 
@@ -25,9 +22,6 @@ export function openDialog_AddRemote() {
             if (await ipcGetData(IpcAction.NEW_REMOTE, data)) {
                 closeDialogWindow();
             }
-        },
-        cancelCb() {
-            closeDialogWindow();
         },
     });
 }
@@ -45,9 +39,6 @@ export function openDialog_BranchFrom(sha: string, type: BranchFromType) {
     }
     openDialogWindow(DialogTypes.NEW_BRANCH, {
         data: defaultValue,
-        cancelCb() {
-            closeDialogWindow();
-        },
         async confirmCb(branchName, checkout) {
             let success = true;
             if (branchName) {
@@ -77,9 +68,6 @@ export function openDialog_RenameRef(sha: string, type: BranchType) {
     }
     openDialogWindow(DialogTypes.RENAME_BRANCH, {
         data: currentName,
-        cancelCb() {
-            closeDialogWindow();
-        },
         confirmCb(newName) {
             closeDialogWindow();
             if (newName) {
@@ -116,9 +104,6 @@ export function openDialog_SetUpstream(local: string, currentUpstream?: string) 
                 closeDialogWindow();
             }
         },
-        cancelCb() {
-            closeDialogWindow();
-        },
     });
 }
 
@@ -126,9 +111,6 @@ export function openDialog_Settings() {
     openDialogWindow(DialogTypes.SETTINGS, {
         confirmCb(appConfig) {
             saveAppConfig(appConfig);
-        },
-        cancelCb() {
-            closeDialogWindow();
         },
     });
 }
@@ -143,10 +125,7 @@ export function openDialog_createTag(from: string, fromCommit = false) {
             });
             closeDialogWindow();
         },
-        cancelCb() {
-            closeDialogWindow();
-        }
-    })
+    });
 }
 
 export function openDialog_PushTag(data: {name: string}) {
@@ -158,8 +137,5 @@ export function openDialog_PushTag(data: {name: string}) {
             });
             closeDialogWindow();
         },
-        cancelCb() {
-            closeDialogWindow();
-        }
-    })
+    });
 }

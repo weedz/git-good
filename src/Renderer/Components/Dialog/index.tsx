@@ -36,6 +36,7 @@ const dialogTypes = {
 type State = {
     view: h.JSX.Element | null
 };
+
 export default class Dialog extends StoreComponent<unknown, State> {
     componentDidMount() {
         this.listen("dialogWindow", dialogWindow => {
@@ -44,16 +45,18 @@ export default class Dialog extends StoreComponent<unknown, State> {
                 const DialogWindow = dialogTypes[dialogWindow.type];
                 const props = dialogWindow.props;
     
-                const view = <Fragment>
-                    <div class="dialog-window-backdrop" />
-                    <div class="dialog-window-container">
-                        {
+                const view = (
+                    <Fragment>
+                        <div class="dialog-window-backdrop" />
+                        <div class="dialog-window-container">
+                            {
                             // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-                        // @ts-ignore, type guarded by Store.openDialogWindow. TODO: get better at types and fix this..
-                        <DialogWindow {...props} />
-                        }
-                    </div>
-                </Fragment>;
+                            // @ts-ignore, type guarded by Store.openDialogWindow. TODO: get better at types and fix this..
+                            <DialogWindow {...props} />
+                            }
+                        </div>
+                    </Fragment>
+                );
                 this.setState({view});
             } else {
                 dismissibleWindowClosed(this.dismissDialog);

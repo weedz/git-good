@@ -34,7 +34,7 @@ export type DialogProps = {
 }
 
 interface DialogBaseProps {
-    cancelCb: (e: JSX.TargetedMouseEvent<HTMLButtonElement>) => void
+    cancelCb?: (e: JSX.TargetedMouseEvent<HTMLButtonElement>) => void
 }
 
 export interface CompareProps extends DialogBaseProps {
