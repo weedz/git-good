@@ -6,8 +6,8 @@
   "scripts": {
     "start": "electron .",
     "lint": "eslint . && tsc --noEmit",
-    "dev": "tsc --noEmit --watch",
-    "watch": "NODE_ENV=development npm run build",
+    "tsc:watch": "tsc --noEmit --watch",
+    "dev": "NODE_ENV=development npm run build",
     "build": "rm -rf dist;mkdir dist;cp static/* dist/; node scripts/build.mjs",
     "dist": "electron-builder",
     "electron-rebuild": "electron-rebuild"
