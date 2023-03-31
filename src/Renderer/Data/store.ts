@@ -192,6 +192,9 @@ export function lockChanged<L extends Locks>(lock: L, locks: Partial<StoreType["
 }
 
 export function openDialogWindow<T extends DialogTypes>(type: T, props: DialogProps[T]) {
+    if (!props.cancelCb) {
+        props.cancelCb = closeDialogWindow;
+    }
     updateStore({
         dialogWindow: {
             type,
