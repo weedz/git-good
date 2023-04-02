@@ -70,7 +70,8 @@ export async function openRepo(repoPath: string) {
 
 export function repoStatus(repo: Repository) {
     return {
-        empty: repo.isEmpty(),
+        // FIXME: Is this correct, can we use `repo.headUnborn()` here?
+        empty: repo.isEmpty() || repo.headUnborn(),
         merging: repo.isMerging(),
         rebasing: repo.isRebasing(),
         reverting: repo.isReverting(),
@@ -120,9 +121,10 @@ function initRevwalk(repo: Repository, start: "refs/*" | Oid) {
 }
 
 export async function initGetCommits(repo: Repository, params: IpcActionParams[IpcAction.LOAD_COMMITS] | IpcActionParams[IpcAction.LOAD_FILE_COMMITS]) {
-    if (repo.isEmpty()) {
+    if (repo.isEmpty() || repo.headUnborn()) {
         return false;
     }
+
     let branch: string = HEAD_REF;
     let revwalkStart: typeof HISTORY_REF | Oid;
     // FIXME: organize this...
@@ -165,6 +167,10 @@ export async function initGetCommits(repo: Repository, params: IpcActionParams[I
         }
         if (!start) {
             start = await repo.getHeadCommit();
+        }
+        if (!start) {
+            console.warn("Failed to find 'start' commit.");
+            return false;
         }
         revwalkStart ??= start.id();
     }
@@ -635,7 +641,7 @@ export async function deleteRemoteTag(remote: Remote, tagName: string) {
 }
 
 export async function getHEAD(repo: Repository): AsyncIpcActionReturnOrError<IpcAction.LOAD_HEAD> {
-    if (repo.isEmpty()) {
+    if (repo.isEmpty() || repo.headUnborn()) {
         return null;
     }
     const head = await repo.head();
@@ -760,7 +766,10 @@ export async function getBranches(repo: Repository): AsyncIpcActionReturnOrError
     const tags: BranchObj[] = [];
 
     const currentHead = await repo.getHeadCommit();
-    setLastKnownHead(currentHead.id());
+    // When in "unborn" state, we have no head (obviously)
+    if (currentHead) {
+        setLastKnownHead(currentHead.id());
+    }
 
     const refs = await repo.getReferences();
     // FIXME: Why do we get 2 references for "refs/remotes/origin/master"
@@ -861,7 +870,7 @@ export async function getCommit(repo: Repository, params: IpcActionParams[IpcAct
         return Error("No git credentials provided");
     }
 
-    const emptyRepo = repo.isEmpty();
+    const emptyRepo = repo.isEmpty() || repo.headUnborn();
     if (emptyRepo && params.amend) {
         return Error("Cannot amend in an empty repository");
     }
@@ -937,7 +946,7 @@ async function getUnstagedPatches(repo: Repository, flags: Diff.OPTION) {
 }
 
 async function getStagedDiff(repo: Repository, flags: Diff.OPTION) {
-    if (repo.isEmpty()) {
+    if (repo.isEmpty() || repo.headUnborn()) {
         return Diff.treeToIndex(repo, undefined, index, { flags });
     }
 
