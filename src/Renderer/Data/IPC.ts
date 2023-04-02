@@ -104,7 +104,7 @@ export function registerHandler<T extends IpcAction>(action: T, callbacks: ((arg
     }
     return () => unregisterHandler(action, callbacks);
 }
-export function unregisterHandler<T extends IpcAction>(action: T, callbacks: ((arg: IpcActionReturn[T]) => void) | (Array<(arg: IpcActionReturn[T]) => void>)) {
+function unregisterHandler<T extends IpcAction>(action: T, callbacks: ((arg: IpcActionReturn[T]) => void) | (Array<(arg: IpcActionReturn[T]) => void>)) {
     if (!Array.isArray(callbacks)) {
         callbacks = [callbacks];
     }

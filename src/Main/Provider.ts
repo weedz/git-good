@@ -116,7 +116,7 @@ function initRevwalk(repo: Repository, start: "refs/*" | Oid) {
     return revwalk;
 }
 
-export async function initGetCommits(repo: Repository, params: IpcActionParams[IpcAction.LOAD_COMMITS] | IpcActionParams[IpcAction.LOAD_FILE_COMMITS]) {
+async function initGetCommits(repo: Repository, params: IpcActionParams[IpcAction.LOAD_COMMITS] | IpcActionParams[IpcAction.LOAD_FILE_COMMITS]) {
     if (repo.isEmpty() || repo.headUnborn()) {
         return false;
     }

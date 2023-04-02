@@ -4,7 +4,7 @@ import { ContextMenu, ContextMenuData } from "./Common/ContextMenu";
 import { NativeDialog, NativeDialogData, NativeDialogReturn } from "./Common/Dialog";
 import { AppEventData, AppEventType, RendererRequestData, RendererRequestEvents, RendererRequestPayload } from "./Common/WindowEventTypes";
 
-export interface IContextMenuApi {
+interface IContextMenuApi {
     openContextMenu: <M extends ContextMenu>(menu: M, data: ContextMenuData[M]) => void
     openNativeDialog: <D extends NativeDialog>(dialog: D, data: NativeDialogData[D]) => NativeDialogReturn[D]
     requestClientData: (callback: <E extends RendererRequestEvents>(payload: RendererRequestPayload<E>) => Promise<null | RendererRequestData[E]>) => void

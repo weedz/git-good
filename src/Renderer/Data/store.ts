@@ -8,7 +8,7 @@ import { DialogProps, DialogTypes } from "../Components/Dialog/types";
 import { Notification } from "../Components/Notification";
 import { ipcGetData, registerHandler } from "./IPC";
 
-export type DialogWindow = {
+type DialogWindow = {
     type: DialogTypes
     props: DialogProps[DialogTypes]
 }
@@ -88,7 +88,6 @@ type StoreKeys = keyof StoreType;
 
 export const Store = store.Store;
 export const updateStore = store.updateStore;
-export const mergeUpdateStore = store.mergeUpdateStore;
 
 export abstract class StoreComponent<P = unknown, S = unknown> extends Component<P, S> {
     listeners: Array<() => void> = [];
@@ -178,12 +177,12 @@ export function setUpstream(local: string, remote: string | null) {
 }
 
 export function setLock(lock: Locks) {
-    mergeUpdateStore({
+    store.mergeUpdateStore({
         locks: {[lock]: true}
     });
 }
 export function clearLock(lock: Locks) {
-    mergeUpdateStore({
+    store.mergeUpdateStore({
         locks: {[lock]: false}
     });
 }

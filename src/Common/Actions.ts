@@ -14,12 +14,6 @@ export type AsyncIpcActionReturnOrError<A extends IpcAction> = Promise<IpcAction
 
 export type IpcResponse<T extends IpcAction> = IpcActionReturnOrError<T> | false;
 
-export type IpcActionReturnError = {
-    msg: Error
-};
-
-export type IpcPayloadMsg<T extends IpcAction> = {result: IpcActionReturn[T]} | {error: IpcActionReturnError["msg"]};
-
 export const enum IpcAction {
     INIT = 0,
     LOAD_COMMITS,
@@ -220,7 +214,7 @@ export type RepoStatus = {
     state: number // Repository.STATE
 };
 
-export type LineStats = {
+type LineStats = {
     total_context: number
     total_additions: number
     total_deletions: number
@@ -255,10 +249,10 @@ export type PatchObj = {
     similarity?: number
     lineStats: LineStats
 };
-export type DiffObj = {
+type DiffObj = {
     patches?: PatchObj[]
 };
-export type AuthorObj = {
+type AuthorObj = {
     name: string
     email: string
 };
