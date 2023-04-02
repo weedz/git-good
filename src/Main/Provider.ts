@@ -15,14 +15,6 @@ import { sendAction } from "./IPC";
 import { AppEventType } from "../Common/WindowEventTypes";
 
 declare module "nodegit" {
-    // eslint-disable-next-line @typescript-eslint/no-shadow
-    export class Credential {
-        // TODO: Figure out the return type?
-        static sshKeyFromAgent(username: string): unknown
-        static sshKeyNew(username: string, publicKey: string, privateKey: string, passphrase: string): unknown
-        static userpassPlaintextNew(username: string, password: string): unknown
-    }
-
     interface Repository {
         rebaseBranches(
             branch: string | Reference,
@@ -41,7 +33,7 @@ declare module "nodegit" {
     }
 }
 
-export function authenticate(username: string, auth: AuthConfig) {
+export function authenticate(username: string, auth: AuthConfig): Credential | false {
     if (auth.authType === "ssh") {
         if (auth.sshAgent) {
             return Credential.sshKeyFromAgent(username || "git");
@@ -50,12 +42,16 @@ export function authenticate(username: string, auth: AuthConfig) {
     } else if (auth.authType === "userpass") {
         return Credential.userpassPlaintextNew(auth.username, auth.password);
     }
+
+    return false;
 }
-export function credentialsCallback(_url: string, username: string) {
+export function credentialsCallback(_url: string, username: string): Credential | false {
     const auth = getAuth();
     if (auth) {
         return authenticate(username, auth);
     }
+
+    return false;
 }
 
 export async function openRepo(repoPath: string) {
