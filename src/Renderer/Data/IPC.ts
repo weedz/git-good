@@ -46,7 +46,7 @@ export function ipcSendMessage<T extends IpcAction>(action: T, data: IpcActionPa
     return window.electronAPI.sendAsyncMessage(action, data);
 }
 
-export function ipcGetData<T extends IpcAction>(action: T, data: IpcActionParams[T]) {
+export function ipcGetData<T extends IpcAction>(action: T, data: IpcActionParams[T]): Promise<IpcActionReturn[T]> {
     const id = ipcSendMessage(action, data);
     return new Promise<IpcActionReturn[T]>((resolve, _reject) => {
         // calbackHandlers get cleaned up in handleMessage()
@@ -54,9 +54,9 @@ export function ipcGetData<T extends IpcAction>(action: T, data: IpcActionParams
     });
 }
 
-type HandlerCallback = (arg: IpcResponse<IpcAction>) => void;
+type HandlerCallback<T extends IpcAction> = (arg: IpcResponse<T>) => void;
 
-const handlers: {[T in IpcAction]: HandlerCallback[]} = {
+const handlers: {[T in IpcAction]: HandlerCallback<T>[]} = {
     [IpcAction.INIT]: [],
     [IpcAction.LOAD_COMMITS]: [],
     [IpcAction.LOAD_FILE_COMMITS]: [],
@@ -95,21 +95,24 @@ const handlers: {[T in IpcAction]: HandlerCallback[]} = {
     [IpcAction.LOAD_TREE_AT_COMMIT]: [],
     [IpcAction.CONTINUE_REBASE]: [],
 };
-export function registerHandler<T extends IpcAction>(action: T, callbacks: ((arg: IpcActionReturn[T]) => void) | (Array<(arg: IpcActionReturn[T]) => void>)) {
+
+type HandlerCallbacks<T extends IpcAction> = (HandlerCallback<T> | HandlerCallback<T>[]);
+
+export function registerHandler<T extends IpcAction>(action: T, callbacks: HandlerCallbacks<T>) {
     if (!Array.isArray(callbacks)) {
         callbacks = [callbacks];
     }
     for (const cb of callbacks) {
-        handlers[action].push(cb as HandlerCallback);
+        handlers[action].push(cb);
     }
     return () => unregisterHandler(action, callbacks);
 }
-function unregisterHandler<T extends IpcAction>(action: T, callbacks: ((arg: IpcActionReturn[T]) => void) | (Array<(arg: IpcActionReturn[T]) => void>)) {
+function unregisterHandler<T extends IpcAction>(action: T, callbacks: HandlerCallbacks<T>) {
     if (!Array.isArray(callbacks)) {
         callbacks = [callbacks];
     }
     for (const cb of callbacks) {
-        handlers[action].splice(handlers[action].indexOf(cb as HandlerCallback)>>>0, 1);
+        handlers[action].splice(handlers[action].indexOf(cb)>>>0, 1);
     }
 }
 function handleEvent<T extends IpcAction>(payload: IpcPayload<T>) {

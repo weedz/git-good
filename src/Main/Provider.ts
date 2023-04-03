@@ -54,7 +54,7 @@ export function credentialsCallback(_url: string, username: string): Credential 
     return false;
 }
 
-export async function openRepo(repoPath: string) {
+export async function openRepo(repoPath: string): Promise<Repository | false> {
     try {
         const repo = await Repository.open(repoPath);
         index = await repo.refreshIndex();
@@ -102,7 +102,7 @@ function compileHistoryCommit(commit: Commit): HistoryCommit {
     };
 }
 
-function initRevwalk(repo: Repository, start: "refs/*" | Oid) {
+function initRevwalk(repo: Repository, start: "refs/*" | Oid): Revwalk {
     const revwalk = repo.createRevWalk();
     if (getAppConfig().commitlistSortOrder === "topological") {
         revwalk.sorting(Revwalk.SORT.TOPOLOGICAL | Revwalk.SORT.TIME);
@@ -116,7 +116,11 @@ function initRevwalk(repo: Repository, start: "refs/*" | Oid) {
     return revwalk;
 }
 
-async function initGetCommits(repo: Repository, params: IpcActionParams[IpcAction.LOAD_COMMITS] | IpcActionParams[IpcAction.LOAD_FILE_COMMITS]) {
+async function initGetCommits(repo: Repository, params: IpcActionParams[IpcAction.LOAD_COMMITS] | IpcActionParams[IpcAction.LOAD_FILE_COMMITS]):
+    Promise<false | {
+        branch: string
+        revwalkStart: Oid | "refs/*"
+    }> {
     if (repo.isEmpty() || repo.headUnborn()) {
         return false;
     }
@@ -234,7 +238,7 @@ export async function getFileCommits(repo: Repository, params: IpcActionParams[I
     };
 }
 
-export async function getCommits(repo: Repository, params: IpcActionParams[IpcAction.LOAD_COMMITS]) {
+export async function getCommits(repo: Repository, params: IpcActionParams[IpcAction.LOAD_COMMITS]): AsyncIpcActionReturnOrError<IpcAction.LOAD_COMMITS> {
     const args = await initGetCommits(repo, params);
     if (!args) {
         return null;
@@ -252,7 +256,7 @@ export async function getCommits(repo: Repository, params: IpcActionParams[IpcAc
     };
 }
 
-export async function continueRebase(repo: Repository) {
+export async function continueRebase(repo: Repository): AsyncIpcActionReturnOrError<IpcAction.CONTINUE_REBASE> {
     if (!repo.isRebasing()) {
         return false;
     }
@@ -271,7 +275,7 @@ export async function continueRebase(repo: Repository) {
     return false;
 }
 
-export async function fetch(remotes: Remote[]) {
+export async function fetch(remotes: Remote[]): Promise<boolean> {
     let update = false;
     try {
         for (const remote of remotes) {
@@ -311,7 +315,7 @@ export async function fetch(remotes: Remote[]) {
     return true;
 }
 
-export async function fetchFrom(repo: Repository, params: IpcActionParams[IpcAction.FETCH]) {
+export async function fetchFrom(repo: Repository, params: IpcActionParams[IpcAction.FETCH]): AsyncIpcActionReturnOrError<IpcAction.FETCH> {
     sendEvent(AppEventType.NOTIFY_FETCH_STATUS, {
         done: false,
         update: false
@@ -322,7 +326,11 @@ export async function fetchFrom(repo: Repository, params: IpcActionParams[IpcAct
     return fetch(remotes);
 }
 
-export async function clone(source: string, targetDir: string) {
+/**
+ * 
+ * @throws {Error}
+ */
+export async function clone(source: string, targetDir: string): Promise<Repository> {
     sendEvent(AppEventType.NOTIFY_CLONE_STATUS, {
         done: false,
     });
@@ -352,7 +360,7 @@ export async function clone(source: string, targetDir: string) {
     return clonedRepo;
 }
 
-export async function pull(repo: Repository, branch: string | null, signature: Signature) {
+export async function pull(repo: Repository, branch: string | null, signature: Signature): Promise<boolean> {
     let ref;
     if (branch) {
         try {
@@ -433,7 +441,7 @@ export async function pull(repo: Repository, branch: string | null, signature: S
     return !!result;
 }
 
-async function pushHead(context: Context) {
+async function pushHead(context: Context): Promise<boolean> {
     const head = await context.repo.head();
     let upstream;
     try {
@@ -451,7 +459,7 @@ async function pushHead(context: Context) {
     return pushBranch(context, remote, head);
 }
 
-export async function push(context: Context, data: IpcActionParams[IpcAction.PUSH]) {
+export async function push(context: Context, data: IpcActionParams[IpcAction.PUSH]): AsyncIpcActionReturnOrError<IpcAction.PUSH> {
     sendEvent(AppEventType.NOTIFY_PUSH_STATUS, {
         done: false,
     });
@@ -482,7 +490,7 @@ export async function push(context: Context, data: IpcActionParams[IpcAction.PUS
     return result;
 }
 
-async function pushBranch(context: Context, remote: Remote, localRef: Reference, force = false) {
+async function pushBranch(context: Context, remote: Remote, localRef: Reference, force = false): Promise<boolean> {
     let remoteRefName: string;
     let status: { ahead: number, behind: number };
     try {
@@ -517,12 +525,12 @@ async function pushBranch(context: Context, remote: Remote, localRef: Reference,
     return doPush(remote, localRef.name(), `heads/${remoteRefName}`, force, context);
 }
 
-async function pushTag(remote: Remote, localRef: Reference, remove = false, context?: Context) {
+async function pushTag(remote: Remote, localRef: Reference, remove = false, context?: Context): Promise<boolean> {
     // We can pass an empty localref to delete a remote ref
     return doPush(remote, remove ? "" : localRef.name(), `tags/${normalizeTagName(localRef.name())}`, undefined, context);
 }
 
-async function doPush(remote: Remote, localName: string, remoteName: string, forcePush = false, context?: Context) {
+async function doPush(remote: Remote, localName: string, remoteName: string, forcePush = false, context?: Context): Promise<boolean> {
     // something with pathspec, https://github.com/nodegit/nodegit/issues/1270#issuecomment-293742772
     const force = forcePush ? "+" : "";
     try {
@@ -556,7 +564,7 @@ async function doPush(remote: Remote, localName: string, remoteName: string, for
     return false;
 }
 
-export async function setUpstream(repo: Repository, local: string, remoteRefName: string | null) {
+export async function setUpstream(repo: Repository, local: string, remoteRefName: string | null): Promise<boolean> {
     const reference = await repo.getReference(local);
     if (remoteRefName) {
         try {
@@ -566,16 +574,18 @@ export async function setUpstream(repo: Repository, local: string, remoteRefName
             await Reference.create(repo, `refs/remotes/${remoteRefName}`, refCommit.id(), 0, "");
         }
     }
-    return Branch.setUpstream(reference, remoteRefName);
+    // Returns 0 on success
+    return !Branch.setUpstream(reference, remoteRefName);
 }
 
-export async function deleteRef(repo: Repository, name: string) {
+export async function deleteRef(repo: Repository, name: string): Promise<boolean> {
     const ref = await repo.getReference(name);
+    // Returns 0 on success
     const res = Branch.delete(ref);
     return !res
 }
 
-export async function deleteRemoteRef(repo: Repository, refName: string) {
+export async function deleteRemoteRef(repo: Repository, refName: string): Promise<boolean> {
     const ref = await repo.getReference(refName);
 
     if (ref.isRemote()) {
@@ -602,7 +612,7 @@ export async function deleteRemoteRef(repo: Repository, refName: string) {
     }
     return true;
 }
-export async function deleteTag(repo: Repository, data: {name: string, remote: boolean}) {
+export async function deleteTag(repo: Repository, data: {name: string, remote: boolean}): Promise<boolean> {
     if (data.remote) {
         // FIXME: Do we really need to check every remote?
         for (const remote of await repo.getRemotes()) {
@@ -622,7 +632,7 @@ export async function deleteTag(repo: Repository, data: {name: string, remote: b
 }
 
 // tagName must contain full path for tag (eg. refs/tags/[tag])
-export async function deleteRemoteTag(remote: Remote, tagName: string) {
+export async function deleteRemoteTag(remote: Remote, tagName: string): Promise<boolean> {
     try {
         await remote.push([`:${tagName}`], {
             callbacks: {
@@ -688,7 +698,7 @@ export async function getUpstreamRefs(repo: Repository): AsyncIpcActionReturnOrE
     return upstreams;
 }
 
-export async function showStash(repo: Repository, index: number) {
+export async function showStash(repo: Repository, index: number): AsyncIpcActionReturnOrError<IpcAction.SHOW_STASH> {
     const stash = repoStash.at(index);
 
     if (!stash) {
@@ -712,7 +722,7 @@ export async function showStash(repo: Repository, index: number) {
     return Promise.all(patchesObj);
 }
 
-export async function getStash(repo: Repository) {
+export async function getStash(repo: Repository): AsyncIpcActionReturnOrError<IpcAction.LOAD_STASHES> {
     const stash: StashObj[] = [];
     await Stash.foreach(repo, (index: number, msg: string, oid: Oid) => {
         stash.push({
@@ -725,20 +735,20 @@ export async function getStash(repo: Repository) {
     return stash;
 }
 
-export async function stashPop(repo: Repository, index = 0) {
+export async function stashPop(repo: Repository, index = 0): Promise<boolean> {
     await Stash.pop(repo, index);
     await sendRefreshWorkdirEvent(repo);
     sendAction(IpcAction.LOAD_STASHES, await getStash(repo));
     sendEvent(AppEventType.NOTIFY, {title: `Popped stash@{${index}}`});
     return true;
 }
-export async function stashApply(repo: Repository, index = 0) {
+export async function stashApply(repo: Repository, index = 0): Promise<boolean> {
     await Stash.apply(repo, index);
     await sendRefreshWorkdirEvent(repo);
     sendEvent(AppEventType.NOTIFY, {title: `Applied stash@{${index}}`});
     return true;
 }
-export async function stashDrop(repo: Repository, index = 0) {
+export async function stashDrop(repo: Repository, index = 0): Promise<boolean> {
     const result = await dialog.showMessageBox({
         title: "Drop stash",
         message: `Are you sure you want to delete stash@{${index}}`,
@@ -849,7 +859,7 @@ function onSignature(key: string) {
         };
     }
 }
-async function amendCommit(parent: Commit, committer: Signature, message: string, gpgKey?: string) {
+async function amendCommit(parent: Commit, committer: Signature, message: string, gpgKey?: string): Promise<void> {
     const oid = await index.writeTree();
     const author = parent.author();
     if (gpgKey && currentProfile().gpg) {
@@ -859,7 +869,7 @@ async function amendCommit(parent: Commit, committer: Signature, message: string
     }
 }
 
-export async function getCommit(repo: Repository, params: IpcActionParams[IpcAction.COMMIT]) {
+export async function getCommit(repo: Repository, params: IpcActionParams[IpcAction.COMMIT]): AsyncIpcActionReturnOrError<IpcAction.COMMIT> {
     const profile = currentProfile();
     const committer = signatureFromProfile(profile);
     if (!committer.email()) {
@@ -901,7 +911,7 @@ export async function getCommit(repo: Repository, params: IpcActionParams[IpcAct
     return loadCommit(repo, null);
 }
 
-export async function createTag(repo: Repository, data: IpcActionParams[IpcAction.CREATE_TAG], tagger: Signature, gpgKey?: string) {
+export async function createTag(repo: Repository, data: IpcActionParams[IpcAction.CREATE_TAG], tagger: Signature, gpgKey?: string): AsyncIpcActionReturnOrError<IpcAction.CREATE_TAG> {
     try {
         let id = data.from;
 
@@ -930,7 +940,7 @@ export async function createTag(repo: Repository, data: IpcActionParams[IpcActio
     return true;
 }
 
-async function getUnstagedPatches(repo: Repository, flags: Diff.OPTION) {
+async function getUnstagedPatches(repo: Repository, flags: Diff.OPTION): Promise<ConvenientPatch[]> {
     const unstagedDiff = await Diff.indexToWorkdir(repo, index, {
         flags: Diff.OPTION.INCLUDE_UNTRACKED | Diff.OPTION.SHOW_UNTRACKED_CONTENT | Diff.OPTION.RECURSE_UNTRACKED_DIRS | flags
     });
@@ -941,7 +951,7 @@ async function getUnstagedPatches(repo: Repository, flags: Diff.OPTION) {
     return unstagedDiff.patches();
 }
 
-async function getStagedDiff(repo: Repository, flags: Diff.OPTION) {
+async function getStagedDiff(repo: Repository, flags: Diff.OPTION): Promise<Diff> {
     if (repo.isEmpty() || repo.headUnborn()) {
         return Diff.treeToIndex(repo, undefined, index, { flags });
     }
@@ -950,7 +960,7 @@ async function getStagedDiff(repo: Repository, flags: Diff.OPTION) {
     return Diff.treeToIndex(repo, await head.getTree(), index, { flags });
 }
 
-async function getStagedPatches(repo: Repository, flags: Diff.OPTION) {
+async function getStagedPatches(repo: Repository, flags: Diff.OPTION): Promise<ConvenientPatch[]> {
     const stagedDiff = await getStagedDiff(repo, flags);
     const diffOpts: DiffFindOptions = {
         flags: Diff.FIND.RENAMES,
@@ -963,7 +973,7 @@ let preventRefreshWorkdir = false;
 export function isRefreshingWorkdir() {
     return preventRefreshWorkdir;
 }
-export async function sendRefreshWorkdirEvent(repo: Repository) {
+export async function sendRefreshWorkdirEvent(repo: Repository): Promise<void> {
     if (preventRefreshWorkdir) {
         return;
     }
@@ -977,7 +987,11 @@ export async function sendRefreshWorkdirEvent(repo: Repository) {
     preventRefreshWorkdir = false;
 }
 
-async function refreshWorkdir(repo: Repository) {
+async function refreshWorkdir(repo: Repository): Promise<{
+    unstaged: number
+    staged: number
+    status: ReturnType<typeof repoStatus>
+} | Error> {
     const diffOptions = getAppConfig().diffOptions;
 
     // FIXME: Verify that this works? Might throw if called to often?
@@ -1006,7 +1020,7 @@ async function refreshWorkdir(repo: Repository) {
     }
 }
 
-async function stageSingleFile(repo: Repository, filePath: string) {
+async function stageSingleFile(repo: Repository, filePath: string): Promise<boolean> {
     let result;
 
     try {
@@ -1018,32 +1032,38 @@ async function stageSingleFile(repo: Repository, filePath: string) {
         result = await index.removeByPath(filePath);
     }
 
-    return result;
+    // NOTE: Returns 0 on success
+    return !result;
 }
 export async function stageFile(repo: Repository, filePath: string): AsyncIpcActionReturnOrError<IpcAction.STAGE_FILE> {
     await index.read(0);
 
     const result = await stageSingleFile(repo, filePath);
 
-    if (!result) {
+    if (result) {
         await index.write();
     }
 
-    return true;
+    return result;
 }
-async function unstageSingleFile(repo: Repository, head: Commit, filePath: string) {
-    return Reset.default(repo, head, filePath);
+async function unstageSingleFile(repo: Repository, head: Commit, filePath: string): Promise<boolean> {
+    // NOTE: Returns 0 on success
+    return !Reset.default(repo, head, filePath);
 }
 export async function unstageFile(repo: Repository, filePath: string): AsyncIpcActionReturnOrError<IpcAction.UNSTAGE_FILE> {
     const head = await repo.getHeadCommit();
-    await unstageSingleFile(repo, head, filePath);
+    const result = await unstageSingleFile(repo, head, filePath);
     
     await index.read(0);
 
-    return true;
+    return result;
 }
-// Returns the number of staged files
-export async function stageAllFiles(repo: Repository) {
+
+/**
+ * 
+ * @returns number of staged files
+ */
+export async function stageAllFiles(repo: Repository): Promise<number> {
     const statusList = await repo.getStatus({
         show: Status.SHOW.WORKDIR_ONLY,
         flags: Status.OPT.INCLUDE_UNTRACKED | Status.OPT.RECURSE_UNTRACKED_DIRS,
@@ -1055,8 +1075,12 @@ export async function stageAllFiles(repo: Repository) {
     await index.write();
     return statusList.length;
 }
-// Returns the number of unstaged files
-export async function unstageAllFiles(repo: Repository) {
+
+/**
+ * 
+ * @returns number of unstaged files
+ */
+export async function unstageAllFiles(repo: Repository): Promise<number> {
     const statusList = await repo.getStatus({
         show: Status.SHOW.INDEX_ONLY,
         flags: Status.OPT.INCLUDE_UNTRACKED | Status.OPT.RECURSE_UNTRACKED_DIRS,
@@ -1069,7 +1093,7 @@ export async function unstageAllFiles(repo: Repository) {
     return statusList.length;
 }
 
-async function discardSingleFile(repo: Repository, filePath: string) {
+async function discardSingleFile(repo: Repository, filePath: string): Promise<true | Error> {
     preventRefreshWorkdir = true;
     if (!index.getByPath(filePath)) {
         // file not found in index (untracked), delete
@@ -1095,7 +1119,7 @@ async function discardSingleFile(repo: Repository, filePath: string) {
     preventRefreshWorkdir = false;
     return true;
 }
-export async function discardChanges(repo: Repository, filePath: string) {
+export async function discardChanges(repo: Repository, filePath: string): Promise<boolean | Error> {
     if (!index.getByPath(filePath)) {
         // file not found in index (untracked), delete?
         const result = await dialog.showMessageBox({
@@ -1111,7 +1135,11 @@ export async function discardChanges(repo: Repository, filePath: string) {
 
     return discardSingleFile(repo, filePath);
 }
-export async function discardAllChanges(repo: Repository) {
+/**
+ * 
+ * @returns Number of discarded changes
+ */
+export async function discardAllChanges(repo: Repository): Promise<number> {
     const statusList = await repo.getStatus({
         show: Status.SHOW.WORKDIR_ONLY,
         flags: Status.OPT.INCLUDE_UNTRACKED | Status.OPT.RECURSE_UNTRACKED_DIRS,
@@ -1182,7 +1210,7 @@ export async function hunksFromCompare(repo: Repository, path: string): Promise<
     const patch = comparePatches.get(path);
     return patch ? loadHunks(repo, patch, path) : false;
 }
-async function loadHunks(repo: Repository, patch: ConvenientPatch, path?: string) {
+async function loadHunks(repo: Repository, patch: ConvenientPatch, path?: string): Promise<HunkObj[]> {
     if (patch.isConflicted() && path) {
         return loadConflictedPatch(repo, path);
     }
@@ -1191,7 +1219,7 @@ async function loadHunks(repo: Repository, patch: ConvenientPatch, path?: string
     return Promise.all(hunks.map(handleHunk));
 }
 
-async function commitDiffParent(commit: Commit, diffOptions?: DiffOptions) {
+async function commitDiffParent(commit: Commit, diffOptions?: DiffOptions): Promise<Diff> {
     const tree = await commit.getTree();
 
     // TODO: which parent to chose?
@@ -1200,13 +1228,13 @@ async function commitDiffParent(commit: Commit, diffOptions?: DiffOptions) {
         const parent = parents[0];
         const parentTree = await parent.getTree();
 
-        return await tree.diffWithOptions(parentTree, diffOptions) as Diff;
+        return tree.diffWithOptions(parentTree, diffOptions);
     }
 
-    return await tree.diffWithOptions(null, diffOptions) as Diff;
+    return tree.diffWithOptions(null, diffOptions);
 }
 
-export async function diffFileAtCommit(repo: Repository, file: string, sha: string) {
+export async function diffFileAtCommit(repo: Repository, file: string, sha: string): Promise<Error | PatchObj> {
     const historyEntry = fileHistoryCache.get(sha);
     if (!historyEntry) {
         return Error("Revison not found");
@@ -1412,7 +1440,7 @@ function handlePatch(patch: ConvenientPatch): PatchObj {
     } as PatchObj;
 }
 
-async function handleDiff(diff: Diff, convPatches: Map<string, ConvenientPatch>) {
+async function handleDiff(diff: Diff, convPatches: Map<string, ConvenientPatch>): Promise<PatchObj[]> {
     const patches = await diff.patches();
     return patches.map(convPatch => {
         const patch = handlePatch(convPatch);
@@ -1440,9 +1468,9 @@ export async function getCommitPatches(sha: string, diffOptions?: AppConfig["dif
     return handleDiff(diff, commit.patches);
 }
 
-export async function tryCompareRevisions(repo: Repository, revisions: { from: string, to: string }) {
+export async function tryCompareRevisions(repo: Repository, revisions: { from: string, to: string }): Promise<Error | PatchObj[]> {
     try {
-        return await compareRevisions(repo, revisions)
+        return compareRevisions(repo, revisions)
     }
     catch (err) {
         if (err instanceof Error) {
@@ -1453,7 +1481,7 @@ export async function tryCompareRevisions(repo: Repository, revisions: { from: s
     return Error("Unknown error, revisions not found?");
 }
 
-export async function compareRevisions(repo: Repository, revisions: { from: string, to: string }) {
+export async function compareRevisions(repo: Repository, revisions: { from: string, to: string }): Promise<PatchObj[]> {
     const revFrom = await Revparse.single(repo, revisions.from);
     const revTo = await Revparse.single(repo, revisions.to);
 
@@ -1520,14 +1548,14 @@ function getCommitObj(commit: Commit): CommitObj {
     };
 }
 
-export async function loadTreeAtCommit(repo: Repository, sha: string) {
+export async function loadTreeAtCommit(repo: Repository, sha: string): Promise<string[]> {
     const commit = await repo.getCommit(sha);
     const tree = await commit.getTree();
 
     return tree.getAllFilepaths();
 }
 
-export async function loadCommit(repo: Repository, sha: string | null) {
+export async function loadCommit(repo: Repository, sha: string | null): Promise<Error | CommitObj> {
     const commit = sha ? await commitWithDiff(repo, sha) : await repo.getHeadCommit();
     if (commit instanceof Error) {
         // Probably an invalid revspec path
@@ -1556,7 +1584,7 @@ export async function getCommitGpgSign(repo: Repository, sha: string): AsyncIpcA
     return false;
 }
 
-export async function parseRevspec(repo: Repository, sha: string) {
+export async function parseRevspec(repo: Repository, sha: string): Promise<Error | Oid> {
     try {
         const revspec = await Revparse.single(repo, sha);
         return revspec.id();
@@ -1565,7 +1593,7 @@ export async function parseRevspec(repo: Repository, sha: string) {
     }
 }
 
-export async function commitWithDiff(repo: Repository, sha: string) {
+export async function commitWithDiff(repo: Repository, sha: string): Promise<Error | Commit> {
     const oid = await parseRevspec(repo, sha);
     if (oid instanceof Error) {
         return oid;

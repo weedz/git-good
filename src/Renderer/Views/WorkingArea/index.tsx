@@ -1,6 +1,6 @@
 import { h } from "preact";
 import "./style.css";
-import { IpcAction, IpcActionReturn, PatchObj } from "../../../Common/Actions";
+import { IpcAction, IpcResponse, PatchObj } from "../../../Common/Actions";
 import { ipcGetData, ipcSendMessage } from "../../Data/IPC";
 import ChangedFiles from "../../Components/DiffPane/ChangedFiles";
 import { Store, StoreComponent } from "../../Data/store";
@@ -58,7 +58,10 @@ export default class WorkingArea extends StoreComponent<unknown, State> {
 
         getChanges();
     }
-    update = (data: IpcActionReturn[IpcAction.GET_CHANGES]) => {
+    update = (data: IpcResponse<IpcAction.GET_CHANGES>) => {
+        if (data instanceof Error) {
+            return;
+        }
         this.setState({
             staged: data.staged,
             unstaged: data.unstaged,

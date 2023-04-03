@@ -1,6 +1,6 @@
 import { h } from "preact";
 import { ipcSendMessage } from "../../Data/IPC";
-import { IpcAction, IpcActionReturn, LoadCommitReturn, IpcActionParams, Locks, IpcResponse, LoadCommitsReturn } from "../../../Common/Actions";
+import { IpcAction, LoadCommitReturn, IpcActionParams, Locks, IpcResponse, LoadCommitsReturn } from "../../../Common/Actions";
 import { clearLock, lockChanged, PureStoreComponent, setLock, Store, StoreType } from "../../Data/store";
 
 import "./style.css";
@@ -132,10 +132,10 @@ export default class CommitList extends PureStoreComponent<unknown, State> {
         this.cursor = fetched.cursor;
         this.forceUpdate();
     }
-    commitsLoaded = (result: IpcActionReturn[IpcAction.LOAD_COMMITS]) => {
+    commitsLoaded = (result: IpcResponse<IpcAction.LOAD_COMMITS>) => {
         clearLock(Locks.BRANCH_LIST);
         this.loading = false;
-        if (!result) {
+        if (!result || result instanceof Error) {
             return;
         }
         if (result.branch === Store.selectedBranch) {

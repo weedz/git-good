@@ -1,6 +1,6 @@
 import { h } from "preact";
 import { GlobalLinks, unselectLink } from "../Components/Link";
-import { BranchObj, IpcAction, IpcActionParams, IpcActionReturn, IpcActionReturnOrError, IpcResponse, Locks, PatchObj } from "../../Common/Actions";
+import { BranchObj, IpcAction, IpcActionParams, IpcActionReturnOrError, IpcResponse, Locks, PatchObj } from "../../Common/Actions";
 import { openDialog_Settings, openDialog_createTag, openDialog_BranchFrom, openDialog_AddRemote, openDialog_RenameRef, openDialog_SetUpstream, openDialog_EditRemote, openDialog_PushTag } from "./Dialogs";
 import { registerAppEventHandlers, registerHandler, ipcGetData, ipcSendMessage, openNativeDialog } from "./IPC";
 import { Store, clearLock, setLock, updateStore, StoreType, notify, openDialogWindow, closeDialogWindow, setDiffpaneSrc } from "./store";
@@ -173,7 +173,10 @@ function openSettings() {
     openDialog_Settings();
 }
 
-function loadHunks(data: IpcActionReturn[IpcAction.LOAD_HUNKS]) {
+function loadHunks(data: IpcResponse<IpcAction.LOAD_HUNKS>) {
+    if (data instanceof Error) {
+        return;
+    }
     if (Store.currentFile && data.hunks) {
         const currentFile = Store.currentFile;
         currentFile.patch.hunks = data.hunks;
@@ -209,10 +212,14 @@ async function loadUpstreams() {
         }
     }
 }
-async function branchesLoaded(result: IpcActionReturn[IpcAction.LOAD_BRANCHES]) {
+async function branchesLoaded(result: IpcResponse<IpcAction.LOAD_BRANCHES>) {
     clearLock(Locks.BRANCH_LIST);
     Store.heads.clear();
     branchMap.clear();
+
+    if (result instanceof Error) {
+        return;
+    }
 
     mapHeads(Store.heads, result.local);
     mapHeads(Store.heads, result.remote);
@@ -228,7 +235,10 @@ async function branchesLoaded(result: IpcActionReturn[IpcAction.LOAD_BRANCHES]) 
     await loadUpstreams();
     updateStore({ heads: Store.heads });
 }
-function stashLoaded(stash: IpcActionReturn[IpcAction.LOAD_STASHES]) {
+function stashLoaded(stash: IpcResponse<IpcAction.LOAD_STASHES>) {
+    if (!stash || stash instanceof Error) {
+        return;
+    }
     updateStore({
         stash
     });
@@ -251,7 +261,10 @@ function handleCompareRevisions(data: AppEventData[AppEventType.OPEN_COMPARE_REV
     }
 }
 
-function handleRemotes(remotes: IpcActionReturn[IpcAction.REMOTES]) {
+function handleRemotes(remotes: IpcResponse<IpcAction.REMOTES>) {
+    if (remotes instanceof Error) {
+        return;
+    }
     updateStore({ remotes });
 }
 
@@ -433,7 +446,7 @@ const rendererActions: {
     }),
 };
 
-async function handleRequestClientData<E extends RendererRequestEvents>(payload: RendererRequestPayload<E>) {
+async function handleRequestClientData<E extends RendererRequestEvents>(payload: RendererRequestPayload<E>): Promise<RendererRequestData[E] | null> {
     return rendererActions[payload.event](payload.data);
 }
 window.electronAPI.requestClientData(handleRequestClientData);

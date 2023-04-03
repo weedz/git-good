@@ -1,5 +1,5 @@
 import { h, Fragment } from "preact";
-import { IpcAction, IpcActionReturn } from "../../../../Common/Actions";
+import { IpcAction, IpcResponse } from "../../../../Common/Actions";
 import { ipcSendMessage } from "../../../Data/IPC";
 import { StoreComponent } from "../../../Data/store";
 
@@ -23,7 +23,10 @@ export default class FileFilter extends StoreComponent<{filterByFile: (file: str
         this.findFileTimeout && clearTimeout(this.findFileTimeout);
     }
 
-    handleFindFile = (files: IpcActionReturn[IpcAction.FIND_FILE]) => {
+    handleFindFile = (files: IpcResponse<IpcAction.FIND_FILE>) => {
+        if (files instanceof Error) {
+            return;
+        }
         this.setState({
             fileResults: files,
             showFiles: files.length > 0,

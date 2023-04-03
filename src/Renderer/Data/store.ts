@@ -1,6 +1,6 @@
 import { createStore, PartialStoreListener } from "@weedzcokie/store";
 import { AnyComponent, Component, JSX } from "preact";
-import { BranchesObj, BranchObj, HeadBranchObj, IpcAction, IpcActionReturn, Locks, PatchObj, RepoStatus, StashObj } from "../../Common/Actions";
+import { BranchesObj, BranchObj, HeadBranchObj, IpcAction, IpcActionReturn, IpcResponse, Locks, PatchObj, RepoStatus, StashObj } from "../../Common/Actions";
 import { HEAD_REF } from "../../Common/Branch";
 import { AppConfig } from "../../Common/Config";
 import { NotificationInit, NotificationPosition } from "../../Common/WindowEventTypes";
@@ -95,7 +95,7 @@ export abstract class StoreComponent<P = unknown, S = unknown> extends Component
     listen<T extends StoreKeys>(key: T, cb: PartialStoreListener<StoreType, T>) {
         this.listeners.push(store.subscribe(key, cb));
     }
-    registerHandler<T extends IpcAction>(action: T, cb: (arg: IpcActionReturn[T]) => void) {
+    registerHandler<T extends IpcAction>(action: T, cb: (arg: IpcResponse<T>) => void) {
         this.listeners.push(registerHandler(action, cb));
     }
 
@@ -111,7 +111,7 @@ export abstract class PureStoreComponent<P = unknown, S = unknown> extends Compo
     listen<T extends StoreKeys>(key: T, cb: PartialStoreListener<StoreType, T> = () => this.forceUpdate()) {
         this.listeners.push(store.subscribe(key, cb));
     }
-    registerHandler<T extends IpcAction>(action: T, cb: (arg: IpcActionReturn[T]) => void) {
+    registerHandler<T extends IpcAction>(action: T, cb: (arg: IpcResponse<T>) => void) {
         this.listeners.push(registerHandler(action, cb));
     }
 
@@ -122,7 +122,7 @@ export abstract class PureStoreComponent<P = unknown, S = unknown> extends Compo
     }
 }
 
-export function notify(notificationData: NotificationInit & {body?: null | string | AnyComponent | JSX.Element}, _?: unknown) {
+export function notify(notificationData: NotificationInit & {body?: null | string | AnyComponent | JSX.Element}, _?: unknown): Notification {
     const position = notificationData.position || NotificationPosition.DEFAULT;
     const notification = new Notification(notificationData.title, notificationData.body || null, notificationData.classList || [], deleteNotification[position], notificationData.time ?? 5000);
 
@@ -186,7 +186,7 @@ export function clearLock(lock: Locks) {
         locks: {[lock]: false}
     });
 }
-export function lockChanged<L extends Locks>(lock: L, locks: Partial<StoreType["locks"]>) {
+export function lockChanged<L extends Locks>(lock: L, locks: Partial<StoreType["locks"]>): boolean {
     return locks[lock] !== undefined && locks[lock] !== Store.locks[lock];
 }
 

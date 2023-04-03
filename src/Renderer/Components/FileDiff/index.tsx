@@ -82,6 +82,9 @@ export default class FileDiff extends PureStoreComponent<unknown, State> {
         this.listen("currentFile", this.renderHunks);
         this.listen("diffUi");
         this.registerHandler(IpcAction.LOAD_FILE_COMMITS, commitsResult => {
+            if (commitsResult instanceof Error) {
+                return;
+            }
             if (commitsResult) {
                 this.setState({
                     fileHistory: commitsResult.commits || null

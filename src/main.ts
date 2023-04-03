@@ -11,7 +11,7 @@ import { isMac, isWindows } from "./Main/Utils";
 import { addRecentRepository, clearRepoProfile, currentProfile, diffOptionsIsEqual, getAppConfig, getRecentRepositories, getRepoProfile, saveAppConfig, setCurrentProfile, setRepoProfile, signatureFromActiveProfile, signatureFromProfile } from "./Main/Config";
 
 import * as provider from "./Main/Provider";
-import { IpcAction, IpcActionParams, Locks, AsyncIpcActionReturnOrError } from "./Common/Actions";
+import { IpcAction, IpcActionParams, Locks, AsyncIpcActionReturnOrError, HunkObj } from "./Common/Actions";
 import { formatTimeAgo } from "./Common/Utils";
 import { requestClientData, sendEvent } from "./Main/WindowEvents";
 import { normalizeLocalName } from "./Common/Branch";
@@ -103,7 +103,7 @@ function buildOpenRepoMenuItem(path: string): MenuItemConstructorOptions {
     }
 }
 
-function applyAppMenu() {
+function applyAppMenu(): void {
     const repo = currentRepo();
     const win = currentWindow();
     const menuTemplate = [
@@ -548,11 +548,10 @@ const eventMap: {
     },
     [IpcAction.SET_UPSTREAM]: async (repo, data) => {
         const result = await provider.setUpstream(repo, data.local, data.remote);
-        // Returns 0 on success
-        if (!result) {
+        if (result) {
             sendAction(IpcAction.LOAD_BRANCHES, await provider.getBranches(repo));
         }
-        return !result;
+        return result;
     },
     [IpcAction.COMMIT]: async (repo, data) => {
         const result = await provider.getCommit(repo, data);
@@ -693,7 +692,7 @@ ipcMain.on("asynchronous-message", async (event, arg: EventArgs) => {
     eventReply(event, action, await callback(currentRepo(), data, event), arg.id);
 });
 
-async function openRepoDialog() {
+async function openRepoDialog(): Promise<boolean | null> {
     sendEvent(AppEventType.LOCK_UI, Locks.MAIN);
 
     const res = await dialog.showOpenDialog({
@@ -712,7 +711,7 @@ async function openRepoDialog() {
     return result;
 }
 
-async function openRepo(repoPath: string) {
+async function openRepo(repoPath: string): Promise<boolean> {
     if (repoPath.endsWith("/")) {
         repoPath = repoPath.slice(0, -1);
     }
@@ -752,7 +751,7 @@ async function openRepo(repoPath: string) {
     return true;
 }
 
-function loadHunks(repo: Repository, params: IpcActionParams[IpcAction.LOAD_HUNKS]) {
+function loadHunks(repo: Repository, params: IpcActionParams[IpcAction.LOAD_HUNKS]): Promise<false | HunkObj[]> {
     if ("sha" in params) {
         return provider.getHunks(repo, params.sha, params.path);
     }

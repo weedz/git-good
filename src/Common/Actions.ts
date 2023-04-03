@@ -12,7 +12,7 @@ export type IpcPayload<T extends IpcAction> = {
 export type IpcActionReturnOrError<A extends IpcAction> = IpcActionReturn[A] | Error;
 export type AsyncIpcActionReturnOrError<A extends IpcAction> = Promise<IpcActionReturnOrError<A>>;
 
-export type IpcResponse<T extends IpcAction> = IpcActionReturnOrError<T> | false;
+export type IpcResponse<T extends IpcAction> = IpcActionReturnOrError<T>;
 
 export const enum IpcAction {
     INIT = 0,

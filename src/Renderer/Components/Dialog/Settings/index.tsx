@@ -8,7 +8,6 @@ import { Profile } from "./Profile";
 
 type State = {
     config: AppConfig
-} & {
     saved: null | true
     editProfile: null | true
 };
