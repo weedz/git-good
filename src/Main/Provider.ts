@@ -575,14 +575,13 @@ export async function setUpstream(repo: Repository, local: string, remoteRefName
         }
     }
     // Returns 0 on success
-    return !Branch.setUpstream(reference, remoteRefName);
+    return !await Branch.setUpstream(reference, remoteRefName);
 }
 
 export async function deleteRef(repo: Repository, name: string): Promise<boolean> {
     const ref = await repo.getReference(name);
     // Returns 0 on success
-    const res = Branch.delete(ref);
-    return !res
+    return !Branch.delete(ref)
 }
 
 export async function deleteRemoteRef(repo: Repository, refName: string): Promise<boolean> {
@@ -1048,7 +1047,7 @@ export async function stageFile(repo: Repository, filePath: string): AsyncIpcAct
 }
 async function unstageSingleFile(repo: Repository, head: Commit, filePath: string): Promise<boolean> {
     // NOTE: Returns 0 on success
-    return !Reset.default(repo, head, filePath);
+    return !await Reset.default(repo, head, filePath);
 }
 export async function unstageFile(repo: Repository, filePath: string): AsyncIpcActionReturnOrError<IpcAction.UNSTAGE_FILE> {
     const head = await repo.getHeadCommit();
@@ -1228,10 +1227,10 @@ async function commitDiffParent(commit: Commit, diffOptions?: DiffOptions): Prom
         const parent = parents[0];
         const parentTree = await parent.getTree();
 
-        return tree.diffWithOptions(parentTree, diffOptions);
+        return await tree.diffWithOptions(parentTree, diffOptions);
     }
 
-    return tree.diffWithOptions(null, diffOptions);
+    return await tree.diffWithOptions(null, diffOptions);
 }
 
 export async function diffFileAtCommit(repo: Repository, file: string, sha: string): Promise<Error | PatchObj> {
@@ -1470,7 +1469,7 @@ export async function getCommitPatches(sha: string, diffOptions?: AppConfig["dif
 
 export async function tryCompareRevisions(repo: Repository, revisions: { from: string, to: string }): Promise<Error | PatchObj[]> {
     try {
-        return compareRevisions(repo, revisions)
+        return await compareRevisions(repo, revisions)
     }
     catch (err) {
         if (err instanceof Error) {
