@@ -2,7 +2,7 @@ import { h } from "preact";
 import { IpcAction } from "../../../Common/Actions";
 import { commit } from "../../Data";
 import { ipcSendMessage } from "../../Data/IPC";
-import { notify, Store, StoreComponent, StoreType, updateStore } from "../../Data/store";
+import { notify, store, Store, StoreComponent, StoreType } from "../../Data/store";
 
 type State = {
     commitMsg: StoreType["commitMsg"]
@@ -44,11 +44,9 @@ export default class CommitForm extends StoreComponent<Props, State> {
     async commit() {
         const amend = this.state.amend;
         const message = this.state.commitMsg;
-        updateStore({
-            commitMsg: {
-                body: "",
-                summary: ""
-            }
+        store.updateStore("commitMsg", {
+            body: "",
+            summary: ""
         });
         this.setState({
             amend: false

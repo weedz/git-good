@@ -1,7 +1,7 @@
 import { h } from "preact";
 import "./style.css";
 import { HEAD_REF, HISTORY_REF, normalizeLocalName } from "../../../Common/Branch";
-import { Store, updateStore, PureStoreComponent } from "../../Data/store";
+import { Store, PureStoreComponent, store } from "../../Data/store";
 import { showHeadMenu, showLocalMenu, showRemoteMenu, showRemoteRefMenu, showRemotesMenu, showTagMenu } from "./Menu";
 import { branchesAheadBehind, getBranchTree, RenderBranchTree, RenderRemotes } from "./Utils";
 import Link from "../Link";
@@ -15,10 +15,10 @@ function triggerCheckoutBranch(e: h.JSX.TargetedMouseEvent<HTMLAnchorElement>) {
 }
 
 function selectHistory() {
-    updateStore({selectedBranch: HISTORY_REF});
+    store.updateStore("selectedBranch", HISTORY_REF);
 }
 function selectHead() {
-    updateStore({selectedBranch: HEAD_REF})
+    store.updateStore("selectedBranch", HEAD_REF)
 }
 
 interface Props {

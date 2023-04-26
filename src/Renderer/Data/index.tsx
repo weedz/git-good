@@ -3,7 +3,7 @@ import { GlobalLinks, unselectLink } from "../Components/Link";
 import { BranchObj, IpcAction, IpcActionParams, IpcActionReturnOrError, IpcResponse, Locks, PatchObj } from "../../Common/Actions";
 import { openDialog_Settings, openDialog_createTag, openDialog_BranchFrom, openDialog_AddRemote, openDialog_RenameRef, openDialog_SetUpstream, openDialog_EditRemote, openDialog_PushTag } from "./Dialogs";
 import { registerAppEventHandlers, registerHandler, ipcGetData, ipcSendMessage, openNativeDialog } from "./IPC";
-import { Store, clearLock, setLock, updateStore, StoreType, notify, openDialogWindow, closeDialogWindow, setDiffpaneSrc } from "./store";
+import { Store, clearLock, setLock, StoreType, notify, openDialogWindow, closeDialogWindow, setDiffpaneSrc, store } from "./store";
 import { Notification } from "../Components/Notification";
 import { humanReadableBytes } from "../../Common/Utils";
 import { AppEventData, AppEventType, RendererRequestArgs, RendererRequestData, RendererRequestEvents, RendererRequestPayload, LinkTypes } from "../../Common/WindowEventTypes";
@@ -43,10 +43,8 @@ calculateGlyphWidth(13, "JetBrainsMonoNL Nerd Font Mono");
 
 ipcSendMessage(IpcAction.INIT, null);
 ipcGetData(IpcAction.GET_SETTINGS, null).then(appConfig => {
-    updateStore({
-        appConfig,
-        diffOptions: appConfig.diffOptions
-    });
+    store.updateStore("appConfig", appConfig);
+    store.updateStore("diffOptions", appConfig.diffOptions);
 });
 
 function calculateGlyphWidth(size: number, font: string) {
@@ -108,14 +106,10 @@ export function openFile(params: (
             });
         }
     }
-    updateStore({
-        currentFile
-    });
+    store.updateStore("currentFile", currentFile);
 }
 export function closeFile() {
-    updateStore({
-        currentFile: null
-    });
+    store.updateStore("currentFile", null);
     unselectLink(LinkTypes.FILES);
 }
 
@@ -129,9 +123,7 @@ export function openFileHistory(file: string, sha?: string) {
 
 export async function showStash(index: number) {
     const patches = await ipcGetData(IpcAction.SHOW_STASH, index);
-    updateStore({
-        comparePatches: patches
-    });
+    store.updateStore("comparePatches", patches);
 }
 
 function repoOpened(result: AppEventData[AppEventType.REPO_OPENED]) {
@@ -147,25 +139,21 @@ function repoOpened(result: AppEventData[AppEventType.REPO_OPENED]) {
     unselectLink(LinkTypes.BRANCHES);
     unselectLink(LinkTypes.FILES);
 
-    updateStore({
-        diffPaneSrc: null,
-        currentFile: null,
-        branches: undefined,
-        repo: {
-            path: result.path,
-        },
-        repoStatus: result.status,
-        selectedBranch: HEAD_REF,
+    store.updateStore("diffPaneSrc", null);
+    store.updateStore("currentFile", null);
+    store.updateStore("branches", null);
+    store.updateStore("repo", {
+        path: result.path,
     });
+    store.updateStore("repoStatus", result.status);
+    store.updateStore("selectedBranch", HEAD_REF);
 }
 
 function updateRepoStatus(result: AppEventData[AppEventType.REFRESH_WORKDIR]) {
-    updateStore({
-        repoStatus: result.status,
-        workDir: {
-            staged: result.staged,
-            unstaged: result.unstaged
-        },
+    store.updateStore("repoStatus", result.status);
+    store.updateStore("workDir", {
+        staged: result.staged,
+        unstaged: result.unstaged
     });
 }
 
@@ -180,9 +168,7 @@ function loadHunks(data: IpcResponse<IpcAction.LOAD_HUNKS>) {
     if (Store.currentFile && data.hunks) {
         const currentFile = Store.currentFile;
         currentFile.patch.hunks = data.hunks;
-        updateStore({
-            currentFile
-        });
+        store.updateStore("currentFile", currentFile);
     }
 }
 
@@ -199,7 +185,7 @@ function mapHeads(heads: StoreType["heads"], refs: BranchObj[]) {
 }
 async function loadHEAD() {
     const head = await ipcGetData(IpcAction.LOAD_HEAD, null);
-    updateStore({ head });
+    store.updateStore("head", head);
 }
 async function loadUpstreams() {
     const upstreams = await ipcGetData(IpcAction.LOAD_UPSTREAMS, null);
@@ -227,37 +213,29 @@ async function branchesLoaded(result: IpcResponse<IpcAction.LOAD_BRANCHES>) {
 
     loadHEAD();
 
-    updateStore({
-        branches: result,
-        heads: Store.heads,
-    });
+    store.updateStore("branches", result);
+    store.triggerStoreUpdate("heads");
 
     await loadUpstreams();
-    updateStore({ heads: Store.heads });
+    store.triggerStoreUpdate("heads");
 }
 function stashLoaded(stash: IpcResponse<IpcAction.LOAD_STASHES>) {
     if (!stash || stash instanceof Error) {
         return;
     }
-    updateStore({
-        stash
-    });
+    store.updateStore("stash", stash);
 }
 function updateCurrentBranch(head: IpcResponse<IpcAction.CHECKOUT_BRANCH>) {
     clearLock(Locks.MAIN);
     if (head && !(head instanceof Error)) {
-        updateStore({
-            head
-        });
+        store.updateStore("head", head);
     }
 }
 
 function handleCompareRevisions(data: AppEventData[AppEventType.OPEN_COMPARE_REVISIONS]) {
     if (data && !(data instanceof Error)) {
         unselectLink(LinkTypes.COMMITS);
-        updateStore({
-            comparePatches: data,
-        });
+        store.updateStore("comparePatches", data);
     }
 }
 
@@ -265,25 +243,23 @@ function handleRemotes(remotes: IpcResponse<IpcAction.REMOTES>) {
     if (remotes instanceof Error) {
         return;
     }
-    updateStore({ remotes });
+    store.updateStore("remotes", remotes);
 }
 
 function handleFileCommits(data: IpcActionReturnOrError<IpcAction.LOAD_FILE_COMMITS>) {
     if (!data || data instanceof Error) {
         return;
     }
-    updateStore({
-        currentFile: {
-            patch: {
-                status: 0,
-                hunks: [],
-                newFile: { path: "", size: 0, mode: 0, flags: 0 },
-                oldFile: { path: "", size: 0, mode: 0, flags: 0 },
-                lineStats: { total_context: 0, total_additions: 0, total_deletions: 0 },
-                actualFile: { path: data.filePath, size: 0, mode: 0, flags: 0 }
-            },
-            commitSHA: data.cursor
+    store.updateStore("currentFile", {
+        patch: {
+            status: 0,
+            hunks: [],
+            newFile: { path: "", size: 0, mode: 0, flags: 0 },
+            oldFile: { path: "", size: 0, mode: 0, flags: 0 },
+            lineStats: { total_context: 0, total_additions: 0, total_deletions: 0 },
+            actualFile: { path: data.filePath, size: 0, mode: 0, flags: 0 }
         },
+        commitSHA: data.cursor
     });
 }
 

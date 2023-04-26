@@ -1,7 +1,7 @@
 import { Component, h } from "preact";
 import { ipcGetData } from "../../Data/IPC";
 import { IpcAction, LoadFileCommitsReturn } from "../../../Common/Actions";
-import { updateStore } from "../../Data/store";
+import { store } from "../../Data/store";
 import { DiffDelta, formatTimeAgo } from "../../../Common/Utils";
 import ScrollContainer from "../ScrollContainer";
 import Link from "../Link";
@@ -59,11 +59,9 @@ export default class CommitContainer extends Component<Props, State> {
                                     <Link onContextMenu={showFileHistoryCommitMenu} selectAction={async (_arg) => {
                                         const filePatch = await ipcGetData(IpcAction.FILE_DIFF_AT, {file: commit.path, sha: commit.sha});
                                         if (filePatch) {
-                                            updateStore({
-                                                currentFile: {
-                                                    patch: filePatch,
-                                                    commitSHA: commit.sha
-                                                },
+                                            store.updateStore("currentFile", {
+                                                patch: filePatch,
+                                                commitSHA: commit.sha
                                             });
                                         }
                                     }} title={commit.message} class="flex-column" data-sha={commit.sha} data-path={commit.path}>

@@ -1,6 +1,6 @@
 import { h } from "preact";
 import { LinkTypes } from "../../Common/WindowEventTypes";
-import { updateStore, Store, PureStoreComponent } from "../Data/store";
+import { Store, PureStoreComponent, store } from "../Data/store";
 import Link from "./Link";
 
 export default class Changes extends PureStoreComponent<unknown> {
@@ -18,7 +18,7 @@ export default class Changes extends PureStoreComponent<unknown> {
                     {Store.repoStatus?.merging && <li><span>Merging</span></li>}
                     {Store.repoStatus?.rebasing && <li><span>Rebasing</span></li>}
                     {Store.repoStatus?.reverting && <li><span>Reverting</span></li>}
-                    <li><Link linkType={LinkTypes.COMMITS} selectAction={() => updateStore({viewChanges: null})}>Changes ({changes})</Link></li>
+                    <li><Link linkType={LinkTypes.COMMITS} selectAction={() => store.updateStore("viewChanges", null)}>Changes ({changes})</Link></li>
                 </ul>
             </div>
         );

@@ -49,7 +49,7 @@ export type StoreType = {
     diffOptions: AppConfig["diffOptions"]
 };
 
-const store = createStore<StoreType>({
+export const store = createStore<StoreType>({
     repo: null,
     repoStatus: null,
     workDir: {
@@ -87,7 +87,6 @@ const store = createStore<StoreType>({
 type StoreKeys = keyof StoreType;
 
 export const Store = store.Store;
-export const updateStore = store.updateStore;
 
 export abstract class StoreComponent<P = unknown, S = unknown> extends Component<P, S> {
     listeners: Array<() => void> = [];
@@ -127,21 +126,19 @@ export function notify(notificationData: NotificationInit & {body?: null | strin
     const notification = new Notification(notificationData.title, notificationData.body || null, notificationData.classList || [], deleteNotification[position], notificationData.time ?? 5000);
 
     Store.notifications[position].set(notification.id, notification);
-    updateStore({
-        notifications: Store.notifications
-    });
+    store.triggerStoreUpdate("notifications");
 
     return notification;
 }
 const deleteNotification: {[K in NotificationPosition]: (id: number) => void} = {
-    [NotificationPosition.DEFAULT]: (id) => Store.notifications[NotificationPosition.DEFAULT].delete(id) && updateStore({ notifications: Store.notifications }),
+    [NotificationPosition.DEFAULT]: (id) => Store.notifications[NotificationPosition.DEFAULT].delete(id) && store.triggerStoreUpdate("notifications"),
 }
 
 export async function saveAppConfig(appConfig: AppConfig) {
     if (appConfig && await ipcGetData(IpcAction.SAVE_SETTINGS, appConfig)) {
-        updateStore({ appConfig });
+        store.updateStore("appConfig", appConfig);
         if (appConfig.diffOptions !== Store.diffOptions) {
-            updateStore({ diffOptions: appConfig.diffOptions });
+            store.updateStore("diffOptions", appConfig.diffOptions);
         }
     }
 }
@@ -194,22 +191,18 @@ export function openDialogWindow<T extends DialogTypes>(type: T, props: DialogPr
     if (!props.cancelCb) {
         props.cancelCb = closeDialogWindow;
     }
-    updateStore({
-        dialogWindow: {
-            type,
-            props
-        }
+    store.updateStore("dialogWindow", {
+        type,
+        props
     });
 }
 export function closeDialogWindow() {
-    updateStore({
-        dialogWindow: null
-    });
+    store.updateStore("dialogWindow", null);
 }
 
 export function setDiffpaneSrc(diffPaneSrc: StoreType["diffPaneSrc"]) {
     // Lock CommitList UI when loading commit info
     setLock(Locks.COMMIT_LIST);
 
-    updateStore({ diffPaneSrc });
+    store.updateStore("diffPaneSrc", diffPaneSrc);
 }

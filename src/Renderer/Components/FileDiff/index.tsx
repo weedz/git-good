@@ -2,7 +2,7 @@ import { h } from "preact";
 import { HunkObj, IpcAction, LineObj, LoadFileCommitsReturn } from "../../../Common/Actions";
 import { DiffDelta } from "../../../Common/Utils";
 import { closeFile, dismissibleWindowClosed, glyphWidth, openFileHistory, showDismissibleWindow } from "../../Data";
-import { Store, PureStoreComponent, updateStore, StoreType, saveAppConfig } from "../../Data/store";
+import { Store, PureStoreComponent, StoreType, saveAppConfig, store } from "../../Data/store";
 import FileHistory from "./FileHistory";
 import HunksContainer from "./HunksContainer";
 
@@ -239,5 +239,5 @@ function setDiffOption(option: keyof StoreType["diffOptions"], value: boolean) {
 function setDiffUiOption(option: keyof StoreType["diffUi"], value: boolean) {
     const diffUi = Store.diffUi;
     diffUi[option] = value;
-    updateStore({ diffUi });
+    store.updateStore("diffUi", diffUi);
 }

@@ -1,7 +1,7 @@
 import { h } from "preact";
 import { BranchObj, BranchesObj } from "../../../Common/Actions";
 import { ensureTreePath, toggleTreeItem, Tree } from "../../Data/Tree";
-import { updateStore } from "../../Data/store";
+import { store } from "../../Data/store";
 import Link from "../Link";
 
 export function branchesAheadBehind(ref: BranchObj) {
@@ -19,7 +19,7 @@ export function branchesAheadBehind(ref: BranchObj) {
 
 function selectAction(c: Link<string>) {
     if (c.props.linkData) {
-        updateStore({selectedBranch: c.props.linkData});
+        store.updateStore("selectedBranch", c.props.linkData);
     }
 }
 
