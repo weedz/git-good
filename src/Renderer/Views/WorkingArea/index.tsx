@@ -82,11 +82,11 @@ export default class WorkingArea extends StoreComponent<unknown, State> {
                         <button disabled={!this.state.unstaged.length} onClick={stageAllChanges}>Stage all</button>
                         <button disabled={!this.state.unstaged.length} onClick={discardAllChanges}>Discard all</button>
                     </h4>
-                    {this.state.unstaged && <ChangedFiles patches={this.state.unstaged} workDir type="unstaged" actions={[{label: "Stage", click: stageFile}, {label: "Discard", click: discard}]} />}
+                    <ChangedFiles patches={this.state.unstaged} workDir type="unstaged" actions={[{label: "Stage", click: stageFile}, {label: "Discard", click: discard}]} />
                 </div>
                 <div id="staged-changes">
                     <h4>Staged ({this.state.staged.length})<button disabled={!this.state.staged.length} onClick={unstageAllChanges}>Unstage all</button></h4>
-                    {this.state.staged && <ChangedFiles patches={this.state.staged} workDir type="staged" actions={[{label: "Unstage", click: unstageFile}]} />}
+                    <ChangedFiles patches={this.state.staged} workDir type="staged" actions={[{label: "Unstage", click: unstageFile}]} />
                 </div>
                 <div>
                     <CommitForm staged={this.state.staged.length || 0} />
