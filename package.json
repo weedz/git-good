@@ -10,7 +10,7 @@
     "dev": "NODE_ENV=development npm run build",
     "build": "rm -rf dist;mkdir dist;cp static/* dist/; node scripts/build.mjs",
     "dist": "electron-builder",
-    "electron-rebuild": "CXX=\"ccache clang++\" CC=\"ccache clang\" LDFLAGS=-fuse-ld=lld CFLAGS=-flto=thin CXXFLAGS=-flto=thin electron-rebuild"
+    "electron-rebuild": "JOBS=max CXX=\"ccache clang++\" CC=\"ccache clang\" LDFLAGS=-fuse-ld=lld CFLAGS=-flto=thin CXXFLAGS=-flto=thin electron-rebuild"
   },
   "keywords": [],
   "author": {
