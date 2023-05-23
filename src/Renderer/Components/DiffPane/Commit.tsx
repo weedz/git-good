@@ -19,8 +19,16 @@ interface Props {
     sha: string
 }
 
-function mapTreeToPatchObj(tree: string[]) {
+function mapTreeToPatchObj(tree: string[], patches: PatchObj[]) {
+    const patchMap: Map<string, PatchObj> = new Map();
+    for (const patch of patches) {
+        patchMap.set(patch.actualFile.path, patch);
+    }
     return tree.map(item => {
+        const patch = patchMap.get(item);
+        if (patch) {
+            return patch;
+        }
         const fileObj = {
             path: item,
             flags: 0,
@@ -111,7 +119,7 @@ export default class Commit extends StoreComponent<Props, State> {
                             if (e.currentTarget.checked && this.state.commit?.sha) {
                                 const tree = await ipcGetData(IpcAction.LOAD_TREE_AT_COMMIT, this.state.commit.sha);
                                 this.setState({
-                                    tree: mapTreeToPatchObj(tree)
+                                    tree: mapTreeToPatchObj(tree, this.state.patches)
                                 });
                             } else {
                                 this.setState({
