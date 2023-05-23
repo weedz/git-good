@@ -63,7 +63,7 @@ function calcDeltas(patches: Props["patches"]) {
         renamed: 0,
         // untracked: 0,
     };
-    for (const patch of patches.slice(0, 1000)) {
+    for (const patch of patches) {
         if (patch.status === DiffDelta.MODIFIED) {
             deltas.modified++;
         } else if (patch.status === DiffDelta.DELETED) {
