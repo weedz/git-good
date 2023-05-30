@@ -24,18 +24,18 @@
   "devDependencies": {
     "@datadog/build-plugin": "^1.0.3",
     "@electron/asar": "^3.2.4",
-    "@types/node": "^18.16.14",
+    "@types/node": "^18.16.16",
     "@types/nodegit": "^0.28.3",
-    "@typescript-eslint/eslint-plugin": "^5.59.7",
-    "@typescript-eslint/parser": "^5.59.7",
+    "@typescript-eslint/eslint-plugin": "^5.59.8",
+    "@typescript-eslint/parser": "^5.59.8",
     "@weedzcokie/store": "^2.0.0",
-    "electron": "^24.3.1",
+    "electron": "^25.0.0",
     "electron-builder": "24.2.1",
     "esbuild": "^0.17.19",
     "eslint": "^8.41.0",
     "eslint-plugin-import": "^2.27.5",
     "eslint-plugin-react": "^7.32.2",
-    "preact": "^10.15.0",
+    "preact": "^10.15.1",
     "typescript": "^5.0.4"
   },
   "dependencies": {
