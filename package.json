@@ -22,21 +22,20 @@
   ],
   "license": "GPL-3.0-or-later",
   "devDependencies": {
-    "@datadog/build-plugin": "^1.0.3",
     "@electron/asar": "^3.2.4",
-    "@types/node": "^18.16.16",
+    "@types/node": "^18.16.17",
     "@types/nodegit": "^0.28.3",
-    "@typescript-eslint/eslint-plugin": "^5.59.8",
-    "@typescript-eslint/parser": "^5.59.8",
+    "@typescript-eslint/eslint-plugin": "^5.59.9",
+    "@typescript-eslint/parser": "^5.59.9",
     "@weedzcokie/store": "^2.0.0",
-    "electron": "^25.0.0",
+    "electron": "^25.1.0",
     "electron-builder": "24.2.1",
-    "esbuild": "^0.17.19",
-    "eslint": "^8.41.0",
+    "esbuild": "^0.18.0",
+    "eslint": "^8.42.0",
     "eslint-plugin-import": "^2.27.5",
     "eslint-plugin-react": "^7.32.2",
     "preact": "^10.15.1",
-    "typescript": "^5.0.4"
+    "typescript": "^5.1.3"
   },
   "dependencies": {
     "nodegit": "0.28.0-alpha.21"

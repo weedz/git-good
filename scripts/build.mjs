@@ -1,8 +1,7 @@
 import { execSync } from "node:child_process";
-import { build, analyzeMetafile } from "esbuild";
+import * as fs from "node:fs/promises";
+import { analyzeMetafile } from "esbuild";
 import esbuild from "esbuild";
-
-import { BuildPlugin } from "@datadog/build-plugin/dist/esbuild/index.js";
 
 /** @type {import("esbuild").Plugin} */
 const envPlugin = {
@@ -33,11 +32,6 @@ const production = process.env.NODE_ENV !== "development";
 const plugins = [
     envPlugin,
 ];
-if (production) {
-    plugins.push(BuildPlugin({
-        output: true
-    }));
-}
 
 if (!production) {
     /** @type {import("esbuild").Plugin} */
@@ -62,7 +56,7 @@ const ctx = await esbuild.context({
         preload: "src/preload.ts",
         renderer: "src/renderer.tsx",
     },
-    // metafile: true,
+    metafile: true,
     bundle: true,
     platform: "node",
     target: "esnext",
@@ -85,6 +79,7 @@ if (!production) {
     const result = await ctx.rebuild();
     if (result.metafile) {
         const analyzeLog = await analyzeMetafile(result.metafile);
+        // await fs.writeFile("./metafile.json", JSON.stringify(result.metafile));
         console.log(analyzeLog);
     }
     ctx.dispose();
