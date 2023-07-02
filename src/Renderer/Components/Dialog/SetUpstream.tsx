@@ -1,6 +1,6 @@
 import { h } from "preact";
 import { Store } from "../../Data/store";
-import { SetUpstreamProps } from "./types";
+import { type SetUpstreamProps } from "./types";
 
 
 export function SetUpstream(dialog: SetUpstreamProps) {

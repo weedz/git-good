@@ -1,8 +1,8 @@
-import { DialogProps, DialogTypes } from "../Components/Dialog/types";
 import { IpcAction } from "../../Common/Actions";
-import { BranchFromType, BranchType, normalizeLocalName, normalizeRemoteNameWithoutRemote, normalizeTagName, getRemoteName } from "../../Common/Branch";
+import { BranchFromType, BranchType, getRemoteName, normalizeLocalName, normalizeRemoteNameWithoutRemote, normalizeTagName } from "../../Common/Branch";
+import { DialogTypes, type DialogProps } from "../Components/Dialog/types";
 import { ipcGetData, ipcSendMessage } from "./IPC";
-import { closeDialogWindow, openDialogWindow, saveAppConfig, createBranchFromRef, createBranchFromSha, renameLocalBranch, setUpstream } from "./store";
+import { closeDialogWindow, createBranchFromRef, createBranchFromSha, openDialogWindow, renameLocalBranch, saveAppConfig, setUpstream } from "./store";
 
 export function openDialog_EditRemote(dialogData: DialogProps[DialogTypes.EDIT_REMOTE]["data"]) {
     const oldName = dialogData.name;

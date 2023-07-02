@@ -1,5 +1,5 @@
-import { dialog, IpcMainInvokeEvent } from "electron/main";
-import { NativeDialog, NativeDialogData } from "../../Common/Dialog";
+import { dialog, type IpcMainInvokeEvent } from "electron/main";
+import { NativeDialog, type NativeDialogData } from "../../Common/Dialog";
 import { currentRepo } from "../Context";
 import { discardAllChanges, discardChanges, sendRefreshWorkdirEvent } from "../Provider";
 

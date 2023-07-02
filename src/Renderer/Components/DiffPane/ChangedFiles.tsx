@@ -1,12 +1,12 @@
-import { h, Component, Fragment } from "preact";
-import { PatchObj, CommitObj } from "../../../Common/Actions";
+import { Component, Fragment, h } from "preact";
+import { type CommitObj, type PatchObj } from "../../../Common/Actions";
 import { DiffDelta } from "../../../Common/Utils";
+import { LinkTypes } from "../../../Common/WindowEventTypes";
+import { openFile, resolveConflict } from "../../Data";
+import { ensureTreePath, toggleTreeItem, type Tree } from "../../Data/Tree";
 import Link from "../Link";
 import { Links } from "../LinkContainer";
 import { showFileMenu } from "./FileMenu";
-import { ensureTreePath, toggleTreeItem, Tree } from "../../Data/Tree";
-import { openFile, resolveConflict } from "../../Data";
-import { LinkTypes } from "../../../Common/WindowEventTypes";
 
 interface ButtonAction {
     label: string

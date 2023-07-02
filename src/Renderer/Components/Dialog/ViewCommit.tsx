@@ -1,5 +1,5 @@
 import { h } from "preact";
-import { ViewCommitProps } from "./types";
+import { type ViewCommitProps } from "./types";
 
 
 export function ViewCommit(dialog: ViewCommitProps) {

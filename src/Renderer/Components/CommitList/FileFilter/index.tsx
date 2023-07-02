@@ -1,5 +1,5 @@
-import { h, Fragment } from "preact";
-import { IpcAction, IpcResponse } from "../../../../Common/Actions";
+import { Fragment, h } from "preact";
+import { IpcAction, type IpcResponse } from "../../../../Common/Actions";
 import { ipcSendMessage } from "../../../Data/IPC";
 import { StoreComponent } from "../../../Data/store";
 

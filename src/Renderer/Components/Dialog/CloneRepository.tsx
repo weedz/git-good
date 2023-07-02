@@ -1,6 +1,6 @@
 import { Component, h } from "preact";
 import { selectFile } from "../../Data/Utility";
-import { DialogProps, DialogTypes } from "./types";
+import { type DialogProps, DialogTypes } from "./types";
 
 interface State {
     source: string

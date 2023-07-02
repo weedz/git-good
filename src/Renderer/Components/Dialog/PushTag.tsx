@@ -1,6 +1,6 @@
 import { h } from "preact";
 import { Store } from "../../Data/store";
-import { PushTagProps } from "./types";
+import { type PushTagProps } from "./types";
 
 
 export function PushTag(dialog: PushTagProps) {

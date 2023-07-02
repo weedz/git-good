@@ -14,6 +14,7 @@
   ],
   "ignorePatterns": "/scripts",
   "rules": {
+    "no-duplicate-imports": "off",
     "@typescript-eslint/explicit-module-boundary-types": "off",
     // "preact" enables "no-useless-constructor", but we want to use parameter properties
     // in the constructor so enable typescript specific "no-useless-constructor"

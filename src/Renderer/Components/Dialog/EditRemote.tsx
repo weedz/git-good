@@ -1,5 +1,5 @@
 import { h } from "preact";
-import { RemoteProps } from "./types";
+import { type RemoteProps } from "./types";
 
 
 export function EditRemote(dialog: RemoteProps) {

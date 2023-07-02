@@ -1,29 +1,31 @@
-import { basename, join } from "path";
 import { exec, spawn } from "child_process";
+import { basename, join } from "path";
 
-import { shell, clipboard, screen } from "electron";
-import { app, BrowserWindow, ipcMain, Menu, dialog, MenuItemConstructorOptions, IpcMainEvent } from "electron/main";
+import { clipboard, screen, shell } from "electron";
+import { BrowserWindow, Menu, app, dialog, ipcMain, type IpcMainEvent, type MenuItemConstructorOptions } from "electron/main";
 
 
-import { Commit, Object, Reference, Remote, Repository, Stash } from "nodegit";
+import { Commit, type Object, Reference, Remote, Repository, Stash } from "nodegit";
 
-import { isMac, isWindows } from "./Main/Utils";
 import { addRecentRepository, clearRepoProfile, currentProfile, diffOptionsIsEqual, getAppConfig, getRecentRepositories, getRepoProfile, saveAppConfig, setCurrentProfile, setRepoProfile, signatureFromActiveProfile, signatureFromProfile } from "./Main/Config";
+import { isMac, isWindows } from "./Main/Utils";
 
-import * as provider from "./Main/Provider";
-import { IpcAction, IpcActionParams, Locks, AsyncIpcActionReturnOrError, HunkObj } from "./Common/Actions";
-import { formatTimeAgo } from "./Common/Utils";
-import { requestClientData, sendEvent } from "./Main/WindowEvents";
+import type { AsyncIpcActionReturnOrError, HunkObj, IpcActionParams } from "./Common/Actions";
+import { IpcAction, Locks } from "./Common/Actions";
 import { normalizeLocalName } from "./Common/Branch";
+import { formatTimeAgo } from "./Common/Utils";
+import * as provider from "./Main/Provider";
+import { requestClientData, sendEvent } from "./Main/WindowEvents";
 
 import { AppEventType, RendererRequestEvents } from "./Common/WindowEventTypes";
 
 // eslint-disable-next-line import/no-unresolved
-import { lastCommit, buildDateTime } from "env";
+import { buildDateTime, lastCommit } from "env";
+import { currentRepo, currentWindow, getContext, getLastKnownHead, setRepo, setWindow } from "./Main/Context";
 import { handleContextMenu } from "./Main/ContextMenu";
 import { handleDialog } from "./Main/Dialogs";
-import { currentRepo, currentWindow, getContext, getLastKnownHead, setRepo, setWindow } from "./Main/Context";
 import { actionLock, eventReply, sendAction } from "./Main/IPC";
+import { ObjectTYPE, StashFLAGS } from "./Main/NodegitEnums";
 
 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
 // @ts-ignore, this is apparently a thing. Needed to set a real app_id under wayland
@@ -344,7 +346,7 @@ function applyAppMenu(): void {
                     label: "Stash",
                     async click() {
                         // TODO: Stash message
-                        await Stash.save(repo, signatureFromActiveProfile(), "Stash", Stash.FLAGS.DEFAULT);
+                        await Stash.save(repo, signatureFromActiveProfile(), "Stash", StashFLAGS.DEFAULT);
                         await provider.sendRefreshWorkdirEvent(repo);
                         sendAction(IpcAction.LOAD_STASHES, await provider.getStash(repo));
                         sendEvent(AppEventType.NOTIFY, {title: "Stashed changes"});
@@ -507,7 +509,7 @@ const eventMap: {
             return err as Error;
         }
 
-        const sha = ref.isTag() ? (await ref.peel(Object.TYPE.COMMIT)) as unknown as Commit : await repo.getReferenceCommit(data.ref);
+        const sha = ref.isTag() ? (await ref.peel(ObjectTYPE.COMMIT as unknown as Object.TYPE)) as unknown as Commit : await repo.getReferenceCommit(data.ref);
 
         try {
             const res = await repo.createBranch(data.name, sha);

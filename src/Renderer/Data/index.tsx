@@ -1,15 +1,16 @@
 import { h } from "preact";
-import { GlobalLinks, unselectLink } from "../Components/Link";
-import { BranchObj, IpcAction, IpcActionParams, IpcActionReturnOrError, IpcResponse, Locks, PatchObj } from "../../Common/Actions";
-import { openDialog_Settings, openDialog_createTag, openDialog_BranchFrom, openDialog_AddRemote, openDialog_RenameRef, openDialog_SetUpstream, openDialog_EditRemote, openDialog_PushTag } from "./Dialogs";
-import { registerAppEventHandlers, registerHandler, ipcGetData, ipcSendMessage, openNativeDialog } from "./IPC";
-import { Store, clearLock, setLock, StoreType, notify, openDialogWindow, closeDialogWindow, setDiffpaneSrc, store } from "./store";
-import { Notification } from "../Components/Notification";
-import { humanReadableBytes } from "../../Common/Utils";
-import { AppEventData, AppEventType, RendererRequestArgs, RendererRequestData, RendererRequestEvents, RendererRequestPayload, LinkTypes } from "../../Common/WindowEventTypes";
-import { DialogTypes } from "../Components/Dialog/types";
-import { NativeDialog } from "../../Common/Dialog";
+import type { BranchObj, IpcActionParams, IpcActionReturnOrError, IpcResponse, PatchObj } from "../../Common/Actions";
+import { IpcAction, Locks } from "../../Common/Actions";
 import { HEAD_REF } from "../../Common/Branch";
+import { NativeDialog } from "../../Common/Dialog";
+import { humanReadableBytes } from "../../Common/Utils";
+import { AppEventType, LinkTypes, RendererRequestEvents, type AppEventData, type RendererRequestArgs, type RendererRequestData, type RendererRequestPayload } from "../../Common/WindowEventTypes";
+import { DialogTypes } from "../Components/Dialog/types";
+import { GlobalLinks, unselectLink } from "../Components/Link";
+import { Notification } from "../Components/Notification";
+import { openDialog_AddRemote, openDialog_BranchFrom, openDialog_EditRemote, openDialog_PushTag, openDialog_RenameRef, openDialog_SetUpstream, openDialog_Settings, openDialog_createTag } from "./Dialogs";
+import { ipcGetData, ipcSendMessage, openNativeDialog, registerAppEventHandlers, registerHandler } from "./IPC";
+import { Store, clearLock, closeDialogWindow, notify, openDialogWindow, setDiffpaneSrc, setLock, store, type StoreType } from "./store";
 
 const dismissibleWindows: Set<() => void> = new Set();
 const dismissibleWindowsStack: Array<() => void> = [];

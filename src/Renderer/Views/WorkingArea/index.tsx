@@ -1,13 +1,13 @@
 import { h } from "preact";
-import "./style.css";
-import { IpcAction, IpcResponse, PatchObj } from "../../../Common/Actions";
-import { ipcGetData, ipcSendMessage } from "../../Data/IPC";
+import { IpcAction, type IpcResponse, type PatchObj } from "../../../Common/Actions";
+import { LinkTypes } from "../../../Common/WindowEventTypes";
 import ChangedFiles from "../../Components/DiffPane/ChangedFiles";
-import { Store, StoreComponent } from "../../Data/store";
 import { triggerAction } from "../../Components/Link";
 import { discardAllChanges, discardChanges } from "../../Data";
+import { ipcGetData, ipcSendMessage } from "../../Data/IPC";
+import { Store, StoreComponent } from "../../Data/store";
 import CommitForm from "./CommitForm";
-import { LinkTypes } from "../../../Common/WindowEventTypes";
+import "./style.css";
 
 function stageFile(e: h.JSX.TargetedEvent<HTMLButtonElement, MouseEvent>) {
     const path = e.currentTarget.dataset.path;

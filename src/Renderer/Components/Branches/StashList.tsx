@@ -1,11 +1,11 @@
 import { h } from "preact";
-import { StashObj } from "../../../Common/Actions";
+import type { StashObj } from "../../../Common/Actions";
+import { LinkTypes } from "../../../Common/WindowEventTypes";
+import { showStash } from "../../Data";
 import { toggleTreeItem } from "../../Data/Tree";
 import { PureStoreComponent, Store } from "../../Data/store";
 import Link from "../Link";
 import { showStashMenu } from "./Menu";
-import { showStash } from "../../Data";
-import { LinkTypes } from "../../../Common/WindowEventTypes";
 
 function selectStashItem(item: Link<StashObj>) {
     if (item.props.linkData?.index !== undefined) {

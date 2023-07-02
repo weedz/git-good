@@ -1,5 +1,5 @@
 import { h } from "preact";
-import { CreateTagProps } from "./types";
+import { type CreateTagProps } from "./types";
 
 
 export function CreateTag(dialog: CreateTagProps) {

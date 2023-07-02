@@ -102,8 +102,8 @@ export type AppEventData = {
     [AppEventType.OPEN_COMPARE_REVISIONS]: PatchObj[]
 }
 
-export enum NotificationPosition {
-    DEFAULT,
+export const enum NotificationPosition {
+    DEFAULT = 0,
 }
 
 export type NotificationInit = {

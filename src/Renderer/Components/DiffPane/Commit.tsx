@@ -1,14 +1,15 @@
 import { h } from "preact";
-import { ipcGetData } from "../../Data/IPC";
-import { IpcAction, CommitObj, PatchObj, IpcActionReturn, Locks, FileObj } from "../../../Common/Actions";
 
-import "./style.css";
-import CommitMessage from "./CommitMessage";
-import ChangedFiles from "./ChangedFiles";
-import { clearLock, Store, StoreComponent } from "../../Data/store";
-import { triggerAction } from "../Link";
+import type { CommitObj, FileObj, IpcActionReturn, PatchObj } from "../../../Common/Actions";
+import { IpcAction, Locks } from "../../../Common/Actions";
 import { DiffDelta } from "../../../Common/Utils";
 import { LinkTypes } from "../../../Common/WindowEventTypes";
+import { ipcGetData } from "../../Data/IPC";
+import { Store, StoreComponent, clearLock } from "../../Data/store";
+import { triggerAction } from "../Link";
+import ChangedFiles from "./ChangedFiles";
+import CommitMessage from "./CommitMessage";
+import "./style.css";
 
 interface State {
     commit: null | CommitObj

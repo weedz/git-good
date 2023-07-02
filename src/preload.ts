@@ -1,8 +1,8 @@
 import { contextBridge, ipcRenderer } from "electron/renderer";
-import { IpcAction, IpcActionParams, IpcPayload } from "./Common/Actions";
-import { ContextMenu, ContextMenuData } from "./Common/ContextMenu";
-import { NativeDialog, NativeDialogData, NativeDialogReturn } from "./Common/Dialog";
-import { AppEventData, AppEventType, RendererRequestData, RendererRequestEvents, RendererRequestPayload } from "./Common/WindowEventTypes";
+import type { IpcAction, IpcActionParams, IpcPayload } from "./Common/Actions";
+import { ContextMenu, type ContextMenuData } from "./Common/ContextMenu";
+import { NativeDialog, type NativeDialogData, type NativeDialogReturn } from "./Common/Dialog";
+import { type AppEventData, AppEventType, type RendererRequestData, RendererRequestEvents, type RendererRequestPayload } from "./Common/WindowEventTypes";
 
 interface IContextMenuApi {
     openContextMenu: <M extends ContextMenu>(menu: M, data: ContextMenuData[M]) => void

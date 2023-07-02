@@ -1,17 +1,18 @@
 import { h } from "preact";
-import { ipcSendMessage } from "../../Data/IPC";
-import { IpcAction, LoadCommitReturn, IpcActionParams, Locks, IpcResponse, LoadCommitsReturn } from "../../../Common/Actions";
-import { clearLock, lockChanged, PureStoreComponent, setLock, Store, StoreType } from "../../Data/store";
 
-import "./style.css";
-import FileFilter from "./FileFilter";
-import HeadColors from "./HeadColors";
-import { Links } from "../LinkContainer";
-import CommitContainer from "./CommitContainer";
-import { filterCommit } from "../../Data/Utility";
-import { openFileHistory } from "../../Data";
+import type { IpcActionParams, IpcResponse, LoadCommitReturn, LoadCommitsReturn } from "../../../Common/Actions";
+import { IpcAction, Locks } from "../../../Common/Actions";
 import { HISTORY_REF } from "../../../Common/Branch";
 import { LinkTypes } from "../../../Common/WindowEventTypes";
+import { openFileHistory } from "../../Data";
+import { ipcSendMessage } from "../../Data/IPC";
+import { filterCommit } from "../../Data/Utility";
+import { PureStoreComponent, Store, clearLock, lockChanged, setLock, type StoreType } from "../../Data/store";
+import { Links } from "../LinkContainer";
+import CommitContainer from "./CommitContainer";
+import FileFilter from "./FileFilter";
+import HeadColors from "./HeadColors";
+import "./style.css";
 
 type State = {
     filter: undefined | string

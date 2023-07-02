@@ -1,4 +1,4 @@
-import { AnyComponent, Component, createRef, h } from "preact";
+import { Component, createRef, h, type AnyComponent } from "preact";
 import "./style.css";
 
 export class Notification {

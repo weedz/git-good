@@ -2,7 +2,7 @@ import { h } from "preact";
 import { IpcAction } from "../../../Common/Actions";
 import { commit } from "../../Data";
 import { ipcSendMessage } from "../../Data/IPC";
-import { notify, store, Store, StoreComponent, StoreType } from "../../Data/store";
+import { notify, store, Store, StoreComponent, type StoreType } from "../../Data/store";
 
 type State = {
     commitMsg: StoreType["commitMsg"]

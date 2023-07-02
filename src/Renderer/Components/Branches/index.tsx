@@ -1,10 +1,10 @@
-import { h, Fragment } from "preact";
-import "./style.css";
-import { BranchesObj, Locks } from "../../../Common/Actions";
-import { Store, PureStoreComponent, StoreType, lockChanged } from "../../Data/store";
-import { getBranchTree, filterBranches } from "./Utils";
+import { Fragment, h } from "preact";
+import { Locks, type BranchesObj } from "../../../Common/Actions";
+import { PureStoreComponent, Store, lockChanged, type StoreType } from "../../Data/store";
 import BranchList from "./BranchList";
 import StashList from "./StashList";
+import { filterBranches, getBranchTree } from "./Utils";
+import "./style.css";
 
 type State = {
     filter: string

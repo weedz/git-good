@@ -1,10 +1,11 @@
-import { createStore, PartialStoreListener } from "@weedzcokie/store";
-import { AnyComponent, Component, JSX } from "preact";
-import { BranchesObj, BranchObj, HeadBranchObj, IpcAction, IpcActionReturn, IpcResponse, Locks, PatchObj, RepoStatus, StashObj } from "../../Common/Actions";
+import { createStore, type PartialStoreListener } from "@weedzcokie/store";
+import { Component, type AnyComponent, type JSX } from "preact";
+import type { BranchesObj, BranchObj, HeadBranchObj, IpcActionReturn, IpcResponse, PatchObj, RepoStatus, StashObj } from "../../Common/Actions";
+import { IpcAction, Locks } from "../../Common/Actions";
 import { HEAD_REF } from "../../Common/Branch";
-import { AppConfig } from "../../Common/Config";
-import { NotificationInit, NotificationPosition } from "../../Common/WindowEventTypes";
-import { DialogProps, DialogTypes } from "../Components/Dialog/types";
+import { type AppConfig } from "../../Common/Config";
+import { NotificationPosition, type NotificationInit } from "../../Common/WindowEventTypes";
+import { DialogTypes, type DialogProps } from "../Components/Dialog/types";
 import { Notification } from "../Components/Notification";
 import { ipcGetData, registerHandler } from "./IPC";
 

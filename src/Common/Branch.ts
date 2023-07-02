@@ -1,11 +1,11 @@
-export enum BranchType {
-    LOCAL,
-    REMOTE
+export const enum BranchType {
+    LOCAL = 0,
+    REMOTE = 1,
 }
 
-export enum BranchFromType {
-    REF,
-    COMMIT,
+export const enum BranchFromType {
+    REF = 0,
+    COMMIT = 1,
 }
 
 export const HISTORY_REF = "refs/*" as const;

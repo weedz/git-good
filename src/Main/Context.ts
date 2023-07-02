@@ -1,4 +1,4 @@
-import { BrowserWindow, WebContents } from "electron/main";
+import { BrowserWindow, type WebContents } from "electron/main";
 import { Oid, Repository } from "nodegit";
 
 export type Context = {

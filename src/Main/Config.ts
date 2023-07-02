@@ -3,7 +3,7 @@ import { readFileSync, unlinkSync, writeFileSync } from "fs";
 import { readFile } from "fs/promises";
 import { Repository, Signature } from "nodegit";
 import { join } from "path";
-import { AppConfig, AuthConfig, Profile } from "../Common/Config";
+import type { AppConfig, AuthConfig, Profile } from "../Common/Config";
 
 
 let appConfig: AppConfig;

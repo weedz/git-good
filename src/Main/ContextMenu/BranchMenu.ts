@@ -1,5 +1,5 @@
 import { clipboard } from "electron";
-import { dialog, Menu, MenuItemConstructorOptions } from "electron/main";
+import { dialog, Menu, type MenuItemConstructorOptions } from "electron/main";
 import { Remote } from "nodegit";
 import { IpcAction } from "../../Common/Actions";
 import { BranchFromType, BranchType } from "../../Common/Branch";

@@ -1,5 +1,5 @@
 import { h } from "preact";
-import { CompareProps } from "./types";
+import { type CompareProps } from "./types";
 
 
 export function Compare(dialog: CompareProps) {

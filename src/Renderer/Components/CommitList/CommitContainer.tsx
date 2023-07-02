@@ -1,5 +1,5 @@
 import { Component, h } from "preact";
-import { LoadCommitReturn } from "../../../Common/Actions";
+import { type LoadCommitReturn } from "../../../Common/Actions";
 import ScrollContainer from "../ScrollContainer";
 import CommitListItem from "./CommitListItem";
 

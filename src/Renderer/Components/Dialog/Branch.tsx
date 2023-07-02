@@ -1,5 +1,5 @@
 import { h } from "preact";
-import { BranchProps } from "./types";
+import { type BranchProps } from "./types";
 
 
 function BranchDialog(dialog: BranchProps & {title: string}) {

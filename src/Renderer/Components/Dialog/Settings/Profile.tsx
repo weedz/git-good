@@ -1,5 +1,5 @@
 import { Component, Fragment, h } from "preact";
-import { AppConfig, GpgConfig } from "../../../../Common/Config";
+import { type AppConfig, type GpgConfig } from "../../../../Common/Config";
 import { selectFile } from "../../../Data/Utility";
 
 type State = {

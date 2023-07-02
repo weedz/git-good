@@ -1,5 +1,5 @@
 import { clipboard } from "electron";
-import { Menu, MenuItemConstructorOptions } from "electron/main";
+import { Menu, type MenuItemConstructorOptions } from "electron/main";
 import { AppEventType } from "../../Common/WindowEventTypes";
 import { currentRepo } from "../Context";
 import { openFileAtCommit } from "../Provider";

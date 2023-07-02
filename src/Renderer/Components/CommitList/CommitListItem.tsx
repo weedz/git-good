@@ -1,5 +1,5 @@
 import { h } from "preact";
-import { BranchObj, LoadCommitReturn, RefType } from "../../../Common/Actions";
+import { RefType, type BranchObj, type LoadCommitReturn } from "../../../Common/Actions";
 import { LinkTypes } from "../../../Common/WindowEventTypes";
 import { Store, setDiffpaneSrc } from "../../Data/store";
 import { showLocalMenu, showRemoteRefMenu, showTagMenu } from "../Branches/Menu";

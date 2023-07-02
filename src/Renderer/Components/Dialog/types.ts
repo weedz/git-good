@@ -1,7 +1,7 @@
-import { JSX } from "preact";
-import { AppConfig } from "../../../Common/Config";
+import { type JSX } from "preact";
+import { type AppConfig } from "../../../Common/Config";
 
-export enum DialogTypes {
+export const enum DialogTypes {
     NEW_BRANCH,
     RENAME_BRANCH,
     COMPARE,

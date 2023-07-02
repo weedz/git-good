@@ -1,5 +1,5 @@
 import { h } from "preact";
-import { CommitObj } from "../../../Common/Actions";
+import { type CommitObj } from "../../../Common/Actions";
 import { formatTimeAgo } from "../../../Common/Utils";
 import { LinkTypes } from "../../../Common/WindowEventTypes";
 import Link, { GlobalLinks } from "../Link";

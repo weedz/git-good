@@ -1,4 +1,4 @@
-import { IpcMainInvokeEvent } from "electron/main";
+import { type IpcMainInvokeEvent } from "electron/main";
 import { ContextMenu } from "../../Common/ContextMenu";
 import { openHeadMenu, openLocalMenu, openRemoteMenu, openRemoteRefMenu, openRemotesMenu, openStashMenu, openTagMenu } from "./BranchMenu";
 import { openCommitMenu } from "./CommitListMenu";

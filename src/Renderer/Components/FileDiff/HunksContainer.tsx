@@ -1,5 +1,5 @@
 import { h } from "preact";
-import { LineObj } from "../../../Common/Actions";
+import { type LineObj } from "../../../Common/Actions";
 import ScrollListView from "../ScrollListView";
 
 interface Line {

@@ -1,6 +1,6 @@
 import { h } from "preact";
-import { BranchObj, BranchesObj } from "../../../Common/Actions";
-import { ensureTreePath, toggleTreeItem, Tree } from "../../Data/Tree";
+import type { BranchObj, BranchesObj } from "../../../Common/Actions";
+import { ensureTreePath, toggleTreeItem, type Tree } from "../../Data/Tree";
 import { store } from "../../Data/store";
 import Link from "../Link";
 

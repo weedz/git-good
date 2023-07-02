@@ -1,18 +1,21 @@
-import { join } from "path";
-import * as fs from "fs/promises";
-import { tmpdir } from "os";
 import { dialog, shell } from "electron";
-import { Revparse, Credential, Repository, Revwalk, Commit, Diff, ConvenientPatch, ConvenientHunk, DiffLine, Object, Branch, Graph, Index, Reset, Checkout, DiffFindOptions, Reference, Oid, Signature, Remote, DiffOptions, IndexEntry, Error as NodeGitError, Tag, Stash, Status, Rebase, Clone } from "nodegit";
-import { IpcAction, BranchObj, LineObj, HunkObj, PatchObj, CommitObj, IpcActionParams, RefType, StashObj, AsyncIpcActionReturnOrError, IpcActionReturn, LoadFileCommitsReturn } from "../Common/Actions";
-import { normalizeLocalName, normalizeRemoteName, normalizeRemoteNameWithoutRemote, normalizeTagName, getRemoteName, HISTORY_REF, HEAD_REF } from "../Common/Branch";
-import { gpgSign, gpgVerify } from "./GPG";
-import { AppConfig, AuthConfig } from "../Common/Config";
-import { currentProfile, getAppConfig, getAuth, signatureFromActiveProfile, signatureFromProfile } from "./Config";
-import { sendEvent } from "./WindowEvents";
+import * as fs from "fs/promises";
+import { Branch, Checkout, Clone, Commit, ConvenientHunk, ConvenientPatch, Credential, Diff, DiffLine, Graph, Index, IndexEntry, Error as NodeGitError, Object, Oid, Rebase, Reference, Remote, Repository, Reset, Revparse, Revwalk, Signature, Stash, Tag, type DiffFindOptions, type DiffOptions } from "nodegit";
+import { tmpdir } from "os";
+import { join } from "path";
+
 import type { TransferProgress } from "../../types/nodegit";
-import { Context, setLastKnownHead } from "./Context";
-import { sendAction } from "./IPC";
+import type { AsyncIpcActionReturnOrError, BranchObj, CommitObj, HunkObj, IpcActionParams, IpcActionReturn, LineObj, LoadFileCommitsReturn, PatchObj, StashObj } from "../Common/Actions";
+import { IpcAction, RefType } from "../Common/Actions";
+import { HEAD_REF, HISTORY_REF, getRemoteName, normalizeLocalName, normalizeRemoteName, normalizeRemoteNameWithoutRemote, normalizeTagName } from "../Common/Branch";
+import type { AppConfig, AuthConfig } from "../Common/Config";
 import { AppEventType } from "../Common/WindowEventTypes";
+import { currentProfile, getAppConfig, getAuth, signatureFromActiveProfile, signatureFromProfile } from "./Config";
+import { setLastKnownHead, type Context } from "./Context";
+import { gpgSign, gpgVerify } from "./GPG";
+import { sendAction } from "./IPC";
+import { CheckoutSTRATEGY, DiffDELTA, DiffFIND, DiffOPTION, NodeGitErrorCODE, ObjectTYPE, ResetTYPE, RevwalkSORT, StatusOPT, StatusSHOW } from "./NodegitEnums";
+import { sendEvent } from "./WindowEvents";
 
 declare module "nodegit" {
     interface Repository {
@@ -105,7 +108,7 @@ function compileHistoryCommit(commit: Commit): HistoryCommit {
 function initRevwalk(repo: Repository, start: "refs/*" | Oid): Revwalk {
     const revwalk = repo.createRevWalk();
     if (getAppConfig().commitlistSortOrder === "topological") {
-        revwalk.sorting(Revwalk.SORT.TOPOLOGICAL | Revwalk.SORT.TIME);
+        revwalk.sorting(RevwalkSORT.TOPOLOGICAL | RevwalkSORT.TIME);
     }
 
     if (start === "refs/*") {
@@ -194,7 +197,7 @@ export async function getFileCommits(repo: Repository, params: IpcActionParams[I
     // FIXME: HistoryEntry should set commit.repo.
     const historyEntries = await revwalk.fileHistoryWalk(currentName, params.num || 50000);
 
-    if (historyEntries[0].status === Diff.DELTA.RENAMED) {
+    if (historyEntries[0].status === DiffDELTA.RENAMED as unknown as Diff.DELTA) {
         // We always "follow renames" if the file is renamed in the first commit
         followRenames = true;
     }
@@ -210,11 +213,11 @@ export async function getFileCommits(repo: Repository, params: IpcActionParams[I
 
         historyCommit.path = currentName;
 
-        if (entry.status === Diff.DELTA.RENAMED) {
+        if (entry.status === DiffDELTA.RENAMED as unknown as Diff.DELTA) {
             historyCommit.path = entry.oldName;
         }
 
-        if (entry.status === Diff.DELTA.RENAMED && followRenames) {
+        if (entry.status === DiffDELTA.RENAMED as unknown as Diff.DELTA && followRenames) {
             followRenames = false;
 
             historyCommit.path = entry.newName;
@@ -417,7 +420,7 @@ export async function pull(repo: Repository, branch: string | null, signature: S
         if (hardReset) {
             const originHead = await repo.getBranchCommit(upstream);
 
-            await Reset.reset(repo, originHead, Reset.TYPE.HARD, {});
+            await Reset.reset(repo, originHead, ResetTYPE.HARD as unknown as Reset.TYPE, {});
             index = await repo.refreshIndex();
             result = true;
         } else {
@@ -800,7 +803,7 @@ export async function getBranches(repo: Repository): AsyncIpcActionReturnOrError
                 // Then fallback to `ref.peel` if `ref.targetPeel` returns null
                 let oid = ref.targetPeel();
                 if (!oid) {
-                    const headCommit = await ref.peel(Object.TYPE.COMMIT);
+                    const headCommit = await ref.peel(ObjectTYPE.COMMIT as unknown as Object.TYPE);
                     oid = headCommit.id();
                 }
                 refObj.headSHA = oid.tostrS();
@@ -852,7 +855,7 @@ export async function findFile(repo: Repository, file: string): AsyncIpcActionRe
 function onSignature(key: string) {
     return async (data: string) => {
         return {
-            code: NodeGitError.CODE.OK,
+            code: NodeGitErrorCODE.OK as unknown as NodeGitError.CODE,
             field: "gpgsig",
             signedData: await gpgSign(key, data),
         };
@@ -941,10 +944,10 @@ export async function createTag(repo: Repository, data: IpcActionParams[IpcActio
 
 async function getUnstagedPatches(repo: Repository, flags: Diff.OPTION): Promise<ConvenientPatch[]> {
     const unstagedDiff = await Diff.indexToWorkdir(repo, index, {
-        flags: Diff.OPTION.INCLUDE_UNTRACKED | Diff.OPTION.SHOW_UNTRACKED_CONTENT | Diff.OPTION.RECURSE_UNTRACKED_DIRS | flags
+        flags: DiffOPTION.INCLUDE_UNTRACKED | DiffOPTION.SHOW_UNTRACKED_CONTENT | DiffOPTION.RECURSE_UNTRACKED_DIRS | flags
     });
     const diffOpts: DiffFindOptions = {
-        flags: Diff.FIND.RENAMES | Diff.FIND.FOR_UNTRACKED,
+        flags: DiffFIND.RENAMES | DiffFIND.FOR_UNTRACKED,
     };
     await unstagedDiff.findSimilar(diffOpts);
     return unstagedDiff.patches();
@@ -962,7 +965,7 @@ async function getStagedDiff(repo: Repository, flags: Diff.OPTION): Promise<Diff
 async function getStagedPatches(repo: Repository, flags: Diff.OPTION): Promise<ConvenientPatch[]> {
     const stagedDiff = await getStagedDiff(repo, flags);
     const diffOpts: DiffFindOptions = {
-        flags: Diff.FIND.RENAMES,
+        flags: DiffFIND.RENAMES,
     };
     await stagedDiff.findSimilar(diffOpts);
     return stagedDiff.patches();
@@ -999,7 +1002,7 @@ async function refreshWorkdir(repo: Repository): Promise<{
 
         let flags = 0;
         if (diffOptions?.ignoreWhitespace) {
-            flags |= Diff.OPTION.IGNORE_WHITESPACE;
+            flags |= DiffOPTION.IGNORE_WHITESPACE;
         }
 
         // TODO: This is slow. Find a better way to determine when to query unstaged changed
@@ -1064,8 +1067,8 @@ export async function unstageFile(repo: Repository, filePath: string): AsyncIpcA
  */
 export async function stageAllFiles(repo: Repository): Promise<number> {
     const statusList = await repo.getStatus({
-        show: Status.SHOW.WORKDIR_ONLY,
-        flags: Status.OPT.INCLUDE_UNTRACKED | Status.OPT.RECURSE_UNTRACKED_DIRS,
+        show: StatusSHOW.WORKDIR_ONLY,
+        flags: StatusOPT.INCLUDE_UNTRACKED | StatusOPT.RECURSE_UNTRACKED_DIRS,
     });
     await index.read(0);
     await Promise.all(statusList.map(
@@ -1081,8 +1084,8 @@ export async function stageAllFiles(repo: Repository): Promise<number> {
  */
 export async function unstageAllFiles(repo: Repository): Promise<number> {
     const statusList = await repo.getStatus({
-        show: Status.SHOW.INDEX_ONLY,
-        flags: Status.OPT.INCLUDE_UNTRACKED | Status.OPT.RECURSE_UNTRACKED_DIRS,
+        show: StatusSHOW.INDEX_ONLY,
+        flags: StatusOPT.INCLUDE_UNTRACKED | StatusOPT.RECURSE_UNTRACKED_DIRS,
     });
     const head = await repo.getHeadCommit();
     await Promise.all(statusList.map(
@@ -1110,7 +1113,7 @@ async function discardSingleFile(repo: Repository, filePath: string): Promise<tr
     try {
         const head = await repo.getHeadCommit();
         const tree = await head.getTree();
-        await Checkout.tree(repo, tree, { checkoutStrategy: Checkout.STRATEGY.FORCE, paths: [filePath] });
+        await Checkout.tree(repo, tree, { checkoutStrategy: CheckoutSTRATEGY.FORCE, paths: [filePath] });
     } catch (err) {
         console.error(err);
     }
@@ -1140,8 +1143,8 @@ export async function discardChanges(repo: Repository, filePath: string): Promis
  */
 export async function discardAllChanges(repo: Repository): Promise<number> {
     const statusList = await repo.getStatus({
-        show: Status.SHOW.WORKDIR_ONLY,
-        flags: Status.OPT.INCLUDE_UNTRACKED | Status.OPT.RECURSE_UNTRACKED_DIRS,
+        show: StatusSHOW.WORKDIR_ONLY,
+        flags: StatusOPT.INCLUDE_UNTRACKED | StatusOPT.RECURSE_UNTRACKED_DIRS,
     });
     await Promise.all(statusList.map(
         statusItem => discardSingleFile(repo, statusItem.path())
@@ -1255,10 +1258,10 @@ export async function diffFileAtCommit(repo: Repository, file: string, sha: stri
 
     const diff = await commitDiffParent(commit, {
         pathspec,
-        flags: Diff.OPTION.IGNORE_WHITESPACE,
+        flags: DiffOPTION.IGNORE_WHITESPACE,
     });
     await diff.findSimilar({
-        flags: Diff.FIND.RENAMES
+        flags: DiffFIND.RENAMES
     });
 
     const convPatches = await diff.patches();
@@ -1456,12 +1459,12 @@ export async function getCommitPatches(sha: string, diffOptions?: AppConfig["dif
 
     let flags = 0;
     if (diffOptions?.ignoreWhitespace) {
-        flags |= Diff.OPTION.IGNORE_WHITESPACE;
+        flags |= DiffOPTION.IGNORE_WHITESPACE;
     }
 
     const diff = await commitDiffParent(commit.commit, {flags});
     await diff.findSimilar({
-        flags: Diff.FIND.RENAMES,
+        flags: DiffFIND.RENAMES,
     });
 
     return handleDiff(diff, commit.patches);
@@ -1485,8 +1488,8 @@ export async function compareRevisions(repo: Repository, revisions: { from: stri
     const revTo = await Revparse.single(repo, revisions.to);
 
     // If revisions.{from,to} is a Tag ref we need to "peel" to a commit object
-    const fromCommit = await revFrom.peel(Object.TYPE.COMMIT);
-    const toCommit = await revTo.peel(Object.TYPE.COMMIT);
+    const fromCommit = await revFrom.peel(ObjectTYPE.COMMIT);
+    const toCommit = await revTo.peel(ObjectTYPE.COMMIT);
 
     const from = await repo.getCommit(fromCommit.id().tostrS());
     const to = await repo.getCommit(toCommit.id().tostrS());
@@ -1497,7 +1500,7 @@ export async function compareRevisions(repo: Repository, revisions: { from: stri
 
     const diff = await toTree.diff(fromTree);
     await diff.findSimilar({
-        flags: Diff.FIND.RENAMES | Diff.FIND.IGNORE_WHITESPACE,
+        flags: DiffFIND.RENAMES | DiffFIND.IGNORE_WHITESPACE,
     });
 
     const descendant = await Graph.descendantOf(repo, to.id(), from.id());

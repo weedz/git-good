@@ -1,5 +1,5 @@
 import { h } from "preact";
-import { DialogProps, DialogTypes } from "./types";
+import { type DialogProps, DialogTypes } from "./types";
 
 
 export function FileHistory(dialog: DialogProps[DialogTypes.FILE_HISTORY]) {

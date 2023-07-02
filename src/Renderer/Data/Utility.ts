@@ -1,5 +1,5 @@
 import type { OpenDialogOptions } from "electron/renderer";
-import { LoadCommitReturn } from "../../Common/Actions";
+import { type LoadCommitReturn } from "../../Common/Actions";
 import { NativeDialog } from "../../Common/Dialog";
 import { openNativeDialog } from "./IPC";
 

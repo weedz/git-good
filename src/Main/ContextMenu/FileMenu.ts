@@ -1,5 +1,5 @@
 import { clipboard, shell } from "electron";
-import { Menu, MenuItemConstructorOptions } from "electron/main";
+import { Menu, type MenuItemConstructorOptions } from "electron/main";
 import { join } from "path";
 import { IpcAction } from "../../Common/Actions";
 import { currentRepo } from "../Context";

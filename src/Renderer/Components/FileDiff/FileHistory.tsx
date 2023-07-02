@@ -1,14 +1,14 @@
 import { Component, h } from "preact";
-import { ipcGetData } from "../../Data/IPC";
-import { IpcAction, LoadFileCommitsReturn } from "../../../Common/Actions";
-import { store } from "../../Data/store";
+import { IpcAction, type LoadFileCommitsReturn } from "../../../Common/Actions";
 import { DiffDelta, formatTimeAgo } from "../../../Common/Utils";
-import ScrollContainer from "../ScrollContainer";
-import Link from "../Link";
-import { showFileHistoryCommitMenu } from "./FileHistoryMenu";
-import { filterCommit } from "../../Data/Utility";
-import { Links } from "../LinkContainer";
 import { LinkTypes } from "../../../Common/WindowEventTypes";
+import { ipcGetData } from "../../Data/IPC";
+import { filterCommit } from "../../Data/Utility";
+import { store } from "../../Data/store";
+import Link from "../Link";
+import { Links } from "../LinkContainer";
+import ScrollContainer from "../ScrollContainer";
+import { showFileHistoryCommitMenu } from "./FileHistoryMenu";
 
 const ITEM_HEIGHT = 50;
 const ACTION_ITEM_HEIGHT = 12;

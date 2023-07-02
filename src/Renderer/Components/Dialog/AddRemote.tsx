@@ -1,5 +1,5 @@
 import { h } from "preact";
-import { DialogProps, DialogTypes, RemoteProps } from "./types";
+import { type DialogProps, DialogTypes, type RemoteProps } from "./types";
 
 
 export function AddRemote(dialog: DialogProps[DialogTypes.ADD_REMOTE]) {

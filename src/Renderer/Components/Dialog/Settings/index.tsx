@@ -1,9 +1,9 @@
 import { Component, Fragment, h } from "preact";
 import { IpcAction } from "../../../../Common/Actions";
-import { AppConfig } from "../../../../Common/Config";
+import { type AppConfig } from "../../../../Common/Config";
 import { NativeDialog } from "../../../../Common/Dialog";
 import { ipcGetData, ipcSendMessage, openNativeDialog } from "../../../Data/IPC";
-import { SettingsProps } from "../types";
+import { type SettingsProps } from "../types";
 import { Profile } from "./Profile";
 
 type State = {
