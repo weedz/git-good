@@ -6,13 +6,15 @@ export class Notification {
     readonly item;
 
     timer!: number;
+    expireTime: number | null;
 
     ref = createRef<NotificationComponent>();
 
     constructor(title: Props["title"], body: Props["body"], classes: string[], private deleteCallback: (id: number) => void, timeout: number | null = null) {
         this.id = (Math.random() * Number.MAX_SAFE_INTEGER)>>>0;
-        this.refreshExpireTime(timeout);
-        this.item = <NotificationComponent ref={this.ref} key={this.id} body={body} title={title} close={this.delete} clearTimer={this.clearTimer} classList={classes} resetTimer={() => this.refreshExpireTime(timeout)} />;
+        this.expireTime = timeout;
+        this.refreshExpireTime();
+        this.item = <NotificationComponent ref={this.ref} key={this.id} body={body} title={title} close={this.delete} clearTimer={this.clearTimer} classList={classes} resetTimer={this.refreshExpireTime} />;
     }
 
     update(data: {title?: Props["title"], body?: Props["body"], time?: number | null}) {
@@ -23,7 +25,11 @@ export class Notification {
             this.ref.current?.setState({body: data.body});
         }
         if (data.time !== undefined) {
-            this.refreshExpireTime(data.time);
+            this.expireTime = data.time;
+            // @ts-ignore, `Element.matches` does exist :+1:
+            if (!this.ref.current?.base?.matches(":hover")) {
+                this.refreshExpireTime();
+            }
         }
     }
 
@@ -34,10 +40,10 @@ export class Notification {
         this.ref.current?.deleteClass(className);
     }
 
-    private refreshExpireTime(timeout: number | null) {
+    private refreshExpireTime = () => {
         this.clearTimer();
-        if (timeout) {
-            this.timer = window.setTimeout(this.delete, timeout);
+        if (this.expireTime) {
+            this.timer = window.setTimeout(this.delete, this.expireTime);
         }
     }
     delete = () => {
