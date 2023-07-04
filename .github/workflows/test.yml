@@ -34,7 +34,9 @@ jobs:
 
       - name: Install node dependencies
 # Skip install scripts, otherwise we build nodegit on `npm install`.
-        run: pnpm install --frozen-lockfile --ignore-scripts
+        run: |
+          pnpm install --frozen-lockfile --ignore-scripts
+          cd node_modules/nodegit && pnpm install && node generate
 
       - name: Run ESLint
         run: pnpm run lint
