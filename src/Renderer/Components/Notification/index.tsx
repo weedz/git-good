@@ -26,6 +26,7 @@ export class Notification {
         }
         if (data.time !== undefined) {
             this.expireTime = data.time;
+            // eslint-disable-next-line @typescript-eslint/ban-ts-comment
             // @ts-ignore, `Element.matches` does exist :+1:
             if (!this.ref.current?.base?.matches(":hover")) {
                 this.refreshExpireTime();
