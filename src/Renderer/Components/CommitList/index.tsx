@@ -4,7 +4,6 @@ import type { IpcActionParams, IpcResponse, LoadCommitReturn, LoadCommitsReturn 
 import { IpcAction, Locks } from "../../../Common/Actions";
 import { HISTORY_REF } from "../../../Common/Branch";
 import { LinkTypes } from "../../../Common/WindowEventTypes";
-import { openFileHistory } from "../../Data";
 import { ipcSendMessage } from "../../Data/IPC";
 import { filterCommit } from "../../Data/Utility";
 import { PureStoreComponent, Store, clearLock, lockChanged, setLock, type StoreType } from "../../Data/store";
@@ -64,7 +63,7 @@ export default class CommitList extends PureStoreComponent<unknown, State> {
         this.commits = [];
     }
 
-    selectedBranch = (selection: StoreType["selectedBranch"]) => {
+    selectedBranch(selection: StoreType["selectedBranch"]) {
         this.resetCommitList();
         if (selection) {
             this.loadMoreCommits(selection);
@@ -153,11 +152,6 @@ export default class CommitList extends PureStoreComponent<unknown, State> {
             filter: e.currentTarget.value.toLocaleLowerCase()
         });
     }
-    filterByFile = (file: string | undefined) => {
-        if (file) {
-            openFileHistory(file);
-        }
-    }
     
     filterCommits() {
         const filter = this.state.filter;
@@ -170,10 +164,9 @@ export default class CommitList extends PureStoreComponent<unknown, State> {
     render() {
         return (
             <div id="commits-pane" class={`pane${Store.locks[Locks.COMMIT_LIST] ? " disabled" : ""}`}>
-                <h4>Commits</h4>
                 <div style="padding: 5px 0; border-bottom: 1px solid #555;">
                     <input type="text" value={this.state.filter} onKeyUp={this.filter} placeholder="sha,message" />
-                    <FileFilter filterByFile={this.filterByFile} />
+                    <FileFilter />
                 </div>
                 <Links.Provider value={LinkTypes.COMMITS}>
                     {

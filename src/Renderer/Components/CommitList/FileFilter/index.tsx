@@ -1,18 +1,17 @@
 import { Fragment, h } from "preact";
 import { IpcAction, type IpcResponse } from "../../../../Common/Actions";
+import { openFileHistory } from "../../../Data";
 import { ipcSendMessage } from "../../../Data/IPC";
 import { StoreComponent } from "../../../Data/store";
 
 import "./style.css";
 
 type State = {
-    filter: undefined | string
-    fileFilter: undefined | string
     fileResults: string[]
     showFiles: undefined | boolean
 };
 
-export default class FileFilter extends StoreComponent<{filterByFile: (file: string | undefined) => void}, State> {
+export default class FileFilter extends StoreComponent<unknown, State> {
     findFileTimeout?: number;
 
     componentDidMount() {
@@ -33,10 +32,11 @@ export default class FileFilter extends StoreComponent<{filterByFile: (file: str
         });
     }
 
-    filterByFile = (event: h.JSX.TargetedMouseEvent<HTMLElement>) => {
-        this.setState({showFiles: false})
+    openFileHistory = (event: h.JSX.TargetedMouseEvent<HTMLElement>) => {
         const file = event ? event.currentTarget.dataset.path : undefined;
-        this.props.filterByFile(file);
+        if (file) {
+            openFileHistory(file)
+        }
     }
     
     findFiles = (e: h.JSX.TargetedKeyboardEvent<HTMLInputElement>) => {
@@ -49,7 +49,6 @@ export default class FileFilter extends StoreComponent<{filterByFile: (file: str
             }, 250);
             this.setState({
                 showFiles: true,
-                fileFilter: value,
             });
         } else {
             this.setState({
@@ -62,10 +61,9 @@ export default class FileFilter extends StoreComponent<{filterByFile: (file: str
         return (
             <Fragment>
                 <input type="text" onClick={() => this.state.fileResults?.length > 0 && this.setState({showFiles: true})} onKeyUp={this.findFiles} placeholder="File/path..." />
-                {this.state.fileFilter && <button onClick={this.filterByFile}>Reset</button>}
                 {this.state.showFiles && !!this.state.fileResults?.length &&
                     <ul id="file-filter-list">
-                        {this.state.fileResults.map(file => <li key={file} onClick={this.filterByFile} data-path={file}>{file}</li>)}
+                        {this.state.fileResults.map(file => <li key={file} onClick={this.openFileHistory} data-path={file}>{file}</li>)}
                     </ul>
                 }
             </Fragment>
