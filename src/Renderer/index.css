@@ -34,6 +34,9 @@ body {
   font-family: "JetBrainsMonoNL Nerd Font Mono", monospace;
   font-size: 13px;
 }
+input {
+  font-family: "JetBrainsMonoNL Nerd Font Mono", monospace;
+}
 h4 {
   margin: 7px 0;
 }

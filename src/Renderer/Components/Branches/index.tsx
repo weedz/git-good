@@ -68,8 +68,8 @@ export default class Branches extends PureStoreComponent<unknown, State> {
                     <hr />
                     <StashList />
                 </div>
-                <div class="pane">
-                    <input type="text" placeholder="Filter..." onKeyUp={this.filter} />
+                <div class="pane" style="display: flex;">
+                    <input style="flex: 1;" type="text" placeholder="Filter..." onKeyUp={this.filter} />
                 </div>
             </Fragment>
         );
