@@ -1,6 +1,7 @@
 * {
   box-sizing: border-box;
   tab-size: 4;
+  user-select: none;
 }
 
 :root {
@@ -195,7 +196,6 @@ input[type="submit"] {
   border-radius: 2px;
   color: #bbb;
   padding: 3px 6px;
-  user-select: none;
 }
 button:disabled,
 input[type="button"]:disabled,

@@ -12,7 +12,6 @@
 #staged-changes {
     overflow: auto;
     flex: 1;
-    user-select: none;
     display: flex;
     flex-direction: column;
     min-height: 100px;

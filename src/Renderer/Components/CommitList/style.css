@@ -4,9 +4,6 @@
   display: flex;
   flex-direction: column;
 }
-#commits-pane > #commits-container > ul {
-  user-select: none;
-}
 #commits-pane > #commits-container > ul > li {
   display: flex;
   flex-direction: row;

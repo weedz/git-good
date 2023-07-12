@@ -3,6 +3,7 @@ import { type CommitObj } from "../../../Common/Actions";
 import { formatTimeAgo } from "../../../Common/Utils";
 import { LinkTypes } from "../../../Common/WindowEventTypes";
 import Link, { GlobalLinks } from "../Link";
+import "./style.css";
 
 export default function CommitMessage(props: {commit: CommitObj}) {
     const commitDate = new Date(props.commit.date * 1000);
@@ -15,7 +16,7 @@ export default function CommitMessage(props: {commit: CommitObj}) {
     }
 
     return (
-        <div>
+        <div class="commit-message">
             <div class="pane commit-header">
                 {signature}
                 <span class="commit-sha pointer" title="Copy sha" onClick={() => navigator.clipboard.writeText(props.commit.sha)}>{props.commit.sha.substring(0, 8)}</span>

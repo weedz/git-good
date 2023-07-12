@@ -116,3 +116,12 @@
     flex: 1;
     text-align: center;
 }
+
+.commit-message .msg,
+.commit-message .msg *,
+.commit-message .date,
+.commit-message .date *,
+.commit-message .author,
+.commit-message .author * {
+    user-select: text;
+}

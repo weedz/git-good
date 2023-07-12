@@ -95,3 +95,13 @@
     overflow: hidden;
     text-overflow: ellipsis;
 }
+
+#file-diff .file-name,
+#file-diff .file-name * {
+    user-select: text;
+}
+
+#file-diff .hunks .diff-line,
+#file-diff .hunks .diff-line * {
+    user-select: text;
+}
