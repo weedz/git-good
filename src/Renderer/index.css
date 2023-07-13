@@ -34,7 +34,8 @@ body {
   font-family: "JetBrainsMonoNL Nerd Font Mono", monospace;
   font-size: 13px;
 }
-input {
+input,
+select {
   font-family: "JetBrainsMonoNL Nerd Font Mono", monospace;
 }
 h4 {
@@ -169,6 +170,9 @@ ul.block-list > li > a:not(.selected):hover {
 .space-between {
   justify-content: space-between;
 }
+.align-center {
+  align-items: center;
+}
 
 .btn-group {
   margin-left: 6px;
@@ -229,4 +233,10 @@ button.active {
 
 button.selected {
   background-color: #234;
+}
+
+.dialog-action-buttons {
+  display: flex;
+  justify-content: space-evenly;
+  padding-top: 7px
 }

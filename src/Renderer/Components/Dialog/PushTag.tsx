@@ -1,23 +1,37 @@
-import { h } from "preact";
+import { createRef, h } from "preact";
 import { Store } from "../../Data/store";
 import { type PushTagProps } from "./types";
+import { useEffect } from "preact/hooks";
 
 
 export function PushTag(dialog: PushTagProps) {
     const data = {
         remote: ""
     };
+
+    const inputRef = createRef<HTMLSelectElement>();
+    useEffect(() => {
+        inputRef.current?.focus()
+    }, [inputRef.current]);
+
     return <div class="dialog-window">
         <form onSubmit={e => {
             e.preventDefault();
             dialog.confirmCb(data.remote);
         }}>
-            <h4>Push to remote:</h4>
-            <select name="remote" onInput={e => data.remote = e.currentTarget.value}>
-                {Store.remotes.map(remote => <option key={remote.name} value={remote.name} selected={remote.name === data.remote}>{remote.name}</option>)}
-            </select>
-            <button type="button" onClick={dialog.cancelCb}>Cancel</button>
-            <button type="submit">Confirm</button>
+            <h4>Push tag:</h4>
+            <div class="flex-column align-center">
+                <label>
+                    <span>Remote:</span>
+                    <select ref={inputRef} name="remote" onInput={e => data.remote = e.currentTarget.value}>
+                        {Store.remotes.map(remote => <option key={remote.name} value={remote.name} selected={remote.name === data.remote}>{remote.name}</option>)}
+                    </select>
+                </label>
+            </div>
+            <div class="dialog-action-buttons">
+                <button type="button" onClick={dialog.cancelCb}>Cancel</button>
+                <button type="submit">Confirm</button>
+            </div>
         </form>
     </div>;
 }

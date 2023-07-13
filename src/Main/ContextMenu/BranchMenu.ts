@@ -260,13 +260,14 @@ export function openTagMenu(data: Record<string, string>) {
                 const remotes = await currentRepo().getRemoteNames();
                 if (remotes.length > 1) {
                     sendEvent(AppEventType.DIALOG_PUSH_TAG, { name: data.ref });
+                } else {
+                    sendEvent(AppEventType.NOTIFY, { title: "Pushing tag" });
+                    await provider.push(getContext(), {
+                        remote: remotes[0],
+                        localBranch: data.ref
+                    });
+                    sendAction(IpcAction.LOAD_BRANCHES, await provider.getBranches(currentRepo()));
                 }
-                sendEvent(AppEventType.NOTIFY, { title: "Pushing tag" });
-                await provider.push(getContext(), {
-                    remote: remotes[0],
-                    localBranch: data.ref
-                });
-                sendAction(IpcAction.LOAD_BRANCHES, await provider.getBranches(currentRepo()));
             }
         },
         { type: "separator" },

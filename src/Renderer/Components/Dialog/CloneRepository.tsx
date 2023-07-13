@@ -1,33 +1,37 @@
-import { Component, h } from "preact";
+import { createRef, h } from "preact";
 import { selectFile } from "../../Data/Utility";
 import { type DialogProps, DialogTypes } from "./types";
+import { useEffect, useState } from "preact/hooks";
 
-interface State {
-    source: string
-    target: string
-}
+export function CloneRepositoryDialog(props: DialogProps[DialogTypes.CLONE_REPOSITORY]) {
+    const [source, setSource] = useState("");
+    const [target, setTarget] = useState("");
 
-export class CloneRepositoryDialog extends Component<DialogProps[DialogTypes.CLONE_REPOSITORY], State> {
-    render() {
-        return <div class="dialog-window">
-            <form onSubmit={e => {
-                e.preventDefault();
-                this.props.confirmCb(this.state);
-            }}>
-                <h4>Clone Repository</h4>
-                <label>
-                    <p>URL:</p>
-                    <input type="text" onInput={e => this.setState({ source: e.currentTarget.value })} />
-                </label>
-                <label>
-                    <p>Clone into:</p>
-                    <input type="text" disabled value={this.state.target} />
-                    <button type="button" onClick={() => selectFile(path => this.setState({target: path}), {properties: ["openDirectory", "createDirectory"]})}>Browse</button>
-                </label>
-                <br />
-                <button type="button" onClick={this.props.cancelCb}>Cancel</button>
+    const inputRef = createRef<HTMLInputElement>();
+    useEffect(() => {
+        inputRef.current?.focus();
+    }, [inputRef.current]);
+
+    return <div class="dialog-window">
+        <form onSubmit={e => {
+            e.preventDefault();
+            props.confirmCb({ source, target });
+        }}>
+            <h4>Clone Repository</h4>
+            <label>
+                <p>URL:</p>
+                <input ref={inputRef} type="text" onInput={(e) => setSource(e.currentTarget.value)} />
+            </label>
+            <label>
+                <p>Clone into:</p>
+                <input type="text" value={target} onInput={(e) => setTarget(e.currentTarget.value)} />
+                <button type="button" onClick={() => selectFile(path => setTarget(path), {properties: ["openDirectory", "createDirectory"]})}>Browse</button>
+            </label>
+            <br />
+            <div class="dialog-action-buttons">
+                <button type="button" onClick={props.cancelCb}>Cancel</button>
                 <button type="submit">Confirm</button>
-            </form>
-        </div>;
-    }
+            </div>
+        </form>
+    </div>;
 }

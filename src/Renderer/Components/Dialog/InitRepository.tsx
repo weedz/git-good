@@ -1,28 +1,32 @@
-import { Component, h } from "preact";
+import { createRef, h } from "preact";
 import { selectFile } from "../../Data/Utility";
 import { type DialogProps, DialogTypes } from "./types";
+import { useEffect, useState } from "preact/hooks";
 
-interface State {
-    target: string
-}
+export function InitRepositoryDialog(props: DialogProps[DialogTypes.INIT_REPOSITORY]) {
+    const [target, setTarget] = useState("");
 
-export class InitRepositoryDialog extends Component<DialogProps[DialogTypes.INIT_REPOSITORY], State> {
-    render() {
-        return <div class="dialog-window">
-            <form onSubmit={e => {
-                e.preventDefault();
-                this.props.confirmCb(this.state.target);
-            }}>
-                <h4>Init Repository</h4>
-                <label>
-                    <p>Path:</p>
-                    <input type="text" disabled value={this.state.target} />
-                    <button type="button" onClick={() => selectFile(path => this.setState({target: path}), {properties: ["openDirectory", "createDirectory"]})}>Browse</button>
-                </label>
-                <br />
-                <button type="button" onClick={this.props.cancelCb}>Cancel</button>
+    const inputRef = createRef<HTMLInputElement>();
+    useEffect(() => {
+        inputRef.current?.focus();
+    }, [inputRef.current]);
+
+    return <div class="dialog-window">
+        <form onSubmit={e => {
+            e.preventDefault();
+            props.confirmCb(target);
+        }}>
+            <h4>Init Repository</h4>
+            <label>
+                <p>Path:</p>
+                <input ref={inputRef} type="text" value={target} onInput={(e) => setTarget(e.currentTarget.value)} />
+                <button type="button" onClick={() => selectFile(path => setTarget(path), {properties: ["openDirectory", "createDirectory"]})}>Browse</button>
+            </label>
+            <br />
+            <div class="dialog-action-buttons">
+                <button type="button" onClick={props.cancelCb}>Cancel</button>
                 <button type="submit">Confirm</button>
-            </form>
-        </div>;
-    }
+            </div>
+        </form>
+    </div>;
 }
