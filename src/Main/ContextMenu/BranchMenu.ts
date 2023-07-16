@@ -17,7 +17,11 @@ function menuActionPullChanges(refName: string | null) {
 function setUpstreamMenuItem(ref: string, remote: string) {
     return {
         label: "Set upstream...",
-        click() {
+        async click() {
+            const remotes = await currentRepo().getRemoteNames();
+            if (remotes.length === 0) {
+                dialog.showErrorBox("Unable to set upstream", "No remotes.");
+            }
             const local = ref;
             sendEvent(AppEventType.DIALOG_SET_UPSTREAM, {local, remote});
         }

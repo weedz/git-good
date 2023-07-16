@@ -2,7 +2,7 @@ import { IpcAction } from "../../Common/Actions";
 import { BranchFromType, BranchType, getRemoteName, normalizeLocalName, normalizeRemoteNameWithoutRemote, normalizeTagName } from "../../Common/Branch";
 import { DialogTypes, type DialogProps } from "../Components/Dialog/types";
 import { ipcGetData, ipcSendMessage } from "./IPC";
-import { closeDialogWindow, createBranchFromRef, createBranchFromSha, openDialogWindow, renameLocalBranch, saveAppConfig, setUpstream } from "./store";
+import { Store, closeDialogWindow, createBranchFromRef, createBranchFromSha, openDialogWindow, renameLocalBranch, saveAppConfig, setUpstream } from "./store";
 
 export function openDialog_EditRemote(dialogData: DialogProps[DialogTypes.EDIT_REMOTE]["data"]) {
     const oldName = dialogData.name;
@@ -85,12 +85,13 @@ export function openDialog_RenameRef(sha: string, type: BranchType) {
 }
 
 export function openDialog_SetUpstream(local: string, currentUpstream?: string) {
-    let oldRemote = "origin";
+    let oldRemote = "";
     let branch = local;
     if (currentUpstream) {
         oldRemote = getRemoteName(currentUpstream);
         branch = normalizeRemoteNameWithoutRemote(currentUpstream);
     } else {
+        oldRemote = Store.remotes[0].name,
         branch = normalizeLocalName(branch);
     }
 

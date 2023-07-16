@@ -594,23 +594,28 @@ export async function deleteRemoteRef(repo: Repository, refName: string): Promis
         refName = ref.name();
         const end = refName.indexOf("/", 14);
         const remoteName = refName.substring(13, end);
-        const remote = await repo.getRemote(remoteName);
+        const remote = await repo.getRemote(remoteName).catch(_ => null);
 
-        const branchName = refName.substring(end + 1);
+        // It is possible to have a reference in a non-existing remote
+        if (remote) {
+            const branchName = refName.substring(end + 1);
 
-        try {
-            await remote.push([`:refs/heads/${branchName}`], {
-                callbacks: {
-                    credentials: credentialsCallback
+            try {
+                // `:[ref_name]` will delete the remote branch
+                await remote.push([`:refs/heads/${branchName}`], {
+                    callbacks: {
+                        credentials: credentialsCallback
+                    }
+                });
+            } catch (err) {
+                if (err instanceof Error) {
+                    dialog.showErrorBox("No remote ref found", err.message);
                 }
-            });
-            ref.delete();
-        } catch (err) {
-            if (err instanceof Error) {
-                dialog.showErrorBox("No remote ref found", err.message);
+                return false;
             }
-            return false;
         }
+
+        ref.delete();
     }
     return true;
 }
@@ -648,12 +653,11 @@ export async function deleteRemoteTag(remote: Remote, tagName: string): Promise<
     return true;
 }
 
-export async function getHEAD(repo: Repository): AsyncIpcActionReturnOrError<IpcAction.LOAD_HEAD> {
-    if (repo.isEmpty() || repo.headUnborn()) {
-        return null;
-    }
+async function getHeadStruct(repo: Repository) {
     const head = await repo.head();
     const headCommit = await repo.getHeadCommit();
+
+    setLastKnownHead(headCommit.id());
 
     let headUpstream: string | undefined;
     try {
@@ -668,8 +672,16 @@ export async function getHEAD(repo: Repository): AsyncIpcActionReturnOrError<Ipc
         commit: getCommitObj(headCommit),
         normalizedName: head.name(),
         type: RefType.LOCAL,
-        remote: headUpstream
+        remote: headUpstream,
     }
+}
+
+export async function getHEAD(repo: Repository): AsyncIpcActionReturnOrError<IpcAction.LOAD_HEAD> {
+    if (repo.isEmpty() || repo.headUnborn()) {
+        return null;
+    }
+    
+    return getHeadStruct(repo);
 }
 
 export async function getUpstreamRefs(repo: Repository): AsyncIpcActionReturnOrError<IpcAction.LOAD_UPSTREAMS> {
@@ -1613,17 +1625,10 @@ export async function commitWithDiff(repo: Repository, sha: string): Promise<Err
 
 export async function checkoutBranch(repo: Repository, branch: string): AsyncIpcActionReturnOrError<IpcAction.CHECKOUT_BRANCH> {
     try {
+        // NOTE: `checkoutBranch()` does not return a Reference..
         await repo.checkoutBranch(branch);
-        const head = await repo.head();
-        const headCommit = await repo.getHeadCommit()
-        setLastKnownHead(headCommit.id());
-        return {
-            name: head.name(),
-            headSHA: headCommit.id().tostrS(),
-            commit: getCommitObj(headCommit),
-            normalizedName: head.name(),
-            type: RefType.LOCAL
-        };
+
+        return getHeadStruct(repo);
     } catch (err) {
         return err as Error;
     }
