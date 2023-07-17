@@ -9,9 +9,9 @@ import { DialogTypes, type DialogProps } from "../Components/Dialog/types";
 import { Notification } from "../Components/Notification";
 import { ipcGetData, registerHandler } from "./IPC";
 
-type DialogWindow = {
-    type: DialogTypes
-    props: DialogProps[DialogTypes]
+type DialogWindow<T extends DialogTypes = DialogTypes> = {
+    type: T
+    props: DialogProps[T]
 }
 
 export type StoreType = {
