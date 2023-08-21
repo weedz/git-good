@@ -51,7 +51,7 @@ app.whenReady().then(() => {
         minWidth: initialWindowWidth,
         webPreferences: {
             preload: join(__dirname, "../dist/preload.js"),
-            nodeIntegration: true,
+            // nodeIntegration: true,
             contextIsolation: true,
             disableBlinkFeatures: "Auxclick"
         }
@@ -203,7 +203,8 @@ function applyAppMenu(): void {
                     enabled: !!repo,
                     label: "Open in File Manager",
                     click() {
-                        repo && shell.openPath(repo.workdir());
+                        // FIXME: `shell.openExternal` locks the main thread?
+                        repo && shell.showItemInFolder(repo.workdir());
                     }
                 },
                 {
