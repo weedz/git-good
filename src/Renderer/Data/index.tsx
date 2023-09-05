@@ -11,6 +11,7 @@ import { Notification } from "../Components/Notification";
 import { openDialog_AddRemote, openDialog_BranchFrom, openDialog_EditRemote, openDialog_PushTag, openDialog_RenameRef, openDialog_SetUpstream, openDialog_Settings, openDialog_createTag } from "./Dialogs";
 import { ipcGetData, ipcSendMessage, openNativeDialog, registerAppEventHandlers, registerHandler } from "./IPC";
 import { Store, clearLock, closeDialogWindow, notify, openDialogWindow, setDiffpaneSrc, setLock, store, type StoreType } from "./store";
+import { loadStylesFromLocalstorage } from "./styles";
 
 const dismissibleWindows: Set<() => void> = new Set();
 const dismissibleWindowsStack: Array<() => void> = [];
@@ -41,6 +42,7 @@ export function showDismissibleWindow(dismissCallback: () => void) {
 // Glyph properties
 let _glyphWidth = 7.81;
 calculateGlyphWidth(13, "JetBrainsMonoNL Nerd Font Mono");
+loadStylesFromLocalstorage();
 
 ipcSendMessage(IpcAction.INIT, null);
 ipcGetData(IpcAction.GET_SETTINGS, null).then(appConfig => {

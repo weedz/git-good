@@ -6,7 +6,7 @@ export default function Main() {
     return (
         <div style={{
             display: "flex",
-            width: "calc(100vw - 200px)",
+            flex: "auto",
             overflowY: "auto",
         }}>
             <CommitList />

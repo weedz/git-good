@@ -12,6 +12,7 @@ import { NotificationPosition } from "../Common/WindowEventTypes";
 
 import "./index.css";
 import { basename } from "../Common/Utils";
+import { Resizable } from "./Components/Resizable";
 
 export default class App extends StoreComponent {
     componentDidMount() {
@@ -31,10 +32,12 @@ export default class App extends StoreComponent {
     render() {
         const mainContent = Store.repo
          ? <>
-            <div id="left-pane">
-                <Changes />
-                <Branches />
-            </div>
+            <Resizable>
+                <div id="left-pane">
+                    <Changes />
+                    <Branches />
+                </div>
+            </Resizable>
             <FileDiff />
             <Main />
             <NotificationsContainer position={NotificationPosition.DEFAULT} />

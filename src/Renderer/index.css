@@ -6,6 +6,9 @@
 
 :root {
   --renamed-color: lightblue;
+  --branch-list-width: 200px;
+  /* FIXME: Add setting to change font, reflect this change in src/Data/Renderer/index.tsx:calculateGlyphWidth */
+  --font: "JetBrainsMonoNL Nerd Font Mono";
 }
 
 ::-webkit-scrollbar-corner {
@@ -30,13 +33,12 @@ body {
   padding: 0;
   background-color: #000;
   color: #ddd;
-  /* FIXME: Add setting to change font, reflect this change in src/Data/Renderer/index.tsx:calculateGlyphWidth */
-  font-family: "JetBrainsMonoNL Nerd Font Mono", monospace;
   font-size: 13px;
 }
 input,
-select {
-  font-family: "JetBrainsMonoNL Nerd Font Mono", monospace;
+select,
+body {
+  font-family: var(--font), monospace;
 }
 h4 {
   margin: 7px 0;
@@ -68,7 +70,7 @@ textarea:focus {
   height: 100vh;
 }
 #left-pane {
-  width: 200px;
+  width: var(--branch-list-width);
   display: flex;
   flex-direction: column;
 }
@@ -90,6 +92,23 @@ textarea:focus {
   padding: 4px;
   border: 1px solid #666;
 }
+
+.resizable-wrapper {
+  display: flex;
+  flex-wrap: wrap;
+}
+.resizable-track:before {
+  top: 0;
+  content: "";
+  position: absolute;
+  width: 4px;
+  height: 100%;
+  cursor: ew-resize;
+}
+.resizable-track:hover:before {
+  background: #3333ee;
+}
+
 #changes-pane {
   height: 100px;
   flex: 0;

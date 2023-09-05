@@ -4,8 +4,7 @@ import { basename, join } from "path";
 import { clipboard, screen, shell } from "electron";
 import { BrowserWindow, Menu, app, dialog, ipcMain, type IpcMainEvent, type MenuItemConstructorOptions } from "electron/main";
 
-
-import { Commit, type Object, Reference, Remote, Repository, Stash } from "nodegit";
+import { type Commit, type Object, type Reference, Remote, Repository, Stash } from "nodegit";
 
 import { addRecentRepository, clearRepoProfile, currentProfile, diffOptionsIsEqual, getAppConfig, getRecentRepositories, getRepoProfile, saveAppConfig, setCurrentProfile, setRepoProfile, signatureFromActiveProfile, signatureFromProfile } from "./Main/Config";
 import { isMac, isWindows } from "./Main/Utils";
@@ -27,12 +26,16 @@ import { handleDialog } from "./Main/Dialogs";
 import { actionLock, eventReply, sendAction } from "./Main/IPC";
 import { ObjectTYPE, StashFLAGS } from "./Main/NodegitEnums";
 
-// eslint-disable-next-line @typescript-eslint/ban-ts-comment
-// @ts-ignore, this is apparently a thing. Needed to set a real app_id under wayland
-app.setDesktopName("git-good");
+// console.log(app.getPath("crashDumps"));
+// crashReporter.start({ submitURL: "", uploadToServer: false });
 
-ipcMain.on("context-menu", handleContextMenu);
-ipcMain.handle("dialog", handleDialog);
+// --enable-features=UseOzonePlatform,Vulkan
+// --ozone-platform=wayland
+// --ozone-platform-hint=wayland
+
+// app.commandLine.appendSwitch("enable-features", "UseOzonePlatform,Vulkan");
+// // app.commandLine.appendSwitch("ozone-platform", "wayland");
+// app.commandLine.appendSwitch("ozone-platform-hint", "wayland");
 
 app.commandLine.appendSwitch("disable-smooth-scrolling");
 
@@ -88,6 +91,9 @@ app.whenReady().then(() => {
             action: "deny"
         }
     });
+
+    ipcMain.on("context-menu", handleContextMenu);
+    ipcMain.handle("dialog", handleDialog);
 });
 
 // Quit when all windows are closed.
