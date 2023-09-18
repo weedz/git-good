@@ -13,7 +13,7 @@ overrides:
 dependencies:
   nodegit:
     specifier: github:weedz/nodegit#master
-    version: github.com/weedz/nodegit/52212df75fd91c42313d6ec2dff53a9a2ba89bf7
+    version: git/github.com+weedz/nodegit/52212df75fd91c42313d6ec2dff53a9a2ba89bf7
 
 devDependencies:
   '@electron/asar':
@@ -38,8 +38,8 @@ devDependencies:
     specifier: ^2.0.1
     version: 2.0.1
   electron:
-    specifier: 25.8.0
-    version: 25.8.0
+    specifier: 25.8.1
+    version: 25.8.1
   electron-builder:
     specifier: 24.6.3
     version: 24.6.3
@@ -1483,8 +1483,8 @@ packages:
       - supports-color
     dev: true
 
-  /electron@25.8.0:
-    resolution: {integrity: sha512-T3kC1a/3ntSaYMCVVfUUc9v7myPzi6J2GP0Ad/CyfWKDPp054dGyKxb2EEjKnxQQ7wfjsT1JTEdBG04x6ekVBw==}
+  /electron@25.8.1:
+    resolution: {integrity: sha512-GtcP1nMrROZfFg0+mhyj1hamrHvukfF6of2B/pcWxmWkd5FVY1NJib0tlhiorFZRzQN5Z+APLPr7aMolt7i2AQ==}
     engines: {node: '>= 12.20.55'}
     hasBin: true
     requiresBuild: true
@@ -3947,8 +3947,8 @@ packages:
     engines: {node: '>=10'}
     dev: true
 
-  github.com/weedz/nodegit/52212df75fd91c42313d6ec2dff53a9a2ba89bf7:
-    resolution: {tarball: https://codeload.github.com/weedz/nodegit/tar.gz/52212df75fd91c42313d6ec2dff53a9a2ba89bf7}
+  git/github.com+weedz/nodegit/52212df75fd91c42313d6ec2dff53a9a2ba89bf7:
+    resolution: {commit: 52212df75fd91c42313d6ec2dff53a9a2ba89bf7, repo: git@github.com:weedz/nodegit.git, type: git}
     name: nodegit
     version: 0.28.0-alpha.18
     engines: {node: '>= 12.19.0 < 13 || >= 14.10.0'}
