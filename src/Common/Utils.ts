@@ -28,11 +28,11 @@ const DIVISIONS: Array<{amount: number, name: Intl.RelativeTimeFormatUnit}> = [
 
 export function formatTimeAgo(date: Date) {
     let duration = (date.getTime() - new Date().getTime()) / 1000;
-    for (const division of DIVISIONS) {
-        if (Math.abs(duration) < division.amount) {
-            return formatter.format(Math.round(duration), division.name);
+    for (let i = 0, len = DIVISIONS.length; i < len; ++i) {
+        if (Math.abs(duration) < DIVISIONS[i].amount) {
+            return formatter.format(Math.round(duration), DIVISIONS[i].name);
         }
-        duration /= division.amount;
+        duration /= DIVISIONS[i].amount;
     }
     // NOTE: Should never reach this
     return formatter.format(Math.round(duration), "seconds");

@@ -30,8 +30,10 @@ export function RenderBranchTree(props: {
     indent: number
 }) {
     const items = [];
+    // Sort the children by size
     const sortedChildren = Array.from(props.branches.children.entries()).sort( ([_, a], [_b, b]) => a.children.size && !b.children.size ? -1 : 0);
-    for (const [item, child] of sortedChildren) {
+    for (let i = 0, len = sortedChildren.length; i < len; ++i) {
+        const { 0:item, 1:child } = sortedChildren[i];
         if (child.item) {
             items.push(
                 <li key={child.item.headSHA}>
@@ -62,7 +64,7 @@ export function RenderRemotes(props: {
     contextMenu: (event: h.JSX.TargetedMouseEvent<HTMLAnchorElement>) => void
 }) {
     const items = [];
-    for (const [item, child] of props.branches.children.entries()) {
+    for (const { 0:item, 1:child } of props.branches.children.entries()) {
         items.push(
             <li class="sub-tree" key={item}>
                 <a style={{textIndent: `1em`}} href="#" onClick={toggleTreeItem} onContextMenu={props.remoteContextMenu} data-remote={item}>{item}</a>
@@ -81,11 +83,12 @@ function toBranchTree(branches: BranchObj[]) {
     const tree: Tree<BranchObj> = {
         children: new Map()
     };
-    for (const branch of branches.sort((a,b) => a.normalizedName.localeCompare(b.normalizedName))) {
-        const segments = branch.normalizedName.split("/");
+    const sortedBranches = branches.sort((a,b) => a.normalizedName.localeCompare(b.normalizedName));
+    for (let i = 0, len = sortedBranches.length; i < len; ++i) {
+        const segments = sortedBranches[i].normalizedName.split("/");
 
         const leaf = ensureTreePath(tree, segments);
-        leaf.item = branch;
+        leaf.item = sortedBranches[i];
     }
 
     return tree;

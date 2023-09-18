@@ -7,11 +7,11 @@ export interface Tree<NodeType = unknown> {
 
 export function ensureTreePath(tree: Tree, segments: string[]): Tree {
     let root = tree;
-    for (const segment of segments) {
-        let item = root.children.get(segment);
+    for (let i = 0, len = segments.length; i < len; ++i) {
+        let item = root.children.get(segments[i]);
         if (!item) {
-            item = {children: new Map()} as Tree;
-            root.children.set(segment, item);
+            item = {children: new Map()};
+            root.children.set(segments[i], item);
         }
         root = item;
     }

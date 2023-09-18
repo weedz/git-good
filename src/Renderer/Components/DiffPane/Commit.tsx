@@ -22,8 +22,8 @@ interface Props {
 
 function mapTreeToPatchObj(tree: string[], patches: PatchObj[]) {
     const patchMap: Map<string, PatchObj> = new Map();
-    for (const patch of patches) {
-        patchMap.set(patch.actualFile.path, patch);
+    for (let i = 0, len = patches.length; i < len; ++i) {
+        patchMap.set(patches[i].actualFile.path, patches[i]);
     }
     return tree.map(item => {
         const patch = patchMap.get(item);

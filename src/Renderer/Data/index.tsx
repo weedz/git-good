@@ -178,7 +178,8 @@ function loadHunks(data: IpcResponse<IpcAction.LOAD_HUNKS>) {
 const branchMap: Map<string, BranchObj> = new Map();
 
 function mapHeads(heads: StoreType["heads"], refs: BranchObj[]) {
-    for (const ref of refs) {
+    for (let i = 0, len = refs.length; i < len; ++i) {
+        const ref = refs[i];
         branchMap.set(ref.name, ref);
         if (!heads.has(ref.headSHA)) {
             heads.set(ref.headSHA, []);
@@ -193,7 +194,8 @@ async function loadHEAD() {
 async function loadUpstreams() {
     const upstreams = await ipcGetData(IpcAction.LOAD_UPSTREAMS, null);
 
-    for (const upstream of upstreams) {
+    for (let i = 0, len = upstreams.length; i < len; ++i) {
+        const upstream = upstreams[i];
         const branch = branchMap.get(upstream.name);
         if (branch) {
             branch.remote = upstream.remote;

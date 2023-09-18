@@ -33,7 +33,8 @@ function compactLines(lines: State["lines"]) {
 
     let diffLines = 0;
 
-    for (const lineObj of lines) {
+    for (let i = 0, len = lines.length; i < len; ++i) {
+        const lineObj = lines[i];
         const line = lineObj.line;
         if (line?.type === "-") {
             --diffLines;

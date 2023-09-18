@@ -79,8 +79,8 @@ class NotificationComponent extends Component<Props, State> {
             title: props.title,
             body: props.body,
         };
-        for (const className of props.classList) {
-            this.classes.add(className);
+        for (let i = 0, len = props.classList.length; i < len; ++i) {
+            this.classes.add(props.classList[i]);
         }
     }
     addClass(className: string) {

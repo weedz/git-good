@@ -33,8 +33,8 @@ export default abstract class ScrollListView<T, P = unknown> extends Component<P
         if (this.containerRef.current) {
             this.containerRef.current.addEventListener("scroll", this.checkScrollPosition);
             this.observer = new ResizeObserver(entries => {
-                for (const entry of entries) {
-                    const cr = entry.contentRect;
+                for (let i = 0, len = entries.length; i < len; ++i) {
+                    const cr = entries[i].contentRect;
                     this.setState({
                         itemsToRender: Math.ceil(cr.height / this.props.itemHeight) + EXTRA_ITEMS_TO_RENDE*2
                     });

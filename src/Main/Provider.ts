@@ -206,7 +206,8 @@ export async function getFileCommits(repo: Repository, params: IpcActionParams[I
 
     fileHistoryCache.clear();
 
-    for (const entry of historyEntries) {
+    for (let i = 0, len = historyEntries.length; i < len; ++i) {
+        const entry = historyEntries[i];
         const commit = entry.commit;
         const historyCommit = compileHistoryCommit(entry.commit);
         historyCommit.status = entry.status;
@@ -281,8 +282,8 @@ export async function continueRebase(repo: Repository): AsyncIpcActionReturnOrEr
 export async function fetch(remotes: Remote[]): Promise<boolean> {
     let update = false;
     try {
-        for (const remote of remotes) {
-            await remote.fetch([], {
+        for (let i = 0, len = remotes.length; i < len; ++i) {
+            await remotes[i].fetch([], {
                 prune: 1,
                 callbacks: {
                     credentials: credentialsCallback,
@@ -622,8 +623,9 @@ export async function deleteRemoteRef(repo: Repository, refName: string): Promis
 export async function deleteTag(repo: Repository, data: {name: string, remote: boolean}): Promise<boolean> {
     if (data.remote) {
         // FIXME: Do we really need to check every remote?
-        for (const remote of await repo.getRemotes()) {
-            await deleteRemoteTag(remote, data.name);
+        const remotes = await repo.getRemotes();
+        for (let i = 0, len = remotes.length; i < len; ++i) {
+            await deleteRemoteTag(remotes[i], data.name);
         }
     }
     
@@ -689,7 +691,8 @@ export async function getUpstreamRefs(repo: Repository): AsyncIpcActionReturnOrE
 
     const upstreams: IpcActionReturn[IpcAction.LOAD_UPSTREAMS] = [];
 
-    for (const ref of refs) {
+    for (let i = 0, len = refs.length; i < len; ++i) {
+        const ref = refs[i];
         if (ref.isBranch()) {
             const headCommit = await repo.getReferenceCommit(ref);
             try {
@@ -852,9 +855,9 @@ export async function findFile(repo: Repository, file: string): AsyncIpcActionRe
     const tree = await head.getTree();
 
     const paths: string[] = await tree.getAllFilepaths();
-    for (const path of paths) {
-        if (path.toLocaleLowerCase().includes(file)) {
-            matches.push(path);
+    for (let i = 0, len = paths.length; i < len; ++i) {
+        if (paths[i].toLocaleLowerCase().includes(file)) {
+            matches.push(paths[i]);
             if (matches.length >= 99) {
                 break;
             }

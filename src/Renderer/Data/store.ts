@@ -100,8 +100,8 @@ export abstract class StoreComponent<P = unknown, S = unknown> extends Component
     }
 
     componentWillUnmount() {
-        for (const unsubscribe of this.listeners) {
-            unsubscribe();
+        for (let i = 0, len = this.listeners.length; i < len; ++i) {
+            this.listeners[i]();
         }
     }
 }
@@ -116,8 +116,8 @@ export abstract class PureStoreComponent<P = unknown, S = unknown> extends Compo
     }
 
     componentWillUnmount() {
-        for (const unsubscribe of this.listeners) {
-            unsubscribe();
+        for (let i = 0, len = this.listeners.length; i < len; ++i) {
+            this.listeners[i]();
         }
     }
 }

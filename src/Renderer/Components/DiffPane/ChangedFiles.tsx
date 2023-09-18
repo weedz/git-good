@@ -63,7 +63,8 @@ function calcDeltas(patches: Props["patches"]) {
         renamed: 0,
         // untracked: 0,
     };
-    for (const patch of patches) {
+    for (let i = 0, len = patches.length; i < len; ++i) {
+        const patch = patches[i];
         if (patch.status === DiffDelta.MODIFIED) {
             deltas.modified++;
         } else if (patch.status === DiffDelta.DELETED) {
@@ -116,7 +117,8 @@ function checkActions(patch: PatchObj, actions: ButtonAction[]): ButtonAction[] 
 
 function renderPaths(patches: PatchObj[], actions: ButtonAction[], contextMenu: (e: h.JSX.TargetedMouseEvent<HTMLLIElement>) => void, selectAction: (data: Link<PatchObj>) => void) {
     const paths = [];
-    for (const patch of patches) {
+    for (let i = 0, len = patches.length; i < len; ++i) {
+        const patch = patches[i];
         const typeCss = getFileCssClass(patch.status);
 
         const lastSlash = patch.actualFile.path.lastIndexOf("/") + 1;
@@ -145,7 +147,7 @@ function renderTree(tree: Tree<PatchObj>, actions: ButtonAction[], contextMenu: 
     const items = [];
     // Sort directories before files
     const sortedChildren = Array.from(tree.children.entries()).sort( ([_, a], [_b, b]) => a.children.size && !b.children.size ? -1 : 0);
-    for (const [path, child] of sortedChildren) {
+    for (const { 0:path, 1:child } of sortedChildren) {
         if (child.item) {
             const patch = child.item;
             const typeCss = getFileCssClass(patch.status);
@@ -187,11 +189,11 @@ function pathsToTree(paths: PatchObj[]): Tree<PatchObj> {
     const tree: Tree<PatchObj> = {
         children: new Map()
     };
-    for (const path of paths) {
-        const segments = path.actualFile.path.split("/");
+    for (let i = 0, len = paths.length; i < len; ++i) {
+        const segments = paths[i].actualFile.path.split("/");
 
         const leaf = ensureTreePath(tree, segments);
-        leaf.item = path;
+        leaf.item = paths[i];
     }
 
     return tree;

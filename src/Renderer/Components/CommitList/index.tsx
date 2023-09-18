@@ -107,7 +107,8 @@ export default class CommitList extends PureStoreComponent<unknown, State> {
             return;
         }
 
-        for (const commit of fetched.commits) {
+        for (let i = 0, len = fetched.commits.length; i < len; ++i) {
+            const commit = fetched.commits[i];
             let graphCommit = this.graph.get(commit.sha);
             if (!graphCommit) {
                 graphCommit = {
@@ -116,14 +117,14 @@ export default class CommitList extends PureStoreComponent<unknown, State> {
                 };
                 this.graph.set(commit.sha, graphCommit);
             }
-            for (let i = 0; i < commit.parents.length; i++) {
-                let graphParent = this.graph.get(commit.parents[i]);
+            for (let j = 0,lenParents = commit.parents.length; j < lenParents; j++) {
+                let graphParent = this.graph.get(commit.parents[j]);
                 if (!graphParent) {
                     graphParent = {
                         descendants: [],
-                        colorId: i === 0 ? graphCommit.colorId : this.color++ % HeadColors.length,
+                        colorId: j === 0 ? graphCommit.colorId : this.color++ % HeadColors.length,
                     };
-                    this.graph.set(commit.parents[i], graphParent);
+                    this.graph.set(commit.parents[j], graphParent);
                 }
                 graphParent.descendants.push(commit);
             }

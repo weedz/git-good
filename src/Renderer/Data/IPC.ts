@@ -97,25 +97,14 @@ const handlers: {[T in IpcAction]: HandlerCallback<T>[]} = {
     [IpcAction.CONTINUE_REBASE]: [],
 };
 
-type HandlerCallbacks<T extends IpcAction> = (HandlerCallback<T> | HandlerCallback<T>[]);
+export function registerHandler<T extends IpcAction>(action: T, cb: HandlerCallback<T>) {
+    handlers[action].push(cb);
+    return () => unregisterHandler(action, cb);
+}
+function unregisterHandler<T extends IpcAction>(action: T, cb: HandlerCallback<T>) {
+    handlers[action].splice(handlers[action].indexOf(cb)>>>0, 1);
+}
 
-export function registerHandler<T extends IpcAction>(action: T, callbacks: HandlerCallbacks<T>) {
-    if (!Array.isArray(callbacks)) {
-        callbacks = [callbacks];
-    }
-    for (const cb of callbacks) {
-        handlers[action].push(cb);
-    }
-    return () => unregisterHandler(action, callbacks);
-}
-function unregisterHandler<T extends IpcAction>(action: T, callbacks: HandlerCallbacks<T>) {
-    if (!Array.isArray(callbacks)) {
-        callbacks = [callbacks];
-    }
-    for (const cb of callbacks) {
-        handlers[action].splice(handlers[action].indexOf(cb)>>>0, 1);
-    }
-}
 function handleEvent<T extends IpcAction>(payload: IpcPayload<T>) {
     try {
         let data: IpcResponse<T>;
@@ -126,8 +115,8 @@ function handleEvent<T extends IpcAction>(payload: IpcPayload<T>) {
         } else {
             data = payload.data;
         }
-        for (const handler of handlers[payload.action]) {
-            handler(data);
+        for (let i = 0, len = handlers[payload.action].length; i < len; ++i) {
+            handlers[payload.action][i](data);
         }
     } catch (e) {
         console.error(e);
