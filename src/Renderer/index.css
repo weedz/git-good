@@ -95,7 +95,6 @@ textarea:focus {
 
 .resizable-wrapper {
   display: flex;
-  flex-wrap: wrap;
 }
 .resizable-track:before {
   top: 0;
