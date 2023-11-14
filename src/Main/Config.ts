@@ -141,7 +141,7 @@ export function addRecentRepository(repoPath: string) {
         recentRepoMenu.splice(existingIndex, 1);
     }
     recentRepoMenu.unshift(repoPath);
-    recentRepoMenu.splice(10);
+    recentRepoMenu.splice(20);
     
     writeFileSync(join(appDataDir, "recent-repos.json"), JSON.stringify(recentRepoMenu));
     
