@@ -372,6 +372,9 @@ export async function clone(source: string, targetDir: string): Promise<nodegit.
     return clonedRepo;
 }
 
+export function pullHead(repo: nodegit.Repository): AsyncIpcActionReturnOrError<IpcAction.PULL> {
+    return pull(repo, null, signatureFromActiveProfile());
+}
 export async function pull(repo: nodegit.Repository, branch: string | null, signature: nodegit.Signature): Promise<boolean> {
     let ref;
     if (branch) {
@@ -1244,6 +1247,17 @@ export async function hunksFromCompare(repo: nodegit.Repository, path: string): 
     const patch = comparePatches.get(path);
     return patch ? loadHunks(repo, patch, path) : false;
 }
+
+export function getHunksWithParams(repo: nodegit.Repository, params: IpcActionParams[IpcAction.LOAD_HUNKS]): Promise<false | HunkObj[]> {
+    if ("sha" in params) {
+        return getHunks(repo, params.sha, params.path);
+    }
+    if ("compare" in params) {
+        return hunksFromCompare(repo, params.path);
+    }
+    return getWorkdirHunks(repo, params.path, params.type);
+}
+
 async function loadHunks(repo: nodegit.Repository, patch: nodegit.ConvenientPatch, path?: string): Promise<HunkObj[]> {
     if (patch.isConflicted() && path) {
         return loadConflictedPatch(repo, path);
