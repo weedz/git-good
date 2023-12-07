@@ -2,6 +2,7 @@ import { createRef, h } from "preact";
 import { selectFile } from "../../Data/Utility";
 import { type DialogProps, DialogTypes } from "./types";
 import { useEffect, useState } from "preact/hooks";
+import { Store } from "../../Data/store";
 
 export function CloneRepositoryDialog(props: DialogProps[DialogTypes.CLONE_REPOSITORY]) {
     const [source, setSource] = useState("");
@@ -25,7 +26,13 @@ export function CloneRepositoryDialog(props: DialogProps[DialogTypes.CLONE_REPOS
             <label>
                 <p>Clone into:</p>
                 <input type="text" value={target} onInput={(e) => setTarget(e.currentTarget.value)} />
-                <button type="button" onClick={() => selectFile(path => setTarget(path), {properties: ["openDirectory", "createDirectory"]})}>Browse</button>
+                <button type="button" onClick={() =>
+                    selectFile(path => setTarget(path), {
+                        properties: ["openDirectory", "createDirectory"],
+                        title: "Clone into...",
+                        defaultPath: Store.repo?.path,
+                    })
+                }>Browse</button>
             </label>
             <br />
             <div class="dialog-action-buttons">

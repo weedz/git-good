@@ -704,9 +704,13 @@ ipcMain.on("asynchronous-message", async (event, arg: EventArgs) => {
 async function openRepoDialog(): Promise<boolean | null> {
     sendEvent(AppEventType.LOCK_UI, Locks.MAIN);
 
+    const repo = currentRepo();
+    const currentRepoDir = repo?.workdir();
+
     const res = await dialog.showOpenDialog({
         properties: ["openDirectory"],
-        title: "Select a repository"
+        title: "Open repository...",
+        defaultPath: currentRepoDir || undefined,
     });
     if (res.canceled) {
         sendEvent(AppEventType.UNLOCK_UI, Locks.MAIN);
