@@ -5,12 +5,11 @@ import { HEAD_REF } from "../../Common/Branch.js";
 import { NativeDialog } from "../../Common/Dialog.js";
 import { humanReadableBytes } from "../../Common/Utils.js";
 import { AppEventType, LinkTypes, RendererRequestEvents, type AppEventData, type RendererRequestArgs, type RendererRequestData, type RendererRequestPayload } from "../../Common/WindowEventTypes.js";
-import { DialogTypes } from "../Components/Dialog/types.js";
 import { GlobalLinks, unselectLink } from "../Components/Link.js";
 import { Notification } from "../Components/Notification/index.js";
-import { openDialog_AddRemote, openDialog_BranchFrom, openDialog_EditRemote, openDialog_PushTag, openDialog_RenameRef, openDialog_SetUpstream, openDialog_Settings, openDialog_createTag } from "./Dialogs.js";
+import { openDialog_AddRemote, openDialog_BranchFrom, openDialog_Clone, openDialog_EditRemote, openDialog_PushTag, openDialog_RenameRef, openDialog_SetUpstream, openDialog_Settings, openDialog_compare, openDialog_createTag, openDialog_fileHistory, openDialog_initRepo, openDialog_viewCommit } from "./Dialogs.js";
 import { ipcGetData, ipcSendMessage, openNativeDialog, registerAppEventHandlers, registerHandler } from "./IPC.js";
-import { Store, clearLock, closeDialogWindow, notify, openDialogWindow, setDiffpaneSrc, setLock, store, type StoreType } from "./store.js";
+import { Store, clearLock, notify, setDiffpaneSrc, setLock, store, type StoreType } from "./store.js";
 import { loadStylesFromLocalstorage } from "./styles.js";
 
 const dismissibleWindows: Set<() => void> = new Set();
@@ -71,7 +70,7 @@ export async function discardAllChanges() {
 }
 
 export function resolveConflict(path: string) {
-    ipcSendMessage(IpcAction.RESOLVE_CONFLICT, {path});
+    ipcSendMessage(IpcAction.RESOLVE_CONFLICT, { path });
 }
 
 export function checkoutBranch(branch: string) {
@@ -80,10 +79,10 @@ export function checkoutBranch(branch: string) {
 }
 
 export function openFile(params: (
-    {sha: string} |
-    {workDir: true, type: "staged" | "unstaged"} |
-    {compare: true}
-) & {patch: PatchObj}) {
+    { sha: string } |
+    { workDir: true, type: "staged" | "unstaged" } |
+    { compare: true }
+) & { patch: PatchObj }) {
     const currentFile: StoreType["currentFile"] = {
         patch: params.patch,
     };
@@ -121,7 +120,7 @@ export function commit(params: IpcActionParams[IpcAction.COMMIT]) {
 }
 
 export function openFileHistory(file: string, sha?: string) {
-    ipcSendMessage(IpcAction.LOAD_FILE_COMMITS, {file, cursor: sha, startAtCursor: true});
+    ipcSendMessage(IpcAction.LOAD_FILE_COMMITS, { file, cursor: sha, startAtCursor: true });
 }
 
 export async function showStash(index: number) {
@@ -160,7 +159,7 @@ function updateRepoStatus(result: AppEventData[AppEventType.REFRESH_WORKDIR]) {
     });
 }
 
-function openSettings() {
+export function openSettings() {
     openDialog_Settings();
 }
 
@@ -278,7 +277,7 @@ function handleNotificationFetch(status: AppEventData[AppEventType.NOTIFY_FETCH_
         }
         return;
     }
-    
+
     if (!fetchNotification[status.remote]) {
         console.warn("notification for remote '%s' not initialized (?)", status.remote, status);
         return;
@@ -297,22 +296,22 @@ function handleNotificationFetch(status: AppEventData[AppEventType.NOTIFY_FETCH_
 let pushNotification: null | Notification;
 function handleNotificationPush(status: AppEventData[AppEventType.NOTIFY_PUSH_STATUS]) {
     if (!pushNotification) {
-        pushNotification = notify({title: "Pushing...", time: 0});
+        pushNotification = notify({ title: "Pushing...", time: 0 });
     }
     if ("done" in status) {
         if (status.done) {
-            pushNotification.update({title: "Pushed", time: 3000});
+            pushNotification.update({ title: "Pushed", time: 3000 });
             pushNotification = null;
         }
     } else if (status.totalObjects > 0) {
-        pushNotification.update({body: <p>Pushed {status.transferedObjects}/{status.totalObjects} objects in {humanReadableBytes(status.bytes)}</p>});
+        pushNotification.update({ body: <p>Pushed {status.transferedObjects}/{status.totalObjects} objects in {humanReadableBytes(status.bytes)}</p> });
     }
 }
 
 let cloneNotification: null | Notification;
 function handleNotificationClone(status: AppEventData[AppEventType.NOTIFY_CLONE_STATUS]) {
     if (!cloneNotification) {
-        cloneNotification = notify({title: "Cloning...", time: 0});
+        cloneNotification = notify({ title: "Cloning...", time: 0 });
     }
     if ("done" in status) {
         if (status.done) {
@@ -324,9 +323,9 @@ function handleNotificationClone(status: AppEventData[AppEventType.NOTIFY_CLONE_
             cloneNotification = null;
         }
     } else if (status.receivedObjects == status.totalObjects) {
-        cloneNotification.update({body: <p>Resolving deltas {status.indexedDeltas}/{status.totalDeltas}</p>});
+        cloneNotification.update({ body: <p>Resolving deltas {status.indexedDeltas}/{status.totalDeltas}</p> });
     } else if (status.totalObjects > 0) {
-        cloneNotification.update({body: <p>Received {status.receivedObjects}/{status.totalObjects} objects ({status.indexedObjects}) in {humanReadableBytes(status.receivedBytes)}</p>});
+        cloneNotification.update({ body: <p>Received {status.receivedObjects}/{status.totalObjects} objects ({status.indexedObjects}) in {humanReadableBytes(status.receivedBytes)}</p> });
     }
 }
 
@@ -373,66 +372,11 @@ registerHandler(IpcAction.LOAD_FILE_COMMITS, handleFileCommits);
 const rendererActions: {
     [E in RendererRequestEvents]: (data: RendererRequestArgs[E]) => Promise<null | RendererRequestData[E]>
 } = {
-    [RendererRequestEvents.CLONE_DIALOG]: () => new Promise((resolve) => {
-        openDialogWindow(DialogTypes.CLONE_REPOSITORY, {
-            confirmCb(data) {
-                closeDialogWindow();
-                resolve(data);
-            },
-            cancelCb() {
-                closeDialogWindow();
-                resolve(null);
-            }
-        });
-    }),
-    [RendererRequestEvents.INIT_DIALOG]: () => new Promise((resolve) => {
-        openDialogWindow(DialogTypes.INIT_REPOSITORY, {
-            confirmCb(data) {
-                closeDialogWindow();
-                resolve({source: data});
-            },
-            cancelCb() {
-                closeDialogWindow();
-                resolve(null);
-            }
-        });
-    }),
-    [RendererRequestEvents.FILE_HISTORY_DIALOG]: () => new Promise((resolve) => {
-        openDialogWindow(DialogTypes.FILE_HISTORY, {
-            confirmCb(data) {
-                closeDialogWindow();
-                resolve(data);
-            },
-            cancelCb() {
-                closeDialogWindow();
-                resolve(null);
-            }
-        });
-    }),
-    [RendererRequestEvents.GET_COMMIT_SHA_DIALOG]: () => new Promise((resolve) => {
-        openDialogWindow(DialogTypes.VIEW_COMMIT, {
-            confirmCb(data) {
-                closeDialogWindow();
-                resolve(data);
-            },
-            cancelCb() {
-                closeDialogWindow();
-                resolve(null);
-            }
-        });
-    }),
-    [RendererRequestEvents.COMPARE_REVISIONS_DIALOG]: () => new Promise((resolve) => {
-        openDialogWindow(DialogTypes.COMPARE, {
-            confirmCb(from, to) {
-                closeDialogWindow();
-                resolve({from, to});
-            },
-            cancelCb() {
-                closeDialogWindow();
-                resolve(null);
-            }
-        });
-    }),
+    [RendererRequestEvents.CLONE_DIALOG]: openDialog_Clone,
+    [RendererRequestEvents.INIT_DIALOG]: openDialog_initRepo,
+    [RendererRequestEvents.FILE_HISTORY_DIALOG]: openDialog_fileHistory,
+    [RendererRequestEvents.GET_COMMIT_SHA_DIALOG]: openDialog_viewCommit,
+    [RendererRequestEvents.COMPARE_REVISIONS_DIALOG]: openDialog_compare,
 };
 
 async function handleRequestClientData<E extends RendererRequestEvents>(payload: RendererRequestPayload<E>): Promise<RendererRequestData[E] | null> {

@@ -15,8 +15,9 @@ import { currentProfile, getAppConfig, getAuth, signatureFromActiveProfile, sign
 import { setLastKnownHead, type Context } from "./Context.js";
 import { gpgSign, gpgVerify } from "./GPG.js";
 import { sendAction } from "./IPC.js";
-import { CheckoutSTRATEGY, DiffDELTA, DiffFIND, DiffOPTION, NodeGitErrorCODE, ObjectTYPE, ResetTYPE, RevwalkSORT, StatusOPT, StatusSHOW } from "./NodegitEnums.js";
+import { CheckoutSTRATEGY, DiffFIND, DiffOPTION, NodeGitErrorCODE, ObjectTYPE, ResetTYPE, RevwalkSORT, StatusOPT, StatusSHOW } from "./NodegitEnums.js";
 import { sendEvent } from "./WindowEvents.js";
+import { DiffDelta } from "../Common/Utils.js";
 
 declare module "nodegit" {
     interface Repository {
@@ -198,7 +199,7 @@ export async function getFileCommits(repo: nodegit.Repository, params: IpcAction
     // FIXME: HistoryEntry should set commit.repo.
     const historyEntries = await revwalk.fileHistoryWalk(currentName, params.num || 50000);
 
-    if (historyEntries[0].status === DiffDELTA.RENAMED as unknown as nodegit.Diff.DELTA) {
+    if (historyEntries[0].status === DiffDelta.RENAMED as unknown as nodegit.Diff.DELTA) {
         // We always "follow renames" if the file is renamed in the first commit
         followRenames = true;
     }
@@ -215,11 +216,11 @@ export async function getFileCommits(repo: nodegit.Repository, params: IpcAction
 
         historyCommit.path = currentName;
 
-        if (entry.status === DiffDELTA.RENAMED as unknown as nodegit.Diff.DELTA) {
+        if (entry.status === DiffDelta.RENAMED as unknown as nodegit.Diff.DELTA) {
             historyCommit.path = entry.oldName;
         }
 
-        if (entry.status === DiffDELTA.RENAMED as unknown as nodegit.Diff.DELTA && followRenames) {
+        if (entry.status === DiffDelta.RENAMED as unknown as nodegit.Diff.DELTA && followRenames) {
             followRenames = false;
 
             historyCommit.path = entry.newName;
@@ -372,6 +373,9 @@ export async function clone(source: string, targetDir: string): Promise<nodegit.
     return clonedRepo;
 }
 
+export function pullHead(repo: nodegit.Repository): AsyncIpcActionReturnOrError<IpcAction.PULL> {
+    return pull(repo, null, signatureFromActiveProfile());
+}
 export async function pull(repo: nodegit.Repository, branch: string | null, signature: nodegit.Signature): Promise<boolean> {
     let ref;
     if (branch) {
@@ -1188,20 +1192,24 @@ export async function loadChanges(): AsyncIpcActionReturnOrError<IpcAction.GET_C
     workDirIndexPathMap.staged.clear();
     workDirIndexPathMap.unstaged.clear();
 
-    const staged = workDirIndexCache.stagedPatches.map(convPatch => {
-        const patch = handlePatch(convPatch);
-        workDirIndexPathMap.staged.set(patch.actualFile.path, convPatch);
-        return patch;
-    });
-    const unstaged = workDirIndexCache.unstagedPatches.map(convPatch => {
+    return {
+        staged: await loadStagedChanges(),
+        unstaged: await loadUnstagedChanges(),
+    };
+}
+export async function loadUnstagedChanges(): Promise<PatchObj[]> {
+    return workDirIndexCache.unstagedPatches.map(convPatch => {
         const patch = handlePatch(convPatch);
         workDirIndexPathMap.unstaged.set(patch.actualFile.path, convPatch);
         return patch;
     });
-    return {
-        staged,
-        unstaged,
-    };
+}
+export async function loadStagedChanges(): Promise<PatchObj[]> {
+    return workDirIndexCache.stagedPatches.map(convPatch => {
+        const patch = handlePatch(convPatch);
+        workDirIndexPathMap.staged.set(patch.actualFile.path, convPatch);
+        return patch;
+    });
 }
 export async function getWorkdirHunks(repo: nodegit.Repository, path: string, type: "staged" | "unstaged"): Promise<false | HunkObj[]> {
     const patch = workDirIndexPathMap[type].get(path);
@@ -1244,6 +1252,17 @@ export async function hunksFromCompare(repo: nodegit.Repository, path: string): 
     const patch = comparePatches.get(path);
     return patch ? loadHunks(repo, patch, path) : false;
 }
+
+export function getHunksWithParams(repo: nodegit.Repository, params: IpcActionParams[IpcAction.LOAD_HUNKS]): Promise<false | HunkObj[]> {
+    if ("sha" in params) {
+        return getHunks(repo, params.sha, params.path);
+    }
+    if ("compare" in params) {
+        return hunksFromCompare(repo, params.path);
+    }
+    return getWorkdirHunks(repo, params.path, params.type);
+}
+
 async function loadHunks(repo: nodegit.Repository, patch: nodegit.ConvenientPatch, path?: string): Promise<HunkObj[]> {
     if (patch.isConflicted() && path) {
         return loadConflictedPatch(repo, path);

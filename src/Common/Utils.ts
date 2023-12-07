@@ -54,6 +54,6 @@ export function humanReadableBytes(bytes: number) {
     return `${bytes.toString(10)} B`;
 }
 
-export function basename(pathName: string) {
-    return pathName.split("/").at(-1);
+export function basename(path: string) {
+    return path.substring(path.lastIndexOf("/") + 1);
 }

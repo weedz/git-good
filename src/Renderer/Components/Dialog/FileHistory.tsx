@@ -19,6 +19,7 @@ export function FileHistory(dialog: DialogProps[DialogTypes.FILE_HISTORY]) {
             dialog.confirmCb(data.filePath);
         }}>
             <h4>File history</h4>
+            {/* TODO: We should show a filtered list of all files, similar to `<FileFilter />` */}
             <input ref={inputRef} type="text" name="branch" placeholder="Enter file path..." onInput={e => data.filePath = e.currentTarget.value} value={data.filePath} />
             <div class="dialog-action-buttons">
                 <button type="button" onClick={dialog.cancelCb}>Cancel</button>
