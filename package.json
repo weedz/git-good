@@ -42,8 +42,7 @@
     "nodegit": "github:weedz/nodegit#master"
   },
   "resolutions": {
-    "nodegit": "github:weedz/nodegit#master",
-    "make-fetch-happen": "^11"
+    "make-fetch-happen": "^13"
   },
   "pnpm": {
     "peerDependencyRules": {
