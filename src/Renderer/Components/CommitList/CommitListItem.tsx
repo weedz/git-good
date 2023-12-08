@@ -101,6 +101,10 @@ export default function CommitListItem(props: Props) {
     const commitDate = new Date(props.commit.date);
     const commitDateStr = formatCommitTime(commitDate);
 
+    const splitIdx = props.commit.message.indexOf("\n") >>> 0;
+    const summary = props.commit.message.substring(0, splitIdx);
+    const description = props.commit.message.substring(splitIdx + 1);
+
     return (
         <li class="short" style={props.style}>
             <div class="commit-refs-container">
@@ -110,7 +114,10 @@ export default function CommitListItem(props: Props) {
             <Link style={{
                 display: "flex"
             }} selectAction={selectCommit} linkId={props.commit.sha} linkData={props.commit.sha} data-sha={props.commit.sha} onContextMenu={showCommitMenu} title={props.commit.message}>
-                <span class="msg" style="flex-grow: 1">{props.commit.message.substring(0, props.commit.message.indexOf("\n") >>> 0 || 60)}</span>
+                <span class="msg" style="flex-grow: 1">
+                    {summary}
+                    <small>{description}</small>
+                </span>
                 <span>{commitDateStr}</span>
             </Link>
         </li>
