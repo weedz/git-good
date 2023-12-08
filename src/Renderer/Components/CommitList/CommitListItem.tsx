@@ -83,6 +83,12 @@ function selectCommit(c: Link<string>) {
     }
 }
 
+function formatCommitTime(date: Date) {
+    return `${date.getFullYear()}-${(date.getMonth() + 1).toString(10).padStart(2, "0")}-${date.getDate().toString(10).padStart(2, "0")}`
+        + " @ "
+        + `${date.getHours().toString(10).padStart(2, "0")}:${date.getMinutes().toString(10).padStart(2, "0")}`;
+}
+
 export default function CommitListItem(props: Props) {
     const head = Store.heads.get(props.commit.sha);
     const graphCommit = props.graph.get(props.commit.sha);
@@ -91,14 +97,21 @@ export default function CommitListItem(props: Props) {
         console.error("Invalid graph data! Commit not found:", props.commit.sha);
         return null;
     }
+
+    const commitDate = new Date(props.commit.date);
+    const commitDateStr = formatCommitTime(commitDate);
+
     return (
         <li class="short" style={props.style}>
             <div class="commit-refs-container">
                 {head && <CommitReferences graphCommit={graphCommit} head={head} />}
             </div>
             <GraphContainer isMerge={props.commit.parents.length > 1} graphCommit={graphCommit} graph={props.graph} />
-            <Link selectAction={selectCommit} linkId={props.commit.sha} linkData={props.commit.sha} data-sha={props.commit.sha} onContextMenu={showCommitMenu} title={props.commit.message}>
-                <span class="msg">{props.commit.message.substring(0, props.commit.message.indexOf("\n") >>> 0 || 60)}</span>
+            <Link style={{
+                display: "flex"
+            }} selectAction={selectCommit} linkId={props.commit.sha} linkData={props.commit.sha} data-sha={props.commit.sha} onContextMenu={showCommitMenu} title={props.commit.message}>
+                <span class="msg" style="flex-grow: 1">{props.commit.message.substring(0, props.commit.message.indexOf("\n") >>> 0 || 60)}</span>
+                <span>{commitDateStr}</span>
             </Link>
         </li>
     );
