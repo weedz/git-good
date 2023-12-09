@@ -270,20 +270,28 @@ function handleFileCommits(data: IpcActionReturnOrError<IpcAction.LOAD_FILE_COMM
 
 
 // FIXME: Should probably handle this better..
-let fetchNotification: null | Notification;
+const fetchNotification: Record<string, Notification> = {};
 function handleNotificationFetch(status: AppEventData[AppEventType.NOTIFY_FETCH_STATUS]) {
-    if (!fetchNotification) {
-        fetchNotification = notify({title: "Fetching", time: 0});
+    if ("init" in status) {
+        if (!fetchNotification[status.remote]) {
+            fetchNotification[status.remote] = notify({ title: `Fetching remote '${status.remote}'`, time: 0 });
+        }
+        return;
+    }
+    
+    if (!fetchNotification[status.remote]) {
+        console.warn("notification for remote '%s' not initialized (?)", status.remote, status);
+        return;
     }
     if ("done" in status) {
         if (status.done) {
-            fetchNotification.update({title: "Fetched", body: <p>{status.update ? "Done" : "No update"}</p>, time: 3000});
-            fetchNotification = null;
+            fetchNotification[status.remote].update({ body: <p>{status.update ? "Done" : "No update"}</p>, time: 3000 });
+            delete fetchNotification[status.remote];
         }
     } else if (status.receivedObjects == status.totalObjects) {
-        fetchNotification.update({body: <p>Resolving deltas {status.indexedDeltas}/{status.totalDeltas}</p>});
+        fetchNotification[status.remote].update({ body: <p>Resolving deltas {status.indexedDeltas}/{status.totalDeltas}</p> });
     } else if (status.totalObjects > 0) {
-        fetchNotification.update({body: <p>Received {status.receivedObjects}/{status.totalObjects} objects ({status.indexedObjects}) in {humanReadableBytes(status.receivedBytes)}</p>});
+        fetchNotification[status.remote].update({ body: <p>Received {status.receivedObjects}/{status.totalObjects} objects ({status.indexedObjects}) in {humanReadableBytes(status.receivedBytes)}</p> });
     }
 }
 let pushNotification: null | Notification;

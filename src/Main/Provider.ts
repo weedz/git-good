@@ -279,55 +279,62 @@ export async function continueRebase(repo: Repository): AsyncIpcActionReturnOrEr
     return false;
 }
 
-export async function fetch(remotes: Remote[]): Promise<boolean> {
-    let update = false;
-    try {
-        for (let i = 0, len = remotes.length; i < len; ++i) {
-            await remotes[i].fetch([], {
-                prune: 1,
-                callbacks: {
-                    credentials: credentialsCallback,
-                    transferProgress: (stats: TransferProgress, remoteName: string) => {
-                        update = true;
-                        sendEvent(AppEventType.NOTIFY_FETCH_STATUS, {
-                            remote: remoteName,
-                            receivedObjects: stats.receivedObjects(),
-                            totalObjects: stats.totalObjects(),
-                            indexedDeltas: stats.indexedDeltas(),
-                            totalDeltas: stats.totalDeltas(),
-                            indexedObjects: stats.indexedObjects(),
-                            receivedBytes: stats.receivedBytes(),
-                        });
-                    },
-                },
-            }, "");
-        }
-    } catch (err) {
-        if (err instanceof Error) {
-            dialog.showErrorBox("Fetch failed", err.message);
-        }
+export async function fetchRemote(remotes: Remote[]): Promise<boolean> {
+    const updatedRemotes: boolean[] = Array(remotes.length);
+    const promises: Promise<number>[] = Array(remotes.length);
+
+    for (let i = 0, len = remotes.length; i < len; ++i) {
+        const remoteName = remotes[i].name();
         sendEvent(AppEventType.NOTIFY_FETCH_STATUS, {
-            done: true,
-            update
+            init: true,
+            remote: remoteName,
         });
-        return false;
+
+        const fetchPromise = remotes[i].fetch([], {
+            prune: 1,
+            callbacks: {
+                credentials: credentialsCallback,
+                transferProgress: (stats: TransferProgress) => {
+                    updatedRemotes[i] = true;
+                    sendEvent(AppEventType.NOTIFY_FETCH_STATUS, {
+                        remote: remoteName,
+                        receivedObjects: stats.receivedObjects(),
+                        totalObjects: stats.totalObjects(),
+                        indexedDeltas: stats.indexedDeltas(),
+                        totalDeltas: stats.totalDeltas(),
+                        indexedObjects: stats.indexedObjects(),
+                        receivedBytes: stats.receivedBytes(),
+                    });
+                },
+            },
+        }, "");
+
+        fetchPromise.catch(err => {
+            if (err instanceof Error) {
+                dialog.showErrorBox(`Fetch failed for remote '${remoteName}'`, err.message);
+            }
+        });
+
+        fetchPromise.finally(() => {
+            sendEvent(AppEventType.NOTIFY_FETCH_STATUS, {
+                remote: remoteName,
+                done: true,
+                update: !!updatedRemotes[i],
+            });
+        })
+
+        promises[i] = fetchPromise;
     }
-    sendEvent(AppEventType.NOTIFY_FETCH_STATUS, {
-        done: true,
-        update
-    });
+
+    await Promise.allSettled(promises);
+
     return true;
 }
 
-export async function fetchFrom(repo: Repository, params: IpcActionParams[IpcAction.FETCH]): AsyncIpcActionReturnOrError<IpcAction.FETCH> {
-    sendEvent(AppEventType.NOTIFY_FETCH_STATUS, {
-        done: false,
-        update: false
-    });
-
+export async function fetchRemoteFrom(repo: Repository, params: IpcActionParams[IpcAction.FETCH]): AsyncIpcActionReturnOrError<IpcAction.FETCH> {
     const remotes = params?.remote ? [await repo.getRemote(params.remote)] : await repo.getRemotes();
 
-    return fetch(remotes);
+    return fetchRemote(remotes);
 }
 
 /**

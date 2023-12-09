@@ -41,7 +41,14 @@ export type AppEventData = {
     [AppEventType.UNSELECT_LINK]: LinkTypes
     [AppEventType.SET_DIFFPANE]: string
     [AppEventType.NOTIFY]: NotificationInit
-    [AppEventType.NOTIFY_FETCH_STATUS]: {done: boolean, update: boolean} | {
+    [AppEventType.NOTIFY_FETCH_STATUS]: {
+        remote: string;
+        init: true;
+    } | {
+        remote: string;
+        done: boolean;
+        update: boolean;
+    } | {
         remote: string
         totalDeltas: number
         indexedDeltas: number

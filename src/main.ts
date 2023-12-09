@@ -277,7 +277,7 @@ function applyAppMenu(): void {
                 {
                     label: "Fetch all",
                     async click() {
-                        await provider.fetchFrom(repo, null);
+                        await provider.fetchRemoteFrom(repo, null);
                         sendAction(IpcAction.LOAD_BRANCHES, await provider.getBranches(repo));
                     }
                 },
@@ -591,7 +591,7 @@ const eventMap: {
             Remote.setPushurl(repo, data.name, data.pushTo);
         }
 
-        await provider.fetch([await repo.getRemote(data.name)]);
+        await provider.fetchRemoteFrom(repo, { remote: data.name });
 
         eventReply(event, IpcAction.REMOTES, await provider.getRemotes(repo));
         eventReply(event, IpcAction.LOAD_BRANCHES, await provider.getBranches(repo));
@@ -610,7 +610,7 @@ const eventMap: {
             Remote.setPushurl(repo, data.name, data.pushTo);
         }
 
-        if (!await provider.fetch([remote])) {
+        if (!await provider.fetchRemote([remote])) {
             // Deleting remote with (possibly) invalid url
             await Remote.delete(repo, data.name);
             return false;
@@ -622,7 +622,7 @@ const eventMap: {
         return true;
     },
     [IpcAction.FETCH]: async (repo, data) => {
-        const result = await provider.fetchFrom(repo, data);
+        const result = await provider.fetchRemoteFrom(repo, data);
         if (result) {
             sendAction(IpcAction.LOAD_BRANCHES, await provider.getBranches(repo));
         }

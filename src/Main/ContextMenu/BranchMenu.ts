@@ -65,7 +65,7 @@ export function openRemotesMenu(_: Record<string, string>) {
         {
             label: "Fetch all",
             async click() {
-                const result = await provider.fetchFrom(currentRepo(), null);
+                const result = await provider.fetchRemoteFrom(currentRepo(), null);
                 if (!result) {
                     dialog.showErrorBox("Failed to fetch remotes", "");
                 }
@@ -89,7 +89,7 @@ export function openRemoteMenu(data: Record<string, string>) {
         {
             label: "Fetch",
             async click() {
-                const result = await provider.fetchFrom(currentRepo(), {remote: data.remote});
+                const result = await provider.fetchRemoteFrom(currentRepo(), {remote: data.remote});
                 if (!result) {
                     dialog.showErrorBox("Failed to fetch remote", "");
                 }
