@@ -1,4 +1,4 @@
-import { h } from "preact";
+import { Fragment, h } from "preact";
 
 import type { IpcActionParams, IpcResponse, LoadCommitReturn, LoadCommitsReturn } from "../../../Common/Actions";
 import { IpcAction, Locks } from "../../../Common/Actions";
@@ -21,7 +21,7 @@ type State = {
 const pageSize = 200;
 const historyLimit = 2000;
 
-export default class CommitList extends PureStoreComponent<unknown, State> {
+class CommitList extends PureStoreComponent<unknown, State> {
     graph: Map<string, {
         descendants: LoadCommitReturn[]
         colorId: number
@@ -46,11 +46,6 @@ export default class CommitList extends PureStoreComponent<unknown, State> {
         });
         this.listen("branches", (branches) => {
             branches && this.selectedBranch(Store.selectedBranch);
-        });
-        this.listen("locks", locks => {
-            if (lockChanged(Locks.COMMIT_LIST, locks)) {
-                this.forceUpdate();
-            }
         });
         this.registerHandler(IpcAction.LOAD_COMMITS, this.commitsLoaded);
     }
@@ -149,11 +144,12 @@ export default class CommitList extends PureStoreComponent<unknown, State> {
         this.handleCommits(result);
     }
     filter = (e: h.JSX.TargetedKeyboardEvent<HTMLInputElement>) => {
-        e.currentTarget.value !== this.state.filter && this.setState({
-            filter: e.currentTarget.value.toLocaleLowerCase()
-        });
+        const filterValue = e.currentTarget.value.toLocaleLowerCase();
+        if (filterValue !== this.state.filter) {
+            this.setState({ filter: filterValue });
+        }
     }
-    
+
     filterCommits() {
         const filter = this.state.filter;
         if (filter) {
@@ -164,9 +160,9 @@ export default class CommitList extends PureStoreComponent<unknown, State> {
 
     render() {
         return (
-            <div id="commits-pane" class={`pane${Store.locks[Locks.COMMIT_LIST] ? " disabled" : ""}`}>
+            <Fragment>
                 <div style="padding: 5px 0; border-bottom: 1px solid #555;">
-                    <input type="text" value={this.state.filter} onKeyUp={this.filter} placeholder="sha,message" />
+                    <input type="text" onInput={this.filter} placeholder="sha,message" />
                     <FileFilter />
                 </div>
                 <Links.Provider value={LinkTypes.COMMITS}>
@@ -179,6 +175,24 @@ export default class CommitList extends PureStoreComponent<unknown, State> {
                             : "No commits yet?"
                     }
                 </Links.Provider>
+            </Fragment>
+        );
+    }
+}
+
+export default class CommitListWrapper extends PureStoreComponent {
+    componentDidMount(): void {
+        this.listen("locks", locks => {
+            if (lockChanged(Locks.COMMIT_LIST, locks)) {
+                this.forceUpdate();
+            }
+        });
+    }
+
+    render() {
+        return (
+            <div id="commits-pane" class={`pane${Store.locks[Locks.COMMIT_LIST] ? " disabled" : ""}`}>
+                <CommitList />
             </div>
         );
     }

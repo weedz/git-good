@@ -8,6 +8,7 @@ import { NotificationPosition, type NotificationInit } from "../../Common/Window
 import { DialogTypes, type DialogProps } from "../Components/Dialog/types";
 import { Notification } from "../Components/Notification";
 import { ipcGetData, registerHandler } from "./IPC";
+import { shallowDiffers } from "../utils";
 
 type DialogWindow<T extends DialogTypes = DialogTypes> = {
     type: T
@@ -92,7 +93,7 @@ export const Store = store.Store;
 export abstract class StoreComponent<P = unknown, S = unknown> extends Component<P, S> {
     listeners: Array<() => void> = [];
 
-    listen<T extends StoreKeys>(key: T, cb: PartialStoreListener<StoreType, T>) {
+    listen<T extends StoreKeys>(key: T, cb: PartialStoreListener<StoreType, T> = () => this.forceUpdate()) {
         this.listeners.push(store.subscribe(key, cb));
     }
     registerHandler<T extends IpcAction>(action: T, cb: (arg: IpcResponse<T>) => void) {
@@ -105,20 +106,9 @@ export abstract class StoreComponent<P = unknown, S = unknown> extends Component
         }
     }
 }
-export abstract class PureStoreComponent<P = unknown, S = unknown> extends Component<P, S> {
-    listeners: Array<() => void> = [];
-
-    listen<T extends StoreKeys>(key: T, cb: PartialStoreListener<StoreType, T> = () => this.forceUpdate()) {
-        this.listeners.push(store.subscribe(key, cb));
-    }
-    registerHandler<T extends IpcAction>(action: T, cb: (arg: IpcResponse<T>) => void) {
-        this.listeners.push(registerHandler(action, cb));
-    }
-
-    componentWillUnmount() {
-        for (let i = 0, len = this.listeners.length; i < len; ++i) {
-            this.listeners[i]();
-        }
+export abstract class PureStoreComponent<P = unknown, S = unknown> extends StoreComponent<P, S> {
+    shouldComponentUpdate(nextProps: Readonly<P>, nextState: Readonly<S>): boolean {
+        return shallowDiffers(this.props, nextProps) || shallowDiffers(this.state, nextState);
     }
 }
 

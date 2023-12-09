@@ -42,8 +42,8 @@ export default class FileFilter extends StoreComponent<unknown, State> {
     findFiles = (e: h.JSX.TargetedKeyboardEvent<HTMLInputElement>) => {
         window.clearTimeout(this.findFileTimeout);
         
-        if (e.currentTarget.value) {
-            const value = e.currentTarget.value;
+        const value = e.currentTarget.value;
+        if (value) {
             this.findFileTimeout = window.setTimeout(() => {
                 ipcSendMessage(IpcAction.FIND_FILE, value);
             }, 250);
@@ -60,7 +60,7 @@ export default class FileFilter extends StoreComponent<unknown, State> {
     render() {
         return (
             <Fragment>
-                <input type="text" onClick={() => this.state.fileResults?.length > 0 && this.setState({showFiles: true})} onKeyUp={this.findFiles} placeholder="File/path..." />
+                <input type="text" onClick={() => this.state.fileResults?.length > 0 && this.setState({showFiles: true})} onInput={this.findFiles} placeholder="File/path..." />
                 {this.state.showFiles && !!this.state.fileResults?.length &&
                     <ul id="file-filter-list">
                         {this.state.fileResults.map(file => <li key={file} onClick={this.openFileHistory} data-path={file}>{file}</li>)}
