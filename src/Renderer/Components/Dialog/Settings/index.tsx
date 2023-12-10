@@ -5,6 +5,7 @@ import { NativeDialog } from "../../../../Common/Dialog";
 import { ipcGetData, ipcSendMessage, openNativeDialog } from "../../../Data/IPC";
 import { type SettingsProps } from "../types";
 import { Profile } from "./Profile";
+import { UISettings } from "./UI";
 
 type State = {
     config: AppConfig
@@ -13,7 +14,7 @@ type State = {
 };
 
 export class Settings extends Component<SettingsProps, State> {
-    async componentDidMount() {
+    componentDidMount() {
         ipcGetData(IpcAction.GET_SETTINGS, null).then(config => {
             this.setState({
                 config,
@@ -129,6 +130,7 @@ export class Settings extends Component<SettingsProps, State> {
                         <label for="ssh-agent">Refresh workdir on focus:</label>
                         <input id="ssh-agent" type="checkbox" name="ssh-agent" checked={this.state.config.ui.refreshWorkdirOnFocus} onInput={e => this.setUIConfig("refreshWorkdirOnFocus", e.currentTarget.checked)} />
                     </div>
+                    <UISettings />
                 </div>
                 <div class="pane">
                     <h3>Git</h3>

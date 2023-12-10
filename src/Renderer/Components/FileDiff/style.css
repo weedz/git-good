@@ -4,17 +4,16 @@
     z-index: 1;
     height: 100%;
     width: calc(100vw - 325px - 6px);
-    background-color: #000;
+    background-color: var(--background-color);
     display: flex;
 }
 #file-diff-container.full-width {
     width: 100vw;
 }
 #file-diff {
-    background-color: #000;
+    background-color: var(--background-color);
     display: flex;
     flex-direction: column;
-    --border-color: #aaa;
     flex: 1;
 }
 #file-diff > ul.file-diff-toolbar {

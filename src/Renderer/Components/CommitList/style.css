@@ -100,7 +100,7 @@
   overflow: visible;
   background-color: #000;
   left: 0;
-  border: 1px solid #777;
+  border: 1px solid var(--border-color);
   padding: 3px;
   display: block;
 }

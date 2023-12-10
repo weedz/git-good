@@ -9,20 +9,24 @@
   --branch-list-width: 200px;
   /* FIXME: Add setting to change font, reflect this change in src/Data/Renderer/index.tsx:calculateGlyphWidth */
   --font: "JetBrainsMonoNL Nerd Font Mono";
+
+  --border-color: #999999; /* #FD3F92 */
+  --background-color: #000000;
+  --text-color: #ddd;
 }
 
 ::-webkit-scrollbar-corner {
-  background: #000;
+  background: var(--background-color);
 }
 ::-webkit-scrollbar {
-  background: #000;
+  background: var(--background-color);
   width: 12px;
   height: 12px;
 }
 ::-webkit-scrollbar-thumb {
   background: #555;
   border-radius: 20px;
-  border: 2px solid #000;
+  border: 2px solid var(--background-color);
   min-height: 40px;
   min-width: 40px;
 }
@@ -31,8 +35,8 @@ head,
 body {
   margin: 0;
   padding: 0;
-  background-color: #000;
-  color: #ddd;
+  background-color: var(--background-color);
+  color: var(--text-color);
   font-size: 13px;
 }
 input,
@@ -50,18 +54,21 @@ ul {
 }
 a {
   text-decoration: none;
-  color: #ddd;
+  color: var(--text-color);
 }
 input[type="text"],
 textarea {
   background-color: #222;
   border: 1px solid #444;
   padding: 3px;
-  color: #ddd;
+  color: var(--text-color);
 }
 input[type="text"]:focus,
 textarea:focus {
   outline: none;
+}
+hr {
+  border: 1px solid var(--border-color);
 }
 
 #main-window {
@@ -79,12 +86,12 @@ textarea:focus {
   flex-direction: row;
 }
 .pane {
-  border: 1px solid #999;
+  border: 1px solid var(--border-color);
   margin: 3px;
   padding: 4px;
 }
 .pane.active {
-  border: 2px solid #999;
+  border: 2px solid var(--border-color);
   padding: 3px;
   margin: 3px;
 }

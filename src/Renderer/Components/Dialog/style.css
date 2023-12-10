@@ -18,8 +18,8 @@
 
 .dialog-window {
     margin: auto;
-    background-color: #000;
-    border: 1px solid #fff;
+    background-color: var(--background-color);
+    border: 1px solid var(--border-color);
     padding: 11px;
     min-width: 300px;
 }

@@ -1,17 +1,38 @@
-type CSSVariableName = "--branch-list-width" | "--font";
+type CSSVariableName =
+    | "--branch-list-width"
+    | "--font"
+    | "--border-color"
+    | "--background-color"
+    | "--text-color";
 
-function loadCSSVariable(variable: CSSVariableName) {
+export const cssDefaultValues: {
+    readonly [CSSVar in CSSVariableName]: string;
+} = {
+    "--branch-list-width": "200px",
+    "--background-color": "#000000",
+    "--border-color": "#999999",
+    "--font": "JetBrainsMonoNL Nerd Font Mono",
+    "--text-color": "#DDDDDD",
+} as const;
+
+export function getSavedCSSVariable(variable: CSSVariableName) {
     const value = localStorage.getItem(`styles${variable}`);
     if (!value) {
-        return;
+        return cssDefaultValues[variable];
     }
     return value;
 }
 
 export function loadStylesFromLocalstorage() {
-    for (const variableName of ["--branch-list-width", "--font"] as CSSVariableName[]) {
-        const value = loadCSSVariable(variableName);
-        if (value) {
+    for (const variableName of [
+        "--branch-list-width",
+        "--font",
+        "--border-color",
+        "--background-color",
+        "--text-color",
+    ] as CSSVariableName[]) {
+        const value = getSavedCSSVariable(variableName);
+        if (value !== undefined) {
             document.documentElement.style.setProperty(variableName, value);
         }
     }

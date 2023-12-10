@@ -19,7 +19,7 @@
     color: #eee;
     padding: 11px;
     padding-top: 0;
-    border: 1px solid #ddd;
+    border: 1px solid var(--border-color);
     margin-bottom: 5px;
 }
 .notification header {
