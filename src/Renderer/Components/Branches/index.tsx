@@ -22,13 +22,8 @@ function branchesToTree(branches: BranchesObj, filter: string | null) {
     );
 }
 
-export default class Branches extends PureStoreComponent<unknown, State> {
+class Branches extends PureStoreComponent<unknown, State> {
     componentDidMount() {
-        this.listen("locks", locks => {
-            if (lockChanged(Locks.BRANCH_LIST, locks)) {
-                this.forceUpdate();
-            }
-        });
         this.listen("branches", this.loadBranches);
         this.listen("heads", (_) => this.loadBranches(Store.branches));
         if (Store.branches) {
@@ -63,15 +58,32 @@ export default class Branches extends PureStoreComponent<unknown, State> {
 
         return (
             <Fragment>
-                <div id="branch-pane" class={`pane${Store.locks[Locks.BRANCH_LIST] ? " disabled" : ""}`}>
+                <div style="flex: 1; overflow: auto" class="pane">
                     <BranchList branches={this.state.branches} />
                     <hr />
                     <StashList />
                 </div>
-                <div class="pane" style="display: flex;">
-                    <input style="flex: 1;" type="text" placeholder="Filter..." onKeyUp={this.filter} />
+                <div class="pane flex-column">
+                    <input style="flex: 1" type="text" placeholder="Filter..." onKeyUp={this.filter} />
                 </div>
             </Fragment>
+        );
+    }
+}
+
+export default class BranchesWrapper extends PureStoreComponent {
+    componentDidMount(): void {
+        this.listen("locks", locks => {
+            if (lockChanged(Locks.BRANCH_LIST, locks)) {
+                this.forceUpdate();
+            }
+        });
+    }
+    render() {
+        return (
+            <div id="branch-pane" class={`flex-column${Store.locks[Locks.BRANCH_LIST] ? " disabled" : ""}`}>
+                <Branches />
+            </div>
         );
     }
 }
