@@ -39,7 +39,7 @@ export default class FileFilter extends StoreComponent<unknown, State> {
         }
     }
     
-    findFiles = (e: h.JSX.TargetedKeyboardEvent<HTMLInputElement>) => {
+    findFiles = (e: h.JSX.TargetedInputEvent<HTMLInputElement>) => {
         window.clearTimeout(this.findFileTimeout);
         
         const value = e.currentTarget.value;

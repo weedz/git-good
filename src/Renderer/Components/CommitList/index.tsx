@@ -143,7 +143,7 @@ class CommitList extends PureStoreComponent<unknown, State> {
 
         this.handleCommits(result);
     }
-    filter = (e: h.JSX.TargetedKeyboardEvent<HTMLInputElement>) => {
+    filter = (e: h.JSX.TargetedInputEvent<HTMLInputElement>) => {
         const filterValue = e.currentTarget.value.toLocaleLowerCase();
         if (filterValue !== this.state.filter) {
             this.setState({ filter: filterValue });
