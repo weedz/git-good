@@ -26,16 +26,7 @@ import { handleDialog } from "./Main/Dialogs";
 import { actionLock, eventReply, sendAction } from "./Main/IPC";
 import { ObjectTYPE, StashFLAGS } from "./Main/NodegitEnums";
 
-// console.log(app.getPath("crashDumps"));
-// crashReporter.start({ submitURL: "", uploadToServer: false });
-
-// --enable-features=UseOzonePlatform,Vulkan
-// --ozone-platform=wayland
-// --ozone-platform-hint=wayland
-
-// app.commandLine.appendSwitch("enable-features", "UseOzonePlatform,Vulkan");
-// // app.commandLine.appendSwitch("ozone-platform", "wayland");
-// app.commandLine.appendSwitch("ozone-platform-hint", "wayland");
+Menu.setApplicationMenu(null);
 
 app.commandLine.appendSwitch("disable-smooth-scrolling");
 
@@ -43,6 +34,8 @@ app.commandLine.appendSwitch("disable-smooth-scrolling");
 // initialization and is ready to create browser windows.
 // Some APIs can only be used after this event occurs.
 app.whenReady().then(() => {
+    applyAppMenu();
+
     const initialWindowWidth = 1024;
     const initialWindowHeight = 600;
 
@@ -439,7 +432,6 @@ function applyAppMenu(): void {
     const menu = Menu.buildFromTemplate(menuTemplate);
     Menu.setApplicationMenu(menu);
 }
-applyAppMenu();
 
 type EventArgs = {
     action: IpcAction
