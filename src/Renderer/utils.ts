@@ -16,15 +16,13 @@ export function debounce<TArgs>(fn: (args: TArgs) => unknown, ms: number) {
 }
 
 export function shallowDiffers(a: Record<PropertyKey, unknown>, b: Record<PropertyKey, unknown>) {
-    const objA_keys = Object.keys(a);
-    for (let i = 0, len = objA_keys.length; i < len; ++i) {
-        if (!(objA_keys[i] in b)) {
+    for (const key in a) {
+        if (!(key in b)) {
             return true;
         }
     }
-    const objB_keys = Object.keys(b);
-    for (let i = 0, len = objB_keys.length; i < len; ++i) {
-        if (a[objB_keys[i]] !== b[objB_keys[i]]) {
+    for (const key in b) {
+        if (a[key] !== b[key]) {
             return true;
         }
     }
