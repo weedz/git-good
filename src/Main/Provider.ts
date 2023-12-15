@@ -893,7 +893,7 @@ async function amendCommit(parent: Commit, committer: Signature, message: string
     }
 }
 
-export async function getCommit(repo: Repository, params: IpcActionParams[IpcAction.COMMIT]): AsyncIpcActionReturnOrError<IpcAction.COMMIT> {
+export async function doCommit(repo: Repository, params: IpcActionParams[IpcAction.COMMIT]): AsyncIpcActionReturnOrError<IpcAction.COMMIT> {
     const profile = currentProfile();
     const committer = signatureFromProfile(profile);
     if (!committer.email()) {

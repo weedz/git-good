@@ -555,7 +555,7 @@ const eventMap: {
         return result;
     },
     [IpcAction.COMMIT]: async (repo, data) => {
-        const result = await provider.getCommit(repo, data);
+        const result = await provider.doCommit(repo, data);
         if (!(result instanceof Error)) {
             sendAction(IpcAction.LOAD_BRANCHES, await provider.getBranches(repo));
             await provider.sendRefreshWorkdirEvent(repo);
