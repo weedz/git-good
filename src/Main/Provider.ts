@@ -927,7 +927,12 @@ export async function doCommit(repo: Repository, params: IpcActionParams[IpcActi
             }
         }
     } catch (err) {
-        return err as Error;
+        if (err instanceof Error) {
+            return err;
+        } else if (typeof err === "string") {
+            return Error(err);
+        }
+        return Error("Unknown error");
     }
 
     setLastKnownHead((await repo.getHeadCommit()).id());

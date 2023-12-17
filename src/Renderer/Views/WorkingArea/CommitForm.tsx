@@ -56,7 +56,11 @@ export default class CommitForm extends StoreComponent<Props, State> {
             message,
             amend,
         });
-        notification.update({title: amend ? "Commit amended" : "Commit created", body: <p>New commit sha {commitObj.sha}</p>, time: 3000});
+        if (commitObj) {
+            notification.update({title: amend ? "Commit amended" : "Commit created", body: <p>New commit sha {commitObj.sha}</p>, time: 3000});
+        } else {
+            notification.update({ title: "Failed to commit", time: 3000 });
+        }
     }
     updateMessage(msg: {summary: string} | {body: string}) {
         const commitMsg = this.state.amend ? this.state.commitMsg : Store.commitMsg;
