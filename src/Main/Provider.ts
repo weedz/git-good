@@ -579,7 +579,7 @@ export async function setUpstream(repo: Repository, local: string, remoteRefName
     const reference = await repo.getReference(local);
     if (remoteRefName) {
         try {
-            await repo.getReference(remoteRefName);
+            await repo.getReference(`refs/remotes/${remoteRefName}`);
         } catch (err) {
             const refCommit = await repo.getReferenceCommit(reference);
             await Reference.create(repo, `refs/remotes/${remoteRefName}`, refCommit.id(), 0, "");

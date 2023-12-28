@@ -1,6 +1,7 @@
 export const enum BranchType {
     LOCAL = 0,
     REMOTE = 1,
+    ALL = 3,
 }
 
 export const enum BranchFromType {
