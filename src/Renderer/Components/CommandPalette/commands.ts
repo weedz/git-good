@@ -1,17 +1,20 @@
 import { IpcAction } from "../../../Common/Actions.js";
 import { BranchFromType } from "../../../Common/Branch.js";
 import { basename } from "../../../Common/Utils.js";
-import { openSettings } from "../../Data/index.js";
+import { openFile, openSettings } from "../../Data/index.js";
 import { openDialog_BranchFrom, openDialog_Clone, openDialog_SetUpstream, openDialog_compare, openDialog_createTag, openDialog_fileHistory, openDialog_viewCommit } from "../../Data/Dialogs.js";
 import { ipcGetData, ipcSendMessage } from "../../Data/IPC.js";
 import { Store } from "../../Data/store.js";
+import { getType } from "../DiffPane/utility.js";
+import type { PromiseOrSync } from "../../../Common/TypeHelpers.js";
 
 export interface Command {
     label: string;
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     data?: any;
     details?: string;
-    action: () => void | Promise<Command[]>;
+    action: () => PromiseOrSync<void | true | Command[]>;
+    focusAction?: () => PromiseOrSync<void>;
 }
 
 function openRecentRepositoryAction(this: Command) {
@@ -22,6 +25,7 @@ function checkoutBranchAction(this: Command) {
 }
 
 export const commandPaletteCommandList: Command[] = [
+    // REPO
     {
         label: "Repo: Open repository...",
         action() {
@@ -39,11 +43,10 @@ export const commandPaletteCommandList: Command[] = [
         async action() {
             const recentRepositories = await ipcGetData(IpcAction.GET_RECENT_REPOSITORIES, null);
             return recentRepositories.map(repoPath => ({
-                    label: basename(repoPath),
-                    details: repoPath,
-                    action: openRecentRepositoryAction,
-                })
-            );
+                label: basename(repoPath),
+                details: repoPath,
+                action: openRecentRepositoryAction,
+            }));
         }
     },
     {
@@ -62,55 +65,6 @@ export const commandPaletteCommandList: Command[] = [
         label: "Repo: Push",
         action() {
             ipcSendMessage(IpcAction.PUSH, null);
-        }
-    },
-    {
-        label: "Branch: Set upstream...",
-        action() {
-            const local = Store.head?.name;
-            const remote = Store.head?.remote;
-            if (local) {
-                openDialog_SetUpstream(local, remote);
-            }
-        }
-    },
-    {
-        label: "Branch: Create new branch from HEAD...",
-        action() {
-            const headRef = Store.head?.name;
-            if (headRef) {
-                openDialog_BranchFrom(headRef, BranchFromType.REF);
-            }
-        }
-    },
-    {
-        label: "Open in Terminal",
-        action() {
-            ipcSendMessage(IpcAction.OPEN_IN_TERMINAL, null);
-        }
-    },
-    {
-        label: "Open in File Manager",
-        action() {
-            ipcSendMessage(IpcAction.OPEN_IN_FILE_MANAGER, null);
-        }
-    },
-    {
-        label: "Stash: Stash changes",
-        action() {
-            console.log("TODO: 'Stash changes'");
-        }
-    },
-    {
-        label: "Stash: Pop",
-        action() {
-            console.log("TODO: 'Stash: Pop'");
-        }
-    },
-    {
-        label: "Stash: Apply",
-        action() {
-            console.log("TODO: 'Stash: Apply'");
         }
     },
     {
@@ -134,17 +88,41 @@ export const commandPaletteCommandList: Command[] = [
             openDialog_viewCommit();
         }
     },
+    // Working directory
     {
-        label: "Open preferences",
+        label: "Working directory: Stage file...",
+        async action() {
+            const unstagedChanges = await ipcGetData(IpcAction.GET_UNSTAGED_CHANGES, null);
+            return unstagedChanges.map(patch => ({
+                label: `[${getType(patch.status)}] ${patch.actualFile.path}`,
+                focusAction() {
+                    openFile({ workDir: true, patch, type: "unstaged" });
+                },
+                async action() {
+                    await ipcGetData(IpcAction.STAGE_FILE, patch.actualFile.path);
+                    return true;
+                },
+            }));
+        }
+    },
+    // BRANCH
+    {
+        label: "Branch: Set upstream...",
         action() {
-            openSettings();
+            const local = Store.head?.name;
+            const remote = Store.head?.remote;
+            if (local) {
+                openDialog_SetUpstream(local, remote);
+            }
         }
     },
     {
-        label: "Blame: File",
+        label: "Branch: Create new branch from HEAD...",
         action() {
-            // TODO: return a list where the user can search for a file
-            console.log("TODO: 'Blame: File'");
+            const headRef = Store.head?.name;
+            if (headRef) {
+                openDialog_BranchFrom(headRef, BranchFromType.REF);
+            }
         }
     },
     {
@@ -161,6 +139,32 @@ export const commandPaletteCommandList: Command[] = [
             }));
         }
     },
+    // STASH
+    {
+        label: "Stash: Stash changes",
+        action() {
+            console.log("TODO: 'Stash changes'");
+        }
+    },
+    {
+        label: "Stash: Pop",
+        action() {
+            console.log("TODO: 'Stash: Pop'");
+        }
+    },
+    {
+        label: "Stash: Apply",
+        action() {
+            console.log("TODO: 'Stash: Apply'");
+        }
+    },
+    {
+        label: "Blame: File",
+        action() {
+            // TODO: return a list where the user can search for a file
+            console.log("TODO: 'Blame: File'");
+        }
+    },
     {
         label: "Tag: Create at HEAD...",
         action() {
@@ -169,7 +173,26 @@ export const commandPaletteCommandList: Command[] = [
                 openDialog_createTag(headRef);
             }
         }
-    }
+    },
+    // Settings and misc.
+    {
+        label: "Open in Terminal",
+        action() {
+            ipcSendMessage(IpcAction.OPEN_IN_TERMINAL, null);
+        }
+    },
+    {
+        label: "Open in File Manager",
+        action() {
+            ipcSendMessage(IpcAction.OPEN_IN_FILE_MANAGER, null);
+        }
+    },
+    {
+        label: "Open preferences",
+        action() {
+            openSettings();
+        }
+    },
 
     /**
      * TOOD:

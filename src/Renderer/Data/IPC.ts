@@ -101,6 +101,8 @@ const handlers: {[T in IpcAction]: HandlerCallback<T>[]} = {
     [IpcAction.GET_RECENT_REPOSITORIES]: [],
     [IpcAction.OPEN_REPOSITORY]: [],
     [IpcAction.PULL]: [],
+    [IpcAction.GET_UNSTAGED_CHANGES]: [],
+    [IpcAction.GET_STAGED_CHANGES]: [],
 };
 
 export function registerHandler<T extends IpcAction>(action: T, cb: HandlerCallback<T>) {

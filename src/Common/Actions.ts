@@ -58,6 +58,8 @@ export const enum IpcAction {
     GET_RECENT_REPOSITORIES,
     OPEN_REPOSITORY,
     PULL,
+    GET_UNSTAGED_CHANGES,
+    GET_STAGED_CHANGES,
 }
 
 export type IpcActionParams = {
@@ -153,6 +155,8 @@ export type IpcActionParams = {
     [IpcAction.GET_RECENT_REPOSITORIES]: null;
     [IpcAction.OPEN_REPOSITORY]: string;
     [IpcAction.PULL]: null;
+    [IpcAction.GET_UNSTAGED_CHANGES]: null;
+    [IpcAction.GET_STAGED_CHANGES]: null;
 };
 
 export type IpcActionReturn = {
@@ -222,6 +226,8 @@ export type IpcActionReturn = {
     [IpcAction.GET_RECENT_REPOSITORIES]: string[];
     [IpcAction.OPEN_REPOSITORY]: boolean;
     [IpcAction.PULL]: boolean;
+    [IpcAction.GET_UNSTAGED_CHANGES]: PatchObj[];
+    [IpcAction.GET_STAGED_CHANGES]: PatchObj[];
 };
 
 export type RepoStatus = {

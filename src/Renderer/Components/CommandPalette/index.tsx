@@ -28,6 +28,7 @@ export class CommandPaletteContainer extends Component<unknown, State> {
             if (e.ctrlKey && e.shiftKey && e.code === "KeyP") {
                 e.preventDefault();
                 this.setState({ isOpen: true });
+                this.selectItem(0, true);
                 requestAnimationFrame(() => {
                     this.filterRef.current?.focus();
                 });
@@ -62,7 +63,7 @@ export class CommandPaletteContainer extends Component<unknown, State> {
             // Execute selected command
             else if (e.key === "Enter") {
                 e.preventDefault();
-                this.runCommand(this.state.commands[this.state.selectedIdx]);
+                this.tryRunCommand(this.state.selectedIdx);
             }
             // Close command list
             else if (e.key === "Escape") {
@@ -73,8 +74,18 @@ export class CommandPaletteContainer extends Component<unknown, State> {
             }
         });
     }
-    selectItem(idx: number) {
-        if (idx !== this.state.selectedIdx) {
+    selectItem(idx: number, alwaysRunAction = false) {
+        if (idx < 0 || idx > this.state.commands.length - 1) {
+            return;
+        }
+        const idxIsDifference = idx !== this.state.selectedIdx;
+        if (alwaysRunAction || idxIsDifference) {
+            const focusAction = this.state.commands[idx].focusAction;
+            if (focusAction) {
+                focusAction();
+            }
+        }
+        if (idxIsDifference) {
             this.setState({ selectedIdx: idx }, this.scrollSelectedItemIntoView);
         }
     }
@@ -82,32 +93,58 @@ export class CommandPaletteContainer extends Component<unknown, State> {
         if (this.commandListRef.current) {
             const child = this.commandListRef.current.children.item(this.state.selectedIdx);
             if (child) {
-                child.scrollIntoView({block: "nearest"});
+                child.scrollIntoView({ block: "nearest" });
             }
         }
     }
+    tryRunCommand(idx: number) {
+        if (this.state.commands[idx]) {
+            this.runCommand(this.state.commands[idx]);
+        }
+    }
     async runCommand(command: CommandPalette.Command) {
-        const newCommands = await command.action();
-        if (newCommands) {
+        const result = await command.action();
+        if (result === undefined) {
+            this.setState(defaultState);
+        }
+        else if (Array.isArray(result)) {
             if (this.filterRef.current) {
                 this.filterRef.current.value = "";
             }
             this.setState({
-                allCommands: newCommands,
-                commands: newCommands,
+                allCommands: result,
+                commands: result,
                 selectedIdx: 0,
+            }, () => {
+                this.selectItem(this.state.selectedIdx, true);
             });
-        } else {
-            this.setState(defaultState);
+        } else if (result === true) {
+            const commands = this.state.allCommands;
+            commands.splice(commands.indexOf(command) >>> 0, 1);
+            // TODO: Close command palette if `commands.length === 0`?
+            this.setState({
+                commands,
+                allCommands: commands,
+                selectedIdx: Math.min(commands.length - 1, this.state.selectedIdx),
+            }, () => {
+                this.selectItem(this.state.selectedIdx, true);
+            });
+            if (this.filterRef.current?.value) {
+                this.filterCommands(commands, this.filterRef.current.value.toLowerCase());
+            }
         }
     }
-    filterCommands = (e: h.JSX.TargetedInputEvent<HTMLInputElement>) => {
-        const filterValue = e.currentTarget.value.toLowerCase();
-        const commands = this.state.allCommands.filter(command => command.label.toLowerCase().includes(filterValue) || command.details?.toLowerCase().includes(filterValue));
+    filterCommands(allCommands: CommandPalette.Command[], filterValue: string) {
+        const commands = filterValue.length > 0
+            ? allCommands.filter(command => command.label.toLowerCase().includes(filterValue) || command.details?.toLowerCase().includes(filterValue))
+            : allCommands;
         this.setState({
             commands,
             selectedIdx: 0,
         });
+    }
+    handleFilterInput = (e: h.JSX.TargetedInputEvent<HTMLInputElement>) => {
+        this.filterCommands(this.state.allCommands, e.currentTarget.value.toLowerCase());
     }
     handleClick = (e: h.JSX.TargetedMouseEvent<HTMLElement>) => {
         const dataIdx = e.currentTarget.dataset["idx"];
@@ -115,9 +152,7 @@ export class CommandPaletteContainer extends Component<unknown, State> {
             return;
         }
         const idx = Number.parseInt(dataIdx, 10);
-        if (this.state.commands[idx]) {
-            this.runCommand(this.state.commands[idx]);
-        }
+        this.tryRunCommand(idx);
     }
     render() {
         if (!this.state.isOpen) {
@@ -126,7 +161,7 @@ export class CommandPaletteContainer extends Component<unknown, State> {
 
         return (
             <div class="command-palette">
-                <input ref={this.filterRef} type="text" onInput={this.filterCommands} />
+                <input ref={this.filterRef} type="text" onInput={this.handleFilterInput} />
                 <ul class="commands" ref={this.commandListRef}>
                     {this.state.commands.map((command, idx) => (
                         <li key={idx} data-idx={idx} onClick={this.handleClick} class={idx === this.state.selectedIdx ? "selected" : ""} title={command.details}>

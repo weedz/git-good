@@ -11,9 +11,6 @@ export const enum RevwalkSORT {
     TIME = 2,
 }
 
-export const enum DiffDELTA {
-    RENAMED = 4,
-}
 export const enum DiffOPTION {
     INCLUDE_UNTRACKED = 8,
     RECURSE_UNTRACKED_DIRS = 16,

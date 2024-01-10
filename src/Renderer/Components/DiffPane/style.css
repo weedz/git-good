@@ -68,23 +68,23 @@
     position: relative;
 }
 
-.changed-files .file-modified .status,
+.file-modified .status,
 .modified {
     color: yellowgreen;
 }
-.changed-files .file-deleted .status,
+.file-deleted .status,
 .deleted {
     color: red;
 }
-.changed-files .file-added .status,
+.file-added .status,
 .added {
     color: green;
 }
-.changed-files .file-renamed .status,
+.file-renamed .status,
 .renamed {
     color: var(--renamed-color);
 }
-.changed-files .file-conflicted,
+.file-conflicted,
 .conflicted {
     background-color: #aa7700;
 }

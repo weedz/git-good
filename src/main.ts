@@ -436,6 +436,8 @@ const eventMap: {
     [IpcAction.SHOW_STASH]: provider.showStash,
     [IpcAction.CHECKOUT_BRANCH]: provider.checkoutBranch,
     [IpcAction.GET_CHANGES]: provider.loadChanges,
+    [IpcAction.GET_UNSTAGED_CHANGES]: provider.loadUnstagedChanges,
+    [IpcAction.GET_STAGED_CHANGES]: provider.loadStagedChanges,
     [IpcAction.STAGE_FILE]: async (repo, data) => {
         const result = await provider.stageFile(repo, data);
         await provider.sendRefreshWorkdirEvent(repo);
