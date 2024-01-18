@@ -20,7 +20,7 @@
     "jsxFactory": "h",
     "jsxFragmentFactory": "Fragment",
     "sourceMap": true,
-    "moduleResolution": "node",
+    "moduleResolution": "Node10",
     "resolveJsonModule": true,
     "typeRoots": [
       "./types",

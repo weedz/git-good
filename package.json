@@ -3,6 +3,7 @@
   "version": "0.1.4",
   "description": "Git good",
   "main": "dist/main.js",
+  "type": "commonjs",
   "scripts": {
     "start": "electron --ozone-platform-hint=wayland .",
     "lint": "eslint . && tsc --noEmit",
