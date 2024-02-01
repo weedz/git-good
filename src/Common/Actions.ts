@@ -1,6 +1,6 @@
 import type { DiffOptions } from "nodegit";
-import type { AppConfig } from "./Config";
-import { DiffDelta } from "./Utils";
+import type { AppConfig } from "./Config.js";
+import { DiffDelta } from "./Utils.js";
 
 export type IpcPayload<T extends IpcAction> = {
     id?: number

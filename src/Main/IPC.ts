@@ -1,6 +1,6 @@
 import { type IpcMainEvent } from "electron/main";
-import { IpcAction, type IpcActionReturnOrError } from "../Common/Actions";
-import { currentWindow } from "./Context";
+import { IpcAction, type IpcActionReturnOrError } from "../Common/Actions.js";
+import { currentWindow } from "./Context.js";
 
 export const actionLock: {
     [key in IpcAction]?: {

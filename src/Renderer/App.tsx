@@ -1,18 +1,18 @@
 import { h, Fragment } from "preact";
 
-import Main from "./Views/Main";
-import Changes from "./Components/Changes";
-import Branches from "./Components/Branches";
-import { lockChanged, Store, StoreComponent } from "./Data/store";
-import { Locks } from "../Common/Actions";
-import Dialog from "./Components/Dialog";
-import FileDiff from "./Components/FileDiff";
-import NotificationsContainer from "./Components/NotificationsContainer";
-import { NotificationPosition } from "../Common/WindowEventTypes";
+import Main from "./Views/Main.js";
+import Changes from "./Components/Changes.js";
+import Branches from "./Components/Branches/index.js";
+import { lockChanged, Store, StoreComponent } from "./Data/store.js";
+import { Locks } from "../Common/Actions.js";
+import Dialog from "./Components/Dialog/index.js";
+import FileDiff from "./Components/FileDiff/index.js";
+import NotificationsContainer from "./Components/NotificationsContainer.js";
+import { NotificationPosition } from "../Common/WindowEventTypes.js";
 
 import "./index.css";
-import { basename } from "../Common/Utils";
-import { Resizable } from "./Components/Resizable";
+import { basename } from "../Common/Utils.js";
+import { Resizable } from "./Components/Resizable.js";
 
 export default class App extends StoreComponent {
     componentDidMount() {

@@ -4,27 +4,29 @@ import { basename, join } from "path";
 import { clipboard, screen, shell } from "electron";
 import { BrowserWindow, Menu, app, dialog, ipcMain, type IpcMainEvent, type MenuItemConstructorOptions } from "electron/main";
 
-import { type Commit, type Object, type Reference, Remote, Repository, Stash } from "nodegit";
+import type { Commit, Object, Reference } from "nodegit";
 
-import { addRecentRepository, clearRepoProfile, currentProfile, diffOptionsIsEqual, getAppConfig, getRecentRepositories, getRepoProfile, saveAppConfig, setCurrentProfile, setRepoProfile, signatureFromActiveProfile, signatureFromProfile } from "./Main/Config";
-import { isMac, isWindows } from "./Main/Utils";
+import nodegit from "nodegit";
 
-import type { AsyncIpcActionReturnOrError, HunkObj, IpcActionParams } from "./Common/Actions";
-import { IpcAction, Locks } from "./Common/Actions";
-import { normalizeLocalName } from "./Common/Branch";
-import { formatTimeAgo } from "./Common/Utils";
-import * as provider from "./Main/Provider";
-import { requestClientData, sendEvent } from "./Main/WindowEvents";
+import { addRecentRepository, clearRepoProfile, currentProfile, diffOptionsIsEqual, getAppConfig, getRecentRepositories, getRepoProfile, saveAppConfig, setCurrentProfile, setRepoProfile, signatureFromActiveProfile, signatureFromProfile } from "./Main/Config.js";
+import { isMac, isWindows } from "./Main/Utils.js";
 
-import { AppEventType, RendererRequestEvents } from "./Common/WindowEventTypes";
+import type { AsyncIpcActionReturnOrError, HunkObj, IpcActionParams } from "./Common/Actions.js";
+import { IpcAction, Locks } from "./Common/Actions.js";
+import { normalizeLocalName } from "./Common/Branch.js";
+import { formatTimeAgo } from "./Common/Utils.js";
+import * as provider from "./Main/Provider.js";
+import { requestClientData, sendEvent } from "./Main/WindowEvents.js";
+
+import { AppEventType, RendererRequestEvents } from "./Common/WindowEventTypes.js";
 
 // eslint-disable-next-line import/no-unresolved
 import { buildDateTime, lastCommit } from "env";
-import { currentRepo, currentWindow, getContext, getLastKnownHead, setRepo, setWindow } from "./Main/Context";
-import { handleContextMenu } from "./Main/ContextMenu";
-import { handleDialog } from "./Main/Dialogs";
-import { actionLock, eventReply, sendAction } from "./Main/IPC";
-import { ObjectTYPE, StashFLAGS } from "./Main/NodegitEnums";
+import { currentRepo, currentWindow, getContext, getLastKnownHead, setRepo, setWindow } from "./Main/Context.js";
+import { handleContextMenu } from "./Main/ContextMenu/index.js";
+import { handleDialog } from "./Main/Dialogs/index.js";
+import { actionLock, eventReply, sendAction } from "./Main/IPC.js";
+import { ObjectTYPE, StashFLAGS } from "./Main/NodegitEnums.js";
 
 Menu.setApplicationMenu(null);
 
@@ -147,7 +149,7 @@ function applyAppMenu(): void {
                     async click() {
                         const data = await requestClientData(RendererRequestEvents.INIT_DIALOG, null);
                         if (data) {
-                            const initialRepo = await Repository.init(data.source, 0);
+                            const initialRepo = await nodegit.Repository.init(data.source, 0);
                             await openRepo(initialRepo.workdir());
                         }
                     }
@@ -293,7 +295,7 @@ function applyAppMenu(): void {
                     label: "Push...",
                     async click() {
                         sendEvent(AppEventType.LOCK_UI, Locks.BRANCH_LIST);
-                        const result = await provider.push({repo, win}, null);
+                        const result = await provider.push({ repo, win }, null);
                         if (result instanceof Error) {
                             dialog.showErrorBox("Failed to push", result.message);
                         } else {
@@ -346,10 +348,10 @@ function applyAppMenu(): void {
                     label: "Stash",
                     async click() {
                         // TODO: Stash message
-                        await Stash.save(repo, signatureFromActiveProfile(), "Stash", StashFLAGS.DEFAULT);
+                        await nodegit.Stash.save(repo, signatureFromActiveProfile(), "Stash", StashFLAGS.DEFAULT);
                         await provider.sendRefreshWorkdirEvent(repo);
                         sendAction(IpcAction.LOAD_STASHES, await provider.getStash(repo));
-                        sendEvent(AppEventType.NOTIFY, {title: "Stashed changes"});
+                        sendEvent(AppEventType.NOTIFY, { title: "Stashed changes" });
                     }
                 },
                 {
@@ -439,7 +441,7 @@ type EventArgs = {
     id?: string
 };
 
-type PromiseEventCallback<A extends IpcAction> = (repo: Repository, args: IpcActionParams[A], event: IpcMainEvent) => AsyncIpcActionReturnOrError<A>;
+type PromiseEventCallback<A extends IpcAction> = (repo: nodegit.Repository, args: IpcActionParams[A], event: IpcMainEvent) => AsyncIpcActionReturnOrError<A>;
 
 const eventMap: {
     [A in IpcAction]: PromiseEventCallback<A>
@@ -563,24 +565,24 @@ const eventMap: {
         return result;
     },
     [IpcAction.REMOTES]: provider.getRemotes,
-    [IpcAction.RESOLVE_CONFLICT]: async (repo, {path}) => {
+    [IpcAction.RESOLVE_CONFLICT]: async (repo, { path }) => {
         const result = await provider.resolveConflict(repo, path);
         await provider.sendRefreshWorkdirEvent(repo);
         return result;
     },
     [IpcAction.EDIT_REMOTE]: async (repo, data, event) => {
-        if (!Remote.isValidName(data.name)) {
+        if (!nodegit.Remote.isValidName(data.name)) {
             return Error("Invalid remote name");
         }
 
         if (data.oldName !== data.name) {
-            await Remote.rename(repo, data.oldName, data.name);
+            await nodegit.Remote.rename(repo, data.oldName, data.name);
         }
 
-        Remote.setUrl(repo, data.name, data.pullFrom);
+        nodegit.Remote.setUrl(repo, data.name, data.pullFrom);
 
         if (data.pushTo) {
-            Remote.setPushurl(repo, data.name, data.pushTo);
+            nodegit.Remote.setPushurl(repo, data.name, data.pushTo);
         }
 
         await provider.fetchRemoteFrom(repo, { remote: data.name });
@@ -593,18 +595,18 @@ const eventMap: {
     [IpcAction.NEW_REMOTE]: async (repo, data, event) => {
         let remote;
         try {
-            remote = await Remote.create(repo, data.name, data.pullFrom);
+            remote = await nodegit.Remote.create(repo, data.name, data.pullFrom);
         } catch (err) {
             return err as Error;
         }
 
         if (data.pushTo) {
-            Remote.setPushurl(repo, data.name, data.pushTo);
+            nodegit.Remote.setPushurl(repo, data.name, data.pushTo);
         }
 
         if (!await provider.fetchRemote([remote])) {
             // Deleting remote with (possibly) invalid url
-            await Remote.delete(repo, data.name);
+            await nodegit.Remote.delete(repo, data.name);
             return false;
         }
 
@@ -681,7 +683,7 @@ ipcMain.on("asynchronous-message", async (event, arg: EventArgs) => {
         return;
     }
 
-    actionLock[action] = {interuptable: false};
+    actionLock[action] = { interuptable: false };
 
     if (!currentRepo() && !(action in ALLOWED_WHEN_NOT_IN_REPO)) {
         eventReply(event, action, Error("Not in a repository"), arg.id);
@@ -722,7 +724,7 @@ async function openRepo(repoPath: string): Promise<boolean> {
     }
     const opened = await provider.openRepo(repoPath);
 
-    if(!opened) {
+    if (!opened) {
         dialog.showErrorBox("No repository", `'${repoPath}' does not contain a git repository`);
         return false;
     }
@@ -746,7 +748,7 @@ async function openRepo(repoPath: string): Promise<boolean> {
         const profile = setCurrentProfile(repoProfile);
         body = `Profile set to '${profile?.profileName}'`;
     }
-    sendEvent(AppEventType.NOTIFY, {title: "Repo opened", body});
+    sendEvent(AppEventType.NOTIFY, { title: "Repo opened", body });
     provider.getRemotes(opened).then(remotes => sendAction(IpcAction.REMOTES, remotes));
     provider.getBranches(opened).then(branches => sendAction(IpcAction.LOAD_BRANCHES, branches));
     provider.getStash(opened).then(stash => sendAction(IpcAction.LOAD_STASHES, stash));
@@ -756,7 +758,7 @@ async function openRepo(repoPath: string): Promise<boolean> {
     return true;
 }
 
-function loadHunks(repo: Repository, params: IpcActionParams[IpcAction.LOAD_HUNKS]): Promise<false | HunkObj[]> {
+function loadHunks(repo: nodegit.Repository, params: IpcActionParams[IpcAction.LOAD_HUNKS]): Promise<false | HunkObj[]> {
     if ("sha" in params) {
         return provider.getHunks(repo, params.sha, params.path);
     }

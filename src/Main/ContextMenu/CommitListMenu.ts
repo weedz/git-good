@@ -1,10 +1,10 @@
 import { clipboard } from "electron";
 import { Menu, type MenuItemConstructorOptions } from "electron/main";
-import { BranchFromType, HEAD_REF } from "../../Common/Branch";
-import { AppEventType, LinkTypes } from "../../Common/WindowEventTypes";
-import { currentRepo } from "../Context";
-import { tryCompareRevisions } from "../Provider";
-import { sendEvent } from "../WindowEvents";
+import { BranchFromType, HEAD_REF } from "../../Common/Branch.js";
+import { AppEventType, LinkTypes } from "../../Common/WindowEventTypes.js";
+import { currentRepo } from "../Context.js";
+import { tryCompareRevisions } from "../Provider.js";
+import { sendEvent } from "../WindowEvents.js";
 
 export function openCommitMenu(data: Record<string, string>) {
     const menuTemplate: MenuItemConstructorOptions[] = [

@@ -15,6 +15,7 @@
     "alwaysStrict": true,
     "verbatimModuleSyntax": true,
     "forceConsistentCasingInFileNames": true,
+    "esModuleInterop": true,
     "noEmit": true,
     "jsx": "react",
     "jsxFactory": "h",

@@ -1,14 +1,13 @@
 import { clipboard } from "electron";
 import { dialog, Menu, type MenuItemConstructorOptions } from "electron/main";
-import { Remote } from "nodegit";
-import { IpcAction } from "../../Common/Actions";
-import { BranchFromType, BranchType } from "../../Common/Branch";
-import { AppEventType } from "../../Common/WindowEventTypes";
-import { signatureFromActiveProfile } from "../Config";
-import { currentRepo, getContext } from "../Context";
-import { sendAction } from "../IPC";
-import * as provider from "../Provider";
-import { sendEvent } from "../WindowEvents";
+import { IpcAction } from "../../Common/Actions.js";
+import { BranchFromType, BranchType } from "../../Common/Branch.js";
+import { AppEventType } from "../../Common/WindowEventTypes.js";
+import { signatureFromActiveProfile } from "../Config.js";
+import { currentRepo, getContext } from "../Context.js";
+import { sendAction } from "../IPC.js";
+import * as provider from "../Provider.js";
+import { sendEvent } from "../WindowEvents.js";
 
 function menuActionPullChanges(refName: string | null) {
     return provider.pull(currentRepo(), refName, signatureFromActiveProfile());
@@ -23,7 +22,7 @@ function setUpstreamMenuItem(ref: string, remote: string) {
                 dialog.showErrorBox("Unable to set upstream", "No remotes.");
             }
             const local = ref;
-            sendEvent(AppEventType.DIALOG_SET_UPSTREAM, {local, remote});
+            sendEvent(AppEventType.DIALOG_SET_UPSTREAM, { local, remote });
         }
     };
 }
@@ -89,7 +88,7 @@ export function openRemoteMenu(data: Record<string, string>) {
         {
             label: "Fetch",
             async click() {
-                const result = await provider.fetchRemoteFrom(currentRepo(), {remote: data.remote});
+                const result = await provider.fetchRemoteFrom(currentRepo(), { remote: data.remote });
                 if (!result) {
                     dialog.showErrorBox("Failed to fetch remote", "");
                 }
@@ -125,14 +124,14 @@ export function openRemoteMenu(data: Record<string, string>) {
                 });
                 if (result.response === 1) {
                     try {
-                        await Remote.delete(currentRepo(), remote);
+                        await provider.deleteRemote(currentRepo(), remote);
                         sendAction(IpcAction.REMOTES, await provider.getRemotes(currentRepo()));
                         sendAction(IpcAction.LOAD_BRANCHES, await provider.getBranches(currentRepo()));
                     } catch (err) {
                         return err as Error;
                     }
                 }
-    
+
                 return true;
             }
         },
@@ -153,7 +152,7 @@ export function openRemoteRefMenu(data: Record<string, string>) {
                     buttons: ["Cancel", "Delete"],
                     cancelId: 0,
                 });
-    
+
                 if (result.response === 1) {
                     await provider.deleteRemoteRef(currentRepo(), refName);
                     sendEvent(AppEventType.NOTIFY, {
@@ -289,7 +288,7 @@ export function openTagMenu(data: Record<string, string>) {
                 });
                 if (result.response === 1) {
                     sendEvent(AppEventType.NOTIFY, { title: `Deleting tag '${refName}'` });
-                    await provider.deleteTag(currentRepo(), {name: refName, remote: result.checkboxChecked});
+                    await provider.deleteTag(currentRepo(), { name: refName, remote: result.checkboxChecked });
                     sendAction(IpcAction.LOAD_BRANCHES, await provider.getBranches(currentRepo()));
                 }
             }

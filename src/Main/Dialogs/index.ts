@@ -1,7 +1,7 @@
 import { dialog, type IpcMainInvokeEvent } from "electron/main";
-import { NativeDialog, type NativeDialogData } from "../../Common/Dialog";
-import { currentRepo } from "../Context";
-import { discardAllChanges, discardChanges, sendRefreshWorkdirEvent } from "../Provider";
+import { NativeDialog, type NativeDialogData } from "../../Common/Dialog.js";
+import { currentRepo } from "../Context.js";
+import { discardAllChanges, discardChanges, sendRefreshWorkdirEvent } from "../Provider.js";
 
 interface DialogData<D extends NativeDialog> {
     action: D

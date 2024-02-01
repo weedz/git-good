@@ -1,9 +1,9 @@
 import { clipboard } from "electron";
 import { Menu, type MenuItemConstructorOptions } from "electron/main";
-import { AppEventType } from "../../Common/WindowEventTypes";
-import { currentRepo } from "../Context";
-import { openFileAtCommit } from "../Provider";
-import { sendEvent } from "../WindowEvents";
+import { AppEventType } from "../../Common/WindowEventTypes.js";
+import { currentRepo } from "../Context.js";
+import { openFileAtCommit } from "../Provider.js";
+import { sendEvent } from "../WindowEvents.js";
 
 export function openFileHistoryContextMenu(data: Record<string, string>) {
     const menuTemplate: MenuItemConstructorOptions[] = [

@@ -1,7 +1,7 @@
-import type { IpcActionParams, IpcActionReturn, IpcPayload, IpcResponse } from "../../Common/Actions";
-import { IpcAction } from "../../Common/Actions";
-import { NativeDialog, type NativeDialogData } from "../../Common/Dialog";
-import { AppEventType, type AppEventData } from "../../Common/WindowEventTypes";
+import type { IpcActionParams, IpcActionReturn, IpcPayload, IpcResponse } from "../../Common/Actions.js";
+import { IpcAction } from "../../Common/Actions.js";
+import { NativeDialog, type NativeDialogData } from "../../Common/Dialog.js";
+import { AppEventType, type AppEventData } from "../../Common/WindowEventTypes.js";
 
 window.electronAPI.onAsyncReply(handleMessage);
 window.electronAPI.onAppEvent(handleAppEvent);

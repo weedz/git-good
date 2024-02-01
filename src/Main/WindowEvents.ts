@@ -1,7 +1,7 @@
 import { ipcMain } from "electron/main";
-import type { AppEventData, RendererRequestArgs, RendererRequestData, RendererResponsePayload } from "../Common/WindowEventTypes";
-import { AppEventType, RendererRequestEvents } from "../Common/WindowEventTypes";
-import { currentWindow } from "./Context";
+import type { AppEventData, RendererRequestArgs, RendererRequestData, RendererResponsePayload } from "../Common/WindowEventTypes.js";
+import { AppEventType, RendererRequestEvents } from "../Common/WindowEventTypes.js";
+import { currentWindow } from "./Context.js";
 
 export function sendEvent<T extends AppEventType>(event: T, data: AppEventData[T]) {
     currentWindow().send("app-event", {event, data});

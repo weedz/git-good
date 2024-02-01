@@ -1,14 +1,14 @@
 import { createStore, type PartialStoreListener } from "@weedzcokie/store";
 import { Component, type AnyComponent, type JSX } from "preact";
-import type { BranchesObj, BranchObj, HeadBranchObj, IpcActionReturn, IpcResponse, PatchObj, RepoStatus, StashObj } from "../../Common/Actions";
-import { IpcAction, Locks } from "../../Common/Actions";
-import { HEAD_REF } from "../../Common/Branch";
-import { type AppConfig } from "../../Common/Config";
-import { NotificationPosition, type NotificationInit } from "../../Common/WindowEventTypes";
-import { DialogTypes, type DialogProps } from "../Components/Dialog/types";
-import { Notification } from "../Components/Notification";
-import { ipcGetData, registerHandler } from "./IPC";
-import { shallowDiffers } from "../utils";
+import type { BranchesObj, BranchObj, HeadBranchObj, IpcActionReturn, IpcResponse, PatchObj, RepoStatus, StashObj } from "../../Common/Actions.js";
+import { IpcAction, Locks } from "../../Common/Actions.js";
+import { HEAD_REF } from "../../Common/Branch.js";
+import { type AppConfig } from "../../Common/Config.js";
+import { NotificationPosition, type NotificationInit } from "../../Common/WindowEventTypes.js";
+import { DialogTypes, type DialogProps } from "../Components/Dialog/types.js";
+import { Notification } from "../Components/Notification/index.js";
+import { ipcGetData, registerHandler } from "./IPC.js";
+import { shallowDiffers } from "../utils.js";
 
 type DialogWindow<T extends DialogTypes = DialogTypes> = {
     type: T

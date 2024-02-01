@@ -1,5 +1,5 @@
-import type { Locks, PatchObj, RepoStatus } from "./Actions";
-import { BranchFromType, BranchType } from "./Branch";
+import type { Locks, PatchObj, RepoStatus } from "./Actions.js";
+import { BranchFromType, BranchType } from "./Branch.js";
 
 export const enum LinkTypes {
     COMMITS = 0,

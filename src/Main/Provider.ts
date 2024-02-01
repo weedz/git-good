@@ -1,33 +1,34 @@
 import { dialog, shell } from "electron";
 import * as fs from "fs/promises";
-import { Branch, Checkout, Clone, Commit, ConvenientHunk, ConvenientPatch, Credential, Diff, DiffLine, Graph, Index, IndexEntry, Error as NodeGitError, Object, Oid, Rebase, Reference, Remote, Repository, Reset, Revparse, Revwalk, Signature, Stash, Tag, type DiffFindOptions, type DiffOptions } from "nodegit";
+import type { DiffFindOptions, DiffOptions } from "nodegit";
+import nodegit from "nodegit";
 import { tmpdir } from "os";
 import { join } from "path";
 
-import type { TransferProgress } from "../../types/nodegit";
-import type { AsyncIpcActionReturnOrError, BranchObj, CommitObj, HunkObj, IpcActionParams, IpcActionReturn, LineObj, LoadFileCommitsReturn, PatchObj, StashObj } from "../Common/Actions";
-import { IpcAction, RefType } from "../Common/Actions";
-import { HEAD_REF, HISTORY_REF, getRemoteName, normalizeLocalName, normalizeRemoteName, normalizeRemoteNameWithoutRemote, normalizeTagName } from "../Common/Branch";
-import type { AppConfig, AuthConfig } from "../Common/Config";
-import { AppEventType } from "../Common/WindowEventTypes";
-import { currentProfile, getAppConfig, getAuth, signatureFromActiveProfile, signatureFromProfile } from "./Config";
-import { setLastKnownHead, type Context } from "./Context";
-import { gpgSign, gpgVerify } from "./GPG";
-import { sendAction } from "./IPC";
-import { CheckoutSTRATEGY, DiffDELTA, DiffFIND, DiffOPTION, NodeGitErrorCODE, ObjectTYPE, ResetTYPE, RevwalkSORT, StatusOPT, StatusSHOW } from "./NodegitEnums";
-import { sendEvent } from "./WindowEvents";
+import type { TransferProgress } from "../../types/nodegit/index.js";
+import type { AsyncIpcActionReturnOrError, BranchObj, CommitObj, HunkObj, IpcActionParams, IpcActionReturn, LineObj, LoadFileCommitsReturn, PatchObj, StashObj } from "../Common/Actions.js";
+import { IpcAction, RefType } from "../Common/Actions.js";
+import { HEAD_REF, HISTORY_REF, getRemoteName, normalizeLocalName, normalizeRemoteName, normalizeRemoteNameWithoutRemote, normalizeTagName } from "../Common/Branch.js";
+import type { AppConfig, AuthConfig } from "../Common/Config.js";
+import { AppEventType } from "../Common/WindowEventTypes.js";
+import { currentProfile, getAppConfig, getAuth, signatureFromActiveProfile, signatureFromProfile } from "./Config.js";
+import { setLastKnownHead, type Context } from "./Context.js";
+import { gpgSign, gpgVerify } from "./GPG.js";
+import { sendAction } from "./IPC.js";
+import { CheckoutSTRATEGY, DiffDELTA, DiffFIND, DiffOPTION, NodeGitErrorCODE, ObjectTYPE, ResetTYPE, RevwalkSORT, StatusOPT, StatusSHOW } from "./NodegitEnums.js";
+import { sendEvent } from "./WindowEvents.js";
 
 declare module "nodegit" {
     interface Repository {
         rebaseBranches(
-            branch: string | Reference,
-            upstream: string | Reference,
-            onto: string | Reference,
-            signature: Signature,
-            beforeNextFn?: (rebase?: Rebase) => Promise<unknown> | unknown,
-        ): Promise<Oid>;
+            branch: string | nodegit.Reference,
+            upstream: string | nodegit.Reference,
+            onto: string | nodegit.Reference,
+            signature: nodegit.Signature,
+            beforeNextFn?: (rebase?: nodegit.Rebase) => Promise<unknown> | unknown,
+        ): Promise<nodegit.Oid>;
 
-        continueRebase(signature: Signature, beforeNextFn?: (rebase?: Rebase) => Promise<unknown> | unknown): Promise<Oid>;
+        continueRebase(signature: nodegit.Signature, beforeNextFn?: (rebase?: nodegit.Rebase) => Promise<unknown> | unknown): Promise<nodegit.Oid>;
     }
 
     interface Tree {
@@ -36,19 +37,19 @@ declare module "nodegit" {
     }
 }
 
-export function authenticate(username: string, auth: AuthConfig): Credential | false {
+export function authenticate(username: string, auth: AuthConfig): nodegit.Credential | false {
     if (auth.authType === "ssh") {
         if (auth.sshAgent) {
-            return Credential.sshKeyFromAgent(username || "git");
+            return nodegit.Credential.sshKeyFromAgent(username || "git");
         }
-        return Credential.sshKeyNew(username, auth.sshPublicKey, auth.sshPrivateKey, auth.sshPassphrase || "");
+        return nodegit.Credential.sshKeyNew(username, auth.sshPublicKey, auth.sshPrivateKey, auth.sshPassphrase || "");
     } else if (auth.authType === "userpass") {
-        return Credential.userpassPlaintextNew(auth.username, auth.password);
+        return nodegit.Credential.userpassPlaintextNew(auth.username, auth.password);
     }
 
     return false;
 }
-export function credentialsCallback(_url: string, username: string): Credential | false {
+export function credentialsCallback(_url: string, username: string): nodegit.Credential | false {
     const auth = getAuth();
     if (auth) {
         return authenticate(username, auth);
@@ -57,9 +58,9 @@ export function credentialsCallback(_url: string, username: string): Credential 
     return false;
 }
 
-export async function openRepo(repoPath: string): Promise<Repository | false> {
+export async function openRepo(repoPath: string): Promise<nodegit.Repository | false> {
     try {
-        const repo = await Repository.open(repoPath);
+        const repo = await nodegit.Repository.open(repoPath);
         index = await repo.refreshIndex();
         return repo;
     } catch (e) {
@@ -67,7 +68,7 @@ export async function openRepo(repoPath: string): Promise<Repository | false> {
     }
 }
 
-export function repoStatus(repo: Repository) {
+export function repoStatus(repo: nodegit.Repository) {
     return {
         // FIXME: Is this correct, can we use `repo.headUnborn()` here?
         empty: repo.isEmpty() || repo.headUnborn(),
@@ -91,7 +92,7 @@ type HistoryCommit = {
     path?: string
     status?: number
 }
-function compileHistoryCommit(commit: Commit): HistoryCommit {
+function compileHistoryCommit(commit: nodegit.Commit): HistoryCommit {
     const author = commit.author();
     return {
         parents: commit.parents().map(oid => oid.tostrS()),
@@ -105,7 +106,7 @@ function compileHistoryCommit(commit: Commit): HistoryCommit {
     };
 }
 
-function initRevwalk(repo: Repository, start: "refs/*" | Oid): Revwalk {
+function initRevwalk(repo: nodegit.Repository, start: "refs/*" | nodegit.Oid): nodegit.Revwalk {
     const revwalk = repo.createRevWalk();
     if (getAppConfig().commitlistSortOrder === "topological") {
         revwalk.sorting(RevwalkSORT.TOPOLOGICAL | RevwalkSORT.TIME);
@@ -119,23 +120,23 @@ function initRevwalk(repo: Repository, start: "refs/*" | Oid): Revwalk {
     return revwalk;
 }
 
-async function initGetCommits(repo: Repository, params: IpcActionParams[IpcAction.LOAD_COMMITS] | IpcActionParams[IpcAction.LOAD_FILE_COMMITS]):
+async function initGetCommits(repo: nodegit.Repository, params: IpcActionParams[IpcAction.LOAD_COMMITS] | IpcActionParams[IpcAction.LOAD_FILE_COMMITS]):
     Promise<false | {
         branch: string
-        revwalkStart: Oid | "refs/*"
+        revwalkStart: nodegit.Oid | "refs/*"
     }> {
     if (repo.isEmpty() || repo.headUnborn()) {
         return false;
     }
 
     let branch: string = HEAD_REF;
-    let revwalkStart: typeof HISTORY_REF | Oid;
+    let revwalkStart: typeof HISTORY_REF | nodegit.Oid;
     // FIXME: organize this...
     if ("history" in params) {
         branch = HISTORY_REF;
         revwalkStart = HISTORY_REF;
     } else {
-        let start: Commit | null = null;
+        let start: nodegit.Commit | null = null;
         if ("branch" in params) {
             branch = params.branch;
         }
@@ -184,7 +185,7 @@ async function initGetCommits(repo: Repository, params: IpcActionParams[IpcActio
     };
 }
 
-export async function getFileCommits(repo: Repository, params: IpcActionParams[IpcAction.LOAD_FILE_COMMITS]): AsyncIpcActionReturnOrError<IpcAction.LOAD_FILE_COMMITS> {
+export async function getFileCommits(repo: nodegit.Repository, params: IpcActionParams[IpcAction.LOAD_FILE_COMMITS]): AsyncIpcActionReturnOrError<IpcAction.LOAD_FILE_COMMITS> {
     const args = await initGetCommits(repo, params);
     if (!args) {
         return null;
@@ -197,7 +198,7 @@ export async function getFileCommits(repo: Repository, params: IpcActionParams[I
     // FIXME: HistoryEntry should set commit.repo.
     const historyEntries = await revwalk.fileHistoryWalk(currentName, params.num || 50000);
 
-    if (historyEntries[0].status === DiffDELTA.RENAMED as unknown as Diff.DELTA) {
+    if (historyEntries[0].status === DiffDELTA.RENAMED as unknown as nodegit.Diff.DELTA) {
         // We always "follow renames" if the file is renamed in the first commit
         followRenames = true;
     }
@@ -214,11 +215,11 @@ export async function getFileCommits(repo: Repository, params: IpcActionParams[I
 
         historyCommit.path = currentName;
 
-        if (entry.status === DiffDELTA.RENAMED as unknown as Diff.DELTA) {
+        if (entry.status === DiffDELTA.RENAMED as unknown as nodegit.Diff.DELTA) {
             historyCommit.path = entry.oldName;
         }
 
-        if (entry.status === DiffDELTA.RENAMED as unknown as Diff.DELTA && followRenames) {
+        if (entry.status === DiffDELTA.RENAMED as unknown as nodegit.Diff.DELTA && followRenames) {
             followRenames = false;
 
             historyCommit.path = entry.newName;
@@ -242,7 +243,7 @@ export async function getFileCommits(repo: Repository, params: IpcActionParams[I
     };
 }
 
-export async function getCommits(repo: Repository, params: IpcActionParams[IpcAction.LOAD_COMMITS]): AsyncIpcActionReturnOrError<IpcAction.LOAD_COMMITS> {
+export async function getCommits(repo: nodegit.Repository, params: IpcActionParams[IpcAction.LOAD_COMMITS]): AsyncIpcActionReturnOrError<IpcAction.LOAD_COMMITS> {
     const args = await initGetCommits(repo, params);
     if (!args) {
         return null;
@@ -260,7 +261,7 @@ export async function getCommits(repo: Repository, params: IpcActionParams[IpcAc
     };
 }
 
-export async function continueRebase(repo: Repository): AsyncIpcActionReturnOrError<IpcAction.CONTINUE_REBASE> {
+export async function continueRebase(repo: nodegit.Repository): AsyncIpcActionReturnOrError<IpcAction.CONTINUE_REBASE> {
     if (!repo.isRebasing()) {
         return false;
     }
@@ -279,7 +280,7 @@ export async function continueRebase(repo: Repository): AsyncIpcActionReturnOrEr
     return false;
 }
 
-export async function fetchRemote(remotes: Remote[]): Promise<boolean> {
+export async function fetchRemote(remotes: nodegit.Remote[]): Promise<boolean> {
     const updatedRemotes: boolean[] = Array(remotes.length);
     const promises: Promise<number>[] = Array(remotes.length);
 
@@ -331,7 +332,7 @@ export async function fetchRemote(remotes: Remote[]): Promise<boolean> {
     return true;
 }
 
-export async function fetchRemoteFrom(repo: Repository, params: IpcActionParams[IpcAction.FETCH]): AsyncIpcActionReturnOrError<IpcAction.FETCH> {
+export async function fetchRemoteFrom(repo: nodegit.Repository, params: IpcActionParams[IpcAction.FETCH]): AsyncIpcActionReturnOrError<IpcAction.FETCH> {
     const remotes = params?.remote ? [await repo.getRemote(params.remote)] : await repo.getRemotes();
 
     return fetchRemote(remotes);
@@ -341,11 +342,11 @@ export async function fetchRemoteFrom(repo: Repository, params: IpcActionParams[
  * 
  * @throws {Error}
  */
-export async function clone(source: string, targetDir: string): Promise<Repository> {
+export async function clone(source: string, targetDir: string): Promise<nodegit.Repository> {
     sendEvent(AppEventType.NOTIFY_CLONE_STATUS, {
         done: false,
     });
-    const clonedRepo = await Clone(source, targetDir, {
+    const clonedRepo = await nodegit.Clone(source, targetDir, {
         fetchOpts: {
             callbacks: {
                 credentials: credentialsCallback,
@@ -371,7 +372,7 @@ export async function clone(source: string, targetDir: string): Promise<Reposito
     return clonedRepo;
 }
 
-export async function pull(repo: Repository, branch: string | null, signature: Signature): Promise<boolean> {
+export async function pull(repo: nodegit.Repository, branch: string | null, signature: nodegit.Signature): Promise<boolean> {
     let ref;
     if (branch) {
         try {
@@ -389,12 +390,12 @@ export async function pull(repo: Repository, branch: string | null, signature: S
 
     const currentBranch = await repo.head();
 
-    let upstream: Reference;
+    let upstream: nodegit.Reference;
     let status: { ahead: number, behind: number };
     try {
-        upstream = await Branch.upstream(ref);
+        upstream = await nodegit.Branch.upstream(ref);
 
-        status = await Graph.aheadBehind(repo, upstream.target(), ref.target()) as unknown as { ahead: number, behind: number };
+        status = await nodegit.Graph.aheadBehind(repo, upstream.target(), ref.target()) as unknown as { ahead: number, behind: number };
     }
     catch (err) {
         // Missing remote/upstream
@@ -428,7 +429,7 @@ export async function pull(repo: Repository, branch: string | null, signature: S
         if (hardReset) {
             const originHead = await repo.getBranchCommit(upstream);
 
-            await Reset.reset(repo, originHead, ResetTYPE.HARD as unknown as Reset.TYPE, {});
+            await nodegit.Reset.reset(repo, originHead, ResetTYPE.HARD as unknown as nodegit.Reset.TYPE, {});
             index = await repo.refreshIndex();
             result = true;
         } else {
@@ -456,7 +457,7 @@ async function pushHead(context: Context): Promise<boolean> {
     const head = await context.repo.head();
     let upstream;
     try {
-        upstream = await Branch.upstream(head);
+        upstream = await nodegit.Branch.upstream(head);
     }
     catch (err) {
         if (err instanceof Error) {
@@ -501,15 +502,15 @@ export async function push(context: Context, data: IpcActionParams[IpcAction.PUS
     return result;
 }
 
-async function pushBranch(context: Context, remote: Remote, localRef: Reference, force = false): Promise<boolean> {
+async function pushBranch(context: Context, remote: nodegit.Remote, localRef: nodegit.Reference, force = false): Promise<boolean> {
     let remoteRefName: string;
     let status: { ahead: number, behind: number };
     try {
         // throws if no upstream
-        const upstream = await Branch.upstream(localRef);
+        const upstream = await nodegit.Branch.upstream(localRef);
         remoteRefName = normalizeRemoteNameWithoutRemote(upstream.name());
 
-        status = await Graph.aheadBehind(context.repo, localRef.target(), upstream.target()) as unknown as { ahead: number, behind: number };
+        status = await nodegit.Graph.aheadBehind(context.repo, localRef.target(), upstream.target()) as unknown as { ahead: number, behind: number };
     } catch (err) {
         if (err instanceof Error) {
             dialog.showErrorBox("Push failed", `Invalid upstream: ${err.message}`);
@@ -536,12 +537,12 @@ async function pushBranch(context: Context, remote: Remote, localRef: Reference,
     return doPush(remote, localRef.name(), `heads/${remoteRefName}`, force, context);
 }
 
-async function pushTag(remote: Remote, localRef: Reference, remove = false, context?: Context): Promise<boolean> {
+async function pushTag(remote: nodegit.Remote, localRef: nodegit.Reference, remove = false, context?: Context): Promise<boolean> {
     // We can pass an empty localref to delete a remote ref
     return doPush(remote, remove ? "" : localRef.name(), `tags/${normalizeTagName(localRef.name())}`, undefined, context);
 }
 
-async function doPush(remote: Remote, localName: string, remoteName: string, forcePush = false, context?: Context): Promise<boolean> {
+async function doPush(remote: nodegit.Remote, localName: string, remoteName: string, forcePush = false, context?: Context): Promise<boolean> {
     // something with pathspec, https://github.com/nodegit/nodegit/issues/1270#issuecomment-293742772
     const force = forcePush ? "+" : "";
     try {
@@ -575,27 +576,27 @@ async function doPush(remote: Remote, localName: string, remoteName: string, for
     return false;
 }
 
-export async function setUpstream(repo: Repository, local: string, remoteRefName: string | null): Promise<boolean> {
+export async function setUpstream(repo: nodegit.Repository, local: string, remoteRefName: string | null): Promise<boolean> {
     const reference = await repo.getReference(local);
     if (remoteRefName) {
         try {
             await repo.getReference(`refs/remotes/${remoteRefName}`);
         } catch (err) {
             const refCommit = await repo.getReferenceCommit(reference);
-            await Reference.create(repo, `refs/remotes/${remoteRefName}`, refCommit.id(), 0, "");
+            await nodegit.Reference.create(repo, `refs/remotes/${remoteRefName}`, refCommit.id(), 0, "");
         }
     }
     // Returns 0 on success
-    return !await Branch.setUpstream(reference, remoteRefName);
+    return !await nodegit.Branch.setUpstream(reference, remoteRefName);
 }
 
-export async function deleteRef(repo: Repository, name: string): Promise<boolean> {
+export async function deleteRef(repo: nodegit.Repository, name: string): Promise<boolean> {
     const ref = await repo.getReference(name);
     // Returns 0 on success
-    return !Branch.delete(ref)
+    return !nodegit.Branch.delete(ref)
 }
 
-export async function deleteRemoteRef(repo: Repository, refName: string): Promise<boolean> {
+export async function deleteRemoteRef(repo: nodegit.Repository, refName: string): Promise<boolean> {
     const ref = await repo.getReference(refName);
 
     if (ref.isRemote()) {
@@ -627,7 +628,7 @@ export async function deleteRemoteRef(repo: Repository, refName: string): Promis
     }
     return true;
 }
-export async function deleteTag(repo: Repository, data: {name: string, remote: boolean}): Promise<boolean> {
+export async function deleteTag(repo: nodegit.Repository, data: { name: string, remote: boolean }): Promise<boolean> {
     if (data.remote) {
         // FIXME: Do we really need to check every remote?
         const remotes = await repo.getRemotes();
@@ -635,7 +636,7 @@ export async function deleteTag(repo: Repository, data: {name: string, remote: b
             await deleteRemoteTag(remotes[i], data.name);
         }
     }
-    
+
     try {
         await repo.deleteTagByName(data.name);
     } catch (err) {
@@ -643,12 +644,12 @@ export async function deleteTag(repo: Repository, data: {name: string, remote: b
             dialog.showErrorBox("Could not delete tag", err.toString());
         }
     }
-    
+
     return true;
 }
 
 // tagName must contain full path for tag (eg. refs/tags/[tag])
-export async function deleteRemoteTag(remote: Remote, tagName: string): Promise<boolean> {
+export async function deleteRemoteTag(remote: nodegit.Remote, tagName: string): Promise<boolean> {
     try {
         await remote.push([`:${tagName}`], {
             callbacks: {
@@ -662,7 +663,7 @@ export async function deleteRemoteTag(remote: Remote, tagName: string): Promise<
     return true;
 }
 
-async function getHeadStruct(repo: Repository) {
+async function getHeadStruct(repo: nodegit.Repository) {
     const head = await repo.head();
     const headCommit = await repo.getHeadCommit();
 
@@ -670,7 +671,7 @@ async function getHeadStruct(repo: Repository) {
 
     let headUpstream: string | undefined;
     try {
-        const upstream = await Branch.upstream(head);
+        const upstream = await nodegit.Branch.upstream(head);
         headUpstream = upstream.name();
     } catch (_) {
         // no upstream for "head"
@@ -685,15 +686,15 @@ async function getHeadStruct(repo: Repository) {
     }
 }
 
-export async function getHEAD(repo: Repository): AsyncIpcActionReturnOrError<IpcAction.LOAD_HEAD> {
+export async function getHEAD(repo: nodegit.Repository): AsyncIpcActionReturnOrError<IpcAction.LOAD_HEAD> {
     if (repo.isEmpty() || repo.headUnborn()) {
         return null;
     }
-    
+
     return getHeadStruct(repo);
 }
 
-export async function getUpstreamRefs(repo: Repository): AsyncIpcActionReturnOrError<IpcAction.LOAD_UPSTREAMS> {
+export async function getUpstreamRefs(repo: nodegit.Repository): AsyncIpcActionReturnOrError<IpcAction.LOAD_UPSTREAMS> {
     const refs = await repo.getReferences();
 
     const upstreams: IpcActionReturn[IpcAction.LOAD_UPSTREAMS] = [];
@@ -703,11 +704,11 @@ export async function getUpstreamRefs(repo: Repository): AsyncIpcActionReturnOrE
         if (ref.isBranch()) {
             const headCommit = await repo.getReferenceCommit(ref);
             try {
-                const upstream = await Branch.upstream(ref);
+                const upstream = await nodegit.Branch.upstream(ref);
                 const upstreamHead = await repo.getReferenceCommit(upstream);
 
                 const upstreamObj: IpcActionReturn[IpcAction.LOAD_UPSTREAMS][0] = {
-                    status: await Graph.aheadBehind(repo, headCommit.id(), upstreamHead.id()) as unknown as { ahead: number, behind: number },
+                    status: await nodegit.Graph.aheadBehind(repo, headCommit.id(), upstreamHead.id()) as unknown as { ahead: number, behind: number },
                     remote: upstream.name(),
                     name: ref.name(),
                 };
@@ -722,14 +723,14 @@ export async function getUpstreamRefs(repo: Repository): AsyncIpcActionReturnOrE
     return upstreams;
 }
 
-export async function showStash(repo: Repository, index: number): AsyncIpcActionReturnOrError<IpcAction.SHOW_STASH> {
+export async function showStash(repo: nodegit.Repository, index: number): AsyncIpcActionReturnOrError<IpcAction.SHOW_STASH> {
     const stash = repoStash.at(index);
 
     if (!stash) {
         return Error("Invalid stash");
     }
 
-    const stashCommit = await Commit.lookup(repo, stash.oid);
+    const stashCommit = await nodegit.Commit.lookup(repo, stash.oid);
     const stashDiff = await stashCommit.getDiff();
 
     // TODO: Which diff to show?
@@ -746,9 +747,9 @@ export async function showStash(repo: Repository, index: number): AsyncIpcAction
     return Promise.all(patchesObj);
 }
 
-export async function getStash(repo: Repository): AsyncIpcActionReturnOrError<IpcAction.LOAD_STASHES> {
+export async function getStash(repo: nodegit.Repository): AsyncIpcActionReturnOrError<IpcAction.LOAD_STASHES> {
     const stash: StashObj[] = [];
-    await Stash.foreach(repo, (index: number, msg: string, oid: Oid) => {
+    await nodegit.Stash.foreach(repo, (index: number, msg: string, oid: nodegit.Oid) => {
         stash.push({
             index,
             msg,
@@ -759,20 +760,20 @@ export async function getStash(repo: Repository): AsyncIpcActionReturnOrError<Ip
     return stash;
 }
 
-export async function stashPop(repo: Repository, index = 0): Promise<boolean> {
-    await Stash.pop(repo, index);
+export async function stashPop(repo: nodegit.Repository, index = 0): Promise<boolean> {
+    await nodegit.Stash.pop(repo, index);
     await sendRefreshWorkdirEvent(repo);
     sendAction(IpcAction.LOAD_STASHES, await getStash(repo));
-    sendEvent(AppEventType.NOTIFY, {title: `Popped stash@{${index}}`});
+    sendEvent(AppEventType.NOTIFY, { title: `Popped stash@{${index}}` });
     return true;
 }
-export async function stashApply(repo: Repository, index = 0): Promise<boolean> {
-    await Stash.apply(repo, index);
+export async function stashApply(repo: nodegit.Repository, index = 0): Promise<boolean> {
+    await nodegit.Stash.apply(repo, index);
     await sendRefreshWorkdirEvent(repo);
-    sendEvent(AppEventType.NOTIFY, {title: `Applied stash@{${index}}`});
+    sendEvent(AppEventType.NOTIFY, { title: `Applied stash@{${index}}` });
     return true;
 }
-export async function stashDrop(repo: Repository, index = 0): Promise<boolean> {
+export async function stashDrop(repo: nodegit.Repository, index = 0): Promise<boolean> {
     const result = await dialog.showMessageBox({
         title: "Drop stash",
         message: `Are you sure you want to delete stash@{${index}}`,
@@ -781,16 +782,16 @@ export async function stashDrop(repo: Repository, index = 0): Promise<boolean> {
         cancelId: 0,
     });
     if (result.response === 1) {
-        await Stash.drop(repo, index);
+        await nodegit.Stash.drop(repo, index);
         sendAction(IpcAction.LOAD_STASHES, await getStash(repo));
-        sendEvent(AppEventType.NOTIFY, {title: `Dropped stash@{${index}}`});
+        sendEvent(AppEventType.NOTIFY, { title: `Dropped stash@{${index}}` });
         return true;
     }
     return false;
 }
 
 // {local: Branch[], remote: Branch[], tags: Branch[]}
-export async function getBranches(repo: Repository): AsyncIpcActionReturnOrError<IpcAction.LOAD_BRANCHES> {
+export async function getBranches(repo: nodegit.Repository): AsyncIpcActionReturnOrError<IpcAction.LOAD_BRANCHES> {
     const local: BranchObj[] = [];
     const remote: BranchObj[] = [];
     const tags: BranchObj[] = [];
@@ -825,7 +826,7 @@ export async function getBranches(repo: Repository): AsyncIpcActionReturnOrError
                 // Then fallback to `ref.peel` if `ref.targetPeel` returns null
                 let oid = ref.targetPeel();
                 if (!oid) {
-                    const headCommit = await ref.peel(ObjectTYPE.COMMIT as unknown as Object.TYPE);
+                    const headCommit = await ref.peel(ObjectTYPE.COMMIT as unknown as nodegit.Object.TYPE);
                     oid = headCommit.id();
                 }
                 refObj.headSHA = oid.tostrS();
@@ -844,7 +845,11 @@ export async function getBranches(repo: Repository): AsyncIpcActionReturnOrError
     };
 }
 
-export async function getRemotes(repo: Repository): AsyncIpcActionReturnOrError<IpcAction.REMOTES> {
+export async function deleteRemote(repo: nodegit.Repository, remote: string) {
+    return await nodegit.Remote.delete(repo, remote);
+}
+
+export async function getRemotes(repo: nodegit.Repository): AsyncIpcActionReturnOrError<IpcAction.REMOTES> {
     const remotes = await repo.getRemotes();
     return remotes.map(remote => ({
         name: remote.name(),
@@ -853,7 +858,7 @@ export async function getRemotes(repo: Repository): AsyncIpcActionReturnOrError<
     }))
 }
 
-export async function findFile(repo: Repository, file: string): AsyncIpcActionReturnOrError<IpcAction.FIND_FILE> {
+export async function findFile(repo: nodegit.Repository, file: string): AsyncIpcActionReturnOrError<IpcAction.FIND_FILE> {
     file = file.toLocaleLowerCase();
 
     const matches: string[] = [];
@@ -877,13 +882,13 @@ export async function findFile(repo: Repository, file: string): AsyncIpcActionRe
 function onSignature(key: string) {
     return async (data: string) => {
         return {
-            code: NodeGitErrorCODE.OK as unknown as NodeGitError.CODE,
+            code: NodeGitErrorCODE.OK as unknown as nodegit.Error.CODE,
             field: "gpgsig",
             signedData: await gpgSign(key, data),
         };
     }
 }
-async function amendCommit(parent: Commit, committer: Signature, message: string, gpgKey?: string): Promise<void> {
+async function amendCommit(parent: nodegit.Commit, committer: nodegit.Signature, message: string, gpgKey?: string): Promise<void> {
     const oid = await index.writeTree();
     const author = parent.author();
     if (gpgKey && currentProfile().gpg) {
@@ -893,7 +898,7 @@ async function amendCommit(parent: Commit, committer: Signature, message: string
     }
 }
 
-export async function doCommit(repo: Repository, params: IpcActionParams[IpcAction.COMMIT]): AsyncIpcActionReturnOrError<IpcAction.COMMIT> {
+export async function doCommit(repo: nodegit.Repository, params: IpcActionParams[IpcAction.COMMIT]): AsyncIpcActionReturnOrError<IpcAction.COMMIT> {
     const profile = currentProfile();
     const committer = signatureFromProfile(profile);
     if (!committer.email()) {
@@ -940,7 +945,7 @@ export async function doCommit(repo: Repository, params: IpcActionParams[IpcActi
     return loadCommit(repo, null);
 }
 
-export async function createTag(repo: Repository, data: IpcActionParams[IpcAction.CREATE_TAG], tagger: Signature, gpgKey?: string): AsyncIpcActionReturnOrError<IpcAction.CREATE_TAG> {
+export async function createTag(repo: nodegit.Repository, data: IpcActionParams[IpcAction.CREATE_TAG], tagger: nodegit.Signature, gpgKey?: string): AsyncIpcActionReturnOrError<IpcAction.CREATE_TAG> {
     try {
         let id = data.from;
 
@@ -953,7 +958,7 @@ export async function createTag(repo: Repository, data: IpcActionParams[IpcActio
 
         if (gpgKey && currentProfile().gpg) {
             // TODO: Change this when https://github.com/nodegit/nodegit/pull/1945 lands
-            await Tag.createWithSignature(repo, data.name, id, tagger, data.annotation || "", 0, onSignature(gpgKey));
+            await nodegit.Tag.createWithSignature(repo, data.name, id, tagger, data.annotation || "", 0, onSignature(gpgKey));
         } else if (data.annotation) {
             await repo.createTag(id, data.name, data.annotation);
         } else {
@@ -969,8 +974,8 @@ export async function createTag(repo: Repository, data: IpcActionParams[IpcActio
     return true;
 }
 
-async function getUnstagedPatches(repo: Repository, flags: Diff.OPTION): Promise<ConvenientPatch[]> {
-    const unstagedDiff = await Diff.indexToWorkdir(repo, index, {
+async function getUnstagedPatches(repo: nodegit.Repository, flags: nodegit.Diff.OPTION): Promise<nodegit.ConvenientPatch[]> {
+    const unstagedDiff = await nodegit.Diff.indexToWorkdir(repo, index, {
         flags: DiffOPTION.INCLUDE_UNTRACKED | DiffOPTION.SHOW_UNTRACKED_CONTENT | DiffOPTION.RECURSE_UNTRACKED_DIRS | flags
     });
     const diffOpts: DiffFindOptions = {
@@ -980,16 +985,16 @@ async function getUnstagedPatches(repo: Repository, flags: Diff.OPTION): Promise
     return unstagedDiff.patches();
 }
 
-async function getStagedDiff(repo: Repository, flags: Diff.OPTION): Promise<Diff> {
+async function getStagedDiff(repo: nodegit.Repository, flags: nodegit.Diff.OPTION): Promise<nodegit.Diff> {
     if (repo.isEmpty() || repo.headUnborn()) {
-        return Diff.treeToIndex(repo, undefined, index, { flags });
+        return nodegit.Diff.treeToIndex(repo, undefined, index, { flags });
     }
 
     const head = await repo.getHeadCommit();
-    return Diff.treeToIndex(repo, await head.getTree(), index, { flags });
+    return nodegit.Diff.treeToIndex(repo, await head.getTree(), index, { flags });
 }
 
-async function getStagedPatches(repo: Repository, flags: Diff.OPTION): Promise<ConvenientPatch[]> {
+async function getStagedPatches(repo: nodegit.Repository, flags: nodegit.Diff.OPTION): Promise<nodegit.ConvenientPatch[]> {
     const stagedDiff = await getStagedDiff(repo, flags);
     const diffOpts: DiffFindOptions = {
         flags: DiffFIND.RENAMES,
@@ -1002,7 +1007,7 @@ let preventRefreshWorkdir = false;
 export function isRefreshingWorkdir() {
     return preventRefreshWorkdir;
 }
-export async function sendRefreshWorkdirEvent(repo: Repository): Promise<void> {
+export async function sendRefreshWorkdirEvent(repo: nodegit.Repository): Promise<void> {
     if (preventRefreshWorkdir) {
         return;
     }
@@ -1016,7 +1021,7 @@ export async function sendRefreshWorkdirEvent(repo: Repository): Promise<void> {
     preventRefreshWorkdir = false;
 }
 
-async function refreshWorkdir(repo: Repository): Promise<{
+async function refreshWorkdir(repo: nodegit.Repository): Promise<{
     unstaged: number
     staged: number
     status: ReturnType<typeof repoStatus>
@@ -1049,7 +1054,7 @@ async function refreshWorkdir(repo: Repository): Promise<{
     }
 }
 
-async function stageSingleFile(repo: Repository, filePath: string): Promise<boolean> {
+async function stageSingleFile(repo: nodegit.Repository, filePath: string): Promise<boolean> {
     let result;
 
     try {
@@ -1064,7 +1069,7 @@ async function stageSingleFile(repo: Repository, filePath: string): Promise<bool
     // NOTE: Returns 0 on success
     return !result;
 }
-export async function stageFile(repo: Repository, filePath: string): AsyncIpcActionReturnOrError<IpcAction.STAGE_FILE> {
+export async function stageFile(repo: nodegit.Repository, filePath: string): AsyncIpcActionReturnOrError<IpcAction.STAGE_FILE> {
     await index.read(0);
 
     const result = await stageSingleFile(repo, filePath);
@@ -1075,14 +1080,14 @@ export async function stageFile(repo: Repository, filePath: string): AsyncIpcAct
 
     return result;
 }
-async function unstageSingleFile(repo: Repository, head: Commit, filePath: string): Promise<boolean> {
+async function unstageSingleFile(repo: nodegit.Repository, head: nodegit.Commit, filePath: string): Promise<boolean> {
     // NOTE: Returns 0 on success
-    return !await Reset.default(repo, head, filePath);
+    return !await nodegit.Reset.default(repo, head, filePath);
 }
-export async function unstageFile(repo: Repository, filePath: string): AsyncIpcActionReturnOrError<IpcAction.UNSTAGE_FILE> {
+export async function unstageFile(repo: nodegit.Repository, filePath: string): AsyncIpcActionReturnOrError<IpcAction.UNSTAGE_FILE> {
     const head = await repo.getHeadCommit();
     const result = await unstageSingleFile(repo, head, filePath);
-    
+
     await index.read(0);
 
     return result;
@@ -1092,7 +1097,7 @@ export async function unstageFile(repo: Repository, filePath: string): AsyncIpcA
  * 
  * @returns number of staged files
  */
-export async function stageAllFiles(repo: Repository): Promise<number> {
+export async function stageAllFiles(repo: nodegit.Repository): Promise<number> {
     const statusList = await repo.getStatus({
         show: StatusSHOW.WORKDIR_ONLY,
         flags: StatusOPT.INCLUDE_UNTRACKED | StatusOPT.RECURSE_UNTRACKED_DIRS,
@@ -1109,7 +1114,7 @@ export async function stageAllFiles(repo: Repository): Promise<number> {
  * 
  * @returns number of unstaged files
  */
-export async function unstageAllFiles(repo: Repository): Promise<number> {
+export async function unstageAllFiles(repo: nodegit.Repository): Promise<number> {
     const statusList = await repo.getStatus({
         show: StatusSHOW.INDEX_ONLY,
         flags: StatusOPT.INCLUDE_UNTRACKED | StatusOPT.RECURSE_UNTRACKED_DIRS,
@@ -1122,7 +1127,7 @@ export async function unstageAllFiles(repo: Repository): Promise<number> {
     return statusList.length;
 }
 
-async function discardSingleFile(repo: Repository, filePath: string): Promise<true | Error> {
+async function discardSingleFile(repo: nodegit.Repository, filePath: string): Promise<true | Error> {
     preventRefreshWorkdir = true;
     if (!index.getByPath(filePath)) {
         // file not found in index (untracked), delete
@@ -1136,11 +1141,11 @@ async function discardSingleFile(repo: Repository, filePath: string): Promise<tr
         preventRefreshWorkdir = false;
         return true;
     }
-    
+
     try {
         const head = await repo.getHeadCommit();
         const tree = await head.getTree();
-        await Checkout.tree(repo, tree, { checkoutStrategy: CheckoutSTRATEGY.FORCE, paths: [filePath] });
+        await nodegit.Checkout.tree(repo, tree, { checkoutStrategy: CheckoutSTRATEGY.FORCE, paths: [filePath] });
     } catch (err) {
         console.error(err);
     }
@@ -1148,7 +1153,7 @@ async function discardSingleFile(repo: Repository, filePath: string): Promise<tr
     preventRefreshWorkdir = false;
     return true;
 }
-export async function discardChanges(repo: Repository, filePath: string): Promise<boolean | Error> {
+export async function discardChanges(repo: nodegit.Repository, filePath: string): Promise<boolean | Error> {
     if (!index.getByPath(filePath)) {
         // file not found in index (untracked), delete?
         const result = await dialog.showMessageBox({
@@ -1168,7 +1173,7 @@ export async function discardChanges(repo: Repository, filePath: string): Promis
  * 
  * @returns Number of discarded changes
  */
-export async function discardAllChanges(repo: Repository): Promise<number> {
+export async function discardAllChanges(repo: nodegit.Repository): Promise<number> {
     const statusList = await repo.getStatus({
         show: StatusSHOW.WORKDIR_ONLY,
         flags: StatusOPT.INCLUDE_UNTRACKED | StatusOPT.RECURSE_UNTRACKED_DIRS,
@@ -1198,12 +1203,12 @@ export async function loadChanges(): AsyncIpcActionReturnOrError<IpcAction.GET_C
         unstaged,
     };
 }
-export async function getWorkdirHunks(repo: Repository, path: string, type: "staged" | "unstaged"): Promise<false | HunkObj[]> {
+export async function getWorkdirHunks(repo: nodegit.Repository, path: string, type: "staged" | "unstaged"): Promise<false | HunkObj[]> {
     const patch = workDirIndexPathMap[type].get(path);
     return patch ? loadHunks(repo, patch, path) : false;
 }
 
-function handleLine(line: DiffLine): LineObj {
+function handleLine(line: nodegit.DiffLine): LineObj {
     const oldLineno = line.oldLineno();
     const newLineno = line.newLineno();
     let type: LineObj["type"] = "";
@@ -1221,7 +1226,7 @@ function handleLine(line: DiffLine): LineObj {
         content: line.rawContent().trimEnd()
     };
 }
-async function handleHunk(hunk: ConvenientHunk): Promise<HunkObj> {
+async function handleHunk(hunk: nodegit.ConvenientHunk): Promise<HunkObj> {
     const lines = await hunk.lines();
 
     return {
@@ -1231,15 +1236,15 @@ async function handleHunk(hunk: ConvenientHunk): Promise<HunkObj> {
         // new: hunk.newStart()
     };
 }
-export async function getHunks(repo: Repository, sha: string, path: string): Promise<false | HunkObj[]> {
+export async function getHunks(repo: nodegit.Repository, sha: string, path: string): Promise<false | HunkObj[]> {
     const patch = commitObjectCache.get(sha)?.patches.get(path);
     return patch ? loadHunks(repo, patch, path) : false;
 }
-export async function hunksFromCompare(repo: Repository, path: string): Promise<false | HunkObj[]> {
+export async function hunksFromCompare(repo: nodegit.Repository, path: string): Promise<false | HunkObj[]> {
     const patch = comparePatches.get(path);
     return patch ? loadHunks(repo, patch, path) : false;
 }
-async function loadHunks(repo: Repository, patch: ConvenientPatch, path?: string): Promise<HunkObj[]> {
+async function loadHunks(repo: nodegit.Repository, patch: nodegit.ConvenientPatch, path?: string): Promise<HunkObj[]> {
     if (patch.isConflicted() && path) {
         return loadConflictedPatch(repo, path);
     }
@@ -1248,7 +1253,7 @@ async function loadHunks(repo: Repository, patch: ConvenientPatch, path?: string
     return Promise.all(hunks.map(handleHunk));
 }
 
-async function commitDiffParent(commit: Commit, diffOptions?: DiffOptions): Promise<Diff> {
+async function commitDiffParent(commit: nodegit.Commit, diffOptions?: DiffOptions): Promise<nodegit.Diff> {
     const tree = await commit.getTree();
 
     // TODO: which parent to chose?
@@ -1263,7 +1268,7 @@ async function commitDiffParent(commit: Commit, diffOptions?: DiffOptions): Prom
     return await tree.diffWithOptions(null, diffOptions);
 }
 
-export async function diffFileAtCommit(repo: Repository, file: string, sha: string): Promise<Error | PatchObj> {
+export async function diffFileAtCommit(repo: nodegit.Repository, file: string, sha: string): Promise<Error | PatchObj> {
     const historyEntry = fileHistoryCache.get(sha);
     if (!historyEntry) {
         return Error("Revison not found");
@@ -1310,8 +1315,8 @@ export async function diffFileAtCommit(repo: Repository, file: string, sha: stri
     return patchObj;
 }
 
-async function loadConflictedPatch(repo: Repository, path: string): Promise<HunkObj[]> {
-    const conflictEntry = await index.conflictGet(path || "") as unknown as {ancestor_out: IndexEntry, our_out: IndexEntry | null, their_out: IndexEntry | null};
+async function loadConflictedPatch(repo: nodegit.Repository, path: string): Promise<HunkObj[]> {
+    const conflictEntry = await index.conflictGet(path || "") as unknown as { ancestor_out: nodegit.IndexEntry, our_out: nodegit.IndexEntry | null, their_out: nodegit.IndexEntry | null };
 
     if (!conflictEntry.their_out) {
         return [{
@@ -1342,10 +1347,10 @@ async function loadConflictedPatch(repo: Repository, path: string): Promise<Hunk
             }
             const end = fileContent.indexOf("\n>>>>>>>", start);
             conflictCursor = end;
-    
+
             const content = fileContent.subarray(start, end + 9).toString();
             const startLine = fileContent.subarray(0, start).filter(chr => chr === lineFeedCodepoint).length + 1;
-    
+
             const lines = content.split("\n").map((line, index): LineObj => ({
                 content: line,
                 type: "",
@@ -1373,8 +1378,8 @@ async function loadConflictedPatch(repo: Repository, path: string): Promise<Hunk
     }];
 }
 
-export async function resolveConflict(repo: Repository, path: string): Promise<boolean> {
-    const conflictEntry = await index.conflictGet(path) as unknown as {ancestor_out: IndexEntry, our_out: IndexEntry | null, their_out: IndexEntry | null};
+export async function resolveConflict(repo: nodegit.Repository, path: string): Promise<boolean> {
+    const conflictEntry = await index.conflictGet(path) as unknown as { ancestor_out: nodegit.IndexEntry, our_out: nodegit.IndexEntry | null, their_out: nodegit.IndexEntry | null };
 
     if (!conflictEntry.our_out) {
         const res = await dialog.showMessageBox({
@@ -1443,7 +1448,7 @@ export async function resolveConflict(repo: Repository, path: string): Promise<b
     return true;
 }
 
-function handlePatch(patch: ConvenientPatch): PatchObj {
+function handlePatch(patch: nodegit.ConvenientPatch): PatchObj {
     const patchNewFile = patch.newFile();
     const patchOldFile = patch.oldFile();
 
@@ -1469,7 +1474,7 @@ function handlePatch(patch: ConvenientPatch): PatchObj {
     } as PatchObj;
 }
 
-async function handleDiff(diff: Diff, convPatches: Map<string, ConvenientPatch>): Promise<PatchObj[]> {
+async function handleDiff(diff: nodegit.Diff, convPatches: Map<string, nodegit.ConvenientPatch>): Promise<PatchObj[]> {
     const patches = await diff.patches();
     return patches.map(convPatch => {
         const patch = handlePatch(convPatch);
@@ -1489,7 +1494,7 @@ export async function getCommitPatches(sha: string, diffOptions?: AppConfig["dif
         flags |= DiffOPTION.IGNORE_WHITESPACE;
     }
 
-    const diff = await commitDiffParent(commit.commit, {flags});
+    const diff = await commitDiffParent(commit.commit, { flags });
     await diff.findSimilar({
         flags: DiffFIND.RENAMES,
     });
@@ -1497,7 +1502,7 @@ export async function getCommitPatches(sha: string, diffOptions?: AppConfig["dif
     return handleDiff(diff, commit.patches);
 }
 
-export async function tryCompareRevisions(repo: Repository, revisions: { from: string, to: string }): Promise<Error | PatchObj[]> {
+export async function tryCompareRevisions(repo: nodegit.Repository, revisions: { from: string, to: string }): Promise<Error | PatchObj[]> {
     try {
         return await compareRevisions(repo, revisions)
     }
@@ -1510,9 +1515,9 @@ export async function tryCompareRevisions(repo: Repository, revisions: { from: s
     return Error("Unknown error, revisions not found?");
 }
 
-export async function compareRevisions(repo: Repository, revisions: { from: string, to: string }): Promise<PatchObj[]> {
-    const revFrom = await Revparse.single(repo, revisions.from);
-    const revTo = await Revparse.single(repo, revisions.to);
+export async function compareRevisions(repo: nodegit.Repository, revisions: { from: string, to: string }): Promise<PatchObj[]> {
+    const revFrom = await nodegit.Revparse.single(repo, revisions.from);
+    const revTo = await nodegit.Revparse.single(repo, revisions.to);
 
     // If revisions.{from,to} is a Tag ref we need to "peel" to a commit object
     const fromCommit = await revFrom.peel(ObjectTYPE.COMMIT);
@@ -1530,7 +1535,7 @@ export async function compareRevisions(repo: Repository, revisions: { from: stri
         flags: DiffFIND.RENAMES | DiffFIND.IGNORE_WHITESPACE,
     });
 
-    const descendant = await Graph.descendantOf(repo, to.id(), from.id());
+    const descendant = await nodegit.Graph.descendantOf(repo, to.id(), from.id());
     if (descendant) {
         const revwalk = repo.createRevWalk();
         revwalk.pushRange(`${from.id().tostrS()}~1..${to.id().tostrS()}`);
@@ -1549,7 +1554,7 @@ export async function compareRevisions(repo: Repository, revisions: { from: stri
     return handleDiff(diff, comparePatches);
 }
 
-function getCommitObj(commit: Commit): CommitObj {
+function getCommitObj(commit: nodegit.Commit): CommitObj {
     const author = commit.author();
     const committer = commit.committer();
 
@@ -1577,14 +1582,14 @@ function getCommitObj(commit: Commit): CommitObj {
     };
 }
 
-export async function loadTreeAtCommit(repo: Repository, sha: string): Promise<string[]> {
+export async function loadTreeAtCommit(repo: nodegit.Repository, sha: string): Promise<string[]> {
     const commit = await repo.getCommit(sha);
     const tree = await commit.getTree();
 
     return tree.getAllFilepaths();
 }
 
-export async function loadCommit(repo: Repository, sha: string | null): Promise<Error | CommitObj> {
+export async function loadCommit(repo: nodegit.Repository, sha: string | null): Promise<Error | CommitObj> {
     const commit = sha ? await commitWithDiff(repo, sha) : await repo.getHeadCommit();
     if (commit instanceof Error) {
         // Probably an invalid revspec path
@@ -1594,7 +1599,7 @@ export async function loadCommit(repo: Repository, sha: string | null): Promise<
     return getCommitObj(commit);
 }
 
-export async function getCommitGpgSign(repo: Repository, sha: string): AsyncIpcActionReturnOrError<IpcAction.GET_COMMIT_GPG_SIGN> {
+export async function getCommitGpgSign(repo: nodegit.Repository, sha: string): AsyncIpcActionReturnOrError<IpcAction.GET_COMMIT_GPG_SIGN> {
     if (!currentProfile().gpg) {
         return false;
     }
@@ -1613,16 +1618,16 @@ export async function getCommitGpgSign(repo: Repository, sha: string): AsyncIpcA
     return false;
 }
 
-export async function parseRevspec(repo: Repository, sha: string): Promise<Error | Oid> {
+export async function parseRevspec(repo: nodegit.Repository, sha: string): Promise<Error | nodegit.Oid> {
     try {
-        const revspec = await Revparse.single(repo, sha);
+        const revspec = await nodegit.Revparse.single(repo, sha);
         return revspec.id();
     } catch (e) {
         return e as Error;
     }
 }
 
-export async function commitWithDiff(repo: Repository, sha: string): Promise<Error | Commit> {
+export async function commitWithDiff(repo: nodegit.Repository, sha: string): Promise<Error | nodegit.Commit> {
     const oid = await parseRevspec(repo, sha);
     if (oid instanceof Error) {
         return oid;
@@ -1638,7 +1643,7 @@ export async function commitWithDiff(repo: Repository, sha: string): Promise<Err
     return commit;
 }
 
-export async function checkoutBranch(repo: Repository, branch: string): AsyncIpcActionReturnOrError<IpcAction.CHECKOUT_BRANCH> {
+export async function checkoutBranch(repo: nodegit.Repository, branch: string): AsyncIpcActionReturnOrError<IpcAction.CHECKOUT_BRANCH> {
     try {
         // NOTE: `checkoutBranch()` does not return a Reference..
         await repo.checkoutBranch(branch);
@@ -1649,7 +1654,7 @@ export async function checkoutBranch(repo: Repository, branch: string): AsyncIpc
     }
 }
 
-export async function openFileAtCommit(repo: Repository, data: {file: string, sha: string}): Promise<boolean> {
+export async function openFileAtCommit(repo: nodegit.Repository, data: { file: string, sha: string }): Promise<boolean> {
     try {
         const commit = await repo.getCommit(data.sha);
 
@@ -1677,23 +1682,23 @@ export async function openFileAtCommit(repo: Repository, data: {file: string, sh
 
 let repoStash: StashObj[] = [];
 const commitObjectCache: Map<string, {
-    commit: Commit
-    patches: Map<string, ConvenientPatch>
+    commit: nodegit.Commit
+    patches: Map<string, nodegit.ConvenientPatch>
 }> = new Map();
-const comparePatches: Map<string, ConvenientPatch> = new Map();
-const fileHistoryCache: Map<string, Revwalk.HistoryEntry> = new Map();
+const comparePatches: Map<string, nodegit.ConvenientPatch> = new Map();
+const fileHistoryCache: Map<string, nodegit.Revwalk.HistoryEntry> = new Map();
 const workDirIndexCache: {
-    unstagedPatches: ConvenientPatch[]
-    stagedPatches: ConvenientPatch[]
+    unstagedPatches: nodegit.ConvenientPatch[]
+    stagedPatches: nodegit.ConvenientPatch[]
 } = {
     unstagedPatches: [],
     stagedPatches: []
 };
 const workDirIndexPathMap: {
-    staged: Map<string, ConvenientPatch>
-    unstaged: Map<string, ConvenientPatch>
+    staged: Map<string, nodegit.ConvenientPatch>
+    unstaged: Map<string, nodegit.ConvenientPatch>
 } = {
     staged: new Map(),
     unstaged: new Map(),
 };
-let index: Index;
+let index: nodegit.Index;

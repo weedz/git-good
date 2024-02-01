@@ -1,10 +1,10 @@
 import { clipboard, shell } from "electron";
 import { Menu, type MenuItemConstructorOptions } from "electron/main";
 import { join } from "path";
-import { IpcAction } from "../../Common/Actions";
-import { currentRepo } from "../Context";
-import { sendAction } from "../IPC";
-import { getFileCommits, openFileAtCommit } from "../Provider";
+import { IpcAction } from "../../Common/Actions.js";
+import { currentRepo } from "../Context.js";
+import { sendAction } from "../IPC.js";
+import { getFileCommits, openFileAtCommit } from "../Provider.js";
 
 export function openFileContextMenu(data: Record<string, string>) {
     const menuTemplate: MenuItemConstructorOptions[] = [

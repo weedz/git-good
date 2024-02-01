@@ -1,9 +1,9 @@
 import { type IpcMainInvokeEvent } from "electron/main";
-import { ContextMenu } from "../../Common/ContextMenu";
-import { openHeadMenu, openLocalMenu, openRemoteMenu, openRemoteRefMenu, openRemotesMenu, openStashMenu, openTagMenu } from "./BranchMenu";
-import { openCommitMenu } from "./CommitListMenu";
-import { openFileHistoryContextMenu } from "./FileHistoryMenu";
-import { openFileContextMenu } from "./FileMenu";
+import { ContextMenu } from "../../Common/ContextMenu.js";
+import { openHeadMenu, openLocalMenu, openRemoteMenu, openRemoteRefMenu, openRemotesMenu, openStashMenu, openTagMenu } from "./BranchMenu.js";
+import { openCommitMenu } from "./CommitListMenu.js";
+import { openFileHistoryContextMenu } from "./FileHistoryMenu.js";
+import { openFileContextMenu } from "./FileMenu.js";
 
 interface ContextMenuData {
     action: ContextMenu

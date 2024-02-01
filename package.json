@@ -1,84 +1,84 @@
 {
-  "name": "git-good",
-  "version": "0.1.4",
-  "description": "Git good",
-  "main": "dist/main.js",
-  "type": "commonjs",
-  "scripts": {
-    "start": "electron --ozone-platform-hint=wayland .",
-    "lint": "eslint . && tsc --noEmit",
-    "tsc:watch": "tsc --noEmit --watch",
-    "dev": "NODE_ENV=development npm run build",
-    "build": "rm -rf dist;mkdir dist;cp static/* dist/; node scripts/build.mjs",
-    "dist": "electron-builder",
-    "electron-rebuild": "JOBS=max CC=clang CXX=clang++ LINK=clang++ electron-rebuild"
-  },
-  "keywords": [],
-  "author": {
-    "name": "Linus Björklund",
-    "email": "weedzcokie@gmail.com"
-  },
-  "files": [
-    "dist"
-  ],
-  "license": "GPL-3.0-or-later",
-  "devDependencies": {
-    "@electron/asar": "^3.2.8",
-    "@electron/rebuild": "^3.4.1",
-    "@types/node": "^18.19.3",
-    "@types/nodegit": "^0.28.7",
-    "@typescript-eslint/eslint-plugin": "^6.14.0",
-    "@typescript-eslint/parser": "^6.14.0",
-    "@weedzcokie/store": "^2.0.2",
-    "electron": "^28.0.0",
-    "electron-builder": "^24.9.1",
-    "esbuild": "^0.19.9",
-    "eslint": "^8.55.0",
-    "eslint-plugin-import": "^2.29.0",
-    "eslint-plugin-react": "^7.33.2",
-    "preact": "^10.19.3",
-    "typescript": "^5.3.3"
-  },
-  "dependencies": {
-    "nodegit": "github:weedz/nodegit#master"
-  },
-  "resolutions": {
-    "make-fetch-happen": "^13"
-  },
-  "pnpm": {
-    "peerDependencyRules": {
-      "ignoreMissing": [
-        "webpack"
-      ]
-    }
-  },
-  "build": {
-    "appId": "git-good",
-    "afterPack": "./scripts/after-pack.js",
-    "directories": {
-      "output": "out"
+    "name": "git-good",
+    "version": "0.1.4",
+    "description": "Git good",
+    "main": "dist/main.js",
+    "type": "commonjs",
+    "scripts": {
+        "start": "electron --ozone-platform-hint=wayland .",
+        "lint": "eslint . && tsc --noEmit",
+        "tsc:watch": "tsc --noEmit --watch",
+        "dev": "NODE_ENV=development npm run build",
+        "build": "rm -rf dist;mkdir dist;cp static/* dist/; node scripts/build.mjs",
+        "dist": "electron-builder",
+        "electron-rebuild": "JOBS=max CC=clang CXX=clang++ LINK=clang++ electron-rebuild"
     },
-    "linux": {
-      "category": "Development",
-      "target": [
-        "AppImage",
-        "deb"
-      ]
+    "keywords": [],
+    "author": {
+        "name": "Linus Björklund",
+        "email": "weedzcokie@gmail.com"
     },
-    "mac": {
-      "category": "public.app-category.developer-tools"
+    "files": [
+        "dist"
+    ],
+    "license": "GPL-3.0-or-later",
+    "devDependencies": {
+        "@electron/asar": "^3.2.8",
+        "@electron/rebuild": "^3.6.0",
+        "@types/node": "^18.19.13",
+        "@types/nodegit": "^0.28.7",
+        "@typescript-eslint/eslint-plugin": "^6.20.0",
+        "@typescript-eslint/parser": "^6.20.0",
+        "@weedzcokie/store": "^2.0.2",
+        "electron": "^28.2.1",
+        "electron-builder": "^24.9.1",
+        "esbuild": "^0.20.0",
+        "eslint": "^8.56.0",
+        "eslint-plugin-import": "^2.29.1",
+        "eslint-plugin-react": "^7.33.2",
+        "preact": "^10.19.3",
+        "typescript": "^5.3.3"
+    },
+    "dependencies": {
+        "nodegit": "github:weedz/nodegit#master"
+    },
+    "resolutions": {
+        "make-fetch-happen": "^13"
+    },
+    "pnpm": {
+        "peerDependencyRules": {
+            "ignoreMissing": [
+                "webpack"
+            ]
+        }
+    },
+    "build": {
+        "appId": "git-good",
+        "afterPack": "./scripts/after-pack.js",
+        "directories": {
+            "output": "out"
+        },
+        "linux": {
+            "category": "Development",
+            "target": [
+                "AppImage",
+                "deb"
+            ]
+        },
+        "mac": {
+            "category": "public.app-category.developer-tools"
+        }
+    },
+    "repository": {
+        "type": "git",
+        "url": "git+https://github.com/weedz/git-good.git"
+    },
+    "bugs": {
+        "url": "https://github.com/weedz/git-good/issues"
+    },
+    "homepage": "https://github.com/weedz/git-good#readme",
+    "engines": {
+        "node": ">=16",
+        "pnpm": ">=7"
     }
-  },
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/weedz/git-good.git"
-  },
-  "bugs": {
-    "url": "https://github.com/weedz/git-good/issues"
-  },
-  "homepage": "https://github.com/weedz/git-good#readme",
-  "engines": {
-    "node": ">=16",
-    "pnpm": ">=7"
-  }
 }

@@ -1,12 +1,12 @@
 import { Component, Fragment, h } from "preact";
-import { type CommitObj, type PatchObj } from "../../../Common/Actions";
-import { DiffDelta } from "../../../Common/Utils";
-import { LinkTypes } from "../../../Common/WindowEventTypes";
-import { openFile, resolveConflict } from "../../Data";
-import { ensureTreePath, toggleTreeItem, type Tree } from "../../Data/Tree";
-import Link from "../Link";
-import { Links } from "../LinkContainer";
-import { showFileMenu } from "./FileMenu";
+import { type CommitObj, type PatchObj } from "../../../Common/Actions.js";
+import { DiffDelta } from "../../../Common/Utils.js";
+import { LinkTypes } from "../../../Common/WindowEventTypes.js";
+import { openFile, resolveConflict } from "../../Data/index.js";
+import { ensureTreePath, toggleTreeItem, type Tree } from "../../Data/Tree.js";
+import Link from "../Link.js";
+import { Links } from "../LinkContainer.js";
+import { showFileMenu } from "./FileMenu.js";
 
 interface ButtonAction {
     label: string

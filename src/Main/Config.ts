@@ -1,9 +1,11 @@
+import { readFileSync, unlinkSync, writeFileSync } from "node:fs";
+import { readFile } from "node:fs/promises";
+import { join } from "node:path";
+
 import { app } from "electron";
-import { readFileSync, unlinkSync, writeFileSync } from "fs";
-import { readFile } from "fs/promises";
-import { Repository, Signature } from "nodegit";
-import { join } from "path";
-import type { AppConfig, AuthConfig, Profile } from "../Common/Config";
+import type { Repository } from "nodegit";
+import nodegit from "nodegit";
+import type { AppConfig, AuthConfig, Profile } from "../Common/Config.js";
 
 
 let appConfig: AppConfig;
@@ -60,7 +62,7 @@ export function currentProfile() {
     return selectedGitProfile as Readonly<Profile>;
 }
 export function signatureFromProfile(profile: Profile) {
-    return  Signature.now(profile.gitName, profile.gitEmail);
+    return nodegit.Signature.now(profile.gitName, profile.gitEmail);
 
 }
 export function signatureFromActiveProfile() {

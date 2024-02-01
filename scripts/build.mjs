@@ -55,6 +55,7 @@ const ctx = await esbuild.context({
         preload: "src/preload.ts",
         renderer: "src/renderer.tsx",
     },
+    // format: "esm",
     metafile: true,
     bundle: true,
     platform: "node",

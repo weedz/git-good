@@ -22,12 +22,7 @@
     "@typescript-eslint/no-useless-constructor": ["error"],
     "quotes": ["error"],
     "import/no-extraneous-dependencies": "error",
-    "import/no-unresolved": ["error", {
-      "ignore": [
-        "electron/main",
-        "electron/renderer"
-      ]
-    }],
+    "import/no-unresolved": "off", // typescript handles this :+1:
     "import/no-cycle": ["error"],
     "@typescript-eslint/no-explicit-any": "error",
     "@typescript-eslint/no-non-null-assertion": "error"
