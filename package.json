@@ -27,12 +27,12 @@
         "@electron/rebuild": "^3.6.0",
         "@types/node": "^18.19.17",
         "@types/nodegit": "^0.28.7",
-        "@typescript-eslint/eslint-plugin": "^7.0.1",
-        "@typescript-eslint/parser": "^7.0.1",
+        "@typescript-eslint/eslint-plugin": "^7.0.2",
+        "@typescript-eslint/parser": "^7.0.2",
         "@weedzcokie/store": "^2.0.2",
         "electron": "^28.2.3",
         "electron-builder": "^24.9.1",
-        "esbuild": "^0.20.0",
+        "esbuild": "^0.20.1",
         "eslint": "^8.56.0",
         "eslint-plugin-import": "^2.29.1",
         "eslint-plugin-react": "^7.33.2",
@@ -40,7 +40,7 @@
         "typescript": "^5.3.3"
     },
     "dependencies": {
-        "nodegit": "github:weedz/nodegit#master"
+        "nodegit": "github:weedz/nodegit#rebase-libgit2-v1.7.2"
     },
     "resolutions": {
         "make-fetch-happen": "^13"
