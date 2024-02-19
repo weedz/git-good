@@ -49,7 +49,8 @@ app.whenReady().then(() => {
         minWidth: initialWindowWidth,
         webPreferences: {
             preload: join(__dirname, "../dist/preload.js"),
-            // nodeIntegration: true,
+            sandbox: true,
+            nodeIntegration: false,
             contextIsolation: true,
             disableBlinkFeatures: "Auxclick"
         }
