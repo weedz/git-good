@@ -95,6 +95,14 @@ const handlers: {[T in IpcAction]: HandlerCallback<T>[]} = {
     [IpcAction.GET_COMMIT_GPG_SIGN]: [],
     [IpcAction.LOAD_TREE_AT_COMMIT]: [],
     [IpcAction.CONTINUE_REBASE]: [],
+    [IpcAction.OPEN_IN_TERMINAL]: [],
+    [IpcAction.OPEN_IN_FILE_MANAGER]: [],
+    [IpcAction.REQUEST_OPEN_REPO]: [],
+    [IpcAction.GET_RECENT_REPOSITORIES]: [],
+    [IpcAction.OPEN_REPOSITORY]: [],
+    [IpcAction.PULL]: [],
+    [IpcAction.GET_UNSTAGED_CHANGES]: [],
+    [IpcAction.GET_STAGED_CHANGES]: [],
 };
 
 export function registerHandler<T extends IpcAction>(action: T, cb: HandlerCallback<T>) {

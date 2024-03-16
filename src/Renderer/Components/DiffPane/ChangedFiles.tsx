@@ -1,4 +1,4 @@
-import { Component, Fragment, h } from "preact";
+import { Component, h } from "preact";
 import { type CommitObj, type PatchObj } from "../../../Common/Actions.js";
 import { DiffDelta } from "../../../Common/Utils.js";
 import { LinkTypes } from "../../../Common/WindowEventTypes.js";
@@ -7,6 +7,7 @@ import { ensureTreePath, toggleTreeItem, type Tree } from "../../Data/Tree.js";
 import Link from "../Link.js";
 import { Links } from "../LinkContainer.js";
 import { showFileMenu } from "./FileMenu.js";
+import { getFileCssClass, getType } from "./utility.js";
 
 interface ButtonAction {
     label: string
@@ -34,27 +35,6 @@ const enum RenderType {
     TREE,
 }
 
-function getType(status: number) {
-    switch (status) {
-        case DiffDelta.ADDED:
-            return "A";
-        case DiffDelta.DELETED:
-            return "D";
-        case DiffDelta.MODIFIED:
-            return "M";
-        case DiffDelta.RENAMED:
-            return "R";
-        case DiffDelta.UNTRACKED:
-            return "U";
-        case DiffDelta.CONFLICTED:
-            return "C";
-        case DiffDelta.UNMODIFIED:
-            return <>&nbsp;</>
-        default:
-            return ""
-    }
-}
-
 function calcDeltas(patches: Props["patches"]) {
     const deltas = {
         added: 0,
@@ -80,24 +60,6 @@ function calcDeltas(patches: Props["patches"]) {
     return deltas;
 }
 
-function getFileCssClass(status: DiffDelta) {
-    switch (status) {
-        case DiffDelta.MODIFIED:
-            return "file-modified";
-        case DiffDelta.DELETED:
-            return "file-deleted";
-        case DiffDelta.ADDED:
-            return "file-added";
-        case DiffDelta.RENAMED:
-            return "file-renamed";
-        case DiffDelta.UNTRACKED:
-            return "file-untracked";
-        case DiffDelta.CONFLICTED:
-            return "file-conflicted";
-        default:
-            return "";
-    }
-}
 function checkActions(patch: PatchObj, actions: ButtonAction[]): ButtonAction[] {
     if (patch.status === DiffDelta.CONFLICTED) {
         return [
@@ -128,7 +90,8 @@ function renderPaths(patches: PatchObj[], actions: ButtonAction[], contextMenu: 
         paths.push(
             <li onContextMenu={contextMenu} key={patch.actualFile.path} data-path={patch.actualFile.path}>
                 <Link class={`${typeCss} flex-row`} linkData={patch} selectAction={selectAction}>
-                    <span class="status">{getType(patch.status)}</span>&nbsp;
+                    <span class="status">{getType(patch.status)}</span>
+                    &nbsp;
                     <div title={patch.actualFile.path} style="min-width: 0;display:flex">
                         <span class="file-path truncate">{path}</span>
                         <span class="basename truncate">{basename}</span>

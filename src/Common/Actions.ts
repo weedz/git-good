@@ -52,6 +52,14 @@ export const enum IpcAction {
     GET_COMMIT_GPG_SIGN,
     LOAD_TREE_AT_COMMIT,
     CONTINUE_REBASE,
+    OPEN_IN_TERMINAL,
+    OPEN_IN_FILE_MANAGER,
+    REQUEST_OPEN_REPO,
+    GET_RECENT_REPOSITORIES,
+    OPEN_REPOSITORY,
+    PULL,
+    GET_UNSTAGED_CHANGES,
+    GET_STAGED_CHANGES,
 }
 
 export type IpcActionParams = {
@@ -141,6 +149,14 @@ export type IpcActionParams = {
     [IpcAction.GET_COMMIT_GPG_SIGN]: string
     [IpcAction.LOAD_TREE_AT_COMMIT]: string
     [IpcAction.CONTINUE_REBASE]: null
+    [IpcAction.OPEN_IN_TERMINAL]: null;
+    [IpcAction.OPEN_IN_FILE_MANAGER]: null;
+    [IpcAction.REQUEST_OPEN_REPO]: null;
+    [IpcAction.GET_RECENT_REPOSITORIES]: null;
+    [IpcAction.OPEN_REPOSITORY]: string;
+    [IpcAction.PULL]: null;
+    [IpcAction.GET_UNSTAGED_CHANGES]: null;
+    [IpcAction.GET_STAGED_CHANGES]: null;
 };
 
 export type IpcActionReturn = {
@@ -204,6 +220,14 @@ export type IpcActionReturn = {
     }
     [IpcAction.LOAD_TREE_AT_COMMIT]: string[]
     [IpcAction.CONTINUE_REBASE]: boolean
+    [IpcAction.OPEN_IN_TERMINAL]: null;
+    [IpcAction.OPEN_IN_FILE_MANAGER]: null;
+    [IpcAction.REQUEST_OPEN_REPO]: null; // FIXME: Should we return something here?
+    [IpcAction.GET_RECENT_REPOSITORIES]: string[];
+    [IpcAction.OPEN_REPOSITORY]: boolean;
+    [IpcAction.PULL]: boolean;
+    [IpcAction.GET_UNSTAGED_CHANGES]: PatchObj[];
+    [IpcAction.GET_STAGED_CHANGES]: PatchObj[];
 };
 
 export type RepoStatus = {

@@ -4,12 +4,14 @@ import { DialogTypes, type DialogProps } from "../Components/Dialog/types.js";
 import { ipcGetData, ipcSendMessage } from "./IPC.js";
 import { Store, closeDialogWindow, createBranchFromRef, createBranchFromSha, openDialogWindow, renameLocalBranch, saveAppConfig, setUpstream } from "./store.js";
 
+import type { RendererRequestData, RendererRequestEvents } from "../../Common/WindowEventTypes";
+
 export function openDialog_EditRemote(dialogData: DialogProps[DialogTypes.EDIT_REMOTE]["data"]) {
     const oldName = dialogData.name;
     openDialogWindow(DialogTypes.EDIT_REMOTE, {
         data: dialogData,
         async confirmCb(data) {
-            if (await ipcGetData(IpcAction.EDIT_REMOTE, {oldName, ...data})) {
+            if (await ipcGetData(IpcAction.EDIT_REMOTE, { oldName, ...data })) {
                 closeDialogWindow();
             }
         },
@@ -76,7 +78,7 @@ export function openDialog_RenameRef(sha: string, type: BranchType) {
                         return renameLocalBranch(sha, newName);
                     case BranchType.REMOTE:
                         console.log("FIXME: rename remote refs");
-                        // return renameRemoteBranch(sha, newName);
+                    // return renameRemoteBranch(sha, newName);
                 }
             }
             return null;
@@ -92,7 +94,7 @@ export function openDialog_SetUpstream(local: string, currentUpstream?: string) 
         branch = normalizeRemoteNameWithoutRemote(currentUpstream);
     } else {
         oldRemote = Store.remotes[0].name,
-        branch = normalizeLocalName(branch);
+            branch = normalizeLocalName(branch);
     }
 
     openDialogWindow(DialogTypes.SET_UPSTREAM, {
@@ -129,7 +131,7 @@ export function openDialog_createTag(from: string, fromCommit = false) {
     });
 }
 
-export function openDialog_PushTag(data: {name: string}) {
+export function openDialog_PushTag(data: { name: string }) {
     openDialogWindow(DialogTypes.PUSH_TAG, {
         confirmCb(remote) {
             ipcSendMessage(IpcAction.PUSH, {
@@ -138,5 +140,80 @@ export function openDialog_PushTag(data: {name: string}) {
             });
             closeDialogWindow();
         },
+    });
+}
+
+export function openDialog_Clone(): Promise<null | RendererRequestData[RendererRequestEvents.CLONE_DIALOG]> {
+    return new Promise((resolve) => {
+        openDialogWindow(DialogTypes.CLONE_REPOSITORY, {
+            confirmCb(data) {
+                closeDialogWindow();
+                resolve(data);
+            },
+            cancelCb() {
+                closeDialogWindow();
+                resolve(null);
+            }
+        });
+    });
+}
+
+export function openDialog_fileHistory(): Promise<null | RendererRequestData[RendererRequestEvents.FILE_HISTORY_DIALOG]> {
+    return new Promise((resolve) => {
+        openDialogWindow(DialogTypes.FILE_HISTORY, {
+            confirmCb(data) {
+                closeDialogWindow();
+                resolve(data);
+            },
+            cancelCb() {
+                closeDialogWindow();
+                resolve(null);
+            }
+        });
+    });
+}
+
+export function openDialog_compare(): Promise<null | RendererRequestData[RendererRequestEvents.COMPARE_REVISIONS_DIALOG]> {
+    return new Promise((resolve) => {
+        openDialogWindow(DialogTypes.COMPARE, {
+            confirmCb(from, to) {
+                closeDialogWindow();
+                resolve({ from, to });
+            },
+            cancelCb() {
+                closeDialogWindow();
+                resolve(null);
+            }
+        });
+    });
+}
+
+export function openDialog_viewCommit(): Promise<null | RendererRequestData[RendererRequestEvents.GET_COMMIT_SHA_DIALOG]> {
+    return new Promise((resolve) => {
+        openDialogWindow(DialogTypes.VIEW_COMMIT, {
+            confirmCb(data) {
+                closeDialogWindow();
+                resolve(data);
+            },
+            cancelCb() {
+                closeDialogWindow();
+                resolve(null);
+            }
+        });
+    });
+}
+
+export function openDialog_initRepo(): Promise<null | RendererRequestData[RendererRequestEvents.INIT_DIALOG]> {
+    return new Promise((resolve) => {
+        openDialogWindow(DialogTypes.INIT_REPOSITORY, {
+            confirmCb(data) {
+                closeDialogWindow();
+                resolve({ source: data });
+            },
+            cancelCb() {
+                closeDialogWindow();
+                resolve(null);
+            }
+        });
     });
 }

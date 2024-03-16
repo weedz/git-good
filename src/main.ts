@@ -11,18 +11,19 @@ import nodegit from "nodegit";
 import { addRecentRepository, clearRepoProfile, currentProfile, diffOptionsIsEqual, getAppConfig, getRecentRepositories, getRepoProfile, saveAppConfig, setCurrentProfile, setRepoProfile, signatureFromActiveProfile, signatureFromProfile } from "./Main/Config.js";
 import { isMac, isWindows } from "./Main/Utils.js";
 
-import type { AsyncIpcActionReturnOrError, HunkObj, IpcActionParams } from "./Common/Actions.js";
+import type { AsyncIpcActionReturnOrError, IpcActionParams } from "./Common/Actions.js";
 import { IpcAction, Locks } from "./Common/Actions.js";
 import { normalizeLocalName } from "./Common/Branch.js";
 import { formatTimeAgo } from "./Common/Utils.js";
 import * as provider from "./Main/Provider.js";
+import * as uiActions from "./Main/UiActions.js";
 import { requestClientData, sendEvent } from "./Main/WindowEvents.js";
 
 import { AppEventType, RendererRequestEvents } from "./Common/WindowEventTypes.js";
 
 // eslint-disable-next-line import/no-unresolved
 import { buildDateTime, lastCommit } from "env";
-import { currentRepo, currentWindow, getContext, getLastKnownHead, setRepo, setWindow } from "./Main/Context.js";
+import { currentRepo, getLastKnownHead, setRepo, setWindow } from "./Main/Context.js";
 import { handleContextMenu } from "./Main/ContextMenu/index.js";
 import { handleDialog } from "./Main/Dialogs/index.js";
 import { actionLock, eventReply, sendAction } from "./Main/IPC.js";
@@ -109,7 +110,6 @@ function buildOpenRepoMenuItem(path: string): MenuItemConstructorOptions {
 
 function applyAppMenu(): void {
     const repo = currentRepo();
-    const win = currentWindow();
     const menuTemplate = [
         ...isMac ? [{
             label: app.name,
@@ -177,37 +177,12 @@ function applyAppMenu(): void {
                     enabled: !!currentRepo(),
                     label: "Open in Terminal",
                     accelerator: "CmdOrCtrl+Shift+C",
-                    click() {
-                        if (repo) {
-                            let process;
-                            if (isWindows) {
-                                const exe = getAppConfig().terminal || "cmd.exe";
-                                process = exec(`start ${exe}`, {
-                                    cwd: repo.workdir()
-                                });
-                            } else if (isMac) {
-                                const exe = getAppConfig().terminal || "Terminal";
-                                process = spawn("open", ["-a", exe, "."], {
-                                    cwd: repo.workdir()
-                                });
-                            } else {
-                                process = spawn(getAppConfig().terminal || "x-terminal-emulator", {
-                                    cwd: repo.workdir()
-                                });
-                            }
-                            process.on("error", err => {
-                                dialog.showErrorBox("Failed to open terminal", err.message);
-                            });
-                        }
-                    }
+                    click: openRepoInTerminal,
                 },
                 {
                     enabled: !!repo,
                     label: "Open in File Manager",
-                    click() {
-                        // FIXME: `shell.openExternal` locks the main thread?
-                        repo && shell.showItemInFolder(repo.workdir());
-                    }
+                    click: openRepoInFileManager,
                 },
                 {
                     type: "separator"
@@ -286,23 +261,13 @@ function applyAppMenu(): void {
                 {
                     label: "Pull...",
                     async click() {
-                        sendEvent(AppEventType.LOCK_UI, Locks.BRANCH_LIST);
-                        await provider.pull(repo, null, signatureFromActiveProfile());
-                        sendEvent(AppEventType.UNLOCK_UI, Locks.BRANCH_LIST);
-                        sendAction(IpcAction.LOAD_BRANCHES, await provider.getBranches(repo));
+                        await uiActions.pullHead();
                     }
                 },
                 {
                     label: "Push...",
                     async click() {
-                        sendEvent(AppEventType.LOCK_UI, Locks.BRANCH_LIST);
-                        const result = await provider.push({ repo, win }, null);
-                        if (result instanceof Error) {
-                            dialog.showErrorBox("Failed to push", result.message);
-                        } else {
-                            sendAction(IpcAction.LOAD_BRANCHES, await provider.getBranches(repo));
-                        }
-                        sendEvent(AppEventType.UNLOCK_UI, Locks.BRANCH_LIST);
+                        await uiActions.pushHead();
                     }
                 },
                 {
@@ -445,7 +410,7 @@ type EventArgs = {
 type PromiseEventCallback<A extends IpcAction> = (repo: nodegit.Repository, args: IpcActionParams[A], event: IpcMainEvent) => AsyncIpcActionReturnOrError<A>;
 
 const eventMap: {
-    [A in IpcAction]: PromiseEventCallback<A>
+    [A in IpcAction]: PromiseEventCallback<A> | (() => void);
 } = {
     [IpcAction.INIT]: async () => {
         const recentRepo = getRecentRepositories()[0];
@@ -465,12 +430,14 @@ const eventMap: {
     [IpcAction.LOAD_HUNKS]: async (repo, arg) => {
         return {
             path: arg.path,
-            hunks: await loadHunks(repo, arg)
+            hunks: await provider.getHunksWithParams(repo, arg)
         };
     },
     [IpcAction.SHOW_STASH]: provider.showStash,
     [IpcAction.CHECKOUT_BRANCH]: provider.checkoutBranch,
     [IpcAction.GET_CHANGES]: provider.loadChanges,
+    [IpcAction.GET_UNSTAGED_CHANGES]: provider.loadUnstagedChanges,
+    [IpcAction.GET_STAGED_CHANGES]: provider.loadStagedChanges,
     [IpcAction.STAGE_FILE]: async (repo, data) => {
         const result = await provider.stageFile(repo, data);
         await provider.sendRefreshWorkdirEvent(repo);
@@ -543,13 +510,7 @@ const eventMap: {
         return !!renamedRef;
     },
     [IpcAction.FIND_FILE]: provider.findFile,
-    [IpcAction.PUSH]: async (repo, data) => {
-        const result = await provider.push(getContext(), data);
-        if (!(result instanceof Error)) {
-            sendAction(IpcAction.LOAD_BRANCHES, await provider.getBranches(repo));
-        }
-        return result;
-    },
+    [IpcAction.PUSH]: async (_repo, data) => await uiActions.push(data),
     [IpcAction.SET_UPSTREAM]: async (repo, data) => {
         const result = await provider.setUpstream(repo, data.local, data.remote);
         if (result) {
@@ -668,6 +629,12 @@ const eventMap: {
         }
         return result;
     },
+    [IpcAction.OPEN_IN_TERMINAL]: openRepoInTerminal,
+    [IpcAction.OPEN_IN_FILE_MANAGER]: openRepoInFileManager,
+    [IpcAction.REQUEST_OPEN_REPO]: openRepoDialog,
+    [IpcAction.GET_RECENT_REPOSITORIES]: getRecentRepositories,
+    [IpcAction.OPEN_REPOSITORY]: (_, repoPath) => openRepo(repoPath),
+    [IpcAction.PULL]: uiActions.pullHead,
 } as const;
 
 const ALLOWED_WHEN_NOT_IN_REPO = {
@@ -759,12 +726,32 @@ async function openRepo(repoPath: string): Promise<boolean> {
     return true;
 }
 
-function loadHunks(repo: nodegit.Repository, params: IpcActionParams[IpcAction.LOAD_HUNKS]): Promise<false | HunkObj[]> {
-    if ("sha" in params) {
-        return provider.getHunks(repo, params.sha, params.path);
+function openRepoInTerminal() {
+    const repo = currentRepo();
+    if (repo) {
+        let process;
+        if (isWindows) {
+            const exe = getAppConfig().terminal || "cmd.exe";
+            process = exec(`start ${exe}`, {
+                cwd: repo.workdir()
+            });
+        } else if (isMac) {
+            const exe = getAppConfig().terminal || "Terminal";
+            process = spawn("open", ["-a", exe, "."], {
+                cwd: repo.workdir()
+            });
+        } else {
+            process = spawn(getAppConfig().terminal || "x-terminal-emulator", {
+                cwd: repo.workdir()
+            });
+        }
+        process.on("error", err => {
+            dialog.showErrorBox("Failed to open terminal", err.message);
+        });
     }
-    if ("compare" in params) {
-        return provider.hunksFromCompare(repo, params.path);
-    }
-    return provider.getWorkdirHunks(repo, params.path, params.type);
+}
+function openRepoInFileManager() {
+    const repo = currentRepo();
+    // FIXME: `shell.openExternal` locks the main thread?
+    repo && shell.showItemInFolder(repo.path());
 }
