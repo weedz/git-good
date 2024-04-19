@@ -25,22 +25,19 @@
     "devDependencies": {
         "@electron/asar": "^3.2.9",
         "@electron/rebuild": "^3.6.0",
-        "@types/node": "^20.12.5",
+        "@types/node": "^20.12.7",
         "@types/nodegit": "^0.28.7",
-        "@typescript-eslint/eslint-plugin": "^7.5.0",
-        "@typescript-eslint/parser": "^7.5.0",
+        "@typescript-eslint/eslint-plugin": "^7.7.0",
+        "@typescript-eslint/parser": "^7.7.0",
         "@weedzcokie/store": "^2.0.2",
-        "electron": "^29.2.0",
+        "electron": "^30.0.1",
         "electron-builder": "^24.13.3",
         "esbuild": "^0.20.2",
         "eslint": "^8.57.0",
         "eslint-plugin-import": "^2.29.1",
         "eslint-plugin-react": "^7.34.1",
-        "preact": "^10.20.1",
-        "typescript": "^5.4.4"
-    },
-    "dependencies": {
-        "nodegit": "github:weedz/nodegit#rebase-libgit2-v1.7.2"
+        "preact": "^10.20.2",
+        "typescript": "^5.4.5"
     },
     "resolutions": {
         "make-fetch-happen": "^13"
@@ -81,5 +78,8 @@
     "engines": {
         "node": ">=16",
         "pnpm": ">=7"
+    },
+    "dependencies": {
+        "nodegit": "github:weedz/nodegit#master"
     }
 }
