@@ -6,9 +6,15 @@ export type Context = {
     repo: nodegit.Repository;
 };
 
-let repo: nodegit.Repository;
+
 let lastKnownHead: nodegit.Oid;
-let win: WebContents;
+
+const context: Context = {
+    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+    repo: null!,
+    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+    win: null!,
+};
 
 export function getLastKnownHead() {
     return lastKnownHead;
@@ -17,22 +23,19 @@ export function setLastKnownHead(oid: nodegit.Oid) {
     lastKnownHead = oid;
 }
 export function currentRepo() {
-    return repo;
+    return context.repo;
 }
 export function setRepo(newRepo: nodegit.Repository) {
-    repo = newRepo;
+    context.repo = newRepo;
 }
 
 export function setWindow(newWindow: BrowserWindow) {
-    win = newWindow.webContents;
+    context.win = newWindow.webContents;
 }
 export function currentWindow() {
-    return win;
+    return context.win;
 }
 
 export function getContext() {
-    return {
-        repo,
-        win,
-    };
+    return context as Readonly<Context>;
 }

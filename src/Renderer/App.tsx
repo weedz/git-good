@@ -13,6 +13,7 @@ import { NotificationPosition } from "../Common/WindowEventTypes.js";
 import "./index.css";
 import { basename } from "../Common/Utils.js";
 import { Resizable } from "./Components/Resizable.js";
+import { CommandPaletteContainer } from "./Components/CommandPalette/index.js";
 
 export default class App extends StoreComponent {
     componentDidMount() {
@@ -31,21 +32,22 @@ export default class App extends StoreComponent {
     }
     render() {
         const mainContent = Store.repo
-         ? <>
-            <Resizable>
-                <div id="left-pane">
-                    <Changes />
-                    <Branches />
-                </div>
-            </Resizable>
-            <FileDiff />
-            <Main />
-            <NotificationsContainer position={NotificationPosition.DEFAULT} />
-        </>
-        : <p>Open a repo with File &gt; Open repository...</p>;
+            ? <>
+                <Resizable>
+                    <div id="left-pane">
+                        <Changes />
+                        <Branches />
+                    </div>
+                </Resizable>
+                <FileDiff />
+                <Main />
+                <NotificationsContainer position={NotificationPosition.DEFAULT} />
+            </>
+            : <p>Open a repo with File &gt; Open repository...</p>;
         return (
             <div id="main-window" class={Store.locks[Locks.MAIN] ? "disabled" : ""}>
                 <Dialog />
+                <CommandPaletteContainer />
                 {mainContent}
             </div>
         );
