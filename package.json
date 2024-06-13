@@ -25,18 +25,18 @@
     "devDependencies": {
         "@electron/asar": "^3.2.10",
         "@electron/rebuild": "^3.6.0",
-        "@types/node": "^20.12.11",
+        "@types/node": "^20.14.2",
         "@types/nodegit": "^0.28.7",
-        "@typescript-eslint/eslint-plugin": "^7.8.0",
-        "@typescript-eslint/parser": "^7.8.0",
+        "@typescript-eslint/eslint-plugin": "^7.13.0",
+        "@typescript-eslint/parser": "^7.13.0",
         "@weedzcokie/store": "^2.0.2",
-        "electron": "^30.0.3",
+        "electron": "^31.0.1",
         "electron-builder": "^24.13.3",
-        "esbuild": "^0.21.1",
+        "esbuild": "^0.21.5",
         "eslint": "^8.57.0",
         "eslint-plugin-import": "^2.29.1",
-        "eslint-plugin-react": "^7.34.1",
-        "preact": "^10.21.0",
+        "eslint-plugin-react": "^7.34.2",
+        "preact": "^10.22.0",
         "typescript": "^5.4.5"
     },
     "resolutions": {
@@ -81,5 +81,6 @@
     },
     "dependencies": {
         "nodegit": "github:weedz/nodegit#master"
-    }
+    },
+    "packageManager": "pnpm@9.3.0+sha512.ee7b93e0c2bd11409c6424f92b866f31d3ea1bef5fbe47d3c7500cdc3c9668833d2e55681ad66df5b640c61fa9dc25d546efa54d76d7f8bf54b13614ac293631"
 }
