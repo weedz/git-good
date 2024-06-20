@@ -1,9 +1,9 @@
-import { createRef, h } from "preact";
+import { createRef } from "preact";
 import { type BranchProps } from "./types";
 import { useEffect } from "preact/hooks";
 
 
-function BranchDialog(dialog: BranchProps & {title: string}) {
+function BranchDialog(dialog: BranchProps & { title: string }) {
     const data = {
         branchName: dialog.data || "",
         checkout: false,

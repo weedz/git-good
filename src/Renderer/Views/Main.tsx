@@ -1,4 +1,3 @@
-import { h } from "preact";
 import CommitList from "../Components/CommitList";
 import DiffPane from "../Components/DiffPane";
 

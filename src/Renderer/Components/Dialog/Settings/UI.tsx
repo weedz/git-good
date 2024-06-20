@@ -1,4 +1,4 @@
-import { Component, Fragment, h } from "preact";
+import { Component, Fragment } from "preact";
 import { cssDefaultValues, getSavedCSSVariable, setCSSVariable } from "../../../Data/styles";
 
 export class UISettings extends Component {

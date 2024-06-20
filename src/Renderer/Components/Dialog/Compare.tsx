@@ -1,4 +1,4 @@
-import { createRef, h } from "preact";
+import { createRef } from "preact";
 import { type CompareProps } from "./types";
 import { useEffect } from "preact/hooks";
 

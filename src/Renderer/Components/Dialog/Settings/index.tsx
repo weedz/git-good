@@ -1,4 +1,4 @@
-import { Component, Fragment, h } from "preact";
+import { Component, Fragment } from "preact";
 import { IpcAction } from "../../../../Common/Actions";
 import { type AppConfig } from "../../../../Common/Config";
 import { NativeDialog } from "../../../../Common/Dialog";
@@ -23,12 +23,13 @@ export class Settings extends Component<SettingsProps, State> {
     }
 
     setUIConfig<K extends keyof AppConfig["ui"]>(key: K, value: AppConfig["ui"][K]) {
-        this.setConfig("ui", {...this.state.config.ui, [key]: value});
+        this.setConfig("ui", { ...this.state.config.ui, [key]: value });
     }
 
     setConfig<K extends keyof AppConfig>(key: K, value: AppConfig[K]) {
         this.setState({
-            config: {...this.state.config,
+            config: {
+                ...this.state.config,
                 [key]: value,
             }
         });
@@ -43,7 +44,7 @@ export class Settings extends Component<SettingsProps, State> {
 
         let formBody;
         if (this.state.editProfile) {
-            formBody = <Profile profile={selectedProfile} cancelCb={() => this.setState({editProfile: null})} saveProfile={profile => {
+            formBody = <Profile profile={selectedProfile} cancelCb={() => this.setState({ editProfile: null })} saveProfile={profile => {
                 const profiles = this.state.config.profiles;
                 profiles[this.state.config.selectedProfile] = profile;
                 this.setState({

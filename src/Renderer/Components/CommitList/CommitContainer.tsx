@@ -1,4 +1,4 @@
-import { Component, h } from "preact";
+import { Component } from "preact";
 import { type LoadCommitReturn } from "../../../Common/Actions";
 import ScrollContainer from "../ScrollContainer";
 import CommitListItem from "./CommitListItem";
@@ -24,7 +24,7 @@ export default class CommitContainer extends Component<Props> {
     render() {
         return <ScrollContainer scrollCallback={this.checkScroll} items={this.props.commits} itemHeight={20} containerId="commits-container" renderItems={(commits, start) => commits.map((commit, idx) => (
             <CommitListItem
-                style={{position: "absolute", top: `${(start + idx) * 20}px`, height: "20px"}}
+                style={{ position: "absolute", top: `${(start + idx) * 20}px`, height: "20px" }}
                 key={commit.sha}
                 graph={this.props.graph}
                 commit={commit}

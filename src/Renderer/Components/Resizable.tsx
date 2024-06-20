@@ -1,4 +1,3 @@
-import { h } from "preact";
 import type { JSX } from "preact";
 import { setCSSVariable } from "../Data/styles";
 import { debounce } from "../utils";

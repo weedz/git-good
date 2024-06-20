@@ -1,5 +1,3 @@
-import { Fragment } from "preact";
-
 import { DiffDelta } from "../../../Common/Utils";
 
 export function getFileCssClass(status: DiffDelta) {

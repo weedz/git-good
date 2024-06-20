@@ -1,5 +1,3 @@
-import { h, Fragment } from "preact";
-
 import Main from "./Views/Main.js";
 import Changes from "./Components/Changes.js";
 import Branches from "./Components/Branches/index.js";

@@ -1,4 +1,3 @@
-import { h } from "preact";
 import type { StashObj } from "../../../Common/Actions";
 import { LinkTypes } from "../../../Common/WindowEventTypes";
 import { showStash } from "../../Data";
@@ -25,7 +24,7 @@ export default class StashList extends PureStoreComponent {
                     <ul class="tree-list block-list">
                         {Store.stash.map(stash => (
                             <li key={stash.oid} title={stash.msg}>
-                                <Link linkType={LinkTypes.COMMITS} style={{textIndent: "1em"}} linkId={stash.oid} linkData={stash} data-index={stash.index} onContextMenu={showStashMenu} selectAction={selectStashItem}>
+                                <Link linkType={LinkTypes.COMMITS} style={{ textIndent: "1em" }} linkId={stash.oid} linkData={stash} data-index={stash.index} onContextMenu={showStashMenu} selectAction={selectStashItem}>
                                     {stash.index}:{stash.msg.substring(0, 30)}
                                 </Link>
                             </li>

@@ -1,4 +1,4 @@
-import { createRef, h } from "preact";
+import { createRef } from "preact";
 import { Store } from "../../Data/store";
 import { type PushTagProps } from "./types";
 import { useEffect } from "preact/hooks";

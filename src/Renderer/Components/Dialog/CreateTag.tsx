@@ -1,10 +1,10 @@
-import { createRef, h } from "preact";
+import { createRef } from "preact";
 import { type CreateTagProps } from "./types";
 import { useEffect } from "preact/hooks";
 
 
 export function CreateTag(dialog: CreateTagProps) {
-    const data: {name: string, annotation: string} = {
+    const data: { name: string, annotation: string } = {
         name: "",
         annotation: "",
     };

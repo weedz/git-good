@@ -1,4 +1,4 @@
-import { createRef, h } from "preact";
+import { createRef } from "preact";
 import { selectFile } from "../../Data/Utility";
 import { type DialogProps, DialogTypes } from "./types";
 import { useEffect, useState } from "preact/hooks";
@@ -20,7 +20,7 @@ export function InitRepositoryDialog(props: DialogProps[DialogTypes.INIT_REPOSIT
             <label>
                 <p>Path:</p>
                 <input ref={inputRef} type="text" value={target} onInput={(e) => setTarget(e.currentTarget.value)} />
-                <button type="button" onClick={() => selectFile(path => setTarget(path), {properties: ["openDirectory", "createDirectory"]})}>Browse</button>
+                <button type="button" onClick={() => selectFile(path => setTarget(path), { properties: ["openDirectory", "createDirectory"] })}>Browse</button>
             </label>
             <br />
             <div class="dialog-action-buttons">

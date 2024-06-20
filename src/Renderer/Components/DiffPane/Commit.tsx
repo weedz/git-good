@@ -1,5 +1,3 @@
-import { h } from "preact";
-
 import type { CommitObj, FileObj, IpcActionReturn, PatchObj } from "../../../Common/Actions";
 import { IpcAction, Locks } from "../../../Common/Actions";
 import { DiffDelta } from "../../../Common/Utils";
@@ -73,7 +71,7 @@ export default class Commit extends StoreComponent<Props, State> {
         this.listen("diffOptions", () => this.state.commit && this.loadPatches());
     }
     loadPatches() {
-        ipcGetData(IpcAction.LOAD_PATCHES_WITHOUT_HUNKS, {sha: this.props.sha}).then(this.handlePatch);
+        ipcGetData(IpcAction.LOAD_PATCHES_WITHOUT_HUNKS, { sha: this.props.sha }).then(this.handlePatch);
     }
     async getCommit(sha: string) {
         const commit = await ipcGetData(IpcAction.LOAD_COMMIT, sha);

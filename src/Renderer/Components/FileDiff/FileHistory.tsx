@@ -1,4 +1,4 @@
-import { Component, h } from "preact";
+import { Component } from "preact";
 import { IpcAction, type LoadFileCommitsReturn } from "../../../Common/Actions";
 import { DiffDelta, formatTimeAgo } from "../../../Common/Utils";
 import { LinkTypes } from "../../../Common/WindowEventTypes";
@@ -23,7 +23,7 @@ type State = {
 
 export default class CommitContainer extends Component<Props, State> {
     updateFilter(filter: string) {
-        this.setState({filter});
+        this.setState({ filter });
     }
     render() {
         const fileHistory = this.state.filter ? this.props.fileHistory.filter(item => filterCommit(this.state.filter, item)) : this.props.fileHistory;
@@ -53,11 +53,11 @@ export default class CommitContainer extends Component<Props, State> {
                             }
                             const item = (
                                 <li
-                                    style={{position: "absolute", top: `${(start + idx) * ITEM_HEIGHT + extraHeightOffset}px`, height}}
+                                    style={{ position: "absolute", top: `${(start + idx) * ITEM_HEIGHT + extraHeightOffset}px`, height }}
                                     key={commit.sha}
                                 >
                                     <Link onContextMenu={showFileHistoryCommitMenu} selectAction={async (_arg) => {
-                                        const filePatch = await ipcGetData(IpcAction.FILE_DIFF_AT, {file: commit.path, sha: commit.sha});
+                                        const filePatch = await ipcGetData(IpcAction.FILE_DIFF_AT, { file: commit.path, sha: commit.sha });
                                         if (filePatch) {
                                             store.updateStore("currentFile", {
                                                 patch: filePatch,
@@ -66,10 +66,10 @@ export default class CommitContainer extends Component<Props, State> {
                                         }
                                     }} title={commit.message} class="flex-column" data-sha={commit.sha} data-path={commit.path}>
                                         <div class="flex-row">
-                                            <span class="msg">{commit.message.substring(0, commit.message.indexOf("\n")>>>0 || 60)}</span>
+                                            <span class="msg">{commit.message.substring(0, commit.message.indexOf("\n") >>> 0 || 60)}</span>
                                         </div>
                                         <div class="flex-row space-between">
-                                            <span class={status}>{commit.sha.substring(0,8)}</span>
+                                            <span class={status}>{commit.sha.substring(0, 8)}</span>
                                             <span class="date">{formatTimeAgo(new Date(commit.date))}</span>
                                         </div>
                                     </Link>

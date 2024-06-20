@@ -1,4 +1,3 @@
-import { h } from "preact";
 import { LinkTypes } from "../../Common/WindowEventTypes";
 import { Store, PureStoreComponent, store } from "../Data/store";
 import Link from "./Link";

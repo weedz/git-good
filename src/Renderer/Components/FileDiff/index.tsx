@@ -1,4 +1,3 @@
-import { h } from "preact";
 import { IpcAction, type HunkObj, type LineObj, type LoadFileCommitsReturn } from "../../../Common/Actions";
 import { DiffDelta } from "../../../Common/Utils";
 import { closeFile, dismissibleWindowClosed, glyphWidth, openFileHistory, showDismissibleWindow } from "../../Data";
@@ -113,7 +112,7 @@ export default class FileDiff extends PureStoreComponent<unknown, State> {
 
     renderHunk = (hunk: HunkObj) => {
         let lines = [
-            { type:"",content:"" },
+            { type: "", content: "" },
             {
                 type: "header",
                 content: hunk.header
@@ -126,7 +125,7 @@ export default class FileDiff extends PureStoreComponent<unknown, State> {
 
         return lines;
     }
-    
+
     renderLine = (line: LineObj) => {
         // calculate "longest line"
         this.longestLine = Math.max(this.longestLine, line.content.replaceAll("\t", "    ").length);
@@ -207,12 +206,12 @@ export default class FileDiff extends PureStoreComponent<unknown, State> {
                     <ul class="file-diff-toolbar flex-row">
                         <li class="btn-group">
                             <button class={this.state.fileHistory ? "active" : undefined} onClick={() => {
-                                this.setState({fileHistory: []});
+                                this.setState({ fileHistory: [] });
                                 openFileHistory(patch.actualFile.path, Store.currentFile?.commitSHA);
                             }}>History</button>
                         </li>
                         <li class="btn-group">
-                            <button class={this.state.fullWidth ? "active" : undefined} onClick={() => this.setState({fullWidth: !this.state.fullWidth})}>Fullscreen</button>
+                            <button class={this.state.fullWidth ? "active" : undefined} onClick={() => this.setState({ fullWidth: !this.state.fullWidth })}>Fullscreen</button>
                         </li>
                         <li>
                             <button class={Store.diffOptions.ignoreWhitespace ? "active" : undefined} onClick={() => setDiffOption("ignoreWhitespace", !Store.diffOptions.ignoreWhitespace)}>Ignore whitespace</button>
@@ -232,7 +231,7 @@ function setDiffOption(option: keyof StoreType["diffOptions"], value: boolean) {
     if (!Store.appConfig) {
         return;
     }
-    const diffOptions = Object.assign({}, Store.diffOptions, {[option]: value });
+    const diffOptions = Object.assign({}, Store.diffOptions, { [option]: value });
     const appConfig = Store.appConfig;
     appConfig.diffOptions = diffOptions;
     saveAppConfig(appConfig);

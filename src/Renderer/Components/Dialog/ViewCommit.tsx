@@ -1,4 +1,4 @@
-import { createRef, h } from "preact";
+import { createRef } from "preact";
 import { useEffect } from "preact/hooks";
 import { type ViewCommitProps } from "./types";
 

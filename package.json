@@ -6,7 +6,7 @@
     "type": "commonjs",
     "scripts": {
         "start": "electron --ozone-platform-hint=wayland .",
-        "lint": "eslint . && tsc --noEmit",
+        "lint": "tsc --noEmit",
         "tsc:watch": "tsc --noEmit --watch",
         "dev": "NODE_ENV=development npm run build",
         "build": "rm -rf dist;mkdir dist;cp static/* dist/; node scripts/build.mjs",
@@ -25,19 +25,14 @@
     "devDependencies": {
         "@electron/asar": "^3.2.10",
         "@electron/rebuild": "^3.6.0",
-        "@types/node": "^20.14.2",
+        "@types/node": "^20.14.6",
         "@types/nodegit": "^0.28.7",
-        "@typescript-eslint/eslint-plugin": "^7.13.0",
-        "@typescript-eslint/parser": "^7.13.0",
         "@weedzcokie/store": "^2.0.2",
-        "electron": "^31.0.1",
+        "electron": "^31.0.2",
         "electron-builder": "^24.13.3",
         "esbuild": "^0.21.5",
-        "eslint": "^8.57.0",
-        "eslint-plugin-import": "^2.29.1",
-        "eslint-plugin-react": "^7.34.2",
         "preact": "^10.22.0",
-        "typescript": "^5.4.5"
+        "typescript": "^5.5.2"
     },
     "resolutions": {
         "make-fetch-happen": "^13"
@@ -82,5 +77,5 @@
     "dependencies": {
         "nodegit": "github:weedz/nodegit#master"
     },
-    "packageManager": "pnpm@9.3.0+sha512.ee7b93e0c2bd11409c6424f92b866f31d3ea1bef5fbe47d3c7500cdc3c9668833d2e55681ad66df5b640c61fa9dc25d546efa54d76d7f8bf54b13614ac293631"
+    "packageManager": "pnpm@9.4.0+sha512.f549b8a52c9d2b8536762f99c0722205efc5af913e77835dbccc3b0b0b2ca9e7dc8022b78062c17291c48e88749c70ce88eb5a74f1fa8c4bf5e18bb46c8bd83a"
 }

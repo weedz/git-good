@@ -1,4 +1,4 @@
-import { createRef, h } from "preact";
+import { createRef } from "preact";
 import { selectFile } from "../../Data/Utility";
 import { type DialogProps, DialogTypes } from "./types";
 import { useEffect, useState } from "preact/hooks";

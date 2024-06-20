@@ -1,4 +1,3 @@
-import { h } from "preact";
 import type { BranchObj, IpcActionParams, IpcActionReturnOrError, IpcResponse, PatchObj } from "../../Common/Actions.js";
 import { IpcAction, Locks } from "../../Common/Actions.js";
 import { HEAD_REF } from "../../Common/Branch.js";
