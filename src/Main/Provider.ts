@@ -32,6 +32,12 @@ declare module "nodegit" {
         continueRebase(signature: nodegit.Signature, beforeNextFn?: (rebase?: nodegit.Rebase) => Promise<unknown> | unknown): Promise<nodegit.Oid>;
     }
 
+    interface Index {
+        // Seems like these are actually async
+        read(i: number): Promise<number>;
+        conflictRemove(path: string): Promise<number>;
+    }
+
     interface Tree {
         // see https://github.com/nodegit/nodegit/pull/1919
         getAllFilepaths(): Promise<string[]>
@@ -636,9 +642,7 @@ export async function deleteTag(repo: nodegit.Repository, data: { name: string, 
     if (data.remote) {
         // FIXME: Do we really need to check every remote?
         const remotes = await repo.getRemotes();
-        for (let i = 0, len = remotes.length; i < len; ++i) {
-            await deleteRemoteTag(remotes[i], data.name);
-        }
+        await Promise.all(remotes.map(remote => deleteRemoteTag(remote, data.name)));
     }
 
     try {
@@ -701,10 +705,7 @@ export async function getHEAD(repo: nodegit.Repository): AsyncIpcActionReturnOrE
 export async function getUpstreamRefs(repo: nodegit.Repository): AsyncIpcActionReturnOrError<IpcAction.LOAD_UPSTREAMS> {
     const refs = await repo.getReferences();
 
-    const upstreams: IpcActionReturn[IpcAction.LOAD_UPSTREAMS] = [];
-
-    for (let i = 0, len = refs.length; i < len; ++i) {
-        const ref = refs[i];
+    const upstreams = await Promise.all(refs.map(async ref => {
         if (ref.isBranch()) {
             const headCommit = await repo.getReferenceCommit(ref);
             try {
@@ -717,14 +718,15 @@ export async function getUpstreamRefs(repo: nodegit.Repository): AsyncIpcActionR
                     name: ref.name(),
                 };
 
-                upstreams.push(upstreamObj);
+                return upstreamObj;
             } catch (_) {
                 // missing upstream
             }
         }
-    }
+        return null;
+    }));
 
-    return upstreams;
+    return upstreams.filter(upstream => upstream !== null) as IpcActionReturn[IpcAction.LOAD_UPSTREAMS];
 }
 
 export async function showStash(repo: nodegit.Repository, index: number): AsyncIpcActionReturnOrError<IpcAction.SHOW_STASH> {
