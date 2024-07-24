@@ -25,15 +25,15 @@
     "devDependencies": {
         "@electron/asar": "^3.2.10",
         "@electron/rebuild": "^3.6.0",
-        "@types/node": "^20.14.11",
+        "@types/node": "^20.14.12",
         "@types/nodegit": "^0.28.7",
         "@weedzcokie/store": "^2.0.2",
         "electron": "^31.2.1",
         "electron-builder": "^24.13.3",
         "esbuild": "^0.23.0",
         "oxlint": "^0.6.1",
-        "preact": "^10.22.1",
-        "typescript": "^5.5.3"
+        "preact": "^10.23.0",
+        "typescript": "^5.5.4"
     },
     "resolutions": {
         "make-fetch-happen": "^13"
@@ -78,5 +78,5 @@
     "dependencies": {
         "nodegit": "github:weedz/nodegit#master"
     },
-    "packageManager": "pnpm@9.5.0+sha512.140036830124618d624a2187b50d04289d5a087f326c9edfc0ccd733d76c4f52c3a313d4fc148794a2a9d81553016004e6742e8cf850670268a7387fc220c903"
+    "packageManager": "pnpm@9.6.0+sha512.38dc6fba8dba35b39340b9700112c2fe1e12f10b17134715a4aa98ccf7bb035e76fd981cf0bb384dfa98f8d6af5481c2bef2f4266a24bfa20c34eb7147ce0b5e"
 }
