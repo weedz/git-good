@@ -1,5 +1,5 @@
 import { type JSX } from "preact";
-import { type AppConfig } from "../../../Common/Config";
+import { type AppConfig } from "../../../Common/Config.js";
 
 export const enum DialogTypes {
     NEW_BRANCH,
@@ -79,13 +79,13 @@ export interface SettingsProps extends DialogBaseProps {
 }
 
 export interface CreateTagProps extends DialogBaseProps {
-    confirmCb: (tag: {name: string, annotation?: string}) => void
+    confirmCb: (tag: { name: string, annotation?: string }) => void
 }
 export interface PushTagProps extends DialogBaseProps {
     confirmCb: (remote: string) => void
 }
 interface CloneRepoProps extends DialogBaseProps {
-    confirmCb: (data: {source: string, target: string}) => void
+    confirmCb: (data: { source: string, target: string }) => void
 }
 interface InitRepoProps extends DialogBaseProps {
     confirmCb: (target: string) => void

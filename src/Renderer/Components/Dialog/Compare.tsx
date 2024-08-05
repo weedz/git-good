@@ -1,6 +1,6 @@
 import { createRef } from "preact";
-import { type CompareProps } from "./types";
 import { useEffect } from "preact/hooks";
+import { type CompareProps } from "./types.js";
 
 
 export function Compare(dialog: CompareProps) {

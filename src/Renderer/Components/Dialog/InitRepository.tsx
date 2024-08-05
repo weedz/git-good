@@ -1,7 +1,7 @@
 import { createRef } from "preact";
-import { selectFile } from "../../Data/Utility";
-import { type DialogProps, DialogTypes } from "./types";
 import { useEffect, useState } from "preact/hooks";
+import { selectFile } from "../../Data/Utility.js";
+import { type DialogProps, DialogTypes } from "./types.js";
 
 export function InitRepositoryDialog(props: DialogProps[DialogTypes.INIT_REPOSITORY]) {
     const [target, setTarget] = useState("");

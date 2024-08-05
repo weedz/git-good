@@ -1,7 +1,7 @@
 import { Component } from "preact";
-import { type LoadCommitReturn } from "../../../Common/Actions";
-import ScrollContainer from "../ScrollContainer";
-import CommitListItem from "./CommitListItem";
+import { type LoadCommitReturn } from "../../../Common/Actions.js";
+import ScrollContainer from "../ScrollContainer.js";
+import CommitListItem from "./CommitListItem.js";
 
 type Props = {
     commits: LoadCommitReturn[]

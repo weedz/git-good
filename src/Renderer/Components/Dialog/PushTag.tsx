@@ -1,7 +1,7 @@
 import { createRef } from "preact";
-import { Store } from "../../Data/store";
-import { type PushTagProps } from "./types";
 import { useEffect } from "preact/hooks";
+import { Store } from "../../Data/store.js";
+import { type PushTagProps } from "./types.js";
 
 
 export function PushTag(dialog: PushTagProps) {

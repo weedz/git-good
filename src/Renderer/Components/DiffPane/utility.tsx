@@ -1,4 +1,4 @@
-import { DiffDelta } from "../../../Common/Utils";
+import { DiffDelta } from "../../../Common/Utils.js";
 
 export function getFileCssClass(status: DiffDelta) {
     switch (status) {

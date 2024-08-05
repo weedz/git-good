@@ -5,7 +5,7 @@ import { tmpdir } from "os";
 
 export function gpgSign(key: string, data: string) {
     const gpg = spawn("gpg", ["--batch", "--detach-sign", "--armor", "--sign-with", key, "-o", "-"]);
-    return new Promise<string>((resolve,reject) => {
+    return new Promise<string>((resolve, reject) => {
         const buffers: Buffer[] = [];
         let buffersLength = 0;
         let error = "";
@@ -14,14 +14,14 @@ export function gpgSign(key: string, data: string) {
             buffers.push(buf);
             buffersLength += buf.length;
         });
-    
+
         gpg.stderr.on("data", (buf: Buffer) => {
             error += buf.toString("utf8");
         });
 
         gpg.on("error", err => {
             reject(err);
-        }); 
+        });
         gpg.on("close", code => {
             if (code !== 0) {
                 return reject(error);
@@ -39,7 +39,7 @@ export function gpgVerify(signature: string, data: string) {
     writeFileSync(signaturePath, signature);
 
     const gpg = spawn("gpg", ["--logger-fd", "1", "--verify", signaturePath, "-"]);
-    return new Promise<{data: string, verified: boolean}>((resolve,reject) => {
+    return new Promise<{ data: string, verified: boolean }>((resolve, reject) => {
         const buffers: Buffer[] = [];
         let buffersLength = 0;
 
@@ -50,7 +50,7 @@ export function gpgVerify(signature: string, data: string) {
 
         gpg.on("error", err => {
             reject(err);
-        }); 
+        });
         gpg.on("close", code => {
             const result = Buffer.concat(buffers, buffersLength).toString("utf-8");
             resolve({

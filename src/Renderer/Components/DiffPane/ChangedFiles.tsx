@@ -1,4 +1,4 @@
-import { Component, h } from "preact";
+import { Component, type h } from "preact";
 import { type CommitObj, type PatchObj } from "../../../Common/Actions.js";
 import { DiffDelta } from "../../../Common/Utils.js";
 import { LinkTypes } from "../../../Common/WindowEventTypes.js";
@@ -109,8 +109,8 @@ function renderPaths(patches: PatchObj[], actions: ButtonAction[], contextMenu: 
 function renderTree(tree: Tree<PatchObj>, actions: ButtonAction[], contextMenu: (e: h.JSX.TargetedMouseEvent<HTMLLIElement>) => void, selectAction: (data: Link<PatchObj>) => void, indent = 0) {
     const items = [];
     // Sort directories before files
-    const sortedChildren = Array.from(tree.children.entries()).sort( ([_, a], [_b, b]) => a.children.size && !b.children.size ? -1 : 0);
-    for (const { 0:path, 1:child } of sortedChildren) {
+    const sortedChildren = Array.from(tree.children.entries()).sort(([_, a], [_b, b]) => a.children.size && !b.children.size ? -1 : 0);
+    for (const { 0: path, 1: child } of sortedChildren) {
         if (child.item) {
             const patch = child.item;
             const typeCss = getFileCssClass(patch.status);
@@ -119,7 +119,7 @@ function renderTree(tree: Tree<PatchObj>, actions: ButtonAction[], contextMenu: 
                     <Link class={`${typeCss} flex-row`} linkData={patch} selectAction={selectAction}>
                         <span class="status">{getType(patch.status)}</span>
                         <div title={patch.actualFile.path} style="display:flex">
-                            <span style={{textIndent: "0.5em"}}>{path}</span>
+                            <span style={{ textIndent: "0.5em" }}>{path}</span>
                         </div>
                     </Link>
                     <div class="action-group">
@@ -130,14 +130,14 @@ function renderTree(tree: Tree<PatchObj>, actions: ButtonAction[], contextMenu: 
         } else {
             items.push(
                 <li class="sub-tree" key={path}>
-                    <a href="#" onClick={toggleTreeItem}><span style={{textIndent: "0"}}>{path}</span></a>
+                    <a href="#" onClick={toggleTreeItem}><span style={{ textIndent: "0" }}>{path}</span></a>
                     {renderTree(child, actions, contextMenu, selectAction, indent + 1)}
                 </li>
             );
         }
     }
     return (
-        <ul style={{textIndent: `${indent}em`}} class="tree-list block-list">
+        <ul style={{ textIndent: `${indent}em` }} class="tree-list block-list">
             {items}
         </ul>
     );
@@ -209,8 +209,8 @@ export default class ChangedFiles extends Component<Props, State> {
         return (
             <div class="changed-files inset">
                 <div class="flex-row btn-group" style="margin: auto">
-                    <button class={this.state.renderType === RenderType.PATH ? "selected" : undefined} onClick={() => this.setState({renderType: RenderType.PATH})}>Path</button>
-                    <button class={this.state.renderType === RenderType.TREE ? "selected" : undefined} onClick={() => this.setState({renderType: RenderType.TREE})}>Tree</button>
+                    <button class={this.state.renderType === RenderType.PATH ? "selected" : undefined} onClick={() => this.setState({ renderType: RenderType.PATH })}>Path</button>
+                    <button class={this.state.renderType === RenderType.TREE ? "selected" : undefined} onClick={() => this.setState({ renderType: RenderType.TREE })}>Tree</button>
                     {this.state.renderType === RenderType.TREE && <span style="align-self:center;position:absolute;right:0;cursor:pointer;user-select:none" onClick={(e) => {
                         const fileContainer = e.currentTarget.closest(".changed-files")?.querySelector(".diff-view.block-list");
                         if (fileContainer) {

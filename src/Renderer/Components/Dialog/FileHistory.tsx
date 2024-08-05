@@ -1,6 +1,6 @@
 import { createRef } from "preact";
-import { type DialogProps, DialogTypes } from "./types";
 import { useEffect } from "preact/hooks";
+import { type DialogProps, DialogTypes } from "./types.js";
 
 
 export function FileHistory(dialog: DialogProps[DialogTypes.FILE_HISTORY]) {

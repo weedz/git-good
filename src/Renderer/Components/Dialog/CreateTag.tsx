@@ -1,6 +1,6 @@
 import { createRef } from "preact";
-import { type CreateTagProps } from "./types";
 import { useEffect } from "preact/hooks";
+import { type CreateTagProps } from "./types.js";
 
 
 export function CreateTag(dialog: CreateTagProps) {

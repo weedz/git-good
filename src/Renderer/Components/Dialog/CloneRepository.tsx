@@ -1,8 +1,8 @@
 import { createRef } from "preact";
-import { selectFile } from "../../Data/Utility";
-import { type DialogProps, DialogTypes } from "./types";
 import { useEffect, useState } from "preact/hooks";
-import { Store } from "../../Data/store";
+import { selectFile } from "../../Data/Utility.js";
+import { type DialogProps, DialogTypes } from "./types.js";
+import { Store } from "../../Data/store.js";
 
 export function CloneRepositoryDialog(props: DialogProps[DialogTypes.CLONE_REPOSITORY]) {
     const [source, setSource] = useState("");

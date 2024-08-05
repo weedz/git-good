@@ -1,8 +1,8 @@
-import { h } from "preact";
-import { IpcAction } from "../../../Common/Actions";
-import { commit } from "../../Data";
-import { ipcSendMessage } from "../../Data/IPC";
-import { notify, store, Store, StoreComponent, type StoreType } from "../../Data/store";
+import { type h } from "preact";
+import { IpcAction } from "../../../Common/Actions.js";
+import { commit } from "../../Data/index.js";
+import { ipcSendMessage } from "../../Data/IPC.js";
+import { notify, store, Store, StoreComponent, type StoreType } from "../../Data/store.js";
 
 type State = {
     commitMsg: StoreType["commitMsg"]
@@ -51,21 +51,21 @@ export default class CommitForm extends StoreComponent<Props, State> {
         this.setState({
             amend: false
         });
-        const notification = notify({title: amend ? "Amending commit..." : "Creating commit...", time: 0});
+        const notification = notify({ title: amend ? "Amending commit..." : "Creating commit...", time: 0 });
         const commitObj = await commit({
             message,
             amend,
         });
         if (commitObj) {
-            notification.update({title: amend ? "Commit amended" : "Commit created", body: <p>New commit sha {commitObj.sha}</p>, time: 3000});
+            notification.update({ title: amend ? "Commit amended" : "Commit created", body: <p>New commit sha {commitObj.sha}</p>, time: 3000 });
         } else {
             notification.update({ title: "Failed to commit", time: 3000 });
         }
     }
-    updateMessage(msg: {summary: string} | {body: string}) {
+    updateMessage(msg: { summary: string } | { body: string }) {
         const commitMsg = this.state.amend ? this.state.commitMsg : Store.commitMsg;
         Object.assign(commitMsg, msg);
-        this.setState({commitMsg});
+        this.setState({ commitMsg });
     }
 
     render() {
@@ -89,24 +89,24 @@ export default class CommitForm extends StoreComponent<Props, State> {
                 this.commit();
             }
         }}>
-                <div class="flex-row">
-                    <h4>Commit Message</h4>
-                    {!Store.repoStatus?.rebasing && <label style="align-self: center; margin-left: auto">
-                        <input type="checkbox" name="amend" onClick={this.setAmend} checked={this.state.amend} />
-                        <span>Amend</span>
-                    </label>}
-                </div>
-                <input type="text" style={{width: "100%"}} name="summary" placeholder="Summary" value={this.state.commitMsg.summary} onKeyUp={(e: h.JSX.TargetedEvent<HTMLInputElement, KeyboardEvent>) => {
-                    this.updateMessage({summary: e.currentTarget.value});
-                }} />
-                <br />
-                <textarea id="commit-msg" name="msg" placeholder="Description" onKeyUp={(e: h.JSX.TargetedEvent<HTMLTextAreaElement, KeyboardEvent>) => {
-                    this.updateMessage({body: e.currentTarget.value});
-                }} value={this.state.commitMsg.body} />
-                <br />
-                <div class="flex-row">
-                    {commitButton}
-                </div>
-            </form>;
+            <div class="flex-row">
+                <h4>Commit Message</h4>
+                {!Store.repoStatus?.rebasing && <label style="align-self: center; margin-left: auto">
+                    <input type="checkbox" name="amend" onClick={this.setAmend} checked={this.state.amend} />
+                    <span>Amend</span>
+                </label>}
+            </div>
+            <input type="text" style={{ width: "100%" }} name="summary" placeholder="Summary" value={this.state.commitMsg.summary} onKeyUp={(e: h.JSX.TargetedEvent<HTMLInputElement, KeyboardEvent>) => {
+                this.updateMessage({ summary: e.currentTarget.value });
+            }} />
+            <br />
+            <textarea id="commit-msg" name="msg" placeholder="Description" onKeyUp={(e: h.JSX.TargetedEvent<HTMLTextAreaElement, KeyboardEvent>) => {
+                this.updateMessage({ body: e.currentTarget.value });
+            }} value={this.state.commitMsg.body} />
+            <br />
+            <div class="flex-row">
+                {commitButton}
+            </div>
+        </form>;
     }
 }

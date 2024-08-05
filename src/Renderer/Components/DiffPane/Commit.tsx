@@ -1,12 +1,12 @@
-import type { CommitObj, FileObj, IpcActionReturn, PatchObj } from "../../../Common/Actions";
-import { IpcAction, Locks } from "../../../Common/Actions";
-import { DiffDelta } from "../../../Common/Utils";
-import { LinkTypes } from "../../../Common/WindowEventTypes";
-import { ipcGetData } from "../../Data/IPC";
-import { Store, StoreComponent, clearLock } from "../../Data/store";
-import { triggerAction } from "../Link";
-import ChangedFiles from "./ChangedFiles";
-import CommitMessage from "./CommitMessage";
+import type { CommitObj, FileObj, IpcActionReturn, PatchObj } from "../../../Common/Actions.js";
+import { IpcAction, Locks } from "../../../Common/Actions.js";
+import { DiffDelta } from "../../../Common/Utils.js";
+import { LinkTypes } from "../../../Common/WindowEventTypes.js";
+import { ipcGetData } from "../../Data/IPC.js";
+import { Store, StoreComponent, clearLock } from "../../Data/store.js";
+import { triggerAction } from "../Link.js";
+import ChangedFiles from "./ChangedFiles.js";
+import CommitMessage from "./CommitMessage.js";
 import "./style.css";
 
 interface State {

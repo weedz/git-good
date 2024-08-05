@@ -1,6 +1,6 @@
 import { createRef } from "preact";
-import { type DialogProps, DialogTypes, type RemoteProps } from "./types";
 import { useEffect } from "preact/hooks";
+import { type DialogProps, DialogTypes, type RemoteProps } from "./types.js";
 
 
 export function AddRemote(dialog: DialogProps[DialogTypes.ADD_REMOTE]) {

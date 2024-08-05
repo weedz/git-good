@@ -1,6 +1,6 @@
 import { createRef } from "preact";
 import { useEffect } from "preact/hooks";
-import { type ViewCommitProps } from "./types";
+import { type ViewCommitProps } from "./types.js";
 
 
 export function ViewCommit(dialog: ViewCommitProps) {

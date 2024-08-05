@@ -1,5 +1,5 @@
-import { h } from "preact";
-import ScrollListView from "./ScrollListView";
+import { type h } from "preact";
+import ScrollListView from "./ScrollListView.js";
 
 type Props<T> = {
     containerId?: string
@@ -15,7 +15,7 @@ export default class ScrollContainer<T> extends ScrollListView<T, Props<T>> {
                     style={{
                         position: "relative",
                         height: `${this.state.totalHeight}px`
-                }}>
+                    }}>
                     {this.props.renderItems(this.props.items.slice(this.state.startRenderAt, this.state.startRenderAt + this.state.itemsToRender), this.state.startRenderAt)}
                 </ul>
             </div>

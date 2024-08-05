@@ -1,6 +1,6 @@
-import { LinkTypes } from "../../Common/WindowEventTypes";
-import { Store, PureStoreComponent, store } from "../Data/store";
-import Link from "./Link";
+import { LinkTypes } from "../../Common/WindowEventTypes.js";
+import { Store, PureStoreComponent, store } from "../Data/store.js";
+import Link from "./Link.js";
 
 export default class Changes extends PureStoreComponent<unknown> {
     componentDidMount() {

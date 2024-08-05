@@ -1,10 +1,10 @@
-import type { StashObj } from "../../../Common/Actions";
-import { LinkTypes } from "../../../Common/WindowEventTypes";
-import { showStash } from "../../Data";
-import { toggleTreeItem } from "../../Data/Tree";
-import { PureStoreComponent, Store } from "../../Data/store";
-import Link from "../Link";
-import { showStashMenu } from "./Menu";
+import type { StashObj } from "../../../Common/Actions.js";
+import { LinkTypes } from "../../../Common/WindowEventTypes.js";
+import { showStash } from "../../Data/index.js";
+import { toggleTreeItem } from "../../Data/Tree.js";
+import { PureStoreComponent, Store } from "../../Data/store.js";
+import Link from "../Link.js";
+import { showStashMenu } from "./Menu.js";
 
 function selectStashItem(item: Link<StashObj>) {
     if (item.props.linkData?.index !== undefined) {

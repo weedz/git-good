@@ -1,16 +1,16 @@
-import { Fragment, h } from "preact";
+import { Fragment, type h } from "preact";
 
-import type { IpcActionParams, IpcResponse, LoadCommitReturn, LoadCommitsReturn } from "../../../Common/Actions";
-import { IpcAction, Locks } from "../../../Common/Actions";
-import { HISTORY_REF } from "../../../Common/Branch";
-import { LinkTypes } from "../../../Common/WindowEventTypes";
-import { ipcSendMessage } from "../../Data/IPC";
-import { filterCommit } from "../../Data/Utility";
-import { PureStoreComponent, Store, clearLock, lockChanged, setLock, type StoreType } from "../../Data/store";
-import { Links } from "../LinkContainer";
-import CommitContainer from "./CommitContainer";
-import FileFilter from "./FileFilter";
-import HeadColors from "./HeadColors";
+import type { IpcActionParams, IpcResponse, LoadCommitReturn, LoadCommitsReturn } from "../../../Common/Actions.js";
+import { IpcAction, Locks } from "../../../Common/Actions.js";
+import { HISTORY_REF } from "../../../Common/Branch.js";
+import { LinkTypes } from "../../../Common/WindowEventTypes.js";
+import { ipcSendMessage } from "../../Data/IPC.js";
+import { filterCommit } from "../../Data/Utility.js";
+import { PureStoreComponent, Store, clearLock, lockChanged, setLock, type StoreType } from "../../Data/store.js";
+import { Links } from "../LinkContainer.js";
+import CommitContainer from "./CommitContainer.js";
+import FileFilter from "./FileFilter/index.js";
+import HeadColors from "./HeadColors.js";
 import "./style.css";
 
 type State = {
@@ -112,7 +112,7 @@ class CommitList extends PureStoreComponent<unknown, State> {
                 };
                 this.graph.set(commit.sha, graphCommit);
             }
-            for (let j = 0,lenParents = commit.parents.length; j < lenParents; j++) {
+            for (let j = 0, lenParents = commit.parents.length; j < lenParents; j++) {
                 let graphParent = this.graph.get(commit.parents[j]);
                 if (!graphParent) {
                     graphParent = {

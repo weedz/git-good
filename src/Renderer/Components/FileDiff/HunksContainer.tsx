@@ -1,6 +1,6 @@
-import { h } from "preact";
-import { type LineObj } from "../../../Common/Actions";
-import ScrollListView from "../ScrollListView";
+import { type h } from "preact";
+import { type LineObj } from "../../../Common/Actions.js";
+import ScrollListView from "../ScrollListView.js";
 
 interface Line {
     type: string
@@ -29,12 +29,12 @@ export default class HunksContainer extends ScrollListView<Line, Props> {
         const oldGlyphs: h.JSX.Element[] = [];
         const newGlyphs: h.JSX.Element[] = [];
 
-        this.props.items.slice(this.state.startRenderAt, this.state.startRenderAt + this.state.itemsToRender).map((line,idx) => {
+        this.props.items.slice(this.state.startRenderAt, this.state.startRenderAt + this.state.itemsToRender).map((line, idx) => {
             const key = this.state.startRenderAt + idx;
             const top = key * ITEM_HEIGHT;
             if (line.type === "header") {
                 lines.push(
-                    <li key={key} class="header" style={{position: "absolute", top, height: ITEM_HEIGHT, width: "100%"}}>
+                    <li key={key} class="header" style={{ position: "absolute", top, height: ITEM_HEIGHT, width: "100%" }}>
                         <div>{line.content}</div>
                     </li>
                 );
@@ -48,7 +48,7 @@ export default class HunksContainer extends ScrollListView<Line, Props> {
                         top,
                         height: ITEM_HEIGHT,
                         width: "100%"
-                        }} class={line.line.type && `diff-line ${line.line.type === "+" ? "new" : "old"}` || "diff-line"}
+                    }} class={line.line.type && `diff-line ${line.line.type === "+" ? "new" : "old"}` || "diff-line"}
                     >
                         <div class="diff-line-content">{line.content}</div>
                     </li>

@@ -1,8 +1,8 @@
-import { Component, createRef, h } from "preact";
+import { Component, createRef, type h } from "preact";
 
 import "./style.css";
-import { commandPaletteCommandList } from "./commands";
-import type * as CommandPalette from "./commands";
+import { commandPaletteCommandList } from "./commands.js";
+import type * as CommandPalette from "./commands.js";
 
 const defaultState: State = {
     isOpen: false,

@@ -1,5 +1,5 @@
 // TODO: Will this work? maybe `electron/common` ?
-import type { MessageBoxOptions, OpenDialogOptions } from "electron"
+import type { MessageBoxOptions, OpenDialogOptions } from "electron/common";
 
 export const enum NativeDialog {
     ERROR = 0,

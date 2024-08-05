@@ -10,7 +10,7 @@ interface IContextMenuApi {
     requestClientData: (callback: <E extends RendererRequestEvents>(payload: RendererRequestPayload<E>) => Promise<null | RendererRequestData[E]>) => void
     onAsyncReply: (callback: (payload: IpcPayload<IpcAction>) => void) => void
     sendAsyncMessage: <T extends IpcAction>(action: T, data: IpcActionParams[T]) => number
-    onAppEvent: <T extends AppEventType>(callback: (payload: {data: AppEventData[T], event: T}) => void) => void
+    onAppEvent: <T extends AppEventType>(callback: (payload: { data: AppEventData[T], event: T }) => void) => void
 }
 
 declare global {
@@ -20,10 +20,10 @@ declare global {
 }
 
 contextBridge.exposeInMainWorld("versions", {
-  node: () => process.versions.node,
-  chrome: () => process.versions.chrome,
-  electron: () => process.versions.electron,
-  // we can also expose variables, not just functions
+    node: () => process.versions.node,
+    chrome: () => process.versions.chrome,
+    electron: () => process.versions.electron,
+    // we can also expose variables, not just functions
 })
 
 contextBridge.exposeInMainWorld("electronAPI", {
@@ -52,7 +52,7 @@ contextBridge.exposeInMainWorld("electronAPI", {
         ipcRenderer.on("asynchronous-reply", (_, payload) => callback(payload));
     },
     sendAsyncMessage: <T extends IpcAction>(action: T, data: IpcActionParams[T]) => {
-        const id = (Math.random() * Number.MAX_SAFE_INTEGER)>>>0;
+        const id = (Math.random() * Number.MAX_SAFE_INTEGER) >>> 0;
         ipcRenderer.send("asynchronous-message", {
             action,
             data,
@@ -60,7 +60,7 @@ contextBridge.exposeInMainWorld("electronAPI", {
         });
         return id
     },
-    onAppEvent: <T extends AppEventType>(callback: (payload: {data: AppEventData[T], event: T}) => void) => {
+    onAppEvent: <T extends AppEventType>(callback: (payload: { data: AppEventData[T], event: T }) => void) => {
         ipcRenderer.on("app-event", (_rendererEvent, args) => callback(args));
     },
 });

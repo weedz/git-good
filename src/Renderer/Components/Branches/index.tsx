@@ -1,9 +1,9 @@
-import { Fragment, h } from "preact";
-import { Locks, type BranchesObj } from "../../../Common/Actions";
-import { PureStoreComponent, Store, lockChanged, type StoreType } from "../../Data/store";
-import BranchList from "./BranchList";
-import StashList from "./StashList";
-import { filterBranches, getBranchTree } from "./Utils";
+import { Fragment, type h } from "preact";
+import { Locks, type BranchesObj } from "../../../Common/Actions.js";
+import { PureStoreComponent, Store, lockChanged, type StoreType } from "../../Data/store.js";
+import BranchList from "./BranchList.js";
+import StashList from "./StashList.js";
+import { filterBranches, getBranchTree } from "./Utils.js";
 import "./style.css";
 
 type State = {
@@ -33,7 +33,7 @@ class Branches extends PureStoreComponent<unknown, State> {
 
     loadBranches = async (branches: StoreType["branches"]) => {
         if (!branches) {
-            return this.setState({branches});
+            return this.setState({ branches });
         }
         // Renders branches without upstream "graph" (ahead/behind)
         this.setState({

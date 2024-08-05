@@ -1,5 +1,5 @@
-import CommitList from "../Components/CommitList";
-import DiffPane from "../Components/DiffPane";
+import CommitList from "../Components/CommitList/index.js";
+import DiffPane from "../Components/DiffPane/index.js";
 
 export default function Main() {
     return (

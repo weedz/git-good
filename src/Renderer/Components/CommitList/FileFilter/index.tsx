@@ -1,8 +1,8 @@
-import { Fragment, h } from "preact";
-import { IpcAction, type IpcResponse } from "../../../../Common/Actions";
-import { openFileHistory } from "../../../Data";
-import { ipcSendMessage } from "../../../Data/IPC";
-import { StoreComponent } from "../../../Data/store";
+import { Fragment, type h } from "preact";
+import { IpcAction, type IpcResponse } from "../../../../Common/Actions.js";
+import { openFileHistory } from "../../../Data/index.js";
+import { ipcSendMessage } from "../../../Data/IPC.js";
+import { StoreComponent } from "../../../Data/store.js";
 
 import "./style.css";
 
@@ -38,10 +38,10 @@ export default class FileFilter extends StoreComponent<unknown, State> {
             openFileHistory(file)
         }
     }
-    
+
     findFiles = (e: h.JSX.TargetedInputEvent<HTMLInputElement>) => {
         window.clearTimeout(this.findFileTimeout);
-        
+
         const value = e.currentTarget.value;
         if (value) {
             this.findFileTimeout = window.setTimeout(() => {
@@ -60,7 +60,7 @@ export default class FileFilter extends StoreComponent<unknown, State> {
     render() {
         return (
             <Fragment>
-                <input type="text" onClick={() => this.state.fileResults?.length > 0 && this.setState({showFiles: true})} onInput={this.findFiles} placeholder="File/path..." />
+                <input type="text" onClick={() => this.state.fileResults?.length > 0 && this.setState({ showFiles: true })} onInput={this.findFiles} placeholder="File/path..." />
                 {this.state.showFiles && !!this.state.fileResults?.length &&
                     <ul id="file-filter-list">
                         {this.state.fileResults.map(file => <li key={file} onClick={this.openFileHistory} data-path={file}>{file}</li>)}

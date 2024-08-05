@@ -1,12 +1,12 @@
-import { h } from "preact";
-import { IpcAction, type IpcResponse, type PatchObj } from "../../../Common/Actions";
-import { LinkTypes } from "../../../Common/WindowEventTypes";
-import ChangedFiles from "../../Components/DiffPane/ChangedFiles";
-import { triggerAction } from "../../Components/Link";
-import { discardAllChanges, discardChanges } from "../../Data";
-import { ipcGetData, ipcSendMessage } from "../../Data/IPC";
-import { Store, StoreComponent } from "../../Data/store";
-import CommitForm from "./CommitForm";
+import { type h } from "preact";
+import { IpcAction, type IpcResponse, type PatchObj } from "../../../Common/Actions.js";
+import { LinkTypes } from "../../../Common/WindowEventTypes.js";
+import ChangedFiles from "../../Components/DiffPane/ChangedFiles.js";
+import { triggerAction } from "../../Components/Link.js";
+import { discardAllChanges, discardChanges } from "../../Data/index.js";
+import { ipcGetData, ipcSendMessage } from "../../Data/IPC.js";
+import { Store, StoreComponent } from "../../Data/store.js";
+import CommitForm from "./CommitForm.js";
 import "./style.css";
 
 function stageFile(e: h.JSX.TargetedEvent<HTMLButtonElement, MouseEvent>) {
@@ -22,14 +22,14 @@ function stageAllChanges() {
 function unstageAllChanges() {
     return ipcGetData(IpcAction.UNSTAGE_ALL, null);
 }
-function unstageFile (e: h.JSX.TargetedEvent<HTMLButtonElement, MouseEvent>) {
+function unstageFile(e: h.JSX.TargetedEvent<HTMLButtonElement, MouseEvent>) {
     const path = e.currentTarget.dataset.path;
     if (!path) {
         return;
     }
     return ipcGetData(IpcAction.UNSTAGE_FILE, path);
 }
-async function discard (e: h.JSX.TargetedEvent<HTMLButtonElement, MouseEvent>) {
+async function discard(e: h.JSX.TargetedEvent<HTMLButtonElement, MouseEvent>) {
     const path = e.currentTarget.dataset.path;
     if (!path) {
         return;
@@ -82,11 +82,11 @@ export default class WorkingArea extends StoreComponent<unknown, State> {
                         <button disabled={!this.state.unstaged.length} onClick={stageAllChanges}>Stage all</button>
                         <button disabled={!this.state.unstaged.length} onClick={discardAllChanges}>Discard all</button>
                     </h4>
-                    <ChangedFiles patches={this.state.unstaged} workDir type="unstaged" actions={[{label: "Stage", click: stageFile}, {label: "Discard", click: discard}]} />
+                    <ChangedFiles patches={this.state.unstaged} workDir type="unstaged" actions={[{ label: "Stage", click: stageFile }, { label: "Discard", click: discard }]} />
                 </div>
                 <div id="staged-changes">
                     <h4>Staged ({this.state.staged.length})<button disabled={!this.state.staged.length} onClick={unstageAllChanges}>Unstage all</button></h4>
-                    <ChangedFiles patches={this.state.staged} workDir type="staged" actions={[{label: "Unstage", click: unstageFile}]} />
+                    <ChangedFiles patches={this.state.staged} workDir type="staged" actions={[{ label: "Unstage", click: unstageFile }]} />
                 </div>
                 <div>
                     <CommitForm staged={this.state.staged.length || 0} />

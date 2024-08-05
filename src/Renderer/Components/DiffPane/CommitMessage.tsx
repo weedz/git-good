@@ -1,7 +1,7 @@
-import { type CommitObj } from "../../../Common/Actions";
-import { formatTimeAgo } from "../../../Common/Utils";
-import { LinkTypes } from "../../../Common/WindowEventTypes";
-import Link, { GlobalLinks } from "../Link";
+import { type CommitObj } from "../../../Common/Actions.js";
+import { formatTimeAgo } from "../../../Common/Utils.js";
+import { LinkTypes } from "../../../Common/WindowEventTypes.js";
+import Link, { GlobalLinks } from "../Link.js";
 import "./style.css";
 
 export default function CommitMessage(props: { commit: CommitObj }) {

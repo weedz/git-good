@@ -1,6 +1,6 @@
 import type { JSX } from "preact";
-import { setCSSVariable } from "../Data/styles";
-import { debounce } from "../utils";
+import { setCSSVariable } from "../Data/styles.js";
+import { debounce } from "../utils.js";
 
 const debouncedResize = debounce((e: MouseEvent) => {
     const newWidth = Math.max(200, Math.min(500, e.clientX)).toString();

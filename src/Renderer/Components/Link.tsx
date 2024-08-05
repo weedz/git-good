@@ -1,6 +1,6 @@
-import { Component, createRef, h } from "preact";
-import { LinkTypes } from "../../Common/WindowEventTypes";
-import { Links } from "./LinkContainer";
+import { Component, createRef, type h } from "preact";
+import { LinkTypes } from "../../Common/WindowEventTypes.js";
+import { Links } from "./LinkContainer.js";
 
 export const GlobalLinks: {
     [key in LinkTypes]: {
@@ -44,7 +44,7 @@ interface State {
 export function unselectLink(type: LinkTypes) {
     const prevLink = selectedLinks[type];
     if (prevLink) {
-        prevLink.setState({selected: false});
+        prevLink.setState({ selected: false });
         selectedLinks[type] = null;
     }
 }
@@ -82,7 +82,7 @@ class Link<T = unknown> extends Component<Props<T>, State> {
 
         const selectedLink = selectedLinks[this.type];
         if (prevLink && prevLink.ref && prevLink !== selectedLink) {
-            prevLink.setState({selected: false});
+            prevLink.setState({ selected: false });
         }
 
         selectedIds[this.type] = selectedLink?.props.linkId;
@@ -98,9 +98,9 @@ class Link<T = unknown> extends Component<Props<T>, State> {
                 selectedLink.ref.current?.scrollIntoView({
                     block: "nearest"
                 });
-    
+
                 if (!alwaysTrigger) {
-                    selectedLink.setState({selected: true});
+                    selectedLink.setState({ selected: true });
                 }
             }
         }
@@ -114,7 +114,7 @@ class Link<T = unknown> extends Component<Props<T>, State> {
         }
     }
     render() {
-        const props = {...this.props};
+        const props = { ...this.props };
         delete props.linkData;
         delete props.selectAction;
         delete props.selectTarget;

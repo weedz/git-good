@@ -1,6 +1,6 @@
 import { dialog } from "electron/main";
 
-import { IpcAction, Locks, type IpcActionParams } from "../Common/Actions";
+import { IpcAction, Locks, type IpcActionParams } from "../Common/Actions.js";
 import { AppEventType } from "../Common/WindowEventTypes.js";
 import { sendEvent } from "./WindowEvents.js";
 import * as provider from "./Provider.js";

@@ -1,5 +1,5 @@
-import { Store, PureStoreComponent } from "../Data/store";
-import { NotificationPosition } from "../../Common/WindowEventTypes";
+import { Store, PureStoreComponent } from "../Data/store.js";
+import { NotificationPosition } from "../../Common/WindowEventTypes.js";
 
 export default class NotificationsContainer extends PureStoreComponent<{ position: NotificationPosition }> {
     componentDidMount() {

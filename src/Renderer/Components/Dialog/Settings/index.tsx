@@ -1,11 +1,11 @@
 import { Component, Fragment } from "preact";
-import { IpcAction } from "../../../../Common/Actions";
-import { type AppConfig } from "../../../../Common/Config";
-import { NativeDialog } from "../../../../Common/Dialog";
-import { ipcGetData, ipcSendMessage, openNativeDialog } from "../../../Data/IPC";
-import { type SettingsProps } from "../types";
-import { Profile } from "./Profile";
-import { UISettings } from "./UI";
+import { IpcAction } from "../../../../Common/Actions.js";
+import { type AppConfig } from "../../../../Common/Config.js";
+import { NativeDialog } from "../../../../Common/Dialog.js";
+import { ipcGetData, ipcSendMessage, openNativeDialog } from "../../../Data/IPC.js";
+import type { SettingsProps } from "../types.js";
+import { Profile } from "./Profile.js";
+import { UISettings } from "./UI.js";
 
 type State = {
     config: AppConfig

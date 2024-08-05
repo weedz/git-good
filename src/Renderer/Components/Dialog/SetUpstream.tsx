@@ -1,7 +1,7 @@
 import { createRef } from "preact";
-import { Store } from "../../Data/store";
-import { type SetUpstreamProps } from "./types";
 import { useEffect } from "preact/hooks";
+import { Store } from "../../Data/store.js";
+import { type SetUpstreamProps } from "./types.js";
 
 
 export function SetUpstream(dialog: SetUpstreamProps) {

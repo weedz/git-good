@@ -19,8 +19,8 @@
         "noEmit": true,
         "jsx": "react-jsx",
         "jsxImportSource": "preact",
-        "sourceMap": true,
-        "moduleResolution": "Node10",
+        "sourceMap": false,
+        "moduleResolution": "Bundler",
         "resolveJsonModule": true,
         "typeRoots": [
             "./types",

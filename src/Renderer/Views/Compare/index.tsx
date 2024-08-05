@@ -1,5 +1,5 @@
-import { type PatchObj } from "../../../Common/Actions";
-import ChangedFiles from "../../Components/DiffPane/ChangedFiles";
+import { type PatchObj } from "../../../Common/Actions.js";
+import ChangedFiles from "../../Components/DiffPane/ChangedFiles.js";
 
 type Props = {
     patches: PatchObj[]

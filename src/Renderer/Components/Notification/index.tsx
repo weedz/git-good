@@ -1,4 +1,4 @@
-import { Component, createRef, h, type AnyComponent } from "preact";
+import { Component, createRef, type h, type AnyComponent } from "preact";
 import "./style.css";
 
 export class Notification {
@@ -11,18 +11,18 @@ export class Notification {
     ref = createRef<NotificationComponent>();
 
     constructor(title: Props["title"], body: Props["body"], classes: string[], private deleteCallback: (id: number) => void, timeout: number | null = null) {
-        this.id = (Math.random() * Number.MAX_SAFE_INTEGER)>>>0;
+        this.id = (Math.random() * Number.MAX_SAFE_INTEGER) >>> 0;
         this.expireTime = timeout;
         this.refreshExpireTime();
         this.item = <NotificationComponent ref={this.ref} key={this.id} body={body} title={title} close={this.delete} clearTimer={this.clearTimer} classList={classes} resetTimer={this.refreshExpireTime} />;
     }
 
-    update(data: {title?: Props["title"], body?: Props["body"], time?: number | null}) {
+    update(data: { title?: Props["title"], body?: Props["body"], time?: number | null }) {
         if (data.title !== undefined) {
-            this.ref.current?.setState({title: data.title});
+            this.ref.current?.setState({ title: data.title });
         }
         if (data.body !== undefined) {
-            this.ref.current?.setState({body: data.body});
+            this.ref.current?.setState({ body: data.body });
         }
         if (data.time !== undefined) {
             this.expireTime = data.time;

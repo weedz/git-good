@@ -1,5 +1,5 @@
 import { Component, Fragment } from "preact";
-import { cssDefaultValues, getSavedCSSVariable, setCSSVariable } from "../../../Data/styles";
+import { cssDefaultValues, getSavedCSSVariable, setCSSVariable } from "../../../Data/styles.js";
 
 export class UISettings extends Component {
     render() {

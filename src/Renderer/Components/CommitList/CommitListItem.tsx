@@ -1,11 +1,11 @@
-import { h } from "preact";
-import { RefType, type BranchObj, type LoadCommitReturn } from "../../../Common/Actions";
-import { LinkTypes } from "../../../Common/WindowEventTypes";
-import { Store, setDiffpaneSrc } from "../../Data/store";
-import { showLocalMenu, showRemoteRefMenu, showTagMenu } from "../Branches/Menu";
-import Link, { GlobalLinks } from "../Link";
-import HeadColors from "./HeadColors";
-import { showCommitMenu } from "./Menu";
+import { type h } from "preact";
+import { RefType, type BranchObj, type LoadCommitReturn } from "../../../Common/Actions.js";
+import { LinkTypes } from "../../../Common/WindowEventTypes.js";
+import { Store, setDiffpaneSrc } from "../../Data/store.js";
+import { showLocalMenu, showRemoteRefMenu, showTagMenu } from "../Branches/Menu.js";
+import Link, { GlobalLinks } from "../Link.js";
+import HeadColors from "./HeadColors.js";
+import { showCommitMenu } from "./Menu.js";
 
 type Props = {
     graph: Map<string, {

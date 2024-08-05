@@ -1,14 +1,14 @@
-import { h } from "preact";
+import { type h } from "preact";
 import "./style.css";
-import { HEAD_REF, HISTORY_REF, normalizeLocalName } from "../../../Common/Branch";
-import { Store, PureStoreComponent, store } from "../../Data/store";
-import { showHeadMenu, showLocalMenu, showRemoteMenu, showRemoteRefMenu, showRemotesMenu, showTagMenu } from "./Menu";
-import { branchesAheadBehind, getBranchTree, RenderBranchTree, RenderRemotes } from "./Utils";
-import Link from "../Link";
-import { Links } from "../LinkContainer";
-import { toggleTreeItem } from "../../Data/Tree";
-import { checkoutBranch } from "../../Data";
-import { LinkTypes } from "../../../Common/WindowEventTypes";
+import { HEAD_REF, HISTORY_REF, normalizeLocalName } from "../../../Common/Branch.js";
+import { Store, PureStoreComponent, store } from "../../Data/store.js";
+import { showHeadMenu, showLocalMenu, showRemoteMenu, showRemoteRefMenu, showRemotesMenu, showTagMenu } from "./Menu.js";
+import { branchesAheadBehind, getBranchTree, RenderBranchTree, RenderRemotes } from "./Utils.js";
+import Link from "../Link.js";
+import { Links } from "../LinkContainer.js";
+import { toggleTreeItem } from "../../Data/Tree.js";
+import { checkoutBranch } from "../../Data/index.js";
+import { LinkTypes } from "../../../Common/WindowEventTypes.js";
 
 function triggerCheckoutBranch(e: h.JSX.TargetedMouseEvent<HTMLAnchorElement>) {
     e.currentTarget.dataset.ref && checkoutBranch(e.currentTarget.dataset.ref);
@@ -58,22 +58,22 @@ export default class BranchList extends PureStoreComponent<Props> {
                 </ul>
                 <hr />
                 {this.props.branches &&
-                <ul class="tree-list block-list">
-                    <li class="sub-tree">
-                        <a href="#" onClick={toggleTreeItem}>Local</a>
-                        <RenderBranchTree branches={this.props.branches.local} contextMenu={showLocalMenu} dblClick={triggerCheckoutBranch} indent={1} />
-                    </li>
-                    <hr />
-                    <li class="sub-tree">
-                        <a href="#" onClick={toggleTreeItem} onContextMenu={showRemotesMenu}>Remote</a>
-                        <RenderRemotes branches={this.props.branches.remote} remoteContextMenu={showRemoteMenu} contextMenu={showRemoteRefMenu} />
-                    </li>
-                    <hr />
-                    <li class="sub-tree">
-                        <a href="#" onClick={toggleTreeItem}>Tags</a>
-                        <RenderBranchTree branches={this.props.branches.tags} contextMenu={showTagMenu} indent={1} />
-                    </li>
-                </ul>}
+                    <ul class="tree-list block-list">
+                        <li class="sub-tree">
+                            <a href="#" onClick={toggleTreeItem}>Local</a>
+                            <RenderBranchTree branches={this.props.branches.local} contextMenu={showLocalMenu} dblClick={triggerCheckoutBranch} indent={1} />
+                        </li>
+                        <hr />
+                        <li class="sub-tree">
+                            <a href="#" onClick={toggleTreeItem} onContextMenu={showRemotesMenu}>Remote</a>
+                            <RenderRemotes branches={this.props.branches.remote} remoteContextMenu={showRemoteMenu} contextMenu={showRemoteRefMenu} />
+                        </li>
+                        <hr />
+                        <li class="sub-tree">
+                            <a href="#" onClick={toggleTreeItem}>Tags</a>
+                            <RenderBranchTree branches={this.props.branches.tags} contextMenu={showTagMenu} indent={1} />
+                        </li>
+                    </ul>}
             </Links.Provider>
         );
     }

@@ -1,14 +1,14 @@
-import { h, Fragment } from "preact";
-import { StoreComponent } from "../../Data/store";
-import { DialogTypes } from "./types";
-import { NewBranch, RenameBranch } from "./Branch";
-import { SetUpstream } from "./SetUpstream";
-import { Compare } from "./Compare";
-import { EditRemote } from "./EditRemote";
-import { AddRemote } from "./AddRemote";
-import { Settings } from "./Settings";
-import { CreateTag } from "./CreateTag";
-import { PushTag } from "./PushTag";
+import { type h, Fragment } from "preact";
+import { StoreComponent } from "../../Data/store.js";
+import { DialogTypes } from "./types.js";
+import { NewBranch, RenameBranch } from "./Branch.js";
+import { SetUpstream } from "./SetUpstream.js";
+import { Compare } from "./Compare.js";
+import { EditRemote } from "./EditRemote.js";
+import { AddRemote } from "./AddRemote.js";
+import { Settings } from "./Settings/index.js";
+import { CreateTag } from "./CreateTag.js";
+import { PushTag } from "./PushTag.js";
 
 import "./style.css";
 import { ViewCommit } from "./ViewCommit";
@@ -44,23 +44,23 @@ export default class Dialog extends StoreComponent<unknown, State> {
                 showDismissibleWindow(this.dismissDialog);
                 const DialogWindow = dialogTypes[dialogWindow.type];
                 const props = dialogWindow.props;
-    
+
                 const view = (
                     <Fragment>
                         <div class="dialog-window-backdrop" />
                         <div class="dialog-window-container">
                             {
-                            // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-                            // @ts-ignore, type guarded by Store.openDialogWindow. TODO: get better at types and fix this..
-                            <DialogWindow {...props} />
+                                // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+                                // @ts-ignore, type guarded by Store.openDialogWindow. TODO: get better at types and fix this..
+                                <DialogWindow {...props} />
                             }
                         </div>
                     </Fragment>
                 );
-                this.setState({view});
+                this.setState({ view });
             } else {
                 dismissibleWindowClosed(this.dismissDialog);
-                this.setState({view: null});
+                this.setState({ view: null });
             }
         });
     }
@@ -68,7 +68,7 @@ export default class Dialog extends StoreComponent<unknown, State> {
         dismissibleWindowClosed(this.dismissDialog);
     }
     dismissDialog = () => {
-        this.setState({view: null});
+        this.setState({ view: null });
     }
     render() {
         return this.state.view;
