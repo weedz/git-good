@@ -106,7 +106,7 @@ export default class FileDiff extends PureStoreComponent<unknown, State> {
         const patch = newStore?.patch;
         this.longestLine = 0;
         this.setState({
-            lines: patch?.hunks ? patch.hunks.map(this.renderHunk).flat() : [],
+            lines: patch?.hunks ? patch.hunks.flatMap(this.renderHunk) : [],
         });
     }
 
