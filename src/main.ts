@@ -49,7 +49,7 @@ app.whenReady().then(() => {
         minHeight: initialWindowHeight,
         minWidth: initialWindowWidth,
         webPreferences: {
-            preload: join(__dirname, "../dist/preload.js"),
+            preload: join(import.meta.dirname, "../dist/preload.js"),
             sandbox: true,
             nodeIntegration: false,
             contextIsolation: true,
@@ -78,7 +78,7 @@ app.whenReady().then(() => {
 
     // win.webContents.openDevTools();
 
-    win.loadFile(join(__dirname, "../dist/index.html"));
+    win.loadFile(join(import.meta.dirname, "../dist/index.html"));
 
     win.webContents.on("will-navigate", e => {
         e.preventDefault();

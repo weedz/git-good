@@ -3,10 +3,10 @@
     "version": "0.1.4",
     "description": "Git good",
     "main": "dist/main.js",
-    "type": "commonjs",
+    "type": "module",
     "scripts": {
         "start": "electron --ozone-platform-hint=wayland .",
-        "lint": "oxlint -D correctness -D perf",
+        "lint": "oxlint --tsconfig ./tsconfig.json -D correctness -D perf --import-plugin",
         "tsc:watch": "tsc --noEmit --watch",
         "dev": "NODE_ENV=development npm run build",
         "build": "rm -rf dist;mkdir dist;cp static/* dist/; node scripts/build.mjs",
@@ -25,14 +25,14 @@
     "devDependencies": {
         "@electron/asar": "^3.2.10",
         "@electron/rebuild": "^3.6.0",
-        "@types/node": "^20.14.12",
+        "@types/node": "^20.14.15",
         "@types/nodegit": "^0.28.7",
         "@weedzcokie/store": "^2.0.2",
-        "electron": "^31.2.1",
+        "electron": "^31.4.0",
         "electron-builder": "^24.13.3",
         "esbuild": "^0.23.0",
-        "oxlint": "^0.6.1",
-        "preact": "^10.23.0",
+        "oxlint": "^0.7.2",
+        "preact": "^10.23.2",
         "typescript": "^5.5.4"
     },
     "resolutions": {
@@ -48,7 +48,7 @@
     },
     "build": {
         "appId": "git-good",
-        "afterPack": "./scripts/after-pack.js",
+        "afterPack": "./scripts/after-pack.cjs",
         "directories": {
             "output": "out"
         },
@@ -78,5 +78,5 @@
     "dependencies": {
         "nodegit": "github:weedz/nodegit#master"
     },
-    "packageManager": "pnpm@9.6.0+sha512.38dc6fba8dba35b39340b9700112c2fe1e12f10b17134715a4aa98ccf7bb035e76fd981cf0bb384dfa98f8d6af5481c2bef2f4266a24bfa20c34eb7147ce0b5e"
+    "packageManager": "pnpm@9.7.1+sha512.faf344af2d6ca65c4c5c8c2224ea77a81a5e8859cbc4e06b1511ddce2f0151512431dd19e6aff31f2c6a8f5f2aced9bd2273e1fed7dd4de1868984059d2c4247"
 }

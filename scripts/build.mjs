@@ -13,7 +13,7 @@ const envPlugin = {
             path: args.path,
             namespace: "env-ns",
         }))
-        
+
         // Load paths tagged with the "env-ns" namespace and behave as if
         // they point to a JSON file containing the environment variables.
         build.onLoad({ filter: /.*/, namespace: "env-ns" }, () => ({
@@ -49,17 +49,13 @@ if (!production) {
     plugins.push(watchPlugin);
 }
 
-const ctx = await esbuild.context({
-    entryPoints: {
-        main: "src/main.ts",
-        preload: "src/preload.ts",
-        renderer: "src/renderer.tsx",
-    },
-    // format: "esm",
+/** @type {import("esbuild").BuildOptions} */
+const commonOptions = {
     metafile: true,
     bundle: true,
+    format: "esm",
     platform: "node",
-    target: "esnext",
+    target: "node20",
     external: [
         "nodegit",
         "electron",
@@ -70,8 +66,26 @@ const ctx = await esbuild.context({
     plugins,
     minify: production,
     sourcemap: !production,
+};
+
+const ctx = await esbuild.context({
+    ...commonOptions,
+    entryPoints: {
+        main: "src/main.ts",
+        // preload: "src/preload.ts",
+        renderer: "src/renderer.tsx",
+    },
 });
 
+// NOTE: This assumes we do not need to watch/rebuild the preload script
+await esbuild.build({
+    ...commonOptions,
+    entryPoints: {
+        preload: "src/preload.ts",
+    },
+    // NOTE: Sandboxed preload scripts can't use ESM, <https://www.electronjs.org/docs/latest/tutorial/esm#preload-scripts>
+    format: "cjs",
+});
 
 if (!production) {
     await ctx.watch();
