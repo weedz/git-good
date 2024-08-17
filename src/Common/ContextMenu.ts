@@ -12,14 +12,14 @@ export const enum ContextMenu {
 }
 
 export type ContextMenuData = {
-    [ContextMenu.REMOTES]: unknown
-    [ContextMenu.REMOTE]: unknown
-    [ContextMenu.REMOTE_REF]: unknown
-    [ContextMenu.BRANCH_LOCAL]: unknown
-    [ContextMenu.HEAD]: unknown
-    [ContextMenu.TAG]: unknown
-    [ContextMenu.STASH]: unknown
-    [ContextMenu.COMMIT]: unknown
-    [ContextMenu.FILE]: unknown
-    [ContextMenu.FILE_HISTORY]: unknown
-}
+    [ContextMenu.REMOTES]: unknown;
+    [ContextMenu.REMOTE]: unknown;
+    [ContextMenu.REMOTE_REF]: unknown;
+    [ContextMenu.BRANCH_LOCAL]: unknown;
+    [ContextMenu.HEAD]: unknown;
+    [ContextMenu.TAG]: unknown;
+    [ContextMenu.STASH]: unknown;
+    [ContextMenu.COMMIT]: unknown;
+    [ContextMenu.FILE]: unknown;
+    [ContextMenu.FILE_HISTORY]: unknown;
+};

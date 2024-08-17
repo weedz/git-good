@@ -1,8 +1,8 @@
 import type { StashObj } from "../../../Common/Actions.js";
 import { LinkTypes } from "../../../Common/WindowEventTypes.js";
 import { showStash } from "../../Data/index.js";
-import { toggleTreeItem } from "../../Data/Tree.js";
 import { PureStoreComponent, Store } from "../../Data/store.js";
+import { toggleTreeItem } from "../../Data/Tree.js";
 import Link from "../Link.js";
 import { showStashMenu } from "./Menu.js";
 
@@ -24,7 +24,15 @@ export default class StashList extends PureStoreComponent {
                     <ul class="tree-list block-list">
                         {Store.stash.map(stash => (
                             <li key={stash.oid} title={stash.msg}>
-                                <Link linkType={LinkTypes.COMMITS} style={{ textIndent: "1em" }} linkId={stash.oid} linkData={stash} data-index={stash.index} onContextMenu={showStashMenu} selectAction={selectStashItem}>
+                                <Link
+                                    linkType={LinkTypes.COMMITS}
+                                    style={{ textIndent: "1em" }}
+                                    linkId={stash.oid}
+                                    linkData={stash}
+                                    data-index={stash.index}
+                                    onContextMenu={showStashMenu}
+                                    selectAction={selectStashItem}
+                                >
                                     {stash.index}:{stash.msg.substring(0, 30)}
                                 </Link>
                             </li>
@@ -32,6 +40,6 @@ export default class StashList extends PureStoreComponent {
                     </ul>
                 </li>
             </ul>
-        )
+        );
     }
 }

@@ -2,13 +2,26 @@ import { exec, spawn } from "child_process";
 import { basename, join } from "path";
 
 import { clipboard, screen, shell } from "electron";
-import { BrowserWindow, Menu, app, dialog, ipcMain, type IpcMainEvent, type MenuItemConstructorOptions } from "electron/main";
+import { app, BrowserWindow, dialog, ipcMain, type IpcMainEvent, Menu, type MenuItemConstructorOptions } from "electron/main";
 
 import type { Commit, Object, Reference } from "nodegit";
 
 import nodegit from "nodegit";
 
-import { addRecentRepository, clearRepoProfile, currentProfile, diffOptionsIsEqual, getAppConfig, getRecentRepositories, getRepoProfile, saveAppConfig, setCurrentProfile, setRepoProfile, signatureFromActiveProfile, signatureFromProfile } from "./Main/Config.js";
+import {
+    addRecentRepository,
+    clearRepoProfile,
+    currentProfile,
+    diffOptionsIsEqual,
+    getAppConfig,
+    getRecentRepositories,
+    getRepoProfile,
+    saveAppConfig,
+    setCurrentProfile,
+    setRepoProfile,
+    signatureFromActiveProfile,
+    signatureFromProfile,
+} from "./Main/Config.js";
 import { isMac, isWindows } from "./Main/Utils.js";
 
 import type { AsyncIpcActionReturnOrError, IpcActionParams } from "./Common/Actions.js";
@@ -53,8 +66,8 @@ app.whenReady().then(() => {
             sandbox: true,
             nodeIntegration: false,
             contextIsolation: true,
-            disableBlinkFeatures: "Auxclick"
-        }
+            disableBlinkFeatures: "Auxclick",
+        },
     });
     setWindow(win);
 
@@ -63,7 +76,7 @@ app.whenReady().then(() => {
 
     win.setPosition(
         activeDisplay.bounds.x + activeDisplay.size.width / 2 - initialWindowWidth / 2,
-        activeDisplay.bounds.y + activeDisplay.size.height / 2 - initialWindowHeight / 2
+        activeDisplay.bounds.y + activeDisplay.size.height / 2 - initialWindowHeight / 2,
     );
 
     win.addListener("focus", async () => {
@@ -85,8 +98,8 @@ app.whenReady().then(() => {
     });
     win.webContents.setWindowOpenHandler(() => {
         return {
-            action: "deny"
-        }
+            action: "deny",
+        };
     });
 
     ipcMain.on("context-menu", handleContextMenu);
@@ -104,27 +117,29 @@ function buildOpenRepoMenuItem(path: string): MenuItemConstructorOptions {
         label: `${repoName} - ${path.slice(-60 + repoName.length)}`,
         async click() {
             await openRepo(path);
-        }
-    }
+        },
+    };
 }
 
 function applyAppMenu(): void {
     const repo = currentRepo();
     const menuTemplate = [
-        ...isMac ? [{
-            label: app.name,
-            submenu: [
-                { role: "about" },
-                { type: "separator" },
-                { role: "services" },
-                { type: "separator" },
-                { role: "hide" },
-                { role: "hideothers" },
-                { role: "unhide" },
-                { type: "separator" },
-                { role: "quit" }
-            ]
-        }] : [],
+        ...isMac
+            ? [{
+                label: app.name,
+                submenu: [
+                    { role: "about" },
+                    { type: "separator" },
+                    { role: "services" },
+                    { type: "separator" },
+                    { role: "hide" },
+                    { role: "hideothers" },
+                    { role: "unhide" },
+                    { type: "separator" },
+                    { role: "quit" },
+                ],
+            }]
+            : [],
         {
             label: "File",
             submenu: [
@@ -143,7 +158,7 @@ function applyAppMenu(): void {
                                 }
                             }
                         }
-                    }
+                    },
                 },
                 {
                     label: "Init...",
@@ -153,25 +168,25 @@ function applyAppMenu(): void {
                             const initialRepo = await nodegit.Repository.init(data.source, 0);
                             await openRepo(initialRepo.workdir());
                         }
-                    }
+                    },
                 },
                 {
-                    type: "separator"
+                    type: "separator",
                 },
                 {
                     label: "Open...",
                     accelerator: "CmdOrCtrl+O",
                     async click() {
                         await openRepoDialog();
-                    }
+                    },
                 },
                 {
                     label: "Open Recent...",
                     type: "submenu",
-                    submenu: getRecentRepositories().map(buildOpenRepoMenuItem)
+                    submenu: getRecentRepositories().map(buildOpenRepoMenuItem),
                 },
                 {
-                    type: "separator"
+                    type: "separator",
                 },
                 {
                     enabled: !!currentRepo(),
@@ -185,20 +200,20 @@ function applyAppMenu(): void {
                     click: openRepoInFileManager,
                 },
                 {
-                    type: "separator"
+                    type: "separator",
                 },
                 {
                     label: "Preferences...",
                     accelerator: "CmdOrCtrl+,",
                     click() {
                         sendEvent(AppEventType.OPEN_SETTINGS, null);
-                    }
+                    },
                 },
                 {
-                    type: "separator"
+                    type: "separator",
                 },
                 isMac ? { role: "close" } : { role: "quit" },
-            ]
+            ],
         },
         {
             label: "Edit",
@@ -209,24 +224,26 @@ function applyAppMenu(): void {
                 { role: "cut" },
                 { role: "copy" },
                 { role: "paste" },
-                ...(isMac ? [
-                    { role: "pasteAndMatchStyle" },
-                    { role: "delete" },
-                    { role: "selectAll" },
-                    { type: "separator" },
-                    {
-                        label: "Speech",
-                        submenu: [
-                            { role: "startspeaking" },
-                            { role: "stopspeaking" }
-                        ]
-                    }
-                ] : [
-                    { role: "delete" },
-                    { type: "separator" },
-                    { role: "selectAll" }
-                ])
-            ]
+                ...(isMac
+                    ? [
+                        { role: "pasteAndMatchStyle" },
+                        { role: "delete" },
+                        { role: "selectAll" },
+                        { type: "separator" },
+                        {
+                            label: "Speech",
+                            submenu: [
+                                { role: "startspeaking" },
+                                { role: "stopspeaking" },
+                            ],
+                        },
+                    ]
+                    : [
+                        { role: "delete" },
+                        { type: "separator" },
+                        { role: "selectAll" },
+                    ]),
+            ],
         },
         {
             label: "View",
@@ -239,122 +256,126 @@ function applyAppMenu(): void {
                 { role: "zoomin" },
                 { role: "zoomout" },
                 { type: "separator" },
-                { role: "togglefullscreen" }
-            ]
+                { role: "togglefullscreen" },
+            ],
         },
-        ...repo ? [{
-            label: "Repository",
-            submenu: [
-                {
-                    label: "Fetch all",
-                    async click() {
-                        await provider.fetchRemoteFrom(repo, null);
-                        sendAction(IpcAction.LOAD_BRANCHES, await provider.getBranches(repo));
-                    }
-                },
-                {
-                    label: "Refresh",
-                    async click() {
-                        await provider.sendRefreshWorkdirEvent(repo);
-                    }
-                },
-                {
-                    label: "Pull...",
-                    async click() {
-                        await uiActions.pullHead();
-                    }
-                },
-                {
-                    label: "Push...",
-                    async click() {
-                        await uiActions.pushHead();
-                    }
-                },
-                {
-                    type: "separator"
-                },
-                {
-                    label: "Compare revisions...",
-                    async click() {
-                        const revisions = await requestClientData(RendererRequestEvents.COMPARE_REVISIONS_DIALOG, null);
-                        if (revisions) {
-                            const compare = await provider.tryCompareRevisions(currentRepo(), revisions);
-                            if (compare instanceof Error) {
-                                dialog.showErrorBox("Error", compare.toString());
-                            } else {
-                                sendEvent(AppEventType.OPEN_COMPARE_REVISIONS, compare);
+        ...repo
+            ? [{
+                label: "Repository",
+                submenu: [
+                    {
+                        label: "Fetch all",
+                        async click() {
+                            await provider.fetchRemoteFrom(repo, null);
+                            sendAction(IpcAction.LOAD_BRANCHES, await provider.getBranches(repo));
+                        },
+                    },
+                    {
+                        label: "Refresh",
+                        async click() {
+                            await provider.sendRefreshWorkdirEvent(repo);
+                        },
+                    },
+                    {
+                        label: "Pull...",
+                        async click() {
+                            await uiActions.pullHead();
+                        },
+                    },
+                    {
+                        label: "Push...",
+                        async click() {
+                            await uiActions.pushHead();
+                        },
+                    },
+                    {
+                        type: "separator",
+                    },
+                    {
+                        label: "Compare revisions...",
+                        async click() {
+                            const revisions = await requestClientData(RendererRequestEvents.COMPARE_REVISIONS_DIALOG, null);
+                            if (revisions) {
+                                const compare = await provider.tryCompareRevisions(currentRepo(), revisions);
+                                if (compare instanceof Error) {
+                                    dialog.showErrorBox("Error", compare.toString());
+                                } else {
+                                    sendEvent(AppEventType.OPEN_COMPARE_REVISIONS, compare);
+                                }
                             }
-                        }
-                    }
-                },
-                {
-                    label: "View commit...",
-                    async click() {
-                        const commitSha = await requestClientData(RendererRequestEvents.GET_COMMIT_SHA_DIALOG, null);
-                        if (commitSha) {
-                            sendEvent(AppEventType.SET_DIFFPANE, commitSha);
-                        }
-                    }
-                },
-                {
-                    label: "File history...",
-                    async click() {
-                        const filePath = await requestClientData(RendererRequestEvents.FILE_HISTORY_DIALOG, null);
-                        if (filePath) {
-                            const commits = await provider.getFileCommits(currentRepo(), { file: filePath });
-                            sendAction(IpcAction.LOAD_FILE_COMMITS, commits);
-                        }
-                    }
-                },
-            ]
-        }, {
-            label: "Stash",
-            submenu: [
-                {
-                    label: "Stash",
-                    async click() {
-                        // TODO: Stash message
-                        await nodegit.Stash.save(repo, signatureFromActiveProfile(), "Stash", StashFLAGS.DEFAULT);
-                        await provider.sendRefreshWorkdirEvent(repo);
-                        sendAction(IpcAction.LOAD_STASHES, await provider.getStash(repo));
-                        sendEvent(AppEventType.NOTIFY, { title: "Stashed changes" });
-                    }
-                },
-                {
-                    label: "Pop latest stash",
-                    click() {
-                        provider.stashPop(repo, 0);
-                    }
-                },
-                {
-                    label: "Apply latest stash",
-                    click() {
-                        provider.stashApply(repo, 0);
-                    }
-                },
-                {
-                    label: "Drop latest stash",
-                    click() {
-                        provider.stashDrop(repo, 0);
-                    }
-                }
-            ]
-        }] : [],
+                        },
+                    },
+                    {
+                        label: "View commit...",
+                        async click() {
+                            const commitSha = await requestClientData(RendererRequestEvents.GET_COMMIT_SHA_DIALOG, null);
+                            if (commitSha) {
+                                sendEvent(AppEventType.SET_DIFFPANE, commitSha);
+                            }
+                        },
+                    },
+                    {
+                        label: "File history...",
+                        async click() {
+                            const filePath = await requestClientData(RendererRequestEvents.FILE_HISTORY_DIALOG, null);
+                            if (filePath) {
+                                const commits = await provider.getFileCommits(currentRepo(), { file: filePath });
+                                sendAction(IpcAction.LOAD_FILE_COMMITS, commits);
+                            }
+                        },
+                    },
+                ],
+            }, {
+                label: "Stash",
+                submenu: [
+                    {
+                        label: "Stash",
+                        async click() {
+                            // TODO: Stash message
+                            await nodegit.Stash.save(repo, signatureFromActiveProfile(), "Stash", StashFLAGS.DEFAULT);
+                            await provider.sendRefreshWorkdirEvent(repo);
+                            sendAction(IpcAction.LOAD_STASHES, await provider.getStash(repo));
+                            sendEvent(AppEventType.NOTIFY, { title: "Stashed changes" });
+                        },
+                    },
+                    {
+                        label: "Pop latest stash",
+                        click() {
+                            provider.stashPop(repo, 0);
+                        },
+                    },
+                    {
+                        label: "Apply latest stash",
+                        click() {
+                            provider.stashApply(repo, 0);
+                        },
+                    },
+                    {
+                        label: "Drop latest stash",
+                        click() {
+                            provider.stashDrop(repo, 0);
+                        },
+                    },
+                ],
+            }]
+            : [],
         // { role: 'windowMenu' }
         {
             label: "Window",
             submenu: [
                 { role: "minimize" },
                 { role: "zoom" },
-                ...(isMac ? [
-                    { type: "separator" },
-                    { role: "front" },
-                    { type: "separator" },
-                    { role: "window" }
-                ] : [
-                    { role: "close" }
-                ])
-            ]
+                ...(isMac
+                    ? [
+                        { type: "separator" },
+                        { role: "front" },
+                        { type: "separator" },
+                        { role: "window" },
+                    ]
+                    : [
+                        { role: "close" },
+                    ]),
+            ],
         },
         {
             role: "help",
@@ -363,23 +384,23 @@ function applyAppMenu(): void {
                     label: "Homepage",
                     async click() {
                         shell.openExternal("https://github.com/weedz/git-good");
-                    }
+                    },
                 },
                 {
-                    type: "separator"
+                    type: "separator",
                 },
                 {
                     label: "About",
                     async click() {
                         const buildDate = new Date(buildDateTime);
-                        const versionsString = `Version: ${app.getVersion()}\n` +
-                            `Commit: ${lastCommit}\n` +
-                            `Date: ${buildDate.toISOString()} (${formatTimeAgo(buildDate)})\n` +
-                            `Electron: ${process.versions.electron}\n` +
-                            `Chromium: ${process.versions.chrome}\n` +
-                            `Node: ${process.versions.node}\n` +
-                            `V8: ${process.versions.v8}\n` +
-                            `OS: ${process.getSystemVersion()}`;
+                        const versionsString = `Version: ${app.getVersion()}\n`
+                            + `Commit: ${lastCommit}\n`
+                            + `Date: ${buildDate.toISOString()} (${formatTimeAgo(buildDate)})\n`
+                            + `Electron: ${process.versions.electron}\n`
+                            + `Chromium: ${process.versions.chrome}\n`
+                            + `Node: ${process.versions.node}\n`
+                            + `V8: ${process.versions.v8}\n`
+                            + `OS: ${process.getSystemVersion()}`;
                         const response = await dialog.showMessageBox({
                             message: "git-good",
                             type: "info",
@@ -391,10 +412,10 @@ function applyAppMenu(): void {
                         if (response.response === 0) {
                             clipboard.writeText(versionsString);
                         }
-                    }
+                    },
                 },
-            ]
-        }
+            ],
+        },
     ] as MenuItemConstructorOptions[];
 
     const menu = Menu.buildFromTemplate(menuTemplate);
@@ -402,9 +423,9 @@ function applyAppMenu(): void {
 }
 
 type EventArgs = {
-    action: IpcAction
-    data: IpcActionParams[IpcAction]
-    id?: string
+    action: IpcAction;
+    data: IpcActionParams[IpcAction];
+    id?: string;
 };
 
 type PromiseEventCallback<A extends IpcAction> = (repo: nodegit.Repository, args: IpcActionParams[A], event: IpcMainEvent) => AsyncIpcActionReturnOrError<A>;
@@ -430,7 +451,7 @@ const eventMap: {
     [IpcAction.LOAD_HUNKS]: async (repo, arg) => {
         return {
             path: arg.path,
-            hunks: await provider.getHunksWithParams(repo, arg)
+            hunks: await provider.getHunksWithParams(repo, arg),
         };
     },
     [IpcAction.SHOW_STASH]: provider.showStash,
@@ -733,16 +754,16 @@ function openRepoInTerminal() {
         if (isWindows) {
             const exe = getAppConfig().terminal || "cmd.exe";
             process = exec(`start ${exe}`, {
-                cwd: repo.workdir()
+                cwd: repo.workdir(),
             });
         } else if (isMac) {
             const exe = getAppConfig().terminal || "Terminal";
             process = spawn("open", ["-a", exe, "."], {
-                cwd: repo.workdir()
+                cwd: repo.workdir(),
             });
         } else {
             process = spawn(getAppConfig().terminal || "x-terminal-emulator", {
-                cwd: repo.workdir()
+                cwd: repo.workdir(),
             });
         }
         process.on("error", err => {

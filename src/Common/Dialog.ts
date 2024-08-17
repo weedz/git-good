@@ -6,26 +6,26 @@ export const enum NativeDialog {
     MESSAGE_BOX,
     DISCARD_CHANGES,
     DISCARD_ALL_CHANGES,
-    OPEN_FILE
+    OPEN_FILE,
 }
 
 export type NativeDialogData = {
     [NativeDialog.ERROR]: {
-        title: string
-        content?: string
-    }
-    [NativeDialog.MESSAGE_BOX]: MessageBoxOptions
+        title: string;
+        content?: string;
+    };
+    [NativeDialog.MESSAGE_BOX]: MessageBoxOptions;
     [NativeDialog.DISCARD_CHANGES]: {
-        path: string
-    }
-    [NativeDialog.DISCARD_ALL_CHANGES]: unknown
-    [NativeDialog.OPEN_FILE]: OpenDialogOptions
-}
+        path: string;
+    };
+    [NativeDialog.DISCARD_ALL_CHANGES]: unknown;
+    [NativeDialog.OPEN_FILE]: OpenDialogOptions;
+};
 
 export type NativeDialogReturn = {
-    [NativeDialog.ERROR]: void
-    [NativeDialog.MESSAGE_BOX]: Electron.MessageBoxReturnValue
-    [NativeDialog.DISCARD_CHANGES]: boolean
-    [NativeDialog.DISCARD_ALL_CHANGES]: boolean
-    [NativeDialog.OPEN_FILE]: string | void
-}
+    [NativeDialog.ERROR]: void;
+    [NativeDialog.MESSAGE_BOX]: Electron.MessageBoxReturnValue;
+    [NativeDialog.DISCARD_CHANGES]: boolean;
+    [NativeDialog.DISCARD_ALL_CHANGES]: boolean;
+    [NativeDialog.OPEN_FILE]: string | void;
+};

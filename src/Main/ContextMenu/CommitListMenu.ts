@@ -13,9 +13,9 @@ export function openCommitMenu(data: Record<string, string>) {
             click() {
                 sendEvent(AppEventType.DIALOG_BRANCH_FROM, {
                     sha: data.sha,
-                    type: BranchFromType.COMMIT
+                    type: BranchFromType.COMMIT,
                 });
-            }
+            },
         },
         {
             label: "Diff...",
@@ -23,9 +23,9 @@ export function openCommitMenu(data: Record<string, string>) {
                 sendEvent(AppEventType.UNSELECT_LINK, LinkTypes.COMMITS);
                 tryCompareRevisions(currentRepo(), {
                     from: data.sha,
-                    to: HEAD_REF
+                    to: HEAD_REF,
                 });
-            }
+            },
         },
         { type: "separator" },
         {
@@ -35,7 +35,7 @@ export function openCommitMenu(data: Record<string, string>) {
                     sha: data.sha,
                     fromCommit: true,
                 });
-            }
+            },
         },
         { type: "separator" },
         {
@@ -43,7 +43,7 @@ export function openCommitMenu(data: Record<string, string>) {
             click() {
                 const sha = data.sha;
                 clipboard.writeText(sha);
-            }
+            },
         },
     ];
     Menu.buildFromTemplate(menuTemplate).popup();

@@ -3,12 +3,34 @@ import { IpcAction, Locks } from "../../Common/Actions.js";
 import { HEAD_REF } from "../../Common/Branch.js";
 import { NativeDialog } from "../../Common/Dialog.js";
 import { humanReadableBytes } from "../../Common/Utils.js";
-import { AppEventType, LinkTypes, RendererRequestEvents, type AppEventData, type RendererRequestArgs, type RendererRequestData, type RendererRequestPayload } from "../../Common/WindowEventTypes.js";
+import {
+    type AppEventData,
+    AppEventType,
+    LinkTypes,
+    type RendererRequestArgs,
+    type RendererRequestData,
+    RendererRequestEvents,
+    type RendererRequestPayload,
+} from "../../Common/WindowEventTypes.js";
 import { GlobalLinks, unselectLink } from "../Components/Link.js";
 import { Notification } from "../Components/Notification/index.js";
-import { openDialog_AddRemote, openDialog_BranchFrom, openDialog_Clone, openDialog_EditRemote, openDialog_PushTag, openDialog_RenameRef, openDialog_SetUpstream, openDialog_Settings, openDialog_compare, openDialog_createTag, openDialog_fileHistory, openDialog_initRepo, openDialog_viewCommit } from "./Dialogs.js";
+import {
+    openDialog_AddRemote,
+    openDialog_BranchFrom,
+    openDialog_Clone,
+    openDialog_compare,
+    openDialog_createTag,
+    openDialog_EditRemote,
+    openDialog_fileHistory,
+    openDialog_initRepo,
+    openDialog_PushTag,
+    openDialog_RenameRef,
+    openDialog_Settings,
+    openDialog_SetUpstream,
+    openDialog_viewCommit,
+} from "./Dialogs.js";
 import { ipcGetData, ipcSendMessage, openNativeDialog, registerAppEventHandlers, registerHandler } from "./IPC.js";
-import { Store, clearLock, notify, setDiffpaneSrc, setLock, store, type StoreType } from "./store.js";
+import { clearLock, notify, setDiffpaneSrc, setLock, Store, store, type StoreType } from "./store.js";
 import { loadStylesFromLocalstorage } from "./styles.js";
 
 const dismissibleWindows: Set<() => void> = new Set();
@@ -35,7 +57,6 @@ export function showDismissibleWindow(dismissCallback: () => void) {
     }
     dismissibleWindowsStack.push(dismissCallback);
 }
-
 
 // Glyph properties
 let _glyphWidth = 7.81;
@@ -77,11 +98,15 @@ export function checkoutBranch(branch: string) {
     ipcSendMessage(IpcAction.CHECKOUT_BRANCH, branch);
 }
 
-export function openFile(params: (
-    { sha: string } |
-    { workDir: true, type: "staged" | "unstaged" } |
-    { compare: true }
-) & { patch: PatchObj }) {
+export function openFile(
+    params:
+        & (
+            | { sha: string; }
+            | { workDir: true; type: "staged" | "unstaged"; }
+            | { compare: true; }
+        )
+        & { patch: PatchObj; },
+) {
     const currentFile: StoreType["currentFile"] = {
         patch: params.patch,
     };
@@ -103,7 +128,7 @@ export function openFile(params: (
             ipcSendMessage(IpcAction.LOAD_HUNKS, {
                 workDir: true,
                 path: params.patch.actualFile.path,
-                type: params.type
+                type: params.type,
             });
         }
     }
@@ -154,7 +179,7 @@ function updateRepoStatus(result: AppEventData[AppEventType.REFRESH_WORKDIR]) {
     store.updateStore("repoStatus", result.status);
     store.updateStore("workDir", {
         staged: result.staged,
-        unstaged: result.unstaged
+        unstaged: result.unstaged,
     });
 }
 
@@ -260,12 +285,11 @@ function handleFileCommits(data: IpcActionReturnOrError<IpcAction.LOAD_FILE_COMM
             newFile: { path: "", size: 0, mode: 0, flags: 0 },
             oldFile: { path: "", size: 0, mode: 0, flags: 0 },
             lineStats: { total_context: 0, total_additions: 0, total_deletions: 0 },
-            actualFile: { path: data.filePath, size: 0, mode: 0, flags: 0 }
+            actualFile: { path: data.filePath, size: 0, mode: 0, flags: 0 },
         },
-        commitSHA: data.cursor
+        commitSHA: data.cursor,
     });
 }
-
 
 // FIXME: Should probably handle this better..
 const fetchNotification: Record<string, Notification> = {};
@@ -289,7 +313,11 @@ function handleNotificationFetch(status: AppEventData[AppEventType.NOTIFY_FETCH_
     } else if (status.receivedObjects == status.totalObjects) {
         fetchNotification[status.remote].update({ body: <p>Resolving deltas {status.indexedDeltas}/{status.totalDeltas}</p> });
     } else if (status.totalObjects > 0) {
-        fetchNotification[status.remote].update({ body: <p>Received {status.receivedObjects}/{status.totalObjects} objects ({status.indexedObjects}) in {humanReadableBytes(status.receivedBytes)}</p> });
+        fetchNotification[status.remote].update({
+            body: (
+                <p>Received {status.receivedObjects}/{status.totalObjects} objects ({status.indexedObjects}) in {humanReadableBytes(status.receivedBytes)}</p>
+            ),
+        });
     }
 }
 let pushNotification: null | Notification;
@@ -317,14 +345,18 @@ function handleNotificationClone(status: AppEventData[AppEventType.NOTIFY_CLONE_
             cloneNotification.update({
                 title: "Cloned!",
                 body: `Cloned '${status.source}' into '${status.target}'`,
-                time: 3000
+                time: 3000,
             });
             cloneNotification = null;
         }
     } else if (status.receivedObjects == status.totalObjects) {
         cloneNotification.update({ body: <p>Resolving deltas {status.indexedDeltas}/{status.totalDeltas}</p> });
     } else if (status.totalObjects > 0) {
-        cloneNotification.update({ body: <p>Received {status.receivedObjects}/{status.totalObjects} objects ({status.indexedObjects}) in {humanReadableBytes(status.receivedBytes)}</p> });
+        cloneNotification.update({
+            body: (
+                <p>Received {status.receivedObjects}/{status.totalObjects} objects ({status.indexedObjects}) in {humanReadableBytes(status.receivedBytes)}</p>
+            ),
+        });
     }
 }
 
@@ -355,9 +387,8 @@ registerAppEventHandlers({
         openDialog_SetUpstream(data.local, data.remote);
     },
     [AppEventType.REFRESH_WORKDIR]: updateRepoStatus,
-    [AppEventType.OPEN_COMPARE_REVISIONS]: handleCompareRevisions
+    [AppEventType.OPEN_COMPARE_REVISIONS]: handleCompareRevisions,
 });
-
 
 registerHandler(IpcAction.LOAD_BRANCHES, branchesLoaded);
 registerHandler(IpcAction.CHECKOUT_BRANCH, updateCurrentBranch);
@@ -367,9 +398,8 @@ registerHandler(IpcAction.LOAD_PATCHES_WITHOUT_HUNKS, () => clearLock(Locks.COMM
 registerHandler(IpcAction.LOAD_STASHES, stashLoaded);
 registerHandler(IpcAction.LOAD_FILE_COMMITS, handleFileCommits);
 
-
 const rendererActions: {
-    [E in RendererRequestEvents]: (data: RendererRequestArgs[E]) => Promise<null | RendererRequestData[E]>
+    [E in RendererRequestEvents]: (data: RendererRequestArgs[E]) => Promise<null | RendererRequestData[E]>;
 } = {
     [RendererRequestEvents.CLONE_DIALOG]: openDialog_Clone,
     [RendererRequestEvents.INIT_DIALOG]: openDialog_initRepo,

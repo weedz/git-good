@@ -24,13 +24,15 @@ export function getSavedCSSVariable(variable: CSSVariableName) {
 }
 
 export function loadStylesFromLocalstorage() {
-    for (const variableName of [
-        "--branch-list-width",
-        "--font",
-        "--border-color",
-        "--background-color",
-        "--text-color",
-    ] as CSSVariableName[]) {
+    for (
+        const variableName of [
+            "--branch-list-width",
+            "--font",
+            "--border-color",
+            "--background-color",
+            "--text-color",
+        ] as CSSVariableName[]
+    ) {
         const value = getSavedCSSVariable(variableName);
         if (value !== undefined) {
             document.documentElement.style.setProperty(variableName, value);

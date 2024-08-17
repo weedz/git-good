@@ -1,7 +1,7 @@
 import { type h } from "preact";
-import { RefType, type BranchObj, type LoadCommitReturn } from "../../../Common/Actions.js";
+import { type BranchObj, type LoadCommitReturn, RefType } from "../../../Common/Actions.js";
 import { LinkTypes } from "../../../Common/WindowEventTypes.js";
-import { Store, setDiffpaneSrc } from "../../Data/store.js";
+import { setDiffpaneSrc, Store } from "../../Data/store.js";
 import { showLocalMenu, showRemoteRefMenu, showTagMenu } from "../Branches/Menu.js";
 import Link, { GlobalLinks } from "../Link.js";
 import HeadColors from "./HeadColors.js";
@@ -9,22 +9,22 @@ import { showCommitMenu } from "./Menu.js";
 
 type Props = {
     graph: Map<string, {
-        descendants: LoadCommitReturn[]
-        colorId: number
-    }>
-    commit: LoadCommitReturn
-    style: h.JSX.CSSProperties
+        descendants: LoadCommitReturn[];
+        colorId: number;
+    }>;
+    commit: LoadCommitReturn;
+    style: h.JSX.CSSProperties;
 };
 
 interface CommonProps {
     graph: Map<string, {
-        descendants: LoadCommitReturn[]
-        colorId: number
-    }>
+        descendants: LoadCommitReturn[];
+        colorId: number;
+    }>;
     graphCommit: {
-        descendants: LoadCommitReturn[]
-        colorId: number
-    }
+        descendants: LoadCommitReturn[];
+        colorId: number;
+    };
 }
 function CommitGraph(props: CommonProps) {
     return (
@@ -37,28 +37,35 @@ function CommitGraph(props: CommonProps) {
                 }
                 return (
                     <li key={child.sha}>
-                        <Link selectTarget={() => GlobalLinks[LinkTypes.COMMITS][child.sha]} style={{ color: HeadColors[commit.colorId].color }}>{child.sha.substring(0, 7)}</Link>
+                        <Link selectTarget={() => GlobalLinks[LinkTypes.COMMITS][child.sha]} style={{ color: HeadColors[commit.colorId].color }}>
+                            {child.sha.substring(0, 7)}
+                        </Link>
                     </li>
-                )
+                );
             })}
         </ul>
     );
 }
 
-function GraphContainer(props: CommonProps & {
-    isMerge: boolean
-}) {
+function GraphContainer(
+    props: CommonProps & {
+        isMerge: boolean;
+    },
+) {
     return (
         <div class="graph-container">
-            <span class={props.isMerge ? "graph-indicator small" : "graph-indicator"} style={{ backgroundColor: HeadColors[props.graphCommit.colorId].color }} />
+            <span
+                class={props.isMerge ? "graph-indicator small" : "graph-indicator"}
+                style={{ backgroundColor: HeadColors[props.graphCommit.colorId].color }}
+            />
             {props.graphCommit.descendants.length > 0 && <CommitGraph graph={props.graph} graphCommit={props.graphCommit} />}
         </div>
     );
 }
 
 function CommitReferences(props: {
-    head: BranchObj[]
-    graphCommit: CommonProps["graphCommit"]
+    head: BranchObj[];
+    graphCommit: CommonProps["graphCommit"];
 }) {
     return (
         <ul class="commit-refs">
@@ -71,7 +78,19 @@ function CommitReferences(props: {
                 } else if (ref.type === RefType.TAG) {
                     menu = showTagMenu;
                 }
-                return <li key={ref.name}><Link linkType={LinkTypes.BRANCHES} onContextMenu={menu} selectTarget={() => GlobalLinks[LinkTypes.BRANCHES][ref.name]} style={{ backgroundColor: HeadColors[props.graphCommit.colorId].background }} data-ref={ref.name}>{ref.normalizedName}</Link></li>
+                return (
+                    <li key={ref.name}>
+                        <Link
+                            linkType={LinkTypes.BRANCHES}
+                            onContextMenu={menu}
+                            selectTarget={() => GlobalLinks[LinkTypes.BRANCHES][ref.name]}
+                            style={{ backgroundColor: HeadColors[props.graphCommit.colorId].background }}
+                            data-ref={ref.name}
+                        >
+                            {ref.normalizedName}
+                        </Link>
+                    </li>
+                );
             })}
         </ul>
     );
@@ -111,9 +130,17 @@ export default function CommitListItem(props: Props) {
                 {head && <CommitReferences graphCommit={graphCommit} head={head} />}
             </div>
             <GraphContainer isMerge={props.commit.parents.length > 1} graphCommit={graphCommit} graph={props.graph} />
-            <Link style={{
-                display: "flex"
-            }} selectAction={selectCommit} linkId={props.commit.sha} linkData={props.commit.sha} data-sha={props.commit.sha} onContextMenu={showCommitMenu} title={props.commit.message}>
+            <Link
+                style={{
+                    display: "flex",
+                }}
+                selectAction={selectCommit}
+                linkId={props.commit.sha}
+                linkData={props.commit.sha}
+                data-sha={props.commit.sha}
+                onContextMenu={showCommitMenu}
+                title={props.commit.message}
+            >
                 <span class="msg" style="flex-grow: 1">
                     {summary}
                     <small>{description}</small>

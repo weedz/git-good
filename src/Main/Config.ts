@@ -7,7 +7,6 @@ import type { Repository } from "nodegit";
 import nodegit from "nodegit";
 import type { AppConfig, AuthConfig, Profile } from "../Common/Config.js";
 
-
 let appConfig: AppConfig;
 let selectedGitProfile: Profile;
 const appDataDir = app.getPath("userData");
@@ -33,11 +32,11 @@ try {
                 gitName: "",
                 sshAgent: true,
                 gpg: undefined,
-            }
+            },
         ],
         selectedProfile: 0,
         ui: {
-            refreshWorkdirOnFocus: false
+            refreshWorkdirOnFocus: false,
         },
         commitlistSortOrder: "topological",
         terminal: null,
@@ -57,13 +56,11 @@ try {
     console.warn("Failed to load recent-repos.json:", err);
 }
 
-
 export function currentProfile() {
     return selectedGitProfile as Readonly<Profile>;
 }
 export function signatureFromProfile(profile: Profile) {
     return nodegit.Signature.now(profile.gitName, profile.gitEmail);
-
 }
 export function signatureFromActiveProfile() {
     return signatureFromProfile(selectedGitProfile);
@@ -76,7 +73,7 @@ export function getAuth(): AuthConfig | false {
             return {
                 sshAgent: profile.sshAgent,
                 authType: profile.authType,
-            }
+            };
         }
         return {
             sshAgent: false,
@@ -84,18 +81,17 @@ export function getAuth(): AuthConfig | false {
             sshPublicKey: profile.sshPublicKey as string,
             sshPrivateKey: profile.sshPrivateKey as string,
             sshPassphrase: profile.sshPassphrase || "",
-        }
+        };
     }
     if (profile.username && profile.password) {
         return {
             authType: profile.authType,
             username: profile.username,
             password: profile.password,
-        }
+        };
     }
     return false;
 }
-
 
 export function setCurrentProfile(profileId: number) {
     if (appConfig.profiles[profileId]) {
@@ -132,7 +128,6 @@ export function clearRepoProfile(repo: Repository) {
     unlinkSync(join(repo.path(), "git-good.profile"));
 }
 
-
 export function getRecentRepositories() {
     return recentRepoMenu as Readonly<typeof recentRepoMenu>;
 }
@@ -144,9 +139,9 @@ export function addRecentRepository(repoPath: string) {
     }
     recentRepoMenu.unshift(repoPath);
     recentRepoMenu.splice(20);
-    
+
     writeFileSync(join(appDataDir, "recent-repos.json"), JSON.stringify(recentRepoMenu));
-    
+
     return true;
 }
 

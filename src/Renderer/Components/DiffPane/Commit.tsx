@@ -3,19 +3,19 @@ import { IpcAction, Locks } from "../../../Common/Actions.js";
 import { DiffDelta } from "../../../Common/Utils.js";
 import { LinkTypes } from "../../../Common/WindowEventTypes.js";
 import { ipcGetData } from "../../Data/IPC.js";
-import { Store, StoreComponent, clearLock } from "../../Data/store.js";
+import { clearLock, Store, StoreComponent } from "../../Data/store.js";
 import { triggerAction } from "../Link.js";
 import ChangedFiles from "./ChangedFiles.js";
 import CommitMessage from "./CommitMessage.js";
 import "./style.css";
 
 interface State {
-    commit: null | CommitObj
-    patches: PatchObj[]
-    tree: null | PatchObj[]
+    commit: null | CommitObj;
+    patches: PatchObj[];
+    tree: null | PatchObj[];
 }
 interface Props {
-    sha: string
+    sha: string;
 }
 
 function mapTreeToPatchObj(tree: string[], patches: PatchObj[]) {
@@ -32,7 +32,7 @@ function mapTreeToPatchObj(tree: string[], patches: PatchObj[]) {
             path: item,
             flags: 0,
             mode: 0,
-            size: 0
+            size: 0,
         } as FileObj;
         return {
             actualFile: fileObj,
@@ -43,9 +43,9 @@ function mapTreeToPatchObj(tree: string[], patches: PatchObj[]) {
             },
             status: DiffDelta.UNMODIFIED,
             newFile: fileObj,
-            oldFile: fileObj
-        }
-    })
+            oldFile: fileObj,
+        };
+    });
 }
 
 export default class Commit extends StoreComponent<Props, State> {
@@ -53,7 +53,7 @@ export default class Commit extends StoreComponent<Props, State> {
         this.setState({
             commit: null,
             patches: [],
-            tree: null
+            tree: null,
         });
     }
     componentWillReceiveProps(props: Props) {
@@ -95,14 +95,14 @@ export default class Commit extends StoreComponent<Props, State> {
                 triggerAction(LinkTypes.FILES);
             }
         });
-    }
+    };
     handleGpgSign = (result: IpcActionReturn[IpcAction.GET_COMMIT_GPG_SIGN]) => {
         if (result && result.sha === this.state.commit?.sha) {
             const commit = this.state.commit;
             commit.signature = result.signature;
             this.forceUpdate();
         }
-    }
+    };
     render() {
         if (!this.state.commit) {
             return <div id="diff-pane" class="pane" />;
@@ -114,18 +114,21 @@ export default class Commit extends StoreComponent<Props, State> {
                 <div>
                     <label>
                         <span>View all files</span>
-                        <input type="checkbox" onInput={async e => {
-                            if (e.currentTarget.checked && this.state.commit?.sha) {
-                                const tree = await ipcGetData(IpcAction.LOAD_TREE_AT_COMMIT, this.state.commit.sha);
-                                this.setState({
-                                    tree: mapTreeToPatchObj(tree, this.state.patches)
-                                });
-                            } else {
-                                this.setState({
-                                    tree: null
-                                });
-                            }
-                        }} />
+                        <input
+                            type="checkbox"
+                            onInput={async e => {
+                                if (e.currentTarget.checked && this.state.commit?.sha) {
+                                    const tree = await ipcGetData(IpcAction.LOAD_TREE_AT_COMMIT, this.state.commit.sha);
+                                    this.setState({
+                                        tree: mapTreeToPatchObj(tree, this.state.patches),
+                                    });
+                                } else {
+                                    this.setState({
+                                        tree: null,
+                                    });
+                                }
+                            }}
+                        />
                     </label>
                 </div>
                 <ChangedFiles patches={this.state.tree || this.state.patches} commit={this.state.commit} />

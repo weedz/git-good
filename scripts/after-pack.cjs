@@ -38,7 +38,6 @@ const fileList = [
     "TODO.md",
 ];
 
-
 async function clean(resourceDir) {
     // Cleaning app.asar..
     asar.extractAll(`${resourceDir}/app.asar`, `${resourceDir}/app`);
@@ -51,7 +50,7 @@ async function clean(resourceDir) {
             console.log(`File not found: '${resourceDir}/app/${dir}'`);
         }
     }
-    
+
     await asar.createPackageWithOptions(`${resourceDir}/app`, `${resourceDir}/app.asar`, {
         unpackDir: "node_modules/nodegit",
     });
@@ -81,4 +80,4 @@ exports.default = async function(packContext) {
     } else if (packContext.electronPlatformName === "darwin") {
         await cleanMac();
     }
-}
+};

@@ -1,4 +1,4 @@
-import { Component, createRef, type h, type AnyComponent } from "preact";
+import { type AnyComponent, Component, createRef, type h } from "preact";
 import "./style.css";
 
 export class Notification {
@@ -14,10 +14,21 @@ export class Notification {
         this.id = (Math.random() * Number.MAX_SAFE_INTEGER) >>> 0;
         this.expireTime = timeout;
         this.refreshExpireTime();
-        this.item = <NotificationComponent ref={this.ref} key={this.id} body={body} title={title} close={this.delete} clearTimer={this.clearTimer} classList={classes} resetTimer={this.refreshExpireTime} />;
+        this.item = (
+            <NotificationComponent
+                ref={this.ref}
+                key={this.id}
+                body={body}
+                title={title}
+                close={this.delete}
+                clearTimer={this.clearTimer}
+                classList={classes}
+                resetTimer={this.refreshExpireTime}
+            />
+        );
     }
 
-    update(data: { title?: Props["title"], body?: Props["body"], time?: number | null }) {
+    update(data: { title?: Props["title"]; body?: Props["body"]; time?: number | null; }) {
         if (data.title !== undefined) {
             this.ref.current?.setState({ title: data.title });
         }
@@ -46,28 +57,28 @@ export class Notification {
         if (this.expireTime) {
             this.timer = window.setTimeout(this.delete, this.expireTime);
         }
-    }
+    };
     delete = () => {
         this.clearTimer();
         this.deleteCallback(this.id);
-    }
+    };
     clearTimer = () => {
         window.clearTimeout(this.timer);
-    }
+    };
 }
 
 interface Props {
-    title: string
-    body: null | string | AnyComponent | h.JSX.Element
-    classList: string[]
-    close: () => void
-    clearTimer: () => void
-    resetTimer: () => void
+    title: string;
+    body: null | string | AnyComponent | h.JSX.Element;
+    classList: string[];
+    close: () => void;
+    clearTimer: () => void;
+    resetTimer: () => void;
 }
 
 interface State {
-    title: Props["title"]
-    body: Props["body"]
+    title: Props["title"];
+    body: Props["body"];
 }
 
 class NotificationComponent extends Component<Props, State> {
@@ -104,7 +115,13 @@ class NotificationComponent extends Component<Props, State> {
                 <header>
                     <div class="toolbar">
                         {/* FIXME: Change "expand" icons */}
-                        <span class="expand" onClick={() => this.toggleClass("expanded")}>{this.classes.has("expanded") ? "-" : "+"}</span>
+                        <span
+                            class="expand"
+                            onClick={() =>
+                                this.toggleClass("expanded")}
+                        >
+                            {this.classes.has("expanded") ? "-" : "+"}
+                        </span>
                         <span class="close" onClick={this.props.close}>x</span>
                     </div>
                     <h4>{this.state.title}</h4>

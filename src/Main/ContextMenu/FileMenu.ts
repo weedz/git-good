@@ -16,14 +16,14 @@ export function openFileContextMenu(data: Record<string, string>) {
                 if (error) {
                     console.warn("Failed to open:", error);
                 }
-            }
+            },
         },
         {
             label: "Show in folder",
             click() {
                 const filepath = join(currentRepo().workdir(), data.path);
                 shell.showItemInFolder(filepath);
-            }
+            },
         },
         { type: "separator" },
         {
@@ -35,13 +35,13 @@ export function openFileContextMenu(data: Record<string, string>) {
                     startAtCursor: true,
                 });
                 sendAction(IpcAction.LOAD_FILE_COMMITS, fileHistory);
-            }
+            },
         },
         {
             label: "Open at commit",
             click() {
-                openFileAtCommit(currentRepo(), {file: data.path, sha: data.sha});
-            }
+                openFileAtCommit(currentRepo(), { file: data.path, sha: data.sha });
+            },
         },
         { type: "separator" },
         {
@@ -49,14 +49,14 @@ export function openFileContextMenu(data: Record<string, string>) {
             click() {
                 const path = `${currentRepo().workdir()}/${data.path}`;
                 clipboard.writeText(path);
-            }
+            },
         },
         {
             label: "Copy Relative Path",
             click() {
                 const path = `${data.path}`;
                 clipboard.writeText(path);
-            }
+            },
         },
     ];
     Menu.buildFromTemplate(menuTemplate).popup();

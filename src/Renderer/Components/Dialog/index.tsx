@@ -1,21 +1,21 @@
-import { type h, Fragment } from "preact";
+import { Fragment, type h } from "preact";
 import { StoreComponent } from "../../Data/store.js";
-import { DialogTypes } from "./types.js";
-import { NewBranch, RenameBranch } from "./Branch.js";
-import { SetUpstream } from "./SetUpstream.js";
-import { Compare } from "./Compare.js";
-import { EditRemote } from "./EditRemote.js";
 import { AddRemote } from "./AddRemote.js";
-import { Settings } from "./Settings/index.js";
+import { NewBranch, RenameBranch } from "./Branch.js";
+import { Compare } from "./Compare.js";
 import { CreateTag } from "./CreateTag.js";
+import { EditRemote } from "./EditRemote.js";
 import { PushTag } from "./PushTag.js";
+import { Settings } from "./Settings/index.js";
+import { SetUpstream } from "./SetUpstream.js";
+import { DialogTypes } from "./types.js";
 
 import "./style.css";
-import { ViewCommit } from "./ViewCommit";
-import { CloneRepositoryDialog } from "./CloneRepository";
-import { InitRepositoryDialog } from "./InitRepository";
 import { dismissibleWindowClosed, showDismissibleWindow } from "../../Data";
+import { CloneRepositoryDialog } from "./CloneRepository";
 import { FileHistory } from "./FileHistory";
+import { InitRepositoryDialog } from "./InitRepository";
+import { ViewCommit } from "./ViewCommit";
 
 const dialogTypes = {
     [DialogTypes.NEW_BRANCH]: NewBranch,
@@ -34,7 +34,7 @@ const dialogTypes = {
 };
 
 type State = {
-    view: h.JSX.Element | null
+    view: h.JSX.Element | null;
 };
 
 export default class Dialog extends StoreComponent<unknown, State> {
@@ -69,7 +69,7 @@ export default class Dialog extends StoreComponent<unknown, State> {
     }
     dismissDialog = () => {
         this.setState({ view: null });
-    }
+    };
     render() {
         return this.state.view;
     }

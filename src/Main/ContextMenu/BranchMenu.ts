@@ -23,7 +23,7 @@ function setUpstreamMenuItem(ref: string, remote: string) {
             }
             const local = ref;
             sendEvent(AppEventType.DIALOG_SET_UPSTREAM, { local, remote });
-        }
+        },
     };
 }
 
@@ -33,9 +33,9 @@ function createTag(ref: string) {
         click() {
             sendEvent(AppEventType.DIALOG_CREATE_TAG, {
                 sha: ref,
-                fromCommit: false
+                fromCommit: false,
             });
-        }
+        },
     };
 }
 function copyRefName(ref: string) {
@@ -43,7 +43,7 @@ function copyRefName(ref: string) {
         label: "Copy ref name",
         click() {
             clipboard.writeText(ref);
-        }
+        },
     };
 }
 
@@ -53,9 +53,9 @@ function newBranch(ref: string) {
         click() {
             sendEvent(AppEventType.DIALOG_BRANCH_FROM, {
                 sha: ref,
-                type: BranchFromType.REF
+                type: BranchFromType.REF,
             });
-        }
+        },
     };
 }
 
@@ -68,7 +68,7 @@ export function openRemotesMenu(_: Record<string, string>) {
                 if (!result) {
                     dialog.showErrorBox("Failed to fetch remotes", "");
                 }
-            }
+            },
         },
         {
             type: "separator",
@@ -77,7 +77,7 @@ export function openRemotesMenu(_: Record<string, string>) {
             label: "Add remote...",
             click() {
                 sendEvent(AppEventType.DIALOG_ADD_REMOTE, null);
-            }
+            },
         },
     ];
     Menu.buildFromTemplate(menuTemplate).popup();
@@ -92,10 +92,10 @@ export function openRemoteMenu(data: Record<string, string>) {
                 if (!result) {
                     dialog.showErrorBox("Failed to fetch remote", "");
                 }
-            }
+            },
         },
         {
-            type: "separator"
+            type: "separator",
         },
         {
             label: "Edit...",
@@ -110,7 +110,7 @@ export function openRemoteMenu(data: Record<string, string>) {
                     pushTo: remote.pushurl(),
                     pullFrom: remote.url(),
                 });
-            }
+            },
         },
         {
             label: "Remove",
@@ -133,7 +133,7 @@ export function openRemoteMenu(data: Record<string, string>) {
                 }
 
                 return true;
-            }
+            },
         },
     ];
     Menu.buildFromTemplate(menuTemplate).popup();
@@ -156,12 +156,12 @@ export function openRemoteRefMenu(data: Record<string, string>) {
                 if (result.response === 1) {
                     await provider.deleteRemoteRef(currentRepo(), refName);
                     sendEvent(AppEventType.NOTIFY, {
-                        title: `Branch '${refName}' deleted from remote`
+                        title: `Branch '${refName}' deleted from remote`,
                     });
                     sendAction(IpcAction.REMOTES, await provider.getRemotes(currentRepo()));
                     sendAction(IpcAction.LOAD_BRANCHES, await provider.getBranches(currentRepo()));
                 }
-            }
+            },
         },
         { type: "separator" },
         createTag(data.ref),
@@ -177,14 +177,14 @@ export function openLocalMenu(data: Record<string, string>) {
             label: "Checkout",
             async click() {
                 sendAction(IpcAction.CHECKOUT_BRANCH, await provider.checkoutBranch(currentRepo(), data.ref));
-            }
+            },
         },
         {
             label: "Pull",
             async click() {
                 await menuActionPullChanges(data.ref);
                 sendAction(IpcAction.LOAD_BRANCHES, await provider.getBranches(currentRepo()));
-            }
+            },
         },
         setUpstreamMenuItem(data.ref, data.remote),
         { type: "separator" },
@@ -194,9 +194,9 @@ export function openLocalMenu(data: Record<string, string>) {
             click() {
                 sendEvent(AppEventType.DIALOG_RENAME_REF, {
                     name: data.ref,
-                    type: BranchType.LOCAL
+                    type: BranchType.LOCAL,
                 });
-            }
+            },
         },
         {
             label: "Delete",
@@ -213,11 +213,11 @@ export function openLocalMenu(data: Record<string, string>) {
                     await provider.deleteRef(currentRepo(), refName);
                     sendEvent(AppEventType.NOTIFY, {
                         title: "Branch deleted",
-                        body: `Branch '${refName}' deleted`
+                        body: `Branch '${refName}' deleted`,
                     });
                     sendAction(IpcAction.LOAD_BRANCHES, await provider.getBranches(currentRepo()));
                 }
-            }
+            },
         },
         { type: "separator" },
         createTag(data.ref),
@@ -234,14 +234,14 @@ export function openHeadMenu(data: Record<string, string>) {
             async click() {
                 await menuActionPullChanges(null);
                 sendAction(IpcAction.LOAD_BRANCHES, await provider.getBranches(currentRepo()));
-            }
+            },
         },
         {
             label: "Push",
             async click() {
                 await provider.push(getContext(), null);
                 sendAction(IpcAction.LOAD_BRANCHES, await provider.getBranches(currentRepo()));
-            }
+            },
         },
         setUpstreamMenuItem(data.ref, data.remote),
         { type: "separator" },
@@ -267,11 +267,11 @@ export function openTagMenu(data: Record<string, string>) {
                     sendEvent(AppEventType.NOTIFY, { title: "Pushing tag" });
                     await provider.push(getContext(), {
                         remote: remotes[0],
-                        localBranch: data.ref
+                        localBranch: data.ref,
                     });
                     sendAction(IpcAction.LOAD_BRANCHES, await provider.getBranches(currentRepo()));
                 }
-            }
+            },
         },
         { type: "separator" },
         {
@@ -291,7 +291,7 @@ export function openTagMenu(data: Record<string, string>) {
                     await provider.deleteTag(currentRepo(), { name: refName, remote: result.checkboxChecked });
                     sendAction(IpcAction.LOAD_BRANCHES, await provider.getBranches(currentRepo()));
                 }
-            }
+            },
         },
         { type: "separator" },
         copyRefName(data.ref),
@@ -305,19 +305,19 @@ export function openStashMenu(data: Record<string, string>) {
             label: "Apply",
             click() {
                 provider.stashApply(currentRepo(), Number.parseInt(data.index, 10));
-            }
+            },
         },
         {
             label: "Pop",
             click() {
                 provider.stashPop(currentRepo(), Number.parseInt(data.index, 10));
-            }
+            },
         },
         {
             label: "Drop",
             click() {
                 provider.stashDrop(currentRepo(), Number.parseInt(data.index, 10));
-            }
+            },
         },
     ];
     Menu.buildFromTemplate(menuTemplate).popup();

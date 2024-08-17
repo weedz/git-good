@@ -1,8 +1,8 @@
 import type { JSX } from "preact";
 
 export interface Tree<NodeType = unknown> {
-    item?: NodeType
-    children: Map<string, Tree<NodeType>>
+    item?: NodeType;
+    children: Map<string, Tree<NodeType>>;
 }
 
 export function ensureTreePath(tree: Tree, segments: string[]): Tree {
@@ -10,7 +10,7 @@ export function ensureTreePath(tree: Tree, segments: string[]): Tree {
     for (let i = 0, len = segments.length; i < len; ++i) {
         let item = root.children.get(segments[i]);
         if (!item) {
-            item = {children: new Map()};
+            item = { children: new Map() };
             root.children.set(segments[i], item);
         }
         root = item;

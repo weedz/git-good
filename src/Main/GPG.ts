@@ -1,7 +1,7 @@
-import { spawn } from "child_process";
-import { writeFileSync } from "fs";
-import { join } from "path";
-import { tmpdir } from "os";
+import { spawn } from "node:child_process";
+import { writeFileSync } from "node:fs";
+import { tmpdir } from "node:os";
+import { join } from "node:path";
 
 export function gpgSign(key: string, data: string) {
     const gpg = spawn("gpg", ["--batch", "--detach-sign", "--armor", "--sign-with", key, "-o", "-"]);
@@ -39,7 +39,7 @@ export function gpgVerify(signature: string, data: string) {
     writeFileSync(signaturePath, signature);
 
     const gpg = spawn("gpg", ["--logger-fd", "1", "--verify", signaturePath, "-"]);
-    return new Promise<{ data: string, verified: boolean }>((resolve, reject) => {
+    return new Promise<{ data: string; verified: boolean; }>((resolve, reject) => {
         const buffers: Buffer[] = [];
         let buffersLength = 0;
 
@@ -55,7 +55,7 @@ export function gpgVerify(signature: string, data: string) {
             const result = Buffer.concat(buffers, buffersLength).toString("utf-8");
             resolve({
                 data: result,
-                verified: code === 0
+                verified: code === 0,
             });
         });
         gpg.stdin.end(data);

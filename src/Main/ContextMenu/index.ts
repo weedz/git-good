@@ -6,8 +6,8 @@ import { openFileHistoryContextMenu } from "./FileHistoryMenu.js";
 import { openFileContextMenu } from "./FileMenu.js";
 
 interface ContextMenuData {
-    action: ContextMenu
-    data: Record<string,string>
+    action: ContextMenu;
+    data: Record<string, string>;
 }
 
 export function handleContextMenu(_: IpcMainInvokeEvent, data: ContextMenuData) {

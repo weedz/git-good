@@ -1,6 +1,6 @@
-import { execSync } from "node:child_process";
 import { analyzeMetafile } from "esbuild";
 import esbuild from "esbuild";
+import { execSync } from "node:child_process";
 
 /** @type {import("esbuild").Plugin} */
 const envPlugin = {
@@ -12,7 +12,7 @@ const envPlugin = {
         build.onResolve({ filter: /^env$/ }, args => ({
             path: args.path,
             namespace: "env-ns",
-        }))
+        }));
 
         // Load paths tagged with the "env-ns" namespace and behave as if
         // they point to a JSON file containing the environment variables.
@@ -22,9 +22,9 @@ const envPlugin = {
                 lastCommit: execSync("git rev-parse HEAD").toString("utf8").trim(),
             }),
             loader: "json",
-        }))
+        }));
     },
-}
+};
 
 const production = process.env.NODE_ENV !== "development";
 
@@ -35,13 +35,13 @@ const plugins = [
 if (!production) {
     /** @type {import("esbuild").Plugin} */
     const watchPlugin = {
-        name: 'watch-plugin',
+        name: "watch-plugin",
         setup(build) {
             build.onStart(() => {
                 console.log("building...");
             });
             build.onEnd(result => {
-                console.log("Errors:", result.errors)
+                console.log("Errors:", result.errors);
                 console.log("Warnings:", result.warnings);
             });
         },

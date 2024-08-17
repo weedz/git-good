@@ -1,54 +1,54 @@
 import { createStore, type PartialStoreListener } from "@weedzcokie/store";
-import { Component, type AnyComponent, type JSX } from "preact";
+import { type AnyComponent, Component, type JSX } from "preact";
 import type { BranchesObj, BranchObj, HeadBranchObj, IpcActionReturn, IpcResponse, PatchObj, RepoStatus, StashObj } from "../../Common/Actions.js";
 import { IpcAction, Locks } from "../../Common/Actions.js";
 import { HEAD_REF } from "../../Common/Branch.js";
 import { type AppConfig } from "../../Common/Config.js";
-import { NotificationPosition, type NotificationInit } from "../../Common/WindowEventTypes.js";
-import { DialogTypes, type DialogProps } from "../Components/Dialog/types.js";
+import { type NotificationInit, NotificationPosition } from "../../Common/WindowEventTypes.js";
+import { type DialogProps, DialogTypes } from "../Components/Dialog/types.js";
 import { Notification } from "../Components/Notification/index.js";
-import { ipcGetData, registerHandler } from "./IPC.js";
 import { shallowDiffers } from "../utils.js";
+import { ipcGetData, registerHandler } from "./IPC.js";
 
 type DialogWindow<T extends DialogTypes = DialogTypes> = {
-    type: T
-    props: DialogProps[T]
-}
+    type: T;
+    props: DialogProps[T];
+};
 
 export type StoreType = {
     repo: null | {
-        path: string
-    }
-    repoStatus: null | RepoStatus
+        path: string;
+    };
+    repoStatus: null | RepoStatus;
     workDir: {
-        staged: number
-        unstaged: number
-    }
-    branches: null | BranchesObj
-    stash: StashObj[]
-    head: HeadBranchObj | null
-    remotes: IpcActionReturn[IpcAction.REMOTES]
-    heads: Map<string, BranchObj[]>
+        staged: number;
+        unstaged: number;
+    };
+    branches: null | BranchesObj;
+    stash: StashObj[];
+    head: HeadBranchObj | null;
+    remotes: IpcActionReturn[IpcAction.REMOTES];
+    heads: Map<string, BranchObj[]>;
     currentFile: null | {
-        commitSHA?: string | undefined
-        patch: PatchObj
-    }
-    locks: Record<Locks, boolean>
-    dialogWindow: null | DialogWindow
-    selectedBranch: undefined | string
-    diffPaneSrc: string | null
-    viewChanges: null
-    comparePatches: PatchObj[]
+        commitSHA?: string | undefined;
+        patch: PatchObj;
+    };
+    locks: Record<Locks, boolean>;
+    dialogWindow: null | DialogWindow;
+    selectedBranch: undefined | string;
+    diffPaneSrc: string | null;
+    viewChanges: null;
+    comparePatches: PatchObj[];
     commitMsg: {
-        summary: string
-        body: string
-    }
+        summary: string;
+        body: string;
+    };
     diffUi: {
-        sideBySide: boolean
-    }
-    notifications: Record<NotificationPosition, Map<number, Notification>>
-    appConfig: AppConfig | undefined
-    diffOptions: AppConfig["diffOptions"]
+        sideBySide: boolean;
+    };
+    notifications: Record<NotificationPosition, Map<number, Notification>>;
+    appConfig: AppConfig | undefined;
+    diffOptions: AppConfig["diffOptions"];
 };
 
 export const store = createStore<StoreType>({
@@ -56,7 +56,7 @@ export const store = createStore<StoreType>({
     repoStatus: null,
     workDir: {
         staged: 0,
-        unstaged: 0
+        unstaged: 0,
     },
     branches: null,
     stash: [],
@@ -74,7 +74,7 @@ export const store = createStore<StoreType>({
     diffPaneSrc: "",
     viewChanges: null,
     comparePatches: [],
-    commitMsg: {summary: "", body: ""},
+    commitMsg: { summary: "", body: "" },
     diffUi: {
         sideBySide: false,
     },
@@ -112,18 +112,24 @@ export abstract class PureStoreComponent<P = unknown, S = unknown> extends Store
     }
 }
 
-export function notify(notificationData: NotificationInit & {body?: null | string | AnyComponent | JSX.Element}, _?: unknown): Notification {
+export function notify(notificationData: NotificationInit & { body?: null | string | AnyComponent | JSX.Element; }, _?: unknown): Notification {
     const position = notificationData.position || NotificationPosition.DEFAULT;
-    const notification = new Notification(notificationData.title, notificationData.body || null, notificationData.classList || [], deleteNotification[position], notificationData.time ?? 5000);
+    const notification = new Notification(
+        notificationData.title,
+        notificationData.body || null,
+        notificationData.classList || [],
+        deleteNotification[position],
+        notificationData.time ?? 5000,
+    );
 
     Store.notifications[position].set(notification.id, notification);
     store.triggerStoreUpdate("notifications");
 
     return notification;
 }
-const deleteNotification: {[K in NotificationPosition]: (id: number) => void} = {
+const deleteNotification: { [K in NotificationPosition]: (id: number) => void; } = {
     [NotificationPosition.DEFAULT]: (id) => Store.notifications[NotificationPosition.DEFAULT].delete(id) && store.triggerStoreUpdate("notifications"),
-}
+};
 
 export async function saveAppConfig(appConfig: AppConfig) {
     if (appConfig && await ipcGetData(IpcAction.SAVE_SETTINGS, appConfig)) {
@@ -136,7 +142,7 @@ export async function saveAppConfig(appConfig: AppConfig) {
 
 // TODO: Most of these functions should probably be in Renderer/IPC.ts or Renderer/index.ts
 
-export function createBranchFromSha(sha: string, name: string,  checkout: boolean) {
+export function createBranchFromSha(sha: string, name: string, checkout: boolean) {
     return ipcGetData(IpcAction.CREATE_BRANCH, {
         sha,
         name,
@@ -153,25 +159,25 @@ export function createBranchFromRef(ref: string, name: string, checkout: boolean
 export function renameLocalBranch(oldName: string, newName: string) {
     return ipcGetData(IpcAction.RENAME_LOCAL_BRANCH, {
         ref: oldName,
-        name: newName
+        name: newName,
     });
 }
 
 export function setUpstream(local: string, remote: string | null) {
     return ipcGetData(IpcAction.SET_UPSTREAM, {
         local,
-        remote: remote || null
+        remote: remote || null,
     });
 }
 
 export function setLock(lock: Locks) {
     store.mergeUpdateStore({
-        locks: {[lock]: true}
+        locks: { [lock]: true },
     });
 }
 export function clearLock(lock: Locks) {
     store.mergeUpdateStore({
-        locks: {[lock]: false}
+        locks: { [lock]: false },
     });
 }
 export function lockChanged<L extends Locks>(lock: L, locks: Partial<StoreType["locks"]>): boolean {
@@ -184,7 +190,7 @@ export function openDialogWindow<T extends DialogTypes>(type: T, props: DialogPr
     }
     store.updateStore("dialogWindow", {
         type,
-        props
+        props,
     });
 }
 export function closeDialogWindow() {

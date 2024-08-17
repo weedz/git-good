@@ -1,13 +1,13 @@
 import { type h } from "preact";
-import { clearLock, PureStoreComponent } from "../../Data/store.js";
-import Commit from "./Commit.js";
-import WorkingArea from "../../Views/WorkingArea/index.js";
-import Compare from "../../Views/Compare/index.js";
 import { Locks } from "../../../Common/Actions.js";
+import { clearLock, PureStoreComponent } from "../../Data/store.js";
+import Compare from "../../Views/Compare/index.js";
+import WorkingArea from "../../Views/WorkingArea/index.js";
+import Commit from "./Commit.js";
 
 type State = {
-    view: h.JSX.Element | null
-}
+    view: h.JSX.Element | null;
+};
 
 export default class DiffPane extends PureStoreComponent<unknown, State> {
     componentDidMount() {
@@ -25,7 +25,7 @@ export default class DiffPane extends PureStoreComponent<unknown, State> {
             this.setState({ view });
         });
         this.listen("comparePatches", comparePatches => {
-            const view = <Compare patches={comparePatches} />
+            const view = <Compare patches={comparePatches} />;
             this.setState({ view });
         });
     }

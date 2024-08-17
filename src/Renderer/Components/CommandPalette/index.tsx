@@ -9,7 +9,7 @@ const defaultState: State = {
     commands: commandPaletteCommandList,
     allCommands: commandPaletteCommandList,
     selectedIdx: 0,
-}
+};
 
 interface State {
     isOpen: boolean;
@@ -45,8 +45,7 @@ export class CommandPaletteContainer extends Component<unknown, State> {
             } else if (e.key === "ArrowUp") {
                 e.preventDefault();
                 this.selectItem(Math.max(0, this.state.selectedIdx - 1));
-            }
-            // else if (e.key === "End") {
+            } // else if (e.key === "End") {
             //     e.preventDefault();
             //     this.selectItem(this.state.commands.length - 1);
             // } else if (e.key === "Home") {
@@ -59,13 +58,11 @@ export class CommandPaletteContainer extends Component<unknown, State> {
             } else if (e.key === "PageUp") {
                 e.preventDefault();
                 this.selectItem(Math.max(0, this.state.selectedIdx - 10));
-            }
-            // Execute selected command
+            } // Execute selected command
             else if (e.key === "Enter") {
                 e.preventDefault();
                 this.tryRunCommand(this.state.selectedIdx);
-            }
-            // Close command list
+            } // Close command list
             else if (e.key === "Escape") {
                 e.preventDefault();
                 if (this.state.isOpen) {
@@ -96,7 +93,7 @@ export class CommandPaletteContainer extends Component<unknown, State> {
                 child.scrollIntoView({ block: "nearest" });
             }
         }
-    }
+    };
     tryRunCommand(idx: number) {
         if (this.state.commands[idx]) {
             this.runCommand(this.state.commands[idx]);
@@ -106,8 +103,7 @@ export class CommandPaletteContainer extends Component<unknown, State> {
         const result = await command.action();
         if (result === undefined) {
             this.setState(defaultState);
-        }
-        else if (Array.isArray(result)) {
+        } else if (Array.isArray(result)) {
             if (this.filterRef.current) {
                 this.filterRef.current.value = "";
             }
@@ -145,7 +141,7 @@ export class CommandPaletteContainer extends Component<unknown, State> {
     }
     handleFilterInput = (e: h.JSX.TargetedInputEvent<HTMLInputElement>) => {
         this.filterCommands(this.state.allCommands, e.currentTarget.value.toLowerCase());
-    }
+    };
     handleClick = (e: h.JSX.TargetedMouseEvent<HTMLElement>) => {
         const dataIdx = e.currentTarget.dataset["idx"];
         if (!dataIdx) {
@@ -153,7 +149,7 @@ export class CommandPaletteContainer extends Component<unknown, State> {
         }
         const idx = Number.parseInt(dataIdx, 10);
         this.tryRunCommand(idx);
-    }
+    };
     render() {
         if (!this.state.isOpen) {
             return null;
@@ -164,7 +160,13 @@ export class CommandPaletteContainer extends Component<unknown, State> {
                 <input ref={this.filterRef} type="text" onInput={this.handleFilterInput} />
                 <ul class="commands" ref={this.commandListRef}>
                     {this.state.commands.map((command, idx) => (
-                        <li key={idx} data-idx={idx} onClick={this.handleClick} class={idx === this.state.selectedIdx ? "selected" : ""} title={command.details}>
+                        <li
+                            key={idx}
+                            data-idx={idx}
+                            onClick={this.handleClick}
+                            class={idx === this.state.selectedIdx ? "selected" : ""}
+                            title={command.details}
+                        >
                             {command.label}
                             {command.details && <small>{command.details}</small>}
                         </li>

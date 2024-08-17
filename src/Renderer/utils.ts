@@ -1,5 +1,5 @@
 export function debounce<TArgs>(fn: (args: TArgs) => unknown, ms: number) {
-    const args: {arg: TArgs | undefined} = { arg: undefined };
+    const args: { arg: TArgs | undefined; } = { arg: undefined };
     let timeout: number = 0;
 
     const invoke = () => {
@@ -12,7 +12,7 @@ export function debounce<TArgs>(fn: (args: TArgs) => unknown, ms: number) {
         if (!timeout) {
             timeout = window.setTimeout(invoke, ms);
         }
-    }
+    };
 }
 
 export function shallowDiffers(a: Record<PropertyKey, unknown>, b: Record<PropertyKey, unknown>) {

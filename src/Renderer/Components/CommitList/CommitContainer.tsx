@@ -4,13 +4,13 @@ import ScrollContainer from "../ScrollContainer.js";
 import CommitListItem from "./CommitListItem.js";
 
 type Props = {
-    commits: LoadCommitReturn[]
-    loadMore: () => void
+    commits: LoadCommitReturn[];
+    loadMore: () => void;
     graph: Map<string, {
-        descendants: LoadCommitReturn[]
-        colorId: number
+        descendants: LoadCommitReturn[];
+        colorId: number;
     }>;
-}
+};
 
 export default class CommitContainer extends Component<Props> {
     checkScroll = (el: HTMLElement) => {
@@ -20,15 +20,24 @@ export default class CommitContainer extends Component<Props> {
         if (percentScrolled > .9) {
             this.props.loadMore();
         }
-    }
+    };
     render() {
-        return <ScrollContainer scrollCallback={this.checkScroll} items={this.props.commits} itemHeight={20} containerId="commits-container" renderItems={(commits, start) => commits.map((commit, idx) => (
-            <CommitListItem
-                style={{ position: "absolute", top: `${(start + idx) * 20}px`, height: "20px" }}
-                key={commit.sha}
-                graph={this.props.graph}
-                commit={commit}
+        return (
+            <ScrollContainer
+                scrollCallback={this.checkScroll}
+                items={this.props.commits}
+                itemHeight={20}
+                containerId="commits-container"
+                renderItems={(commits, start) =>
+                    commits.map((commit, idx) => (
+                        <CommitListItem
+                            style={{ position: "absolute", top: `${(start + idx) * 20}px`, height: "20px" }}
+                            key={commit.sha}
+                            graph={this.props.graph}
+                            commit={commit}
+                        />
+                    ))}
             />
-        ))} />
+        );
     }
 }

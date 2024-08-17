@@ -1,15 +1,15 @@
 import { Component, createRef } from "preact";
 
 type Props<T> = {
-    items: T[]
-    itemHeight: number
-    scrollCallback?: (el: HTMLElement) => void
-}
+    items: T[];
+    itemHeight: number;
+    scrollCallback?: (el: HTMLElement) => void;
+};
 type State = {
-    startRenderAt: number
-    itemsToRender: number
-    totalHeight: number
-}
+    startRenderAt: number;
+    itemsToRender: number;
+    totalHeight: number;
+};
 
 const EXTRA_ITEMS_TO_RENDE = 5;
 
@@ -19,7 +19,7 @@ export default abstract class ScrollListView<T, P = unknown> extends Component<P
         startRenderAt: 0,
         itemsToRender: 0,
         totalHeight: 0,
-    }
+    };
     lastScrollPosition = {
         left: 0,
         top: 0,
@@ -27,7 +27,7 @@ export default abstract class ScrollListView<T, P = unknown> extends Component<P
     containerRef = createRef<HTMLDivElement>();
     observer: ResizeObserver | null = null;
     componentDidMount() {
-        if (this.props.items.length > 0 ) {
+        if (this.props.items.length > 0) {
             this.setHeight(this.props);
         }
         if (this.containerRef.current) {
@@ -36,7 +36,7 @@ export default abstract class ScrollListView<T, P = unknown> extends Component<P
                 for (let i = 0, len = entries.length; i < len; ++i) {
                     const cr = entries[i].contentRect;
                     this.setState({
-                        itemsToRender: Math.ceil(cr.height / this.props.itemHeight) + EXTRA_ITEMS_TO_RENDE*2
+                        itemsToRender: Math.ceil(cr.height / this.props.itemHeight) + EXTRA_ITEMS_TO_RENDE * 2,
                     });
                 }
             });
@@ -53,7 +53,7 @@ export default abstract class ScrollListView<T, P = unknown> extends Component<P
     }
     setHeight(props: Props<T>) {
         this.setState({
-            totalHeight: props.itemHeight * props.items.length
+            totalHeight: props.itemHeight * props.items.length,
         });
     }
 
@@ -73,7 +73,7 @@ export default abstract class ScrollListView<T, P = unknown> extends Component<P
             const startLine = Math.max(0, Math.floor(this.containerRef.current.scrollTop / this.props.itemHeight) - EXTRA_ITEMS_TO_RENDE);
             if (startLine !== this.state.startRenderAt) {
                 this.setState({
-                    startRenderAt: startLine
+                    startRenderAt: startLine,
                 });
             }
             if (!this.sync) {
@@ -81,5 +81,5 @@ export default abstract class ScrollListView<T, P = unknown> extends Component<P
             }
             this.sync = false;
         }
-    }
+    };
 }

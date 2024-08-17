@@ -13,17 +13,17 @@ export const enum DiffDelta {
 }
 
 const formatter = new Intl.RelativeTimeFormat(undefined, {
-    numeric: "auto"
+    numeric: "auto",
 });
 
-const DIVISIONS: Array<{amount: number, name: Intl.RelativeTimeFormatUnit}> = [
+const DIVISIONS: Array<{ amount: number; name: Intl.RelativeTimeFormatUnit; }> = [
     { amount: 60, name: "seconds" },
     { amount: 60, name: "minutes" },
     { amount: 24, name: "hours" },
     { amount: 7, name: "days" },
     { amount: 4.34524, name: "weeks" },
     { amount: 12, name: "months" },
-    { amount: Number.POSITIVE_INFINITY, name: "years" }
+    { amount: Number.POSITIVE_INFINITY, name: "years" },
 ];
 
 export function formatTimeAgo(date: Date) {
@@ -39,7 +39,7 @@ export function formatTimeAgo(date: Date) {
 }
 /**
  * Returns the supplied number of bytes formated as KiB/MiB/GiB with a precision of 2 decimal places
- * @param bytes 
+ * @param bytes
  */
 export function humanReadableBytes(bytes: number) {
     if (bytes > 1073741824) {

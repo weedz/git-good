@@ -10,24 +10,26 @@ import { showFileMenu } from "./FileMenu.js";
 import { getFileCssClass, getType } from "./utility.js";
 
 interface ButtonAction {
-    label: string
-    click: h.JSX.MouseEventHandler<HTMLButtonElement>
+    label: string;
+    click: h.JSX.MouseEventHandler<HTMLButtonElement>;
 }
-type Props = ({
-    workDir: true
-    type: "staged" | "unstaged"
-} | {
-    commit: CommitObj
-} | {
-    compare: true
-}) & {
-    patches: PatchObj[]
-    actions?: ButtonAction[]
-};
+type Props =
+    & ({
+        workDir: true;
+        type: "staged" | "unstaged";
+    } | {
+        commit: CommitObj;
+    } | {
+        compare: true;
+    })
+    & {
+        patches: PatchObj[];
+        actions?: ButtonAction[];
+    };
 
 interface State {
-    fileFilter?: string
-    renderType: RenderType
+    fileFilter?: string;
+    renderType: RenderType;
 }
 
 const enum RenderType {
@@ -70,14 +72,19 @@ function checkActions(patch: PatchObj, actions: ButtonAction[]): ButtonAction[] 
                         resolveConflict(path);
                     }
                 },
-                label: "Resolve"
-            }
+                label: "Resolve",
+            },
         ];
     }
     return actions;
 }
 
-function renderPaths(patches: PatchObj[], actions: ButtonAction[], contextMenu: (e: h.JSX.TargetedMouseEvent<HTMLLIElement>) => void, selectAction: (data: Link<PatchObj>) => void) {
+function renderPaths(
+    patches: PatchObj[],
+    actions: ButtonAction[],
+    contextMenu: (e: h.JSX.TargetedMouseEvent<HTMLLIElement>) => void,
+    selectAction: (data: Link<PatchObj>) => void,
+) {
     const paths = [];
     for (let i = 0, len = patches.length; i < len; ++i) {
         const patch = patches[i];
@@ -98,15 +105,23 @@ function renderPaths(patches: PatchObj[], actions: ButtonAction[], contextMenu: 
                     </div>
                 </Link>
                 <div class="action-group">
-                    {checkActions(patch, actions).map(action => <button key={patch.actualFile.path} data-path={patch.actualFile.path} onClick={action.click}>{action.label}</button>)}
+                    {checkActions(patch, actions).map(action => (
+                        <button key={patch.actualFile.path} data-path={patch.actualFile.path} onClick={action.click}>{action.label}</button>
+                    ))}
                 </div>
-            </li>
+            </li>,
         );
     }
     return paths;
 }
 
-function renderTree(tree: Tree<PatchObj>, actions: ButtonAction[], contextMenu: (e: h.JSX.TargetedMouseEvent<HTMLLIElement>) => void, selectAction: (data: Link<PatchObj>) => void, indent = 0) {
+function renderTree(
+    tree: Tree<PatchObj>,
+    actions: ButtonAction[],
+    contextMenu: (e: h.JSX.TargetedMouseEvent<HTMLLIElement>) => void,
+    selectAction: (data: Link<PatchObj>) => void,
+    indent = 0,
+) {
     const items = [];
     // Sort directories before files
     const sortedChildren = Array.from(tree.children.entries()).sort(([_, a], [_b, b]) => a.children.size && !b.children.size ? -1 : 0);
@@ -123,16 +138,20 @@ function renderTree(tree: Tree<PatchObj>, actions: ButtonAction[], contextMenu: 
                         </div>
                     </Link>
                     <div class="action-group">
-                        {checkActions(patch, actions).map(action => <button key={patch.actualFile.path} data-path={patch.actualFile.path} onClick={action.click}>{action.label}</button>)}
+                        {checkActions(patch, actions).map(action => (
+                            <button key={patch.actualFile.path} data-path={patch.actualFile.path} onClick={action.click}>{action.label}</button>
+                        ))}
                     </div>
-                </li>
+                </li>,
             );
         } else {
             items.push(
                 <li class="sub-tree" key={path}>
-                    <a href="#" onClick={toggleTreeItem}><span style={{ textIndent: "0" }}>{path}</span></a>
+                    <a href="#" onClick={toggleTreeItem}>
+                        <span style={{ textIndent: "0" }}>{path}</span>
+                    </a>
                     {renderTree(child, actions, contextMenu, selectAction, indent + 1)}
-                </li>
+                </li>,
             );
         }
     }
@@ -143,14 +162,19 @@ function renderTree(tree: Tree<PatchObj>, actions: ButtonAction[], contextMenu: 
     );
 }
 
-function renderTreeFromPatches(patches: PatchObj[], actions: ButtonAction[], contextMenu: (e: h.JSX.TargetedMouseEvent<HTMLLIElement>) => void, selectAction: (data: Link<PatchObj>) => void) {
+function renderTreeFromPatches(
+    patches: PatchObj[],
+    actions: ButtonAction[],
+    contextMenu: (e: h.JSX.TargetedMouseEvent<HTMLLIElement>) => void,
+    selectAction: (data: Link<PatchObj>) => void,
+) {
     const tree = pathsToTree(patches);
 
     return renderTree(tree, actions, contextMenu, selectAction);
 }
 function pathsToTree(paths: PatchObj[]): Tree<PatchObj> {
     const tree: Tree<PatchObj> = {
-        children: new Map()
+        children: new Map(),
     };
     for (let i = 0, len = paths.length; i < len; ++i) {
         const segments = paths[i].actualFile.path.split("/");
@@ -164,7 +188,7 @@ function pathsToTree(paths: PatchObj[]): Tree<PatchObj> {
 
 export default class ChangedFiles extends Component<Props, State> {
     state: State = {
-        renderType: RenderType.PATH
+        renderType: RenderType.PATH,
     };
 
     openFile = (data: Link<PatchObj>) => {
@@ -183,19 +207,19 @@ export default class ChangedFiles extends Component<Props, State> {
             openFile({
                 workDir: this.props.workDir,
                 patch,
-                type: this.props.type
+                type: this.props.type,
             });
         }
-    }
+    };
     filterFiles = (e: h.JSX.TargetedKeyboardEvent<HTMLInputElement>) => {
         this.setState({
-            fileFilter: e.currentTarget.value.toLocaleLowerCase()
+            fileFilter: e.currentTarget.value.toLocaleLowerCase(),
         });
-    }
+    };
 
     fileContextMenu = (e: h.JSX.TargetedMouseEvent<HTMLLIElement>) => {
         showFileMenu(e, "commit" in this.props ? this.props.commit.sha : undefined);
-    }
+    };
     render() {
         const fileFilter = this.state.fileFilter;
         const patches = fileFilter ? this.props.patches.filter(patch => patch.actualFile.path.toLocaleLowerCase().includes(fileFilter)) : this.props.patches;
@@ -209,16 +233,33 @@ export default class ChangedFiles extends Component<Props, State> {
         return (
             <div class="changed-files inset">
                 <div class="flex-row btn-group" style="margin: auto">
-                    <button class={this.state.renderType === RenderType.PATH ? "selected" : undefined} onClick={() => this.setState({ renderType: RenderType.PATH })}>Path</button>
-                    <button class={this.state.renderType === RenderType.TREE ? "selected" : undefined} onClick={() => this.setState({ renderType: RenderType.TREE })}>Tree</button>
-                    {this.state.renderType === RenderType.TREE && <span style="align-self:center;position:absolute;right:0;cursor:pointer;user-select:none" onClick={(e) => {
-                        const fileContainer = e.currentTarget.closest(".changed-files")?.querySelector(".diff-view.block-list");
-                        if (fileContainer) {
-                            for (const list of Array.from(fileContainer.querySelectorAll("li.sub-tree"))) {
-                                list.classList.add("open");
-                            }
-                        }
-                    }}>Expand all</span>}
+                    <button
+                        class={this.state.renderType === RenderType.PATH ? "selected" : undefined}
+                        onClick={() => this.setState({ renderType: RenderType.PATH })}
+                    >
+                        Path
+                    </button>
+                    <button
+                        class={this.state.renderType === RenderType.TREE ? "selected" : undefined}
+                        onClick={() => this.setState({ renderType: RenderType.TREE })}
+                    >
+                        Tree
+                    </button>
+                    {this.state.renderType === RenderType.TREE && (
+                        <span
+                            style="align-self:center;position:absolute;right:0;cursor:pointer;user-select:none"
+                            onClick={(e) => {
+                                const fileContainer = e.currentTarget.closest(".changed-files")?.querySelector(".diff-view.block-list");
+                                if (fileContainer) {
+                                    for (const list of Array.from(fileContainer.querySelectorAll("li.sub-tree"))) {
+                                        list.classList.add("open");
+                                    }
+                                }
+                            }}
+                        >
+                            Expand all
+                        </span>
+                    )}
                 </div>
                 <ul class="file-types">
                     {deltas.modified > 0 && <li class="modified">{deltas.modified} modified</li>}

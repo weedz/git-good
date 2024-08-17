@@ -1,8 +1,17 @@
 import { IpcAction } from "../../Common/Actions.js";
 import { BranchFromType, BranchType, getRemoteName, normalizeLocalName, normalizeRemoteNameWithoutRemote, normalizeTagName } from "../../Common/Branch.js";
-import { DialogTypes, type DialogProps } from "../Components/Dialog/types.js";
+import { type DialogProps, DialogTypes } from "../Components/Dialog/types.js";
 import { ipcGetData, ipcSendMessage } from "./IPC.js";
-import { Store, closeDialogWindow, createBranchFromRef, createBranchFromSha, openDialogWindow, renameLocalBranch, saveAppConfig, setUpstream } from "./store.js";
+import {
+    closeDialogWindow,
+    createBranchFromRef,
+    createBranchFromSha,
+    openDialogWindow,
+    renameLocalBranch,
+    saveAppConfig,
+    setUpstream,
+    Store,
+} from "./store.js";
 
 import type { RendererRequestData, RendererRequestEvents } from "../../Common/WindowEventTypes";
 
@@ -53,7 +62,7 @@ export function openDialog_BranchFrom(sha: string, type: BranchFromType) {
             if (success) {
                 closeDialogWindow();
             }
-        }
+        },
     });
 }
 
@@ -78,11 +87,11 @@ export function openDialog_RenameRef(sha: string, type: BranchType) {
                         return renameLocalBranch(sha, newName);
                     case BranchType.REMOTE:
                         console.log("FIXME: rename remote refs");
-                    // return renameRemoteBranch(sha, newName);
+                        // return renameRemoteBranch(sha, newName);
                 }
             }
             return null;
-        }
+        },
     });
 }
 
@@ -93,8 +102,7 @@ export function openDialog_SetUpstream(local: string, currentUpstream?: string) 
         oldRemote = getRemoteName(currentUpstream);
         branch = normalizeRemoteNameWithoutRemote(currentUpstream);
     } else {
-        oldRemote = Store.remotes[0].name,
-            branch = normalizeLocalName(branch);
+        oldRemote = Store.remotes[0].name, branch = normalizeLocalName(branch);
     }
 
     openDialogWindow(DialogTypes.SET_UPSTREAM, {
@@ -124,19 +132,19 @@ export function openDialog_createTag(from: string, fromCommit = false) {
             ipcSendMessage(IpcAction.CREATE_TAG, {
                 from,
                 fromCommit,
-                ...tag
+                ...tag,
             });
             closeDialogWindow();
         },
     });
 }
 
-export function openDialog_PushTag(data: { name: string }) {
+export function openDialog_PushTag(data: { name: string; }) {
     openDialogWindow(DialogTypes.PUSH_TAG, {
         confirmCb(remote) {
             ipcSendMessage(IpcAction.PUSH, {
                 remote,
-                localBranch: data.name
+                localBranch: data.name,
             });
             closeDialogWindow();
         },
@@ -153,7 +161,7 @@ export function openDialog_Clone(): Promise<null | RendererRequestData[RendererR
             cancelCb() {
                 closeDialogWindow();
                 resolve(null);
-            }
+            },
         });
     });
 }
@@ -168,7 +176,7 @@ export function openDialog_fileHistory(): Promise<null | RendererRequestData[Ren
             cancelCb() {
                 closeDialogWindow();
                 resolve(null);
-            }
+            },
         });
     });
 }
@@ -183,7 +191,7 @@ export function openDialog_compare(): Promise<null | RendererRequestData[Rendere
             cancelCb() {
                 closeDialogWindow();
                 resolve(null);
-            }
+            },
         });
     });
 }
@@ -198,7 +206,7 @@ export function openDialog_viewCommit(): Promise<null | RendererRequestData[Rend
             cancelCb() {
                 closeDialogWindow();
                 resolve(null);
-            }
+            },
         });
     });
 }
@@ -213,7 +221,7 @@ export function openDialog_initRepo(): Promise<null | RendererRequestData[Render
             cancelCb() {
                 closeDialogWindow();
                 resolve(null);
-            }
+            },
         });
     });
 }

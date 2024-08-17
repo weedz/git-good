@@ -11,13 +11,13 @@ export function openFileHistoryContextMenu(data: Record<string, string>) {
             label: "View commit",
             click() {
                 sendEvent(AppEventType.SET_DIFFPANE, data.sha);
-            }
+            },
         },
         {
             label: "Open at commit",
             click() {
-                openFileAtCommit(currentRepo(), {file: data.path, sha: data.sha});
-            }
+                openFileAtCommit(currentRepo(), { file: data.path, sha: data.sha });
+            },
         },
         { type: "separator" },
         {
@@ -25,7 +25,7 @@ export function openFileHistoryContextMenu(data: Record<string, string>) {
             click() {
                 const sha = data.sha;
                 clipboard.writeText(sha);
-            }
+            },
         },
     ];
     Menu.buildFromTemplate(menuTemplate).popup();

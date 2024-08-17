@@ -6,7 +6,6 @@ export type Context = {
     repo: nodegit.Repository;
 };
 
-
 let lastKnownHead: nodegit.Oid;
 
 const context: Context = {

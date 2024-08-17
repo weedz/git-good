@@ -20,11 +20,13 @@ export function Resizable(props: ResizableProps) {
     return (
         <div class="resizable-wrapper">
             {props.children}
-            <div class="resizable-track"
+            <div
+                class="resizable-track"
                 onMouseDown={_ => {
                     window.addEventListener("mousemove", debouncedResize);
                     window.addEventListener("mouseup", handleMouseUp);
-                }} />
+                }}
+            />
         </div>
     );
 }

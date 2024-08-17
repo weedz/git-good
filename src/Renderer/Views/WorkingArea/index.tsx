@@ -43,8 +43,8 @@ function getChanges() {
 }
 
 type State = {
-    unstaged: PatchObj[]
-    staged: PatchObj[]
+    unstaged: PatchObj[];
+    staged: PatchObj[];
 };
 
 export default class WorkingArea extends StoreComponent<unknown, State> {
@@ -71,7 +71,7 @@ export default class WorkingArea extends StoreComponent<unknown, State> {
                 triggerAction(LinkTypes.FILES);
             }
         });
-    }
+    };
 
     render() {
         return (
@@ -82,10 +82,17 @@ export default class WorkingArea extends StoreComponent<unknown, State> {
                         <button disabled={!this.state.unstaged.length} onClick={stageAllChanges}>Stage all</button>
                         <button disabled={!this.state.unstaged.length} onClick={discardAllChanges}>Discard all</button>
                     </h4>
-                    <ChangedFiles patches={this.state.unstaged} workDir type="unstaged" actions={[{ label: "Stage", click: stageFile }, { label: "Discard", click: discard }]} />
+                    <ChangedFiles
+                        patches={this.state.unstaged}
+                        workDir
+                        type="unstaged"
+                        actions={[{ label: "Stage", click: stageFile }, { label: "Discard", click: discard }]}
+                    />
                 </div>
                 <div id="staged-changes">
-                    <h4>Staged ({this.state.staged.length})<button disabled={!this.state.staged.length} onClick={unstageAllChanges}>Unstage all</button></h4>
+                    <h4>
+                        Staged ({this.state.staged.length})<button disabled={!this.state.staged.length} onClick={unstageAllChanges}>Unstage all</button>
+                    </h4>
                     <ChangedFiles patches={this.state.staged} workDir type="staged" actions={[{ label: "Unstage", click: unstageFile }]} />
                 </div>
                 <div>

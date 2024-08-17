@@ -34,8 +34,8 @@ export function getType(status: number) {
         case DiffDelta.CONFLICTED:
             return "C";
         case DiffDelta.UNMODIFIED:
-            return <>&nbsp;</>
+            return <>&nbsp;</>;
         default:
-            return ""
+            return "";
     }
 }

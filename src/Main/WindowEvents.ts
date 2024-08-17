@@ -4,7 +4,7 @@ import { AppEventType, RendererRequestEvents } from "../Common/WindowEventTypes.
 import { currentWindow } from "./Context.js";
 
 export function sendEvent<T extends AppEventType>(event: T, data: AppEventData[T]) {
-    currentWindow().send("app-event", {event, data});
+    currentWindow().send("app-event", { event, data });
 }
 
 const callbackHandlers: Record<string, (args: RendererRequestData[RendererRequestEvents]) => void> = {};
@@ -15,7 +15,7 @@ ipcMain.on("response-client-data", (_, payload: RendererResponsePayload<Renderer
 });
 
 export async function requestClientData<T extends RendererRequestEvents>(event: T, args: RendererRequestArgs[T]) {
-    const id = (Math.random() * Number.MAX_SAFE_INTEGER)>>>0;
+    const id = (Math.random() * Number.MAX_SAFE_INTEGER) >>> 0;
     currentWindow().send("request-client-data", {
         id,
         event,

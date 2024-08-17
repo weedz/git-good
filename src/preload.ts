@@ -5,17 +5,17 @@ import { NativeDialog, type NativeDialogData, type NativeDialogReturn } from "./
 import { type AppEventData, AppEventType, type RendererRequestData, RendererRequestEvents, type RendererRequestPayload } from "./Common/WindowEventTypes.js";
 
 interface IContextMenuApi {
-    openContextMenu: <M extends ContextMenu>(menu: M, data: ContextMenuData[M]) => void
-    openNativeDialog: <D extends NativeDialog>(dialog: D, data: NativeDialogData[D]) => NativeDialogReturn[D]
-    requestClientData: (callback: <E extends RendererRequestEvents>(payload: RendererRequestPayload<E>) => Promise<null | RendererRequestData[E]>) => void
-    onAsyncReply: (callback: (payload: IpcPayload<IpcAction>) => void) => void
-    sendAsyncMessage: <T extends IpcAction>(action: T, data: IpcActionParams[T]) => number
-    onAppEvent: <T extends AppEventType>(callback: (payload: { data: AppEventData[T], event: T }) => void) => void
+    openContextMenu: <M extends ContextMenu>(menu: M, data: ContextMenuData[M]) => void;
+    openNativeDialog: <D extends NativeDialog>(dialog: D, data: NativeDialogData[D]) => NativeDialogReturn[D];
+    requestClientData: (callback: <E extends RendererRequestEvents>(payload: RendererRequestPayload<E>) => Promise<null | RendererRequestData[E]>) => void;
+    onAsyncReply: (callback: (payload: IpcPayload<IpcAction>) => void) => void;
+    sendAsyncMessage: <T extends IpcAction>(action: T, data: IpcActionParams[T]) => number;
+    onAppEvent: <T extends AppEventType>(callback: (payload: { data: AppEventData[T]; event: T; }) => void) => void;
 }
 
 declare global {
     interface Window {
-        electronAPI: IContextMenuApi
+        electronAPI: IContextMenuApi;
     }
 }
 
@@ -24,7 +24,7 @@ contextBridge.exposeInMainWorld("versions", {
     chrome: () => process.versions.chrome,
     electron: () => process.versions.electron,
     // we can also expose variables, not just functions
-})
+});
 
 contextBridge.exposeInMainWorld("electronAPI", {
     openContextMenu: <M extends ContextMenu>(menu: M, data: ContextMenuData[M]) => {
@@ -58,9 +58,9 @@ contextBridge.exposeInMainWorld("electronAPI", {
             data,
             id,
         });
-        return id
+        return id;
     },
-    onAppEvent: <T extends AppEventType>(callback: (payload: { data: AppEventData[T], event: T }) => void) => {
+    onAppEvent: <T extends AppEventType>(callback: (payload: { data: AppEventData[T]; event: T; }) => void) => {
         ipcRenderer.on("app-event", (_rendererEvent, args) => callback(args));
     },
 });

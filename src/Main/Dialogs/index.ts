@@ -4,8 +4,8 @@ import { currentRepo } from "../Context.js";
 import { discardAllChanges, discardChanges, sendRefreshWorkdirEvent } from "../Provider.js";
 
 interface DialogData<D extends NativeDialog> {
-    action: D
-    data: NativeDialogData[D]
+    action: D;
+    data: NativeDialogData[D];
 }
 
 export async function handleDialog(_event: IpcMainInvokeEvent, eventData: DialogData<NativeDialog>) {
@@ -56,5 +56,4 @@ export async function handleDialog(_event: IpcMainInvokeEvent, eventData: Dialog
         }
         return true;
     }
-
 }

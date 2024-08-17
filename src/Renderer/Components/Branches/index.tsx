@@ -1,24 +1,24 @@
 import { Fragment, type h } from "preact";
-import { Locks, type BranchesObj } from "../../../Common/Actions.js";
-import { PureStoreComponent, Store, lockChanged, type StoreType } from "../../Data/store.js";
+import { type BranchesObj, Locks } from "../../../Common/Actions.js";
+import { lockChanged, PureStoreComponent, Store, type StoreType } from "../../Data/store.js";
 import BranchList from "./BranchList.js";
 import StashList from "./StashList.js";
 import { filterBranches, getBranchTree } from "./Utils.js";
 import "./style.css";
 
 type State = {
-    filter: string
+    filter: string;
     branches: null | ReturnType<typeof getBranchTree>;
-}
+};
 
 function branchesToTree(branches: BranchesObj, filter: string | null) {
     return getBranchTree(
         filter
             ? filterBranches(
                 branches,
-                (value) => value.normalizedName.toLocaleLowerCase().includes(filter)
+                (value) => value.normalizedName.toLocaleLowerCase().includes(filter),
             )
-            : branches
+            : branches,
     );
 }
 
@@ -39,21 +39,21 @@ class Branches extends PureStoreComponent<unknown, State> {
         this.setState({
             branches: branchesToTree(branches, this.state.filter),
         });
-    }
+    };
 
     filter = (e: h.JSX.TargetedKeyboardEvent<HTMLInputElement>) => {
         if (Store.branches && e.currentTarget.value !== this.state.filter) {
             const filterValue = e.currentTarget.value.toLocaleLowerCase();
             this.setState({
                 branches: branchesToTree(Store.branches, filterValue),
-                filter: filterValue
+                filter: filterValue,
             });
         }
-    }
+    };
 
     render() {
         if (!this.state.branches) {
-            return <p>Loading...</p>
+            return <p>Loading...</p>;
         }
 
         return (

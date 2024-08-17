@@ -2,12 +2,14 @@ import type { DiffOptions } from "nodegit";
 import type { AppConfig } from "./Config.js";
 import { DiffDelta } from "./Utils.js";
 
-export type IpcPayload<T extends IpcAction> = {
-    id?: number
-    action: T
-} & (
-    {data: IpcActionReturn[T]} | {error: string}
-);
+export type IpcPayload<T extends IpcAction> =
+    & {
+        id?: number;
+        action: T;
+    }
+    & (
+        { data: IpcActionReturn[T]; } | { error: string; }
+    );
 
 export type IpcActionReturnOrError<A extends IpcAction> = IpcActionReturn[A] | Error;
 export type AsyncIpcActionReturnOrError<A extends IpcAction> = Promise<IpcActionReturnOrError<A>>;
@@ -63,92 +65,94 @@ export const enum IpcAction {
 }
 
 export type IpcActionParams = {
-    [IpcAction.INIT]: null
-    [IpcAction.LOAD_COMMITS]: LoadCommitsParam
-    [IpcAction.LOAD_FILE_COMMITS]: LoadFileCommitsParam
-    [IpcAction.LOAD_BRANCHES]: null
-    [IpcAction.LOAD_HEAD]: null
-    [IpcAction.LOAD_UPSTREAMS]: null
-    [IpcAction.LOAD_COMMIT]: string | null
+    [IpcAction.INIT]: null;
+    [IpcAction.LOAD_COMMITS]: LoadCommitsParam;
+    [IpcAction.LOAD_FILE_COMMITS]: LoadFileCommitsParam;
+    [IpcAction.LOAD_BRANCHES]: null;
+    [IpcAction.LOAD_HEAD]: null;
+    [IpcAction.LOAD_UPSTREAMS]: null;
+    [IpcAction.LOAD_COMMIT]: string | null;
     [IpcAction.LOAD_PATCHES_WITHOUT_HUNKS]: {
-        sha: string
-    }
-    [IpcAction.LOAD_HUNKS]: (
-        {
-            file: string
-            sha: string
-        } | {
-            workDir: boolean
-            type: "staged" | "unstaged"
-        } | {
-            sha: string
-        } | {
-            compare: boolean
-        }
-    ) & {
-        path: string
-    }
-    [IpcAction.SHOW_STASH]: number
-    [IpcAction.CHECKOUT_BRANCH]: string
-    [IpcAction.GET_CHANGES]: null
-    [IpcAction.STAGE_FILE]: string
-    [IpcAction.UNSTAGE_FILE]: string
-    [IpcAction.STAGE_ALL]: null
-    [IpcAction.UNSTAGE_ALL]: null
+        sha: string;
+    };
+    [IpcAction.LOAD_HUNKS]:
+        & (
+            {
+                file: string;
+                sha: string;
+            } | {
+                workDir: boolean;
+                type: "staged" | "unstaged";
+            } | {
+                sha: string;
+            } | {
+                compare: boolean;
+            }
+        )
+        & {
+            path: string;
+        };
+    [IpcAction.SHOW_STASH]: number;
+    [IpcAction.CHECKOUT_BRANCH]: string;
+    [IpcAction.GET_CHANGES]: null;
+    [IpcAction.STAGE_FILE]: string;
+    [IpcAction.UNSTAGE_FILE]: string;
+    [IpcAction.STAGE_ALL]: null;
+    [IpcAction.UNSTAGE_ALL]: null;
     [IpcAction.COMMIT]: {
-        amend: boolean | undefined
+        amend: boolean | undefined;
         message: {
-            summary: string
-            body: string
-        }
-    }
+            summary: string;
+            body: string;
+        };
+    };
     [IpcAction.PUSH]: null | {
-        force?: boolean
-        remote: string
-        localBranch: string
-    }
+        force?: boolean;
+        remote: string;
+        localBranch: string;
+    };
     [IpcAction.SET_UPSTREAM]: {
-        local: string
-        remote: string | null
-    }
+        local: string;
+        remote: string | null;
+    };
     [IpcAction.CREATE_BRANCH]: {
-        sha: string
-        name: string
-        checkout?: boolean
-    }
+        sha: string;
+        name: string;
+        checkout?: boolean;
+    };
     [IpcAction.CREATE_BRANCH_FROM_REF]: {
-        ref: string
-        name: string
-        checkout?: boolean
-    }
+        ref: string;
+        name: string;
+        checkout?: boolean;
+    };
     [IpcAction.RENAME_LOCAL_BRANCH]: {
-        ref: string
-        name: string
-    }
-    [IpcAction.FIND_FILE]: string
-    [IpcAction.REMOTES]: null
-    [IpcAction.RESOLVE_CONFLICT]: {path: string}
-    [IpcAction.EDIT_REMOTE]: {oldName: string, name: string, pullFrom: string, pushTo: string | null}
-    [IpcAction.NEW_REMOTE]: {name: string, pullFrom: string, pushTo: string | null}
-    [IpcAction.FETCH]: null | {remote: string}
-    [IpcAction.SAVE_SETTINGS]: AppConfig
-    [IpcAction.GET_SETTINGS]: null
-    [IpcAction.REPO_PROFILE]: {action: "save" | "remove", profileId: number}
+        ref: string;
+        name: string;
+    };
+    [IpcAction.FIND_FILE]: string;
+    [IpcAction.REMOTES]: null;
+    [IpcAction.RESOLVE_CONFLICT]: { path: string; };
+    [IpcAction.EDIT_REMOTE]: { oldName: string; name: string; pullFrom: string; pushTo: string | null; };
+    [IpcAction.NEW_REMOTE]: { name: string; pullFrom: string; pushTo: string | null; };
+    [IpcAction.FETCH]: null | { remote: string; };
+    [IpcAction.SAVE_SETTINGS]: AppConfig;
+    [IpcAction.GET_SETTINGS]: null;
+    [IpcAction.REPO_PROFILE]: { action: "save" | "remove"; profileId: number; };
     [IpcAction.FILE_DIFF_AT]: {
-        file: string
-        sha: string
-        options?: DiffOptions
-    }
+        file: string;
+        sha: string;
+        options?: DiffOptions;
+    };
     [IpcAction.CREATE_TAG]: {
-        name: string
-        from: string
-        fromCommit: boolean
-        annotation?: string
-    }
-    [IpcAction.LOAD_STASHES]: null
-    [IpcAction.GET_COMMIT_GPG_SIGN]: string
-    [IpcAction.LOAD_TREE_AT_COMMIT]: string
-    [IpcAction.CONTINUE_REBASE]: null
+        name: string;
+        from: string;
+        fromCommit: boolean;
+        annotation?: string;
+    };
+    [IpcAction.LOAD_STASHES]: null;
+    [IpcAction.GET_COMMIT_GPG_SIGN]: string;
+    [IpcAction.LOAD_TREE_AT_COMMIT]: string;
+    [IpcAction.CONTINUE_REBASE]: null;
     [IpcAction.OPEN_IN_TERMINAL]: null;
     [IpcAction.OPEN_IN_FILE_MANAGER]: null;
     [IpcAction.REQUEST_OPEN_REPO]: null;
@@ -160,66 +164,66 @@ export type IpcActionParams = {
 };
 
 export type IpcActionReturn = {
-    [IpcAction.INIT]: null
-    [IpcAction.LOAD_COMMITS]: null | LoadCommitsReturn
-    [IpcAction.LOAD_FILE_COMMITS]: null | LoadFileCommitsReturn
-    [IpcAction.LOAD_BRANCHES]: BranchesObj
-    [IpcAction.LOAD_HEAD]: null | HeadBranchObj
+    [IpcAction.INIT]: null;
+    [IpcAction.LOAD_COMMITS]: null | LoadCommitsReturn;
+    [IpcAction.LOAD_FILE_COMMITS]: null | LoadFileCommitsReturn;
+    [IpcAction.LOAD_BRANCHES]: BranchesObj;
+    [IpcAction.LOAD_HEAD]: null | HeadBranchObj;
     [IpcAction.LOAD_UPSTREAMS]: Array<{
         status: {
-            ahead: number
-            behind: number
-        }
-        remote: string | undefined
-        name: string
-    }>
-    [IpcAction.LOAD_COMMIT]: CommitObj
-    [IpcAction.LOAD_PATCHES_WITHOUT_HUNKS]: PatchObj[]
+            ahead: number;
+            behind: number;
+        };
+        remote: string | undefined;
+        name: string;
+    }>;
+    [IpcAction.LOAD_COMMIT]: CommitObj;
+    [IpcAction.LOAD_PATCHES_WITHOUT_HUNKS]: PatchObj[];
     [IpcAction.LOAD_HUNKS]: {
-        path: string
-        hunks: HunkObj[] | false
-    }
-    [IpcAction.SHOW_STASH]: PatchObj[]
-    [IpcAction.CHECKOUT_BRANCH]: false | HeadBranchObj
+        path: string;
+        hunks: HunkObj[] | false;
+    };
+    [IpcAction.SHOW_STASH]: PatchObj[];
+    [IpcAction.CHECKOUT_BRANCH]: false | HeadBranchObj;
     [IpcAction.GET_CHANGES]: {
-        staged: PatchObj[]
-        unstaged: PatchObj[]
-    }
-    [IpcAction.STAGE_FILE]: boolean
-    [IpcAction.UNSTAGE_FILE]: boolean
-    [IpcAction.STAGE_ALL]: number
-    [IpcAction.UNSTAGE_ALL]: number
-    [IpcAction.COMMIT]: CommitObj
-    [IpcAction.PUSH]: boolean
-    [IpcAction.SET_UPSTREAM]: boolean
-    [IpcAction.CREATE_BRANCH]: boolean
-    [IpcAction.CREATE_BRANCH_FROM_REF]: boolean
-    [IpcAction.RENAME_LOCAL_BRANCH]: boolean
-    [IpcAction.FIND_FILE]: string[]
+        staged: PatchObj[];
+        unstaged: PatchObj[];
+    };
+    [IpcAction.STAGE_FILE]: boolean;
+    [IpcAction.UNSTAGE_FILE]: boolean;
+    [IpcAction.STAGE_ALL]: number;
+    [IpcAction.UNSTAGE_ALL]: number;
+    [IpcAction.COMMIT]: CommitObj;
+    [IpcAction.PUSH]: boolean;
+    [IpcAction.SET_UPSTREAM]: boolean;
+    [IpcAction.CREATE_BRANCH]: boolean;
+    [IpcAction.CREATE_BRANCH_FROM_REF]: boolean;
+    [IpcAction.RENAME_LOCAL_BRANCH]: boolean;
+    [IpcAction.FIND_FILE]: string[];
     [IpcAction.REMOTES]: {
-        name: string
-        pushTo: string | null
-        pullFrom: string
-    }[]
-    [IpcAction.RESOLVE_CONFLICT]: boolean
-    [IpcAction.EDIT_REMOTE]: boolean
-    [IpcAction.NEW_REMOTE]: boolean
-    [IpcAction.FETCH]: boolean
-    [IpcAction.SAVE_SETTINGS]: boolean
-    [IpcAction.GET_SETTINGS]: AppConfig
-    [IpcAction.REPO_PROFILE]: boolean
-    [IpcAction.FILE_DIFF_AT]: PatchObj | false
-    [IpcAction.CREATE_TAG]: boolean
-    [IpcAction.LOAD_STASHES]: StashObj[]
+        name: string;
+        pushTo: string | null;
+        pullFrom: string;
+    }[];
+    [IpcAction.RESOLVE_CONFLICT]: boolean;
+    [IpcAction.EDIT_REMOTE]: boolean;
+    [IpcAction.NEW_REMOTE]: boolean;
+    [IpcAction.FETCH]: boolean;
+    [IpcAction.SAVE_SETTINGS]: boolean;
+    [IpcAction.GET_SETTINGS]: AppConfig;
+    [IpcAction.REPO_PROFILE]: boolean;
+    [IpcAction.FILE_DIFF_AT]: PatchObj | false;
+    [IpcAction.CREATE_TAG]: boolean;
+    [IpcAction.LOAD_STASHES]: StashObj[];
     [IpcAction.GET_COMMIT_GPG_SIGN]: false | {
         signature: {
-            data: string
-            verified: boolean
-        }
-        sha: string
-    }
-    [IpcAction.LOAD_TREE_AT_COMMIT]: string[]
-    [IpcAction.CONTINUE_REBASE]: boolean
+            data: string;
+            verified: boolean;
+        };
+        sha: string;
+    };
+    [IpcAction.LOAD_TREE_AT_COMMIT]: string[];
+    [IpcAction.CONTINUE_REBASE]: boolean;
     [IpcAction.OPEN_IN_TERMINAL]: null;
     [IpcAction.OPEN_IN_FILE_MANAGER]: null;
     [IpcAction.REQUEST_OPEN_REPO]: null; // FIXME: Should we return something here?
@@ -231,76 +235,76 @@ export type IpcActionReturn = {
 };
 
 export type RepoStatus = {
-    merging: boolean
-    rebasing: boolean
-    reverting: boolean
-    bisecting: boolean
-    state: number // Repository.STATE
+    merging: boolean;
+    rebasing: boolean;
+    reverting: boolean;
+    bisecting: boolean;
+    state: number; // Repository.STATE
 };
 
 type LineStats = {
-    total_context: number
-    total_additions: number
-    total_deletions: number
+    total_context: number;
+    total_additions: number;
+    total_deletions: number;
 };
 export type FileObj = {
-    path: string
-    size: number
-    mode: number
-    flags: number
+    path: string;
+    size: number;
+    mode: number;
+    flags: number;
 };
 
 export type LineObj = {
-    type: "" | "-" | "+"
-    oldLineno: number
-    newLineno: number
-    content: string
-    offset?: number
-    length?: number
+    type: "" | "-" | "+";
+    oldLineno: number;
+    newLineno: number;
+    content: string;
+    offset?: number;
+    length?: number;
 };
 export type HunkObj = {
-    header: string
-    lines: LineObj[]
+    header: string;
+    lines: LineObj[];
     // old: number
     // new: number
 };
 export type PatchObj = {
-    status: DiffDelta
-    hunks?: HunkObj[]
-    newFile: FileObj
-    oldFile: FileObj
-    actualFile: FileObj
-    similarity?: number
-    lineStats: LineStats
+    status: DiffDelta;
+    hunks?: HunkObj[];
+    newFile: FileObj;
+    oldFile: FileObj;
+    actualFile: FileObj;
+    similarity?: number;
+    lineStats: LineStats;
 };
 type DiffObj = {
-    patches?: PatchObj[]
+    patches?: PatchObj[];
 };
 type AuthorObj = {
-    name: string
-    email: string
+    name: string;
+    email: string;
 };
 export type CommitObj = {
     parents: {
-        sha: string
-    }[],
+        sha: string;
+    }[];
     signature?: {
-        verified: boolean
-        data: string
-    }
-    sha: string
-    diff?: DiffObj[]
-    authorDate: number
-    date: number
+        verified: boolean;
+        data: string;
+    };
+    sha: string;
+    diff?: DiffObj[];
+    authorDate: number;
+    date: number;
     message: {
-        summary: string
-        body: string
-    }
-    author: AuthorObj
-    committer: AuthorObj
+        summary: string;
+        body: string;
+    };
+    author: AuthorObj;
+    committer: AuthorObj;
 };
 
-export type HeadBranchObj = BranchObj & {commit: CommitObj}
+export type HeadBranchObj = BranchObj & { commit: CommitObj; };
 
 export const enum RefType {
     LOCAL,
@@ -310,69 +314,71 @@ export const enum RefType {
 }
 
 export type BranchObj = {
-    name: string
-    headSHA: string
-    normalizedName: string
+    name: string;
+    headSHA: string;
+    normalizedName: string;
     status?: {
-        ahead: number
-        behind: number
-    }
-    remote?: string | undefined
-    type: RefType
+        ahead: number;
+        behind: number;
+    };
+    remote?: string | undefined;
+    type: RefType;
 };
 
 export type BranchesObj = {
-    remote: BranchObj[]
-    local: BranchObj[]
-    tags: BranchObj[]
+    remote: BranchObj[];
+    local: BranchObj[];
+    tags: BranchObj[];
 };
 export type StashObj = {
-    index: number
-    msg: string
-    oid: string
+    index: number;
+    msg: string;
+    oid: string;
 };
 interface LoadCommitsParamSha {
-    sha: string
+    sha: string;
 }
 interface LoadCommitsParamBranch {
-    branch: string
+    branch: string;
 }
 type LoadFileCommitsParam = {
     /** SHA of last fetched commit */
-    cursor?: string
-    startAtCursor?: boolean
-    num?: number
-    file: string
-}
+    cursor?: string;
+    startAtCursor?: boolean;
+    num?: number;
+    file: string;
+};
 type LoadCommitsParam = {
     /** SHA of last fetched commit */
-    cursor?: string
-    startAtCursor?: boolean
-    num?: number
-} & (LoadCommitsParamBranch | LoadCommitsParamSha | {history: true})
+    cursor?: string;
+    startAtCursor?: boolean;
+    num?: number;
+} & (LoadCommitsParamBranch | LoadCommitsParamSha | { history: true; });
 export type LoadCommitReturn = {
-    sha: string
-    parents: string[]
-    message: string
-    date: number
+    sha: string;
+    parents: string[];
+    message: string;
+    date: number;
     author: {
-        name: string
-        email: string
-    }
-}
+        name: string;
+        email: string;
+    };
+};
 export type LoadCommitsReturn = {
-    commits: LoadCommitReturn[]
-    branch: string
-    cursor: string
+    commits: LoadCommitReturn[];
+    branch: string;
+    cursor: string;
 };
 export type LoadFileCommitsReturn = {
-    commits: Array<LoadCommitReturn & {
-        status?: DiffDelta
-        path: string
-    }>
-    branch: string
-    cursor?: string
-    filePath: string
+    commits: Array<
+        LoadCommitReturn & {
+            status?: DiffDelta;
+            path: string;
+        }
+    >;
+    branch: string;
+    cursor?: string;
+    filePath: string;
 };
 
 export const enum Locks {

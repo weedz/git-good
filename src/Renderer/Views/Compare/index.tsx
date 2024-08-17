@@ -2,7 +2,7 @@ import { type PatchObj } from "../../../Common/Actions.js";
 import ChangedFiles from "../../Components/DiffPane/ChangedFiles.js";
 
 type Props = {
-    patches: PatchObj[]
+    patches: PatchObj[];
 };
 
 export default function Compare(props: Props) {

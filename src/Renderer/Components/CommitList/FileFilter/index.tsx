@@ -7,8 +7,8 @@ import { StoreComponent } from "../../../Data/store.js";
 import "./style.css";
 
 type State = {
-    fileResults: string[]
-    showFiles: undefined | boolean
+    fileResults: string[];
+    showFiles: undefined | boolean;
 };
 
 export default class FileFilter extends StoreComponent<unknown, State> {
@@ -30,14 +30,14 @@ export default class FileFilter extends StoreComponent<unknown, State> {
             fileResults: files,
             showFiles: files.length > 0,
         });
-    }
+    };
 
     openFileHistory = (event: h.JSX.TargetedMouseEvent<HTMLElement>) => {
         const file = event ? event.currentTarget.dataset.path : undefined;
         if (file) {
-            openFileHistory(file)
+            openFileHistory(file);
         }
-    }
+    };
 
     findFiles = (e: h.JSX.TargetedInputEvent<HTMLInputElement>) => {
         window.clearTimeout(this.findFileTimeout);
@@ -56,16 +56,22 @@ export default class FileFilter extends StoreComponent<unknown, State> {
                 fileResults: [],
             });
         }
-    }
+    };
     render() {
         return (
             <Fragment>
-                <input type="text" onClick={() => this.state.fileResults?.length > 0 && this.setState({ showFiles: true })} onInput={this.findFiles} placeholder="File/path..." />
-                {this.state.showFiles && !!this.state.fileResults?.length &&
-                    <ul id="file-filter-list">
-                        {this.state.fileResults.map(file => <li key={file} onClick={this.openFileHistory} data-path={file}>{file}</li>)}
-                    </ul>
-                }
+                <input
+                    type="text"
+                    onClick={() => this.state.fileResults?.length > 0 && this.setState({ showFiles: true })}
+                    onInput={this.findFiles}
+                    placeholder="File/path..."
+                />
+                {this.state.showFiles && !!this.state.fileResults?.length
+                    && (
+                        <ul id="file-filter-list">
+                            {this.state.fileResults.map(file => <li key={file} onClick={this.openFileHistory} data-path={file}>{file}</li>)}
+                        </ul>
+                    )}
             </Fragment>
         );
     }

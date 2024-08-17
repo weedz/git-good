@@ -4,7 +4,7 @@ import { currentWindow } from "./Context.js";
 
 export const actionLock: {
     [key in IpcAction]?: {
-        interuptable: false
+        interuptable: false;
     };
 } = {};
 
@@ -23,12 +23,12 @@ export function eventReply<T extends IpcAction>(event: IpcMainEvent, action: T, 
         return event.reply("asynchronous-reply", {
             action,
             error: data.toString(),
-            id
+            id,
         });
     }
     event.reply("asynchronous-reply", {
         action,
         data,
-        id
+        id,
     });
 }

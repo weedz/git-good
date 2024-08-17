@@ -1,11 +1,11 @@
 import { dialog } from "electron/main";
 
-import { IpcAction, Locks, type IpcActionParams } from "../Common/Actions.js";
+import { IpcAction, type IpcActionParams, Locks } from "../Common/Actions.js";
 import { AppEventType } from "../Common/WindowEventTypes.js";
-import { sendEvent } from "./WindowEvents.js";
-import * as provider from "./Provider.js";
-import { sendAction } from "./IPC.js";
 import { currentRepo, getContext } from "./Context.js";
+import { sendAction } from "./IPC.js";
+import * as provider from "./Provider.js";
+import { sendEvent } from "./WindowEvents.js";
 
 export async function pullHead() {
     const repo = currentRepo();

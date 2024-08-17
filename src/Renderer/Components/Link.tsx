@@ -4,42 +4,41 @@ import { Links } from "./LinkContainer.js";
 
 export const GlobalLinks: {
     [key in LinkTypes]: {
-        [key: string]: Link
-    }
+        [key: string]: Link;
+    };
 } = {
     [LinkTypes.COMMITS]: {},
     [LinkTypes.BRANCHES]: {},
-    [LinkTypes.FILES]: {}
+    [LinkTypes.FILES]: {},
 };
 
 const selectedLinks: {
-    [key in LinkTypes]: Link<unknown> | null
+    [key in LinkTypes]: Link<unknown> | null;
 } = {
     [LinkTypes.COMMITS]: null,
     [LinkTypes.BRANCHES]: null,
-    [LinkTypes.FILES]: null
+    [LinkTypes.FILES]: null,
 };
 
 const selectedIds: {
-    [key in LinkTypes]: string | undefined
+    [key in LinkTypes]: string | undefined;
 } = {
     [LinkTypes.COMMITS]: undefined,
     [LinkTypes.BRANCHES]: undefined,
-    [LinkTypes.FILES]: undefined
+    [LinkTypes.FILES]: undefined,
 };
 
 interface Props<T> extends h.JSX.HTMLAttributes<HTMLAnchorElement> {
-    selectTarget?: () => Link
-    selectAction?: (arg: Link<T>) => void
-    linkType?: LinkTypes
-    linkId?: string
-    linkData?: T
+    selectTarget?: () => Link;
+    selectAction?: (arg: Link<T>) => void;
+    linkType?: LinkTypes;
+    linkId?: string;
+    linkData?: T;
 }
 
 interface State {
-    selected: boolean
+    selected: boolean;
 }
-
 
 export function unselectLink(type: LinkTypes) {
     const prevLink = selectedLinks[type];
@@ -73,7 +72,7 @@ class Link<T = unknown> extends Component<Props<T>, State> {
 
     onClick = () => {
         this.triggerAction();
-    }
+    };
 
     triggerAction(alwaysTrigger = false) {
         const prevLink = selectedLinks[this.type];
@@ -96,7 +95,7 @@ class Link<T = unknown> extends Component<Props<T>, State> {
 
             if (selectedLink.ref) {
                 selectedLink.ref.current?.scrollIntoView({
-                    block: "nearest"
+                    block: "nearest",
                 });
 
                 if (!alwaysTrigger) {
@@ -127,7 +126,11 @@ class Link<T = unknown> extends Component<Props<T>, State> {
             classNames.push("selected");
         }
 
-        return <a ref={this.ref} class={classNames.join(" ")} href="#" onClick={this.onClick} {...props as h.JSX.HTMLAttributes<HTMLAnchorElement>}>{props.children}</a>;
+        return (
+            <a ref={this.ref} class={classNames.join(" ")} href="#" onClick={this.onClick} {...props as h.JSX.HTMLAttributes<HTMLAnchorElement>}>
+                {props.children}
+            </a>
+        );
     }
 }
 
