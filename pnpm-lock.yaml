@@ -13,7 +13,7 @@ importers:
     dependencies:
       nodegit:
         specifier: github:weedz/nodegit#master
-        version: https://codeload.github.com/weedz/nodegit/tar.gz/6134ce48ddfa0e6286d4de3f23bda2af9156fbed
+        version: https://codeload.github.com/weedz/nodegit/tar.gz/59fec819921ec7fb827593f9b81cc554ad1d4bd8
     devDependencies:
       '@electron/asar':
         specifier: ^3.2.10
@@ -1079,8 +1079,8 @@ packages:
     engines: {node: ^12.13 || ^14.13 || >=16}
     hasBin: true
 
-  nodegit@https://codeload.github.com/weedz/nodegit/tar.gz/6134ce48ddfa0e6286d4de3f23bda2af9156fbed:
-    resolution: {tarball: https://codeload.github.com/weedz/nodegit/tar.gz/6134ce48ddfa0e6286d4de3f23bda2af9156fbed}
+  nodegit@https://codeload.github.com/weedz/nodegit/tar.gz/59fec819921ec7fb827593f9b81cc554ad1d4bd8:
+    resolution: {tarball: https://codeload.github.com/weedz/nodegit/tar.gz/59fec819921ec7fb827593f9b81cc554ad1d4bd8}
     version: 0.28.0-alpha.28
     engines: {node: '>= 16'}
 
@@ -2584,7 +2584,7 @@ snapshots:
     transitivePeerDependencies:
       - supports-color
 
-  nodegit@https://codeload.github.com/weedz/nodegit/tar.gz/6134ce48ddfa0e6286d4de3f23bda2af9156fbed: {}
+  nodegit@https://codeload.github.com/weedz/nodegit/tar.gz/59fec819921ec7fb827593f9b81cc554ad1d4bd8: {}
 
   nopt@6.0.0:
     dependencies:
