@@ -37,5 +37,5 @@ jobs:
           pnpm install --ignore-scripts
           cd node_modules/nodegit && pnpm install && node generate
 
-      - name: Run ESLint
+      - name: Run lint
         run: pnpm run lint
