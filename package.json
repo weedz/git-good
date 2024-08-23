@@ -6,7 +6,7 @@
     "type": "module",
     "scripts": {
         "start": "electron --ozone-platform-hint=wayland .",
-        "lint": "oxlint --tsconfig ./tsconfig.json -D correctness -D perf --import-plugin -D no-cycle",
+        "lint": "oxlint --tsconfig ./tsconfig.json -D correctness -D perf --import-plugin -D no-cycle --promise-plugin",
         "tsc:watch": "tsc --noEmit --watch",
         "dev": "NODE_ENV=development npm run build",
         "build": "rm -rf dist;mkdir dist;cp static/* dist/; node scripts/build.mjs",
@@ -25,13 +25,13 @@
     "devDependencies": {
         "@electron/asar": "^3.2.10",
         "@electron/rebuild": "^3.6.0",
-        "@types/node": "^20.14.15",
+        "@types/node": "^20.16.1",
         "@types/nodegit": "^0.28.7",
         "@weedzcokie/store": "^2.0.2",
-        "electron": "^31.4.0",
+        "electron": "~31.4.0",
         "electron-builder": "^24.13.3",
-        "esbuild": "^0.23.0",
-        "oxlint": "^0.7.2",
+        "esbuild": "^0.23.1",
+        "oxlint": "^0.8.0",
         "preact": "^10.23.2",
         "typescript": "^5.5.4"
     },
@@ -78,5 +78,5 @@
     "dependencies": {
         "nodegit": "github:weedz/nodegit#master"
     },
-    "packageManager": "pnpm@9.7.1+sha512.faf344af2d6ca65c4c5c8c2224ea77a81a5e8859cbc4e06b1511ddce2f0151512431dd19e6aff31f2c6a8f5f2aced9bd2273e1fed7dd4de1868984059d2c4247"
+    "packageManager": "pnpm@9.8.0+sha512.8e4c3550fb500e808dbc30bb0ce4dd1eb614e30b1c55245f211591ec2cdf9c611cabd34e1364b42f564bd54b3945ed0f49d61d1bbf2ec9bd74b866fcdc723276"
 }

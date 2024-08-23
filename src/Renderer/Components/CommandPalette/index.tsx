@@ -24,7 +24,7 @@ export class CommandPaletteContainer extends Component<unknown, State> {
 
     componentDidMount(): void {
         // Assumes we never unmount :+1:
-        window.addEventListener("keydown", async e => {
+        window.addEventListener("keydown", e => {
             if (e.ctrlKey && e.shiftKey && e.code === "KeyP") {
                 e.preventDefault();
                 this.setState({ isOpen: true });
