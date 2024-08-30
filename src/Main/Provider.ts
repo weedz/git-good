@@ -89,7 +89,7 @@ export async function openRepo(repoPath: string): Promise<nodegit.Repository | f
         const repo = await nodegit.Repository.open(repoPath);
         index = await repo.refreshIndex();
         return repo;
-    } catch (e) {
+    } catch (_) {
         return false;
     }
 }
@@ -183,7 +183,7 @@ async function initGetCommits(
                 if (params.branch.includes("refs/tags")) {
                     try {
                         start = await repo.getReferenceCommit(params.branch);
-                    } catch (err) {
+                    } catch (_) {
                         // Soft tag?
                         const ref = await repo.getTagByName(params.branch);
                         revwalkStart = ref.targetId();
@@ -434,8 +434,12 @@ export async function pull(repo: nodegit.Repository, branch: string | null, sign
 
         status = await nodegit.Graph.aheadBehind(repo, upstream.target(), ref.target()) as unknown as { ahead: number; behind: number; };
     } catch (err) {
-        // Missing remote/upstream
-        dialog.showErrorBox("Pull failed", "No upstream");
+        // (probably) Missing remote/upstream
+        if (err instanceof Error) {
+            dialog.showErrorBox("Pull failed", `No upstream.\n${err.message}`);
+        } else {
+            dialog.showErrorBox("Pull failed", `No upstream.\nUnknown error.`);
+        }
         return false;
     }
 
@@ -619,7 +623,7 @@ export async function setUpstream(repo: nodegit.Repository, local: string, remot
     if (remoteRefName) {
         try {
             await repo.getReference(`refs/remotes/${remoteRefName}`);
-        } catch (err) {
+        } catch (_) {
             const refCommit = await repo.getReferenceCommit(reference);
             await nodegit.Reference.create(repo, `refs/remotes/${remoteRefName}`, refCommit.id(), 0, "");
         }
@@ -692,7 +696,7 @@ export async function deleteRemoteTag(remote: nodegit.Remote, tagName: string): 
                 credentials: credentialsCallback,
             },
         });
-    } catch (err) {
+    } catch (_) {
         // tag not on remote..
     }
 
@@ -1103,7 +1107,7 @@ async function stageSingleFile(repo: nodegit.Repository, filePath: string): Prom
         // and needs to be removed from the index
         await fs.access(join(repo.workdir(), filePath));
         result = await index.addByPath(filePath);
-    } catch (err) {
+    } catch (_) {
         result = await index.removeByPath(filePath);
     }
 
@@ -1672,7 +1676,7 @@ export async function getCommitGpgSign(repo: nodegit.Repository, sha: string): A
             sha,
             signature: await gpgVerify(commitSignature.signature, commitSignature.signedData),
         };
-    } catch (err) {
+    } catch (_) {
         // Commit is probably not signed.
     }
     return false;

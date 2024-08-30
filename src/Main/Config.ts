@@ -21,7 +21,7 @@ try {
         };
     }
     selectedGitProfile = appConfig.profiles[appConfig.selectedProfile];
-} catch (err) {
+} catch (_) {
     console.log("Invalid or missing config file. Creating...");
     appConfig = {
         profiles: [
@@ -118,7 +118,7 @@ export async function getRepoProfile(repo: Repository) {
         if (appConfig.profiles[profileId]) {
             return profileId;
         }
-    } catch (e) {
+    } catch (_) {
         // noop
     }
     return false;

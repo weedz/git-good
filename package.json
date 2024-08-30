@@ -6,7 +6,7 @@
     "type": "module",
     "scripts": {
         "start": "electron --ozone-platform-hint=wayland .",
-        "lint": "oxlint --tsconfig ./tsconfig.json -D correctness -D perf --import-plugin -D no-cycle --promise-plugin",
+        "lint": "oxlint -c .oxlintrc.json --tsconfig ./tsconfig.json -D correctness -D perf --import-plugin -D no-cycle --promise-plugin",
         "tsc:watch": "tsc --noEmit --watch",
         "dev": "NODE_ENV=development npm run build",
         "build": "rm -rf dist;mkdir dist;cp static/* dist/; node scripts/build.mjs",
@@ -31,7 +31,7 @@
         "electron": "~31.4.0",
         "electron-builder": "^24.13.3",
         "esbuild": "^0.23.1",
-        "oxlint": "^0.8.0",
+        "oxlint": "^0.9.1",
         "preact": "^10.23.2",
         "typescript": "^5.5.4"
     },
