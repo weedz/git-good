@@ -42,5 +42,5 @@ export function loadStylesFromLocalstorage() {
 
 export function setCSSVariable(variable: CSSVariableName, value: string) {
     document.documentElement.style.setProperty(variable, value);
-    window.localStorage.setItem(`styles${variable}`, value);
+    globalThis.localStorage.setItem(`styles${variable}`, value);
 }

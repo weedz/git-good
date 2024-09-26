@@ -8,28 +8,28 @@ import * as provider from "./Provider.js";
 import { sendEvent } from "./WindowEvents.js";
 
 export async function pullHead() {
-    const repo = currentRepo();
-    sendEvent(AppEventType.LOCK_UI, Locks.BRANCH_LIST);
-    const result = await provider.pullHead(repo);
-    sendEvent(AppEventType.UNLOCK_UI, Locks.BRANCH_LIST);
-    sendAction(IpcAction.LOAD_BRANCHES, await provider.getBranches(repo));
+  const repo = currentRepo();
+  sendEvent(AppEventType.LOCK_UI, Locks.BRANCH_LIST);
+  const result = await provider.pullHead(repo);
+  sendEvent(AppEventType.UNLOCK_UI, Locks.BRANCH_LIST);
+  sendAction(IpcAction.LOAD_BRANCHES, await provider.getBranches(repo));
 
-    return result;
+  return result;
 }
 
 export async function push(data: IpcActionParams[IpcAction.PUSH]) {
-    const context = getContext();
-    sendEvent(AppEventType.LOCK_UI, Locks.BRANCH_LIST);
-    const result = await provider.push(context, data);
-    if (result instanceof Error) {
-        dialog.showErrorBox("Failed to push", result.message);
-    } else {
-        sendAction(IpcAction.LOAD_BRANCHES, await provider.getBranches(context.repo));
-    }
-    sendEvent(AppEventType.UNLOCK_UI, Locks.BRANCH_LIST);
+  const context = getContext();
+  sendEvent(AppEventType.LOCK_UI, Locks.BRANCH_LIST);
+  const result = await provider.push(context, data);
+  if (result instanceof Error) {
+    dialog.showErrorBox("Failed to push", result.message);
+  } else {
+    sendAction(IpcAction.LOAD_BRANCHES, await provider.getBranches(context.repo));
+  }
+  sendEvent(AppEventType.UNLOCK_UI, Locks.BRANCH_LIST);
 
-    return result;
+  return result;
 }
 export async function pushHead() {
-    return push(null);
+  return await push(null);
 }

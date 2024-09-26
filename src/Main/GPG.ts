@@ -2,6 +2,7 @@ import { spawn } from "node:child_process";
 import { writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
+import { Buffer } from "node:buffer";
 
 export function gpgSign(key: string, data: string) {
     const gpg = spawn("gpg", ["--batch", "--detach-sign", "--armor", "--sign-with", key, "-o", "-"]);

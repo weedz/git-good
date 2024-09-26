@@ -8,8 +8,8 @@ const debouncedResize = debounce((e: MouseEvent) => {
 }, 20);
 
 function handleMouseUp() {
-    window.removeEventListener("mousemove", debouncedResize);
-    window.removeEventListener("mouseup", handleMouseUp);
+    globalThis.removeEventListener("mousemove", debouncedResize);
+    globalThis.removeEventListener("mouseup", handleMouseUp);
 }
 
 interface ResizableProps {
@@ -23,8 +23,8 @@ export function Resizable(props: ResizableProps) {
             <div
                 class="resizable-track"
                 onMouseDown={_ => {
-                    window.addEventListener("mousemove", debouncedResize);
-                    window.addEventListener("mouseup", handleMouseUp);
+                    globalThis.addEventListener("mousemove", debouncedResize);
+                    globalThis.addEventListener("mouseup", handleMouseUp);
                 }}
             />
         </div>
