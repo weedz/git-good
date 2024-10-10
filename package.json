@@ -1,82 +1,82 @@
 {
-    "name": "git-good",
-    "version": "0.1.4",
-    "description": "Git good",
-    "main": "dist/main.js",
-    "type": "module",
-    "scripts": {
-        "start": "electron --ozone-platform-hint=wayland .",
-        "lint": "oxlint -c .oxlintrc.json --tsconfig ./tsconfig.json -D correctness -D perf --import-plugin -D no-cycle --promise-plugin",
-        "tsc:watch": "tsc --noEmit --watch",
-        "dev": "NODE_ENV=development npm run build",
-        "build": "rm -rf dist;mkdir dist;cp static/* dist/; node scripts/build.mjs",
-        "dist": "electron-builder",
-        "electron-rebuild": "JOBS=max CC=clang CXX=clang++ LINK=clang++ electron-rebuild"
+  "name": "git-good",
+  "version": "0.1.5",
+  "description": "Git good",
+  "main": "dist/main.js",
+  "type": "module",
+  "scripts": {
+    "start": "electron --ozone-platform-hint=wayland .",
+    "lint": "oxlint -c .oxlintrc.json --tsconfig ./tsconfig.json -D correctness -D perf --import-plugin -D no-cycle --promise-plugin",
+    "tsc:watch": "tsc --noEmit --watch",
+    "dev": "NODE_ENV=development npm run build",
+    "build": "rm -rf dist;mkdir dist;cp static/* dist/; node scripts/build.mjs",
+    "dist": "electron-builder",
+    "electron-rebuild": "JOBS=max CC=clang CXX=clang++ LINK=clang++ electron-rebuild"
+  },
+  "keywords": [],
+  "author": {
+    "name": "Linus Björklund",
+    "email": "weedzcokie@gmail.com"
+  },
+  "files": [
+    "dist"
+  ],
+  "license": "GPL-3.0-or-later",
+  "devDependencies": {
+    "@electron/asar": "^3.2.13",
+    "@electron/rebuild": "^3.7.0",
+    "@types/node": "^22.7.5",
+    "@types/nodegit": "^0.28.7",
+    "@weedzcokie/store": "^2.0.2",
+    "electron": "~32.2.0",
+    "electron-builder": "^25.1.7",
+    "esbuild": "^0.24.0",
+    "oxlint": "^0.9.10",
+    "preact": "^10.24.2",
+    "typescript": "^5.6.3"
+  },
+  "resolutions": {
+    "make-fetch-happen": "^13"
+  },
+  "pnpm": {
+    "peerDependencyRules": {
+      "ignoreMissing": [
+        "webpack",
+        "electron-builder-squirrel-windows"
+      ]
+    }
+  },
+  "build": {
+    "appId": "git-good",
+    "afterPack": "./scripts/after-pack.cjs",
+    "directories": {
+      "output": "out"
     },
-    "keywords": [],
-    "author": {
-        "name": "Linus Björklund",
-        "email": "weedzcokie@gmail.com"
+    "linux": {
+      "category": "Development",
+      "target": [
+        "AppImage",
+        "deb"
+      ]
     },
-    "files": [
-        "dist"
-    ],
-    "license": "GPL-3.0-or-later",
-    "devDependencies": {
-        "@electron/asar": "^3.2.13",
-        "@electron/rebuild": "^3.7.0",
-        "@types/node": "^20.16.11",
-        "@types/nodegit": "^0.28.7",
-        "@weedzcokie/store": "^2.0.2",
-        "electron": "~31.6.0",
-        "electron-builder": "^25.1.7",
-        "esbuild": "^0.24.0",
-        "oxlint": "^0.9.10",
-        "preact": "^10.24.2",
-        "typescript": "^5.6.3"
-    },
-    "resolutions": {
-        "make-fetch-happen": "^13"
-    },
-    "pnpm": {
-        "peerDependencyRules": {
-            "ignoreMissing": [
-                "webpack",
-                "electron-builder-squirrel-windows"
-            ]
-        }
-    },
-    "build": {
-        "appId": "git-good",
-        "afterPack": "./scripts/after-pack.cjs",
-        "directories": {
-            "output": "out"
-        },
-        "linux": {
-            "category": "Development",
-            "target": [
-                "AppImage",
-                "deb"
-            ]
-        },
-        "mac": {
-            "category": "public.app-category.developer-tools"
-        }
-    },
-    "repository": {
-        "type": "git",
-        "url": "git+https://github.com/weedz/git-good.git"
-    },
-    "bugs": {
-        "url": "https://github.com/weedz/git-good/issues"
-    },
-    "homepage": "https://github.com/weedz/git-good#readme",
-    "engines": {
-        "node": ">=16",
-        "pnpm": ">=7"
-    },
-    "dependencies": {
-        "nodegit": "github:weedz/nodegit#master"
-    },
-    "packageManager": "pnpm@9.12.1+sha512.e5a7e52a4183a02d5931057f7a0dbff9d5e9ce3161e33fa68ae392125b79282a8a8a470a51dfc8a0ed86221442eb2fb57019b0990ed24fab519bf0e1bc5ccfc4"
+    "mac": {
+      "category": "public.app-category.developer-tools"
+    }
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/weedz/git-good.git"
+  },
+  "bugs": {
+    "url": "https://github.com/weedz/git-good/issues"
+  },
+  "homepage": "https://github.com/weedz/git-good#readme",
+  "engines": {
+    "node": ">=16",
+    "pnpm": ">=7"
+  },
+  "dependencies": {
+    "nodegit": "github:weedz/nodegit#master"
+  },
+  "packageManager": "pnpm@9.12.1+sha512.e5a7e52a4183a02d5931057f7a0dbff9d5e9ce3161e33fa68ae392125b79282a8a8a470a51dfc8a0ed86221442eb2fb57019b0990ed24fab519bf0e1bc5ccfc4"
 }

@@ -22,8 +22,8 @@ importers:
         specifier: ^3.7.0
         version: 3.7.0
       '@types/node':
-        specifier: ^20.16.11
-        version: 20.16.11
+        specifier: ^22.7.5
+        version: 22.7.5
       '@types/nodegit':
         specifier: ^0.28.7
         version: 0.28.7
@@ -31,8 +31,8 @@ importers:
         specifier: ^2.0.2
         version: 2.0.2
       electron:
-        specifier: ~31.6.0
-        version: 31.6.0
+        specifier: ~32.2.0
+        version: 32.2.0
       electron-builder:
         specifier: ^25.1.7
         version: 25.1.7
@@ -338,6 +338,9 @@ packages:
 
   '@types/node@20.16.11':
     resolution: {integrity: sha512-y+cTCACu92FyA5fgQSAI8A1H429g7aSK2HsO7K4XYUWc4dY5IUz55JSDIYT6/VsOLfGy8vmvQYC2hfb0iF16Uw==}
+
+  '@types/node@22.7.5':
+    resolution: {integrity: sha512-jML7s2NAzMWc//QSJ1a3prpk78cOPchGvXJsC3C6R6PSMoooztvRVQEz89gmBTBY1SPMaqo5teB4uNHPdetShQ==}
 
   '@types/nodegit@0.28.7':
     resolution: {integrity: sha512-NA97YEpQEavOXBzRFI/04cPsCqJ5XOJp16iIgbEI8xaMVWuvdn+LuEFQUM4fxnY/TxuS+08+kDw06CP2/Fg7ow==}
@@ -653,8 +656,8 @@ packages:
   electron-publish@25.1.7:
     resolution: {integrity: sha512-+jbTkR9m39eDBMP4gfbqglDd6UvBC7RLh5Y0MhFSsc6UkGHj9Vj9TWobxevHYMMqmoujL11ZLjfPpMX+Pt6YEg==}
 
-  electron@31.6.0:
-    resolution: {integrity: sha512-J64VtIF8DI/zsGgoYd3p5LbxAWjt59tk2cBSHJNzVhzgiVgDyPFkBwsqmN4gUvyv+6l6+WoYpYmYdapr2o4bPw==}
+  electron@32.2.0:
+    resolution: {integrity: sha512-Xy82QBQrEiQysoxsv6lnhHAcWNNe6vV6QqH3OPFXhEj/T9oAsBHEhZuuYHINSSsUE7zRSj+J9sNwJYOjisT0Vw==}
     engines: {node: '>= 12.20.55'}
     hasBin: true
 
@@ -1708,7 +1711,7 @@ snapshots:
     dependencies:
       '@types/http-cache-semantics': 4.0.4
       '@types/keyv': 3.1.4
-      '@types/node': 20.16.11
+      '@types/node': 22.7.5
       '@types/responselike': 1.0.3
 
   '@types/debug@4.1.12':
@@ -1717,18 +1720,18 @@ snapshots:
 
   '@types/fs-extra@9.0.13':
     dependencies:
-      '@types/node': 20.16.11
+      '@types/node': 22.7.5
 
   '@types/glob@7.2.0':
     dependencies:
       '@types/minimatch': 5.1.2
-      '@types/node': 20.16.11
+      '@types/node': 22.7.5
 
   '@types/http-cache-semantics@4.0.4': {}
 
   '@types/keyv@3.1.4':
     dependencies:
-      '@types/node': 20.16.11
+      '@types/node': 22.7.5
 
   '@types/minimatch@5.1.2': {}
 
@@ -1738,26 +1741,30 @@ snapshots:
     dependencies:
       undici-types: 6.19.8
 
+  '@types/node@22.7.5':
+    dependencies:
+      undici-types: 6.19.8
+
   '@types/nodegit@0.28.7':
     dependencies:
-      '@types/node': 20.16.11
+      '@types/node': 22.7.5
 
   '@types/plist@3.0.5':
     dependencies:
-      '@types/node': 20.16.11
+      '@types/node': 22.7.5
       xmlbuilder: 15.1.1
     optional: true
 
   '@types/responselike@1.0.3':
     dependencies:
-      '@types/node': 20.16.11
+      '@types/node': 22.7.5
 
   '@types/verror@1.10.10':
     optional: true
 
   '@types/yauzl@2.10.3':
     dependencies:
-      '@types/node': 20.16.11
+      '@types/node': 22.7.5
     optional: true
 
   '@weedzcokie/store@2.0.2': {}
@@ -2137,7 +2144,7 @@ snapshots:
     transitivePeerDependencies:
       - supports-color
 
-  electron@31.6.0:
+  electron@32.2.0:
     dependencies:
       '@electron/get': 2.0.3
       '@types/node': 20.16.11
