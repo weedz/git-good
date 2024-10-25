@@ -23,20 +23,21 @@
   ],
   "license": "GPL-3.0-or-later",
   "devDependencies": {
-    "@electron/asar": "^3.2.13",
+    "@electron/asar": "^3.2.14",
     "@electron/rebuild": "^3.7.0",
-    "@types/node": "^22.7.5",
+    "@types/node": "^22.8.0",
     "@types/nodegit": "^0.28.7",
     "@weedzcokie/store": "^2.0.2",
-    "electron": "~32.2.0",
-    "electron-builder": "^25.1.7",
+    "electron": "~32.2.2",
+    "electron-builder": "^25.1.8",
     "esbuild": "^0.24.0",
-    "oxlint": "^0.9.10",
-    "preact": "^10.24.2",
+    "oxlint": "^0.10.2",
+    "preact": "^10.24.3",
     "typescript": "^5.6.3"
   },
   "resolutions": {
-    "make-fetch-happen": "^13"
+    "make-fetch-happen": "^13",
+    "@electron/get": "^3"
   },
   "pnpm": {
     "peerDependencyRules": {
@@ -78,5 +79,5 @@
   "dependencies": {
     "nodegit": "github:weedz/nodegit#master"
   },
-  "packageManager": "pnpm@9.12.1+sha512.e5a7e52a4183a02d5931057f7a0dbff9d5e9ce3161e33fa68ae392125b79282a8a8a470a51dfc8a0ed86221442eb2fb57019b0990ed24fab519bf0e1bc5ccfc4"
+  "packageManager": "pnpm@9.12.2+sha512.22721b3a11f81661ae1ec68ce1a7b879425a1ca5b991c975b074ac220b187ce56c708fe5db69f4c962c989452eee76c82877f4ee80f474cebd61ee13461b6228"
 }
