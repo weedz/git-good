@@ -161,7 +161,7 @@ export class CommandPaletteContainer extends Component<unknown, State> {
         <ul class="commands" ref={this.commandListRef}>
           {this.state.commands.map((command, idx) => (
             <li
-              key={idx}
+              key={command}
               data-idx={idx}
               onClick={this.handleClick}
               class={idx === this.state.selectedIdx ? "selected" : ""}
