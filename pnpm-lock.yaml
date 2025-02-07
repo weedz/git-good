@@ -14,7 +14,7 @@ importers:
     dependencies:
       nodegit:
         specifier: github:weedz/nodegit#master
-        version: https://codeload.github.com/weedz/nodegit/tar.gz/333b68529771723c54d994c6ccdef4adbe2bd86e
+        version: https://codeload.github.com/weedz/nodegit/tar.gz/61dbff97ee10d59016761f673f1ae8de30eb044c
     devDependencies:
       '@electron/asar':
         specifier: ^3.2.18
@@ -23,8 +23,8 @@ importers:
         specifier: ^3.7.1
         version: 3.7.1
       '@types/node':
-        specifier: ^22.10.7
-        version: 22.10.7
+        specifier: ^22.13.1
+        version: 22.13.1
       '@types/nodegit':
         specifier: ^0.28.7
         version: 0.28.7
@@ -32,14 +32,14 @@ importers:
         specifier: ^2.0.2
         version: 2.0.2
       electron:
-        specifier: ~32.2.8
-        version: 32.2.8
+        specifier: ~32.3.0
+        version: 32.3.0
       esbuild:
         specifier: ^0.24.2
         version: 0.24.2
       oxlint:
-        specifier: ^0.15.7
-        version: 0.15.7
+        specifier: ^0.15.10
+        version: 0.15.10
       preact:
         specifier: ^10.25.4
         version: 10.25.4
@@ -235,43 +235,43 @@ packages:
     resolution: {integrity: sha512-q9CRWjpHCMIh5sVyefoD1cA7PkvILqCZsnSOEUUivORLjxCO/Irmue2DprETiNgEqktDBZaM1Bi+jrarx1XdCg==}
     engines: {node: ^14.17.0 || ^16.13.0 || >=18.0.0}
 
-  '@oxlint/darwin-arm64@0.15.7':
-    resolution: {integrity: sha512-+8jOC9MfzIhbRdmNYl+gLlGZe8dhl2hrQRLJ+mriPRXxtpfBmT5aOmEQrs9BX5GPnh6hy4ArMvjDbCCXD+bl+w==}
+  '@oxlint/darwin-arm64@0.15.10':
+    resolution: {integrity: sha512-nGuKO+lZh4vS2Lb9lceePSQkXLhKcBPIAlux8BY+ewk2LnNNWsCbHhoslBwLF2h0MB8HiqOIk8WzRwllCY8sBg==}
     cpu: [arm64]
     os: [darwin]
 
-  '@oxlint/darwin-x64@0.15.7':
-    resolution: {integrity: sha512-4y1v3zCtQU0dv5SxwBZqtYiqtQTUSvEdK3XzWg/JxN8qEleHonQrbSvGKmlkzraEouKTIm1bXjmnrX26MX22cQ==}
+  '@oxlint/darwin-x64@0.15.10':
+    resolution: {integrity: sha512-Xpyk8PiNKIrxYuundViBsxLcltYPGy+M5w/mO7EI9eeqSizMvWNimQgfPzK5fgh3V0gv8bJG0IyPZJVN0uEE9A==}
     cpu: [x64]
     os: [darwin]
 
-  '@oxlint/linux-arm64-gnu@0.15.7':
-    resolution: {integrity: sha512-g01PWQl1+HLlMGK3lwH8G+A/5vA6H7tcKUHnx/qGz4+LM1zKfp1w2d2aoXxPqpIgtBPn19JRcBiEMv+nr40fiw==}
+  '@oxlint/linux-arm64-gnu@0.15.10':
+    resolution: {integrity: sha512-fUxOOYlQBXc6Cz7d40zE2G6VG4yhR9vz+P1M8T1NhTe6yFUzfCCWV+zmHxpUPEy9dgGZPIvodIx7bP+kOPEmuA==}
     cpu: [arm64]
     os: [linux]
 
-  '@oxlint/linux-arm64-musl@0.15.7':
-    resolution: {integrity: sha512-8Dg7qaHXNgiZgP3TxQU8k/5fpzGfcxYVLK58Sj/vSZ3vMrI68ipkq+rkNBjAXT1Aq2/eM6L/9CLH8pex+I1Nkw==}
+  '@oxlint/linux-arm64-musl@0.15.10':
+    resolution: {integrity: sha512-JESSO73nplnTftaBpWdgjsOtuSfl7Jeg3I37qJYVtHIxxyJMtHuuUd9g0K0MLbwcue2K7DFCnzlDNlxer2yrgQ==}
     cpu: [arm64]
     os: [linux]
 
-  '@oxlint/linux-x64-gnu@0.15.7':
-    resolution: {integrity: sha512-hLsfcOgoky/FUGF2s3v7+wd0xGGuyE7EBPSTV7BPQYEm5+P5ZeWXPlUg8uTPee6bIxHa6lZLqunRl8Jn44b/ig==}
+  '@oxlint/linux-x64-gnu@0.15.10':
+    resolution: {integrity: sha512-NS4joBtL8Hg7zPBlPxSzrSRqkxtZfABf+fAY8vNxwYMsG8I8VoQZQdhz7+0p6ecg0+jH3CmIpDQfo73eaUBwoA==}
     cpu: [x64]
     os: [linux]
 
-  '@oxlint/linux-x64-musl@0.15.7':
-    resolution: {integrity: sha512-BW9dACxzLRZq67lPFis/NCiitQucZbbrONeK0mReBWPSM3MaegLY82kZU7sMq3fpBbzGaKFoNLp2EcsNfS5IVw==}
+  '@oxlint/linux-x64-musl@0.15.10':
+    resolution: {integrity: sha512-zC2eEEe4scfsoUV87YsZFOSfPutxeaAmCI9Ys2G1lQoTyZ+9G9nuxTzBMla/yspX6mQGxonXPxLxYbIlDT24vA==}
     cpu: [x64]
     os: [linux]
 
-  '@oxlint/win32-arm64@0.15.7':
-    resolution: {integrity: sha512-VvIaIdfCjcYy8cj3yAjHwj2dDFIFxdUS7G+KeDK/iH7O3uXW8wOec2wFYcd8xmVYHEcnw8fgNAXy04gXpB6KnQ==}
+  '@oxlint/win32-arm64@0.15.10':
+    resolution: {integrity: sha512-u8nHap9L96zTQvwHYqn1ZcoiHzLR24ifuKDBIwlmwEVYucUgE55tUc+ea8kPUUB4uvfOv0HtAxNFuKr43biPzg==}
     cpu: [arm64]
     os: [win32]
 
-  '@oxlint/win32-x64@0.15.7':
-    resolution: {integrity: sha512-1WKZTgtJswATA8NYeUfMnN4ei7AUVyomrWBiPwYGMRMOo4jeGkOlOr2/iYq/vbtOCyOuqAo2JjfzN5sBOPfI/A==}
+  '@oxlint/win32-x64@0.15.10':
+    resolution: {integrity: sha512-OvG4lRw2AnTDJnCb1Jm1bzE2KuRvJLE+fQ6TDSj0UQSmTGHLXIZLc+Y8HMxntCx0p850FVBtYixdg2sHkv+i3g==}
     cpu: [x64]
     os: [win32]
 
@@ -296,11 +296,11 @@ packages:
   '@types/keyv@3.1.4':
     resolution: {integrity: sha512-BQ5aZNSCpj7D6K2ksrRCTmKRLEpnPvWDiLPfoGyhZ++8YtiK9d/3DBKPJgry359X/P1PfruyYwvnvwFjuEiEIg==}
 
-  '@types/node@20.17.14':
-    resolution: {integrity: sha512-w6qdYetNL5KRBiSClK/KWai+2IMEJuAj+EujKCumalFOwXtvOXaEan9AuwcRID2IcOIAWSIfR495hBtgKlx2zg==}
+  '@types/node@20.17.17':
+    resolution: {integrity: sha512-/WndGO4kIfMicEQLTi/mDANUu/iVUhT7KboZPdEqqHQ4aTS+3qT3U5gIqWDFV+XouorjfgGqvKILJeHhuQgFYg==}
 
-  '@types/node@22.10.7':
-    resolution: {integrity: sha512-V09KvXxFiutGp6B7XkpaDXlNadZxrzajcY50EuoLIpQ6WWYCSvf19lVIazzfIzQvhUN2HjX12spLojTnhuKlGg==}
+  '@types/node@22.13.1':
+    resolution: {integrity: sha512-jK8uzQlrvXqEU91UxiK5J7pKHyzgnI1Qnl0QDHIgVGuolJhRb9EEl28Cj9b3rGR8B2lhFCtvIm5os8lFnO/1Ew==}
 
   '@types/nodegit@0.28.7':
     resolution: {integrity: sha512-NA97YEpQEavOXBzRFI/04cPsCqJ5XOJp16iIgbEI8xaMVWuvdn+LuEFQUM4fxnY/TxuS+08+kDw06CP2/Fg7ow==}
@@ -465,8 +465,8 @@ packages:
   eastasianwidth@0.2.0:
     resolution: {integrity: sha512-I88TYZWc9XiYHRQ4/3c5rjjfgkjhLyW2luGIheGERbNQ6OY7yTybanSpDXZa8y7VUP9YmDcYa+eyq4ca7iLqWA==}
 
-  electron@32.2.8:
-    resolution: {integrity: sha512-jaAgBeFKjH6Cd7CnG7XhApZtLz2ewUXLyf1rKh9D+eaFD5XCYQpH77PhmrT5u0IpSP6eSZoHpAQ0sMqOFsh6kA==}
+  electron@32.3.0:
+    resolution: {integrity: sha512-CyX6K1INQdlgTePmP3wuAueUi5ePqw0IpiGOyyzULGU9gBQI3idwW6apR3W/R1cES2j1gWLrkty3cD40qRV9sg==}
     engines: {node: '>= 12.20.55'}
     hasBin: true
 
@@ -513,8 +513,8 @@ packages:
     resolution: {integrity: sha512-TtpcNJ3XAzx3Gq8sWRzJaVajRs0uVxA2YAkdb1jm2YkPz4G6egUFAyA3n5vtEIZefPk5Wa4UXbKuS5fKkJWdgA==}
     engines: {node: '>=10'}
 
-  exponential-backoff@3.1.1:
-    resolution: {integrity: sha512-dX7e/LHVJ6W3DE1MHWi9S1EYzDESENfLrYohG2G++ovZrYOkm4Knwa0mc1cn84xJOR4KEU0WSchhLbd0UklbHw==}
+  exponential-backoff@3.1.2:
+    resolution: {integrity: sha512-8QxYTVXUkuy7fIIoitQkPwGonB8F3Zj8eEO8Sqg9Zv/bkI7RJAzowee4gr81Hak/dUTpA2Z7VfQgoijjPNlUZA==}
 
   extract-zip@2.0.1:
     resolution: {integrity: sha512-GDhU9ntwuKyGXdZBUgTIe+vXnWj0fppUEtMDL0+idd5Sta8TGpHssn/eusA9mrPr9qNDym6SxAYZjNvCn/9RBg==}
@@ -764,15 +764,15 @@ packages:
     resolution: {integrity: sha512-myRT3DiWPHqho5PrJaIRyaMv2kgYf0mUVgBNOYMuCH5Ki1yEiQaf/ZJuQ62nvpc44wL5WDbTX7yGJi1Neevw8w==}
     engines: {node: '>= 0.6'}
 
-  node-abi@3.73.0:
-    resolution: {integrity: sha512-z8iYzQGBu35ZkTQ9mtR8RqugJZ9RCLn8fv3d7LsgDBzOijGQP3RdKTX4LA7LXw03ZhU5z0l4xfhIMgSES31+cg==}
+  node-abi@3.74.0:
+    resolution: {integrity: sha512-c5XK0MjkGBrQPGYG24GBADZud0NCbznxNx0ZkS+ebUTrmV1qTDxPxSL8zEAPURXSbLRWVexxmP4986BziahL5w==}
     engines: {node: '>=10'}
 
   node-api-version@0.2.0:
     resolution: {integrity: sha512-fthTTsi8CxaBXMaBAD7ST2uylwvsnYxh2PfaScwpMhos6KlSFajXQPcM4ogNE1q2s3Lbz9GCGqeIHC+C6OZnKg==}
 
-  nodegit@https://codeload.github.com/weedz/nodegit/tar.gz/333b68529771723c54d994c6ccdef4adbe2bd86e:
-    resolution: {tarball: https://codeload.github.com/weedz/nodegit/tar.gz/333b68529771723c54d994c6ccdef4adbe2bd86e}
+  nodegit@https://codeload.github.com/weedz/nodegit/tar.gz/61dbff97ee10d59016761f673f1ae8de30eb044c:
+    resolution: {tarball: https://codeload.github.com/weedz/nodegit/tar.gz/61dbff97ee10d59016761f673f1ae8de30eb044c}
     version: 0.28.0-alpha.28
     engines: {node: '>= 16'}
 
@@ -800,9 +800,9 @@ packages:
     resolution: {integrity: sha512-5b6Y85tPxZZ7QytO+BQzysW31HJku27cRIlkbAXaNx+BdcVi+LlRFmVXzeF6a7JCwJpyw5c4b+YSVImQIrBpuQ==}
     engines: {node: '>=10'}
 
-  oxlint@0.15.7:
-    resolution: {integrity: sha512-ECx9retPd7Rvq62TasGODyQ4mrMtqBCCB18xOYGiAf8PP61snHaokLeTWQFf+pTURWpJZ9pIi2pMIDKh2P2SpQ==}
-    engines: {node: '>=14.*'}
+  oxlint@0.15.10:
+    resolution: {integrity: sha512-962UBhpbd041fnx1GjQIY7uGIAXcAl/t45Xd6IZi11PyXVRHz7TjC4qpndrwp98Lfg7HuDaMXoOWOaNsgtEgag==}
+    engines: {node: '>=8.*'}
     hasBin: true
 
   p-cancelable@2.1.1:
@@ -900,8 +900,8 @@ packages:
     resolution: {integrity: sha512-BR7VvDCVHO+q2xBEWskxS6DJE1qRnb7DxzUrogb71CWoSficBxYsiAGd+Kl0mmq/MprG9yArRkyrQxTO6XjMzA==}
     hasBin: true
 
-  semver@7.6.3:
-    resolution: {integrity: sha512-oVekP1cKtI+CTDvHWYFUcMtsK/00wmAEfyqKfNdARm8u1wNVhSgaX7A8d4UuIlUI5e84iEwOhs7ZPYRmzU9U6A==}
+  semver@7.7.1:
+    resolution: {integrity: sha512-hlq8tAfn0m/61p4BVRcPzIGr6LKiMwo4VM6dGi6pt4qcRkmNzTcWq6eCEjEh+qXjkMDvPlOFFSGwQjoEa6gyMA==}
     engines: {node: '>=10'}
     hasBin: true
 
@@ -1070,13 +1070,13 @@ snapshots:
   '@electron/node-gyp@https://codeload.github.com/electron/node-gyp/tar.gz/06b29aafb7708acef8b3669835c8a7857ebc92d2':
     dependencies:
       env-paths: 2.2.1
-      exponential-backoff: 3.1.1
+      exponential-backoff: 3.1.2
       glob: 8.1.0
       graceful-fs: 4.2.11
       make-fetch-happen: 13.0.1
       nopt: 6.0.0
       proc-log: 2.0.1
-      semver: 7.6.3
+      semver: 7.7.1
       tar: 6.2.1
       which: 2.0.2
     transitivePeerDependencies:
@@ -1091,11 +1091,11 @@ snapshots:
       detect-libc: 2.0.3
       fs-extra: 10.1.0
       got: 11.8.6
-      node-abi: 3.73.0
+      node-abi: 3.74.0
       node-api-version: 0.2.0
       ora: 5.4.1
       read-binary-file-arch: 1.0.6
-      semver: 7.6.3
+      semver: 7.7.1
       tar: 6.2.1
       yargs: 17.7.2
     transitivePeerDependencies:
@@ -1201,30 +1201,30 @@ snapshots:
 
   '@npmcli/fs@3.1.1':
     dependencies:
-      semver: 7.6.3
+      semver: 7.7.1
 
-  '@oxlint/darwin-arm64@0.15.7':
+  '@oxlint/darwin-arm64@0.15.10':
     optional: true
 
-  '@oxlint/darwin-x64@0.15.7':
+  '@oxlint/darwin-x64@0.15.10':
     optional: true
 
-  '@oxlint/linux-arm64-gnu@0.15.7':
+  '@oxlint/linux-arm64-gnu@0.15.10':
     optional: true
 
-  '@oxlint/linux-arm64-musl@0.15.7':
+  '@oxlint/linux-arm64-musl@0.15.10':
     optional: true
 
-  '@oxlint/linux-x64-gnu@0.15.7':
+  '@oxlint/linux-x64-gnu@0.15.10':
     optional: true
 
-  '@oxlint/linux-x64-musl@0.15.7':
+  '@oxlint/linux-x64-musl@0.15.10':
     optional: true
 
-  '@oxlint/win32-arm64@0.15.7':
+  '@oxlint/win32-arm64@0.15.10':
     optional: true
 
-  '@oxlint/win32-x64@0.15.7':
+  '@oxlint/win32-x64@0.15.10':
     optional: true
 
   '@pkgjs/parseargs@0.11.0':
@@ -1240,34 +1240,34 @@ snapshots:
     dependencies:
       '@types/http-cache-semantics': 4.0.4
       '@types/keyv': 3.1.4
-      '@types/node': 22.10.7
+      '@types/node': 22.13.1
       '@types/responselike': 1.0.3
 
   '@types/http-cache-semantics@4.0.4': {}
 
   '@types/keyv@3.1.4':
     dependencies:
-      '@types/node': 22.10.7
+      '@types/node': 22.13.1
 
-  '@types/node@20.17.14':
+  '@types/node@20.17.17':
     dependencies:
       undici-types: 6.19.8
 
-  '@types/node@22.10.7':
+  '@types/node@22.13.1':
     dependencies:
       undici-types: 6.20.0
 
   '@types/nodegit@0.28.7':
     dependencies:
-      '@types/node': 22.10.7
+      '@types/node': 22.13.1
 
   '@types/responselike@1.0.3':
     dependencies:
-      '@types/node': 22.10.7
+      '@types/node': 22.13.1
 
   '@types/yauzl@2.10.3':
     dependencies:
-      '@types/node': 22.10.7
+      '@types/node': 22.13.1
     optional: true
 
   '@weedzcokie/store@2.0.2': {}
@@ -1425,10 +1425,10 @@ snapshots:
 
   eastasianwidth@0.2.0: {}
 
-  electron@32.2.8:
+  electron@32.3.0:
     dependencies:
       '@electron/get': 3.1.0
-      '@types/node': 20.17.14
+      '@types/node': 20.17.17
       extract-zip: 2.0.1
     transitivePeerDependencies:
       - supports-color
@@ -1492,7 +1492,7 @@ snapshots:
   escape-string-regexp@4.0.0:
     optional: true
 
-  exponential-backoff@3.1.1: {}
+  exponential-backoff@3.1.2: {}
 
   extract-zip@2.0.1:
     dependencies:
@@ -1573,7 +1573,7 @@ snapshots:
       es6-error: 4.1.1
       matcher: 3.0.0
       roarr: 2.15.4
-      semver: 7.6.3
+      semver: 7.7.1
       serialize-error: 7.0.1
     optional: true
 
@@ -1782,15 +1782,15 @@ snapshots:
 
   negotiator@0.6.4: {}
 
-  node-abi@3.73.0:
+  node-abi@3.74.0:
     dependencies:
-      semver: 7.6.3
+      semver: 7.7.1
 
   node-api-version@0.2.0:
     dependencies:
-      semver: 7.6.3
+      semver: 7.7.1
 
-  nodegit@https://codeload.github.com/weedz/nodegit/tar.gz/333b68529771723c54d994c6ccdef4adbe2bd86e: {}
+  nodegit@https://codeload.github.com/weedz/nodegit/tar.gz/61dbff97ee10d59016761f673f1ae8de30eb044c: {}
 
   nopt@6.0.0:
     dependencies:
@@ -1821,16 +1821,16 @@ snapshots:
       strip-ansi: 6.0.1
       wcwidth: 1.0.1
 
-  oxlint@0.15.7:
+  oxlint@0.15.10:
     optionalDependencies:
-      '@oxlint/darwin-arm64': 0.15.7
-      '@oxlint/darwin-x64': 0.15.7
-      '@oxlint/linux-arm64-gnu': 0.15.7
-      '@oxlint/linux-arm64-musl': 0.15.7
-      '@oxlint/linux-x64-gnu': 0.15.7
-      '@oxlint/linux-x64-musl': 0.15.7
-      '@oxlint/win32-arm64': 0.15.7
-      '@oxlint/win32-x64': 0.15.7
+      '@oxlint/darwin-arm64': 0.15.10
+      '@oxlint/darwin-x64': 0.15.10
+      '@oxlint/linux-arm64-gnu': 0.15.10
+      '@oxlint/linux-arm64-musl': 0.15.10
+      '@oxlint/linux-x64-gnu': 0.15.10
+      '@oxlint/linux-x64-musl': 0.15.10
+      '@oxlint/win32-arm64': 0.15.10
+      '@oxlint/win32-x64': 0.15.10
 
   p-cancelable@2.1.1: {}
 
@@ -1918,7 +1918,7 @@ snapshots:
 
   semver@6.3.1: {}
 
-  semver@7.6.3: {}
+  semver@7.7.1: {}
 
   serialize-error@7.0.1:
     dependencies:

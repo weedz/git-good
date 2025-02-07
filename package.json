@@ -25,12 +25,12 @@
   "devDependencies": {
     "@electron/asar": "^3.2.18",
     "@electron/rebuild": "^3.7.1",
-    "@types/node": "^22.10.7",
+    "@types/node": "^22.13.1",
     "@types/nodegit": "^0.28.7",
     "@weedzcokie/store": "^2.0.2",
-    "electron": "~32.2.8",
+    "electron": "~32.3.0",
     "esbuild": "^0.24.2",
-    "oxlint": "^0.15.7",
+    "oxlint": "^0.15.10",
     "preact": "^10.25.4",
     "typescript": "^5.7.3"
   },
