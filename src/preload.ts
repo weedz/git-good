@@ -4,7 +4,7 @@ import { ContextMenu, type ContextMenuData } from "./Common/ContextMenu.js";
 import { NativeDialog, type NativeDialogData, type NativeDialogReturn } from "./Common/Dialog.js";
 import { type AppEventData, AppEventType, type RendererRequestData, RendererRequestEvents, type RendererRequestPayload } from "./Common/WindowEventTypes.js";
 
-interface IContextMenuApi {
+interface IElectronBridgeAPI {
   openContextMenu: <M extends ContextMenu>(menu: M, data: ContextMenuData[M]) => void;
   openNativeDialog: <D extends NativeDialog>(dialog: D, data: NativeDialogData[D]) => NativeDialogReturn[D];
   requestClientData: (callback: <E extends RendererRequestEvents>(payload: RendererRequestPayload<E>) => Promise<null | RendererRequestData[E]>) => void;
@@ -14,7 +14,7 @@ interface IContextMenuApi {
 }
 
 declare global {
-  var electronAPI: IContextMenuApi;
+  var electronAPI: IElectronBridgeAPI;
 }
 
 contextBridge.exposeInMainWorld("electronAPI", {
