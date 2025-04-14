@@ -7,7 +7,7 @@
   "scripts": {
     "start": "electron --ozone-platform-hint=wayland .",
     "lint": "oxlint -c .oxlintrc.json --tsconfig ./tsconfig.json -D correctness -D perf --import-plugin -D no-cycle --promise-plugin",
-    "tsc:watch": "tsc --noEmit --watch",
+    "tsc:watch": "tsc --noEmit --watch --preserveWatchOutput",
     "dev": "NODE_ENV=development pnpm run build",
     "build": "rm -rf dist;mkdir dist;cp static/* dist/; node scripts/build.mjs",
     "dist": "electron-builder",
