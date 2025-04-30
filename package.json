@@ -9,7 +9,8 @@
     "lint": "oxlint -c .oxlintrc.json --tsconfig ./tsconfig.json -D correctness -D perf --import-plugin -D no-cycle --promise-plugin",
     "tsc:watch": "tsc --noEmit --watch --preserveWatchOutput",
     "dev": "NODE_ENV=development pnpm run build",
-    "build": "rm -rf dist;mkdir dist;cp static/* dist/; node scripts/build.mjs"
+    "build": "rm -rf dist;mkdir dist;cp static/* dist/; node scripts/build.mjs",
+    "build:native": "./scripts/build-native.sh"
   },
   "keywords": [],
   "author": {
@@ -21,17 +22,16 @@
   ],
   "license": "GPL-3.0-or-later",
   "devDependencies": {
-    "@types/node": "^22.15.3",
+    "@types/node": "^22.15.14",
     "@types/nodegit": "^0.28.8",
     "@weedzcokie/store": "^2.0.3",
-    "electron": "~35.2.1",
-    "esbuild": "^0.25.3",
-    "oxlint": "^0.16.8",
-    "preact": "^10.26.5",
+    "electron": "~36.1.0",
+    "esbuild": "^0.25.4",
+    "oxlint": "^0.16.9",
+    "preact": "^10.26.6",
     "typescript": "^5.8.3"
   },
   "resolutions": {
-    "make-fetch-happen": "^13",
     "@electron/get": "^3",
     "node-abi": "^4"
   },
@@ -74,8 +74,8 @@
   },
   "homepage": "https://github.com/weedz/git-good#readme",
   "engines": {
-    "node": ">=20",
-    "pnpm": ">=9"
+    "node": ">=22",
+    "pnpm": ">=10"
   },
   "dependencies": {
     "nodegit": "github:weedz/nodegit#master"
