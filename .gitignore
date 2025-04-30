@@ -2,5 +2,6 @@
 node_modules/
 
 # Output
+/build
 /dist
 /out
