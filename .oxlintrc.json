@@ -1,12 +1,20 @@
 {
-    "rules": {
-        "no-unused-vars": [
-            "error",
-            {
-                "varsIgnorePattern": "^_",
-                "argsIgnorePattern": "^_",
-                "caughtErrorsIgnorePattern": "^_"
-            }
-        ]
-    }
+  "plugins": [
+    "typescript",
+    "oxc",
+    "unicorn",
+    "import",
+    "promise",
+    //"react"
+  ],
+  "rules": {
+    "no-unused-vars": [
+      "error",
+      {
+        "varsIgnorePattern": "^_",
+        "argsIgnorePattern": "^_",
+        "caughtErrorsIgnorePattern": "^_"
+      }
+    ]
+  }
 }
