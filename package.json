@@ -22,13 +22,13 @@
   ],
   "license": "GPL-3.0-or-later",
   "devDependencies": {
-    "@types/node": "^22.17.1",
+    "@types/node": "^22.18.0",
     "@types/nodegit": "^0.28.8",
     "@weedzcokie/store": "^2.0.3",
-    "electron": "~36.7.4",
-    "esbuild": "^0.25.8",
-    "oxlint": "^1.11.0",
-    "preact": "^10.27.0",
+    "electron": "~37.4.0",
+    "esbuild": "^0.25.9",
+    "oxlint": "^1.13.0",
+    "preact": "^10.27.1",
     "typescript": "^5.9.2"
   },
   "resolutions": {
@@ -36,12 +36,6 @@
     "node-abi": "^4"
   },
   "pnpm": {
-    "peerDependencyRules": {
-      "ignoreMissing": [
-        "webpack",
-        "electron-builder-squirrel-windows"
-      ]
-    },
     "onlyBuiltDependencies": [
       "electron",
       "esbuild",
@@ -80,5 +74,5 @@
   "dependencies": {
     "nodegit": "github:weedz/nodegit#master"
   },
-  "packageManager": "pnpm@10.14.0+sha512.ad27a79641b49c3e481a16a805baa71817a04bbe06a38d17e60e2eaee83f6a146c6a688125f5792e48dd5ba30e7da52a5cda4c3992b9ccf333f9ce223af84748"
+  "packageManager": "pnpm@10.15.0+sha512.486ebc259d3e999a4e8691ce03b5cac4a71cbeca39372a9b762cb500cfdf0873e2cb16abe3d951b1ee2cf012503f027b98b6584e4df22524e0c7450d9ec7aa7b"
 }
