@@ -48,7 +48,7 @@ if (!production) {
     name: 'watch-plugin',
     setup(build) {
       const buildName = Array.isArray(build.initialOptions.entryPoints)
-        ? build.initialOptions.entryPoints.join(",")
+        ? build.initialOptions.entryPoints.map(value => typeof value === "string" ? value : value.in).join(",")
         : Object.keys(build.initialOptions.entryPoints).join(",");
       build.onStart(() => {
         console.log(`[${buildName}] building...`);
@@ -118,11 +118,9 @@ await Promise.all([
 ]).then(async builds => {
   if (production) {
     const results = await Promise.all(builds.map(build => build.rebuild()));
-    for (const build of builds) {
-      build.dispose();
-    }
+    await Promise.all(builds.map(build => build.dispose()));
 
-    await Promise.all(results.map(result => analyzeMetafile(result.metafile).then(meta => console.log(meta))));
+    await Promise.all(results.map(result => analyzeMetafile(result.metafile).then(meta => { console.log(meta) })));
   } else {
     await Promise.all(builds.map(build => build.watch()));
   }
