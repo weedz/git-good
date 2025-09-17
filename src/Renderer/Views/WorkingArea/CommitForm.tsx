@@ -86,12 +86,12 @@ export default class CommitForm extends StoreComponent<Props, State> {
 
     return (
       <form
-        onSubmit={e => {
+        onSubmit={async e => {
           e.preventDefault();
           if (submitType === "rebase") {
             ipcSendMessage(IpcAction.CONTINUE_REBASE, null);
           } else {
-            this.commit();
+            await this.commit();
           }
         }}
       >

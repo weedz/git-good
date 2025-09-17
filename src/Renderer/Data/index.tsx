@@ -239,7 +239,7 @@ async function branchesLoaded(result: IpcResponse<IpcAction.LOAD_BRANCHES>) {
   mapHeads(Store.heads, result.remote);
   mapHeads(Store.heads, result.tags);
 
-  loadHEAD();
+  await loadHEAD();
 
   store.updateStore("branches", result);
   store.triggerStoreUpdate("heads");

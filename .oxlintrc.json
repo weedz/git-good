@@ -16,6 +16,15 @@
         "argsIgnorePattern": "^_",
         "caughtErrorsIgnorePattern": "^_"
       }
+    ],
+    "typescript/no-floating-promises": [
+      "error"
+    ],
+    "typescript/no-confusing-void-expression": [
+      "off",
+      {
+        "ignoreArrowShorthand": true
+      }
     ]
   }
 }

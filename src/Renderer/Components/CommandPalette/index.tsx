@@ -1,4 +1,4 @@
-import { Component, createRef, type h } from "preact";
+import { Component, createRef } from "preact";
 
 import "./style.css";
 import { commandPaletteCommandList } from "./commands.js";
@@ -24,11 +24,11 @@ export class CommandPaletteContainer extends Component<unknown, State> {
 
   componentDidMount(): void {
     // Assumes we never unmount :+1:
-    globalThis.addEventListener("keydown", e => {
+    globalThis.addEventListener("keydown", async e => {
       if (e.ctrlKey && e.shiftKey && e.code === "KeyP") {
         e.preventDefault();
         this.setState({ isOpen: true });
-        this.selectItem(0, true);
+        await this.selectItem(0, true);
         requestAnimationFrame(() => {
           this.filterRef.current?.focus();
         });
@@ -41,10 +41,10 @@ export class CommandPaletteContainer extends Component<unknown, State> {
       // Navigate command list
       if (e.key === "ArrowDown") {
         e.preventDefault();
-        this.selectItem(Math.min(this.state.commands.length - 1, this.state.selectedIdx + 1));
+        await this.selectItem(Math.min(this.state.commands.length - 1, this.state.selectedIdx + 1));
       } else if (e.key === "ArrowUp") {
         e.preventDefault();
-        this.selectItem(Math.max(0, this.state.selectedIdx - 1));
+        await this.selectItem(Math.max(0, this.state.selectedIdx - 1));
       } // else if (e.key === "End") {
       //     e.preventDefault();
       //     this.selectItem(this.state.commands.length - 1);
@@ -54,14 +54,14 @@ export class CommandPaletteContainer extends Component<unknown, State> {
       // }
       else if (e.key === "PageDown") {
         e.preventDefault();
-        this.selectItem(Math.min(this.state.commands.length - 1, this.state.selectedIdx + 10));
+        await this.selectItem(Math.min(this.state.commands.length - 1, this.state.selectedIdx + 10));
       } else if (e.key === "PageUp") {
         e.preventDefault();
-        this.selectItem(Math.max(0, this.state.selectedIdx - 10));
+        await this.selectItem(Math.max(0, this.state.selectedIdx - 10));
       } // Execute selected command
       else if (e.key === "Enter") {
         e.preventDefault();
-        this.tryRunCommand(this.state.selectedIdx);
+        await this.tryRunCommand(this.state.selectedIdx);
       } // Close command list
       else if (e.key === "Escape") {
         e.preventDefault();
@@ -71,7 +71,7 @@ export class CommandPaletteContainer extends Component<unknown, State> {
       }
     });
   }
-  selectItem(idx: number, alwaysRunAction = false) {
+  async selectItem(idx: number, alwaysRunAction = false) {
     if (idx < 0 || idx > this.state.commands.length - 1) {
       return;
     }
@@ -79,7 +79,7 @@ export class CommandPaletteContainer extends Component<unknown, State> {
     if (alwaysRunAction || idxIsDifference) {
       const focusAction = this.state.commands[idx].focusAction;
       if (focusAction) {
-        focusAction();
+        await focusAction();
       }
     }
     if (idxIsDifference) {
@@ -96,8 +96,9 @@ export class CommandPaletteContainer extends Component<unknown, State> {
   };
   tryRunCommand(idx: number) {
     if (this.state.commands[idx]) {
-      this.runCommand(this.state.commands[idx]);
+      return this.runCommand(this.state.commands[idx]);
     }
+    return;
   }
   async runCommand(command: CommandPalette.Command) {
     const result = await command.action();
@@ -111,8 +112,8 @@ export class CommandPaletteContainer extends Component<unknown, State> {
         allCommands: result,
         commands: result,
         selectedIdx: 0,
-      }, () => {
-        this.selectItem(this.state.selectedIdx, true);
+      }, async () => {
+        await this.selectItem(this.state.selectedIdx, true);
       });
     } else if (result === true) {
       const commands = this.state.allCommands;
@@ -122,8 +123,8 @@ export class CommandPaletteContainer extends Component<unknown, State> {
         commands,
         allCommands: commands,
         selectedIdx: Math.min(commands.length - 1, this.state.selectedIdx),
-      }, () => {
-        this.selectItem(this.state.selectedIdx, true);
+      }, async () => {
+        await this.selectItem(this.state.selectedIdx, true);
       });
       if (this.filterRef.current?.value) {
         this.filterCommands(commands, this.filterRef.current.value.toLowerCase());
@@ -139,16 +140,16 @@ export class CommandPaletteContainer extends Component<unknown, State> {
       selectedIdx: 0,
     });
   }
-  handleFilterInput = (e: h.JSX.TargetedInputEvent<HTMLInputElement>) => {
+  handleFilterInput = (e: preact.TargetedInputEvent<HTMLInputElement>) => {
     this.filterCommands(this.state.allCommands, e.currentTarget.value.toLowerCase());
   };
-  handleClick = (e: h.JSX.TargetedMouseEvent<HTMLElement>) => {
+  handleClick = (e: preact.TargetedMouseEvent<HTMLElement>) => {
     const dataIdx = e.currentTarget.dataset["idx"];
     if (!dataIdx) {
       return;
     }
     const idx = Number.parseInt(dataIdx, 10);
-    this.tryRunCommand(idx);
+    return this.tryRunCommand(idx);
   };
   render() {
     if (!this.state.isOpen) {

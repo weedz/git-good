@@ -50,7 +50,7 @@ app.commandLine.appendSwitch("disable-smooth-scrolling");
 // This method will be called when Electron has finished
 // initialization and is ready to create browser windows.
 // Some APIs can only be used after this event occurs.
-app.whenReady().then(() => {
+app.once("ready", async () => {
   applyAppMenu();
 
   const initialWindowWidth = 1024;
@@ -92,7 +92,7 @@ app.whenReady().then(() => {
 
   // win.webContents.openDevTools();
 
-  win.loadFile(join(import.meta.dirname, "../dist/index.html"));
+  await win.loadFile(join(import.meta.dirname, "../dist/index.html"));
 
   win.webContents.on("will-navigate", e => {
     e.preventDefault();
@@ -341,20 +341,20 @@ function applyAppMenu(): void {
           },
           {
             label: "Pop latest stash",
-            click() {
-              provider.stashPop(repo, 0);
+            async click() {
+              await provider.stashPop(repo, 0);
             },
           },
           {
             label: "Apply latest stash",
-            click() {
-              provider.stashApply(repo, 0);
+            async click() {
+              await provider.stashApply(repo, 0);
             },
           },
           {
             label: "Drop latest stash",
-            click() {
-              provider.stashDrop(repo, 0);
+            async click() {
+              await provider.stashDrop(repo, 0);
             },
           },
         ],
@@ -383,8 +383,8 @@ function applyAppMenu(): void {
       submenu: [
         {
           label: "Homepage",
-          click() {
-            shell.openExternal("https://github.com/weedz/git-good");
+          async click() {
+            await shell.openExternal("https://github.com/weedz/git-good");
           },
         },
         {
@@ -429,11 +429,13 @@ type EventArgs = {
   id?: string;
 };
 
-type PromiseEventCallback<A extends IpcAction> = (repo: nodegit.Repository, args: IpcActionParams[A], event: IpcMainEvent) => IpcActionReturnOrError<A> | AsyncIpcActionReturnOrError<A>;
+type PromiseEventCallback<A extends IpcAction> = (
+  repo: nodegit.Repository,
+  args: IpcActionParams[A],
+  event: IpcMainEvent
+) => IpcActionReturnOrError<A> | AsyncIpcActionReturnOrError<A>;
 
-const eventMap: {
-  [A in IpcAction]: PromiseEventCallback<A> | (() => void);
-} = {
+const eventMap: { [A in IpcAction]: PromiseEventCallback<A> | (() => void); } = {
   [IpcAction.INIT]: async () => {
     const recentRepo = getRecentRepositories()[0];
     if (recentRepo) {
@@ -500,7 +502,9 @@ const eventMap: {
       return err as Error;
     }
 
-    const sha = ref.isTag() ? (await ref.peel(ObjectTYPE.COMMIT as unknown as Object.TYPE)) as unknown as Commit : await repo.getReferenceCommit(data.ref);
+    const sha = ref.isTag()
+      ? (await ref.peel(ObjectTYPE.COMMIT as unknown as Object.TYPE)) as unknown as Commit
+      : await repo.getReferenceCommit(data.ref);
 
     try {
       const res = await repo.createBranch(data.name, sha);
@@ -634,7 +638,9 @@ const eventMap: {
   },
   [IpcAction.CREATE_TAG]: async (repo, data) => {
     const profile = currentProfile();
-    const result = await provider.createTag(repo, data, signatureFromProfile(profile), profile.gpg?.tag ? profile.gpg.key : undefined);
+    const signature = signatureFromProfile(profile);
+    const key = profile.gpg?.tag ? profile.gpg.key : undefined;
+    const result = await provider.createTag(repo, data, signature, key);
     if (result) {
       sendAction(IpcAction.LOAD_BRANCHES, await provider.getBranches(repo));
     }
@@ -739,11 +745,13 @@ async function openRepo(repoPath: string): Promise<boolean> {
     body = `Profile set to '${profile?.profileName}'`;
   }
   sendEvent(AppEventType.NOTIFY, { title: "Repo opened", body });
-  provider.getRemotes(opened).then(remotes => sendAction(IpcAction.REMOTES, remotes));
-  provider.getBranches(opened).then(branches => sendAction(IpcAction.LOAD_BRANCHES, branches));
-  provider.getStash(opened).then(stash => sendAction(IpcAction.LOAD_STASHES, stash));
+  await Promise.all([
+    provider.getRemotes(opened).then(remotes => sendAction(IpcAction.REMOTES, remotes)),
+    provider.getBranches(opened).then(branches => sendAction(IpcAction.LOAD_BRANCHES, branches)),
+    provider.getStash(opened).then(stash => sendAction(IpcAction.LOAD_STASHES, stash)),
+  ]);
 
-  provider.sendRefreshWorkdirEvent(opened);
+  await provider.sendRefreshWorkdirEvent(opened);
 
   return true;
 }

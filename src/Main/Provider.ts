@@ -46,10 +46,10 @@ declare module "nodegit" {
       upstream: string | nodegit.Reference,
       onto: string | nodegit.Reference,
       signature: nodegit.Signature,
-      beforeNextFn?: (rebase?: nodegit.Rebase) => Promise<unknown> | unknown,
+      beforeNextFn?: (rebase?: nodegit.Rebase) => Promise<unknown>,
     ): Promise<nodegit.Oid>;
 
-    continueRebase(signature: nodegit.Signature, beforeNextFn?: (rebase?: nodegit.Rebase) => Promise<unknown> | unknown): Promise<nodegit.Oid>;
+    continueRebase(signature: nodegit.Signature, beforeNextFn?: (rebase?: nodegit.Rebase) => Promise<unknown>): Promise<nodegit.Oid>;
   }
 
   interface Index {
@@ -1733,7 +1733,7 @@ export async function openFileAtCommit(repo: nodegit.Repository, data: { file: s
 
     const tempFileName = data.file.replaceAll("/", "_");
     await fs.writeFile(`${tempDir}/${tempFileName}`, fileBlob.content());
-    shell.openPath(`${tempDir}/${tempFileName}`);
+    await shell.openPath(`${tempDir}/${tempFileName}`);
 
     return true;
   } catch (err) {

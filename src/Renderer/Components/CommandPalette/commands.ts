@@ -45,7 +45,7 @@ export function makeCommand(label: Command["label"], action: Command["action"], 
 export const commandPaletteCommandList: Command[] = [
   // REPO
   makeCommand("Repo: Open repository", () => { ipcSendMessage(IpcAction.REQUEST_OPEN_REPO, null) }),
-  makeCommand("Repo: Clone", () => { openDialog_Clone() }),
+  makeCommand("Repo: Clone", async () => { await openDialog_Clone() }),
   makeCommand("Repo: Open recent repository...", async () => {
     const recentRepositories = await ipcGetData(IpcAction.GET_RECENT_REPOSITORIES, null);
     return recentRepositories.map(repoPath => makeCommand(
@@ -59,11 +59,11 @@ export const commandPaletteCommandList: Command[] = [
   makeCommand("Repo: Pull", () => { ipcSendMessage(IpcAction.PULL, null); }),
   makeCommand("Repo: Push", () => { ipcSendMessage(IpcAction.PUSH, null); }),
   // TODO: Send data to main thread?
-  makeCommand("Repo: File history...", () => { openDialog_fileHistory(); }),
+  makeCommand("Repo: File history...", async () => { await openDialog_fileHistory(); }),
   // TODO: Send data to main thread?
-  makeCommand("Repo: Compare revisions...", () => { openDialog_compare(); }),
+  makeCommand("Repo: Compare revisions...", async () => { await openDialog_compare(); }),
   // TODO: Send data to main thread?
-  makeCommand("Repo: View commit...", () => { openDialog_viewCommit(); }),
+  makeCommand("Repo: View commit...", async () => { await openDialog_viewCommit(); }),
   // Working directory
   makeCommand("Working directory: Stage file...", async () => {
     const unstagedChanges = await ipcGetData(IpcAction.GET_UNSTAGED_CHANGES, null);
