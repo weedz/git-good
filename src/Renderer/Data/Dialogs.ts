@@ -102,7 +102,8 @@ export function openDialog_SetUpstream(local: string, currentUpstream?: string) 
     oldRemote = getRemoteName(currentUpstream);
     branch = normalizeRemoteNameWithoutRemote(currentUpstream);
   } else {
-    oldRemote = Store.remotes[0].name, branch = normalizeLocalName(branch);
+    oldRemote = Store.remotes[0].name;
+    branch = normalizeLocalName(branch);
   }
 
   openDialogWindow(DialogTypes.SET_UPSTREAM, {

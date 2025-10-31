@@ -352,7 +352,7 @@ export async function fetchRemote(remotes: nodegit.Remote[]): Promise<boolean> {
       }
     });
 
-    fetchPromise.finally(() => {
+    void fetchPromise.finally(() => {
       sendEvent(AppEventType.NOTIFY_FETCH_STATUS, {
         remote: remoteName,
         done: true,
@@ -599,11 +599,13 @@ async function doPush(remote: nodegit.Remote, localName: string, remoteName: str
           // eslint-disable-next-line @typescript-eslint/ban-ts-comment
           // @ts-expect-error We do in fact have a `pushTransferProgress` callback <https://github.com/libgit2/libgit2/blob/17c410059261def387a7ea66da8b9062cb1b4141/include/git2/remote.h#L616>
           pushTransferProgress: (transferedObjects: number, totalObjects: number, bytes: number) => {
-            context && sendEvent(AppEventType.NOTIFY_PUSH_STATUS, {
-              totalObjects,
-              transferedObjects,
-              bytes,
-            });
+            if (context) {
+              sendEvent(AppEventType.NOTIFY_PUSH_STATUS, {
+                totalObjects,
+                transferedObjects,
+                bytes,
+              });
+            }
           },
         },
       },

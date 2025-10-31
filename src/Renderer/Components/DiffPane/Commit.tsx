@@ -59,14 +59,14 @@ export default class Commit extends StoreComponent<Props, State> {
   componentWillReceiveProps(props: Props) {
     if (props.sha !== this.props.sha) {
       this.resetView();
-      this.getCommit(props.sha);
+      void this.getCommit(props.sha);
     } else {
       clearLock(Locks.COMMIT_LIST);
     }
   }
   componentDidMount() {
     this.resetView();
-    this.getCommit(this.props.sha);
+    void this.getCommit(this.props.sha);
 
     this.listen("diffOptions", async () => this.state.commit && await this.loadPatches());
   }

@@ -4,7 +4,9 @@ export function debounce<TArgs>(fn: (args: TArgs) => unknown, ms: number) {
 
   const invoke = () => {
     timeout = 0;
-    args.arg !== undefined && fn(args.arg);
+    if (args.arg !== undefined) {
+      fn(args.arg);
+    }
   };
 
   return (arg: TArgs) => {

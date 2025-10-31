@@ -15,7 +15,7 @@ type State = {
 
 export class Settings extends Component<SettingsProps, State> {
   componentDidMount() {
-    ipcGetData(IpcAction.GET_SETTINGS, null).then(config => {
+    void ipcGetData(IpcAction.GET_SETTINGS, null).then(config => {
       this.setState({
         config,
       });
@@ -210,7 +210,7 @@ export class Settings extends Component<SettingsProps, State> {
               saved: true,
             });
             setTimeout(() => {
-              this && this.setState({
+              this?.setState({
                 saved: null,
               });
             }, 5000);

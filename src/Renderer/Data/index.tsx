@@ -64,7 +64,7 @@ calculateGlyphWidth(13, "JetBrainsMonoNL Nerd Font Mono");
 loadStylesFromLocalstorage();
 
 ipcSendMessage(IpcAction.INIT, null);
-ipcGetData(IpcAction.GET_SETTINGS, null).then(appConfig => {
+void ipcGetData(IpcAction.GET_SETTINGS, null).then(appConfig => {
   store.updateStore("appConfig", appConfig);
   store.updateStore("diffOptions", appConfig.diffOptions);
 });

@@ -782,6 +782,8 @@ function openRepoInTerminal() {
 }
 function openRepoInFileManager() {
   const repo = currentRepo();
-  // FIXME: `shell.openExternal` locks the main thread?
-  repo && shell.showItemInFolder(repo.path());
+  if (repo) {
+    // FIXME: `shell.openExternal` locks the main thread?
+    shell.showItemInFolder(repo.path());
+  }
 }

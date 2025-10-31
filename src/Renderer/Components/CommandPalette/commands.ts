@@ -26,10 +26,14 @@ export interface Command {
 }
 
 function openRecentRepositoryAction(this: Command) {
-  this.details && ipcSendMessage(IpcAction.OPEN_REPOSITORY, this.details);
+  if (this.details) {
+    ipcSendMessage(IpcAction.OPEN_REPOSITORY, this.details);
+  }
 }
 function checkoutBranchAction(this: Command) {
-  this.data && ipcSendMessage(IpcAction.CHECKOUT_BRANCH, this.data);
+  if (this.data) {
+    ipcSendMessage(IpcAction.CHECKOUT_BRANCH, this.data);
+  }
 }
 
 export function makeCommand(label: Command["label"], action: Command["action"], data?: any, details?: string, focusAction?: Command["focusAction"]): Command {
@@ -68,7 +72,7 @@ export const commandPaletteCommandList: Command[] = [
   makeCommand("Working directory: Stage file...", async () => {
     const unstagedChanges = await ipcGetData(IpcAction.GET_UNSTAGED_CHANGES, null);
     return unstagedChanges.map(patch => makeCommand(
-      `[${getType(patch.status)}] ${patch.actualFile.path}`,
+      `[${getType(patch.status)}] ${patch.actualFile.path}`, // oxlint-disable-line
       async () => {
         await ipcGetData(IpcAction.STAGE_FILE, patch.actualFile.path);
         return true;

@@ -1,4 +1,4 @@
-import { Component, createRef, type h } from "preact";
+import { Component, createRef, type HTMLAttributes } from "preact";
 import { LinkTypes } from "../../Common/WindowEventTypes.js";
 import { Links } from "./LinkContainer.js";
 
@@ -28,7 +28,7 @@ const selectedIds: {
   [LinkTypes.FILES]: undefined,
 };
 
-interface Props<T> extends h.JSX.HTMLAttributes<HTMLAnchorElement> {
+interface Props<T> extends HTMLAttributes<HTMLAnchorElement> {
   selectTarget?: () => Link;
   selectAction?: (arg: Link<T>) => void;
   linkType?: LinkTypes;
@@ -87,10 +87,14 @@ class Link<T = unknown> extends Component<Props<T>, State> {
     selectedIds[this.type] = selectedLink?.props.linkId;
 
     if (selectedLink && (alwaysTrigger || selectedLink !== prevLink)) {
-      this.props.selectAction && this.props.selectAction(this);
+      if (this.props.selectAction) {
+        this.props.selectAction(this);
+      }
 
       if (selectedLink !== this) {
-        selectedLink.props.selectAction && selectedLink.props.selectAction(selectedLink);
+        if (selectedLink.props.selectAction) {
+          selectedLink.props.selectAction(selectedLink);
+        }
       }
 
       if (selectedLink.ref) {
@@ -128,7 +132,7 @@ class Link<T = unknown> extends Component<Props<T>, State> {
     }
 
     return (
-      <a ref={this.ref} class={classNames.join(" ")} href="#" onClick={this.onClick} {...props as h.JSX.HTMLAttributes<HTMLAnchorElement>}>
+      <a ref={this.ref} class={classNames.join(" ")} href="#" onClick={this.onClick} {...props as HTMLAttributes<HTMLAnchorElement>}>
         {props.children}
       </a>
     );

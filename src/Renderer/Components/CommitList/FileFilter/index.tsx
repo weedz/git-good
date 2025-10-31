@@ -1,4 +1,4 @@
-import { Fragment, type h } from "preact";
+import { Fragment, type TargetedInputEvent, type TargetedMouseEvent } from "preact";
 import { IpcAction, type IpcResponse } from "../../../../Common/Actions.js";
 import { openFileHistory } from "../../../Data/index.js";
 import { ipcSendMessage } from "../../../Data/IPC.js";
@@ -19,7 +19,7 @@ export default class FileFilter extends StoreComponent<unknown, State> {
   }
   componentWillUnmount() {
     super.componentWillUnmount();
-    this.findFileTimeout && clearTimeout(this.findFileTimeout);
+    window.clearTimeout(this.findFileTimeout);
   }
 
   handleFindFile = (files: IpcResponse<IpcAction.FIND_FILE>) => {
@@ -32,15 +32,15 @@ export default class FileFilter extends StoreComponent<unknown, State> {
     });
   };
 
-  openFileHistory = (event: h.JSX.TargetedMouseEvent<HTMLElement>) => {
+  openFileHistory = (event: TargetedMouseEvent<HTMLElement>) => {
     const file = event ? event.currentTarget.dataset.path : undefined;
     if (file) {
       openFileHistory(file);
     }
   };
 
-  findFiles = (e: h.JSX.TargetedInputEvent<HTMLInputElement>) => {
-    globalThis.clearTimeout(this.findFileTimeout);
+  findFiles = (e: TargetedInputEvent<HTMLInputElement>) => {
+    window.clearTimeout(this.findFileTimeout);
 
     const value = e.currentTarget.value;
     if (value) {
