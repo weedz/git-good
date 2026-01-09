@@ -77,7 +77,9 @@ class Link<T = unknown> extends Component<Props<T>, State> {
   triggerAction(alwaysTrigger = false) {
     const prevLink = selectedLinks[this.type];
 
-    selectedLinks[this.type] = (this.props.selectTarget ? this.props.selectTarget() : this) as Link<unknown>;
+    selectedLinks[this.type] = (
+      this.props.selectTarget ? this.props.selectTarget() : this
+    ) as Link<unknown>;
 
     const selectedLink = selectedLinks[this.type];
     if (prevLink && prevLink.ref && prevLink !== selectedLink) {
@@ -127,12 +129,21 @@ class Link<T = unknown> extends Component<Props<T>, State> {
     const classNames = typeof props.class === "string" ? [props.class] : [];
     delete props.class;
 
-    if (this.state.selected || this.props.linkId && selectedIds[this.type] === this.props.linkId) {
+    if (
+      this.state.selected ||
+      (this.props.linkId && selectedIds[this.type] === this.props.linkId)
+    ) {
       classNames.push("selected");
     }
 
     return (
-      <a ref={this.ref} class={classNames.join(" ")} href="#" onClick={this.onClick} {...props as HTMLAttributes<HTMLAnchorElement>}>
+      <a
+        ref={this.ref}
+        class={classNames.join(" ")}
+        href="#"
+        onClick={this.onClick}
+        {...(props as HTMLAttributes<HTMLAnchorElement>)}
+      >
         {props.children}
       </a>
     );

@@ -13,7 +13,7 @@ export function EditRemote(dialog: RemoteProps) {
   return (
     <div class="dialog-window">
       <form
-        onSubmit={e => {
+        onSubmit={(e) => {
           e.preventDefault();
           dialog.confirmCb(data);
         }}
@@ -22,19 +22,37 @@ export function EditRemote(dialog: RemoteProps) {
         <div class="flex-column">
           <label>
             <p>Name:</p>
-            <input ref={inputRef} type="text" name="name" onInput={e => data.name = e.currentTarget.value} value={data.name} />
+            <input
+              ref={inputRef}
+              type="text"
+              name="name"
+              onInput={(e) => (data.name = e.currentTarget.value)}
+              value={data.name}
+            />
           </label>
           <label>
             <p>Pull from:</p>
-            <input type="text" name="pull" onInput={e => data.pullFrom = e.currentTarget.value} value={data.pullFrom} />
+            <input
+              type="text"
+              name="pull"
+              onInput={(e) => (data.pullFrom = e.currentTarget.value)}
+              value={data.pullFrom}
+            />
           </label>
           <label>
             <p>Push to:</p>
-            <input type="text" name="push" onInput={e => data.pushTo = e.currentTarget.value} value={data.pushTo || ""} />
+            <input
+              type="text"
+              name="push"
+              onInput={(e) => (data.pushTo = e.currentTarget.value)}
+              value={data.pushTo || ""}
+            />
           </label>
         </div>
         <div class="dialog-action-buttons">
-          <button type="button" onClick={dialog.cancelCb}>Cancel</button>
+          <button type="button" onClick={dialog.cancelCb}>
+            Cancel
+          </button>
           <button type="submit">Confirm</button>
         </div>
       </form>

@@ -1,33 +1,29 @@
 {
-    "compilerOptions": {
-        "module": "ESNext",
-        "target": "ESNext",
-        "strict": true,
-        "strictFunctionTypes": true,
-        "strictNullChecks": true,
-        "strictPropertyInitialization": true,
-        "noImplicitReturns": true,
-        "noUnusedLocals": true,
-        "noUnusedParameters": true,
-        "noImplicitAny": true,
-        "noImplicitThis": true,
-        "noFallthroughCasesInSwitch": true,
-        "alwaysStrict": true,
-        "verbatimModuleSyntax": true,
-        "forceConsistentCasingInFileNames": true,
-        "esModuleInterop": true,
-        "noEmit": true,
-        "jsx": "react-jsx",
-        "jsxImportSource": "preact",
-        "sourceMap": false,
-        "moduleResolution": "Bundler",
-        "resolveJsonModule": true,
-        "typeRoots": [
-            "./types",
-            "./node_modules/@types"
-        ]
-    },
-    "include": [
-        "./src"
-    ]
+  "compilerOptions": {
+    "module": "ESNext",
+    "target": "ESNext",
+    "strict": true,
+    "strictFunctionTypes": true,
+    "strictNullChecks": true,
+    "strictPropertyInitialization": true,
+    "noImplicitReturns": true,
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "noImplicitAny": true,
+    "noImplicitThis": true,
+    "noFallthroughCasesInSwitch": true,
+    "alwaysStrict": true,
+    "verbatimModuleSyntax": true,
+    "forceConsistentCasingInFileNames": true,
+    "esModuleInterop": true,
+    "noEmit": true,
+    "skipLibCheck": true,
+    "jsx": "react-jsx",
+    "jsxImportSource": "preact",
+    "sourceMap": false,
+    "moduleResolution": "Bundler",
+    "resolveJsonModule": true,
+    "typeRoots": ["./types", "./node_modules/@types"]
+  },
+  "include": ["./src"]
 }

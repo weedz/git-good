@@ -17,7 +17,7 @@ export function SetUpstream(dialog: SetUpstreamProps) {
   return (
     <div class="dialog-window">
       <form
-        onSubmit={e => {
+        onSubmit={(e) => {
           e.preventDefault();
           dialog.confirmCb(data.remote, data.branch);
         }}
@@ -25,9 +25,12 @@ export function SetUpstream(dialog: SetUpstreamProps) {
         <h4>Set upstream</h4>
         <label>
           <span>Remote:</span>
-          <select name="remote" onInput={e => data.remote = e.currentTarget.value}>
-            {Store.remotes.map(remote => <option key={remote.name} value={remote.name} selected={remote.name === data.remote}>{remote.name}
-            </option>)}
+          <select name="remote" onInput={(e) => (data.remote = e.currentTarget.value)}>
+            {Store.remotes.map((remote) => (
+              <option key={remote.name} value={remote.name} selected={remote.name === data.remote}>
+                {remote.name}
+              </option>
+            ))}
           </select>
         </label>
         <input
@@ -35,11 +38,13 @@ export function SetUpstream(dialog: SetUpstreamProps) {
           type="text"
           name="branch"
           placeholder="Remote branch..."
-          onInput={e => data.branch = e.currentTarget.value}
+          onInput={(e) => (data.branch = e.currentTarget.value)}
           value={data.branch}
         />
         <div class="dialog-action-buttons">
-          <button type="button" onClick={dialog.cancelCb}>Cancel</button>
+          <button type="button" onClick={dialog.cancelCb}>
+            Cancel
+          </button>
           <button type="submit">Confirm</button>
         </div>
       </form>

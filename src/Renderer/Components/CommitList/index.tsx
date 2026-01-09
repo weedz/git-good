@@ -1,11 +1,23 @@
 import { Fragment, type h } from "preact";
 
-import type { IpcActionParams, IpcResponse, LoadCommitReturn, LoadCommitsReturn } from "../../../Common/Actions.js";
+import type {
+  IpcActionParams,
+  IpcResponse,
+  LoadCommitReturn,
+  LoadCommitsReturn,
+} from "../../../Common/Actions.js";
 import { IpcAction, Locks } from "../../../Common/Actions.js";
 import { HISTORY_REF } from "../../../Common/Branch.js";
 import { LinkTypes } from "../../../Common/WindowEventTypes.js";
 import { ipcSendMessage } from "../../Data/IPC.js";
-import { clearLock, lockChanged, PureStoreComponent, setLock, Store, type StoreType } from "../../Data/store.js";
+import {
+  clearLock,
+  lockChanged,
+  PureStoreComponent,
+  setLock,
+  Store,
+  type StoreType,
+} from "../../Data/store.js";
 import { filterCommit } from "../../Data/Utility.js";
 import { Links } from "../LinkContainer.js";
 import CommitContainer from "./CommitContainer.js";
@@ -22,10 +34,13 @@ const pageSize = 200;
 const historyLimit = 2000;
 
 class CommitList extends PureStoreComponent<unknown, State> {
-  graph: Map<string, {
-    descendants: LoadCommitReturn[];
-    colorId: number;
-  }> = new Map();
+  graph: Map<
+    string,
+    {
+      descendants: LoadCommitReturn[];
+      colorId: number;
+    }
+  > = new Map();
   cursor: string | null = null;
   color = 0;
   canFetchMore = true;
@@ -155,7 +170,7 @@ class CommitList extends PureStoreComponent<unknown, State> {
   filterCommits() {
     const filter = this.state.filter;
     if (filter) {
-      return this.commits.filter(commit => filterCommit(filter, commit));
+      return this.commits.filter((commit) => filterCommit(filter, commit));
     }
     return this.commits;
   }
@@ -168,15 +183,17 @@ class CommitList extends PureStoreComponent<unknown, State> {
           <FileFilter />
         </div>
         <Links.Provider value={LinkTypes.COMMITS}>
-          {this.commits.length
-            ? (
-              <CommitContainer
-                loadMore={() => Store.selectedBranch !== HISTORY_REF && this.loadMoreCommits(Store.selectedBranch)}
-                commits={this.filterCommits()}
-                graph={this.graph}
-              />
-            )
-            : "No commits yet?"}
+          {this.commits.length ? (
+            <CommitContainer
+              loadMore={() =>
+                Store.selectedBranch !== HISTORY_REF && this.loadMoreCommits(Store.selectedBranch)
+              }
+              commits={this.filterCommits()}
+              graph={this.graph}
+            />
+          ) : (
+            "No commits yet?"
+          )}
         </Links.Provider>
       </Fragment>
     );
@@ -185,7 +202,7 @@ class CommitList extends PureStoreComponent<unknown, State> {
 
 export default class CommitListWrapper extends PureStoreComponent {
   componentDidMount(): void {
-    this.listen("locks", locks => {
+    this.listen("locks", (locks) => {
       if (lockChanged(Locks.COMMIT_LIST, locks)) {
         this.forceUpdate();
       }

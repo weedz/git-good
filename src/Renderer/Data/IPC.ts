@@ -1,4 +1,9 @@
-import type { IpcActionParams, IpcActionReturn, IpcPayload, IpcResponse } from "../../Common/Actions.js";
+import type {
+  IpcActionParams,
+  IpcActionReturn,
+  IpcPayload,
+  IpcResponse,
+} from "../../Common/Actions.js";
 import { IpcAction } from "../../Common/Actions.js";
 import { NativeDialog, type NativeDialogData } from "../../Common/Dialog.js";
 import { type AppEventData, AppEventType } from "../../Common/WindowEventTypes.js";
@@ -36,10 +41,7 @@ export function registerAppEventHandlers(handlers: typeof appEventHandlers) {
   appEventHandlers = handlers;
 }
 
-function handleAppEvent<T extends AppEventType>(payload: {
-  event: T;
-  data: AppEventData[T];
-}) {
+function handleAppEvent<T extends AppEventType>(payload: { event: T; data: AppEventData[T] }) {
   appEventHandlers[payload.event](payload.data);
 }
 
@@ -47,17 +49,23 @@ export function ipcSendMessage<T extends IpcAction>(action: T, data: IpcActionPa
   return globalThis.electronAPI.sendAsyncMessage(action, data);
 }
 
-export function ipcGetData<T extends IpcAction>(action: T, data: IpcActionParams[T]): Promise<IpcActionReturn[T]> {
+export function ipcGetData<T extends IpcAction>(
+  action: T,
+  data: IpcActionParams[T],
+): Promise<IpcActionReturn[T]> {
   const id = ipcSendMessage(action, data);
   return new Promise<IpcActionReturn[T]>((resolve, _reject) => {
     // calbackHandlers get cleaned up in handleMessage()
-    callbackHandlers.set(id, resolve as unknown as (args: IpcActionReturn[IpcAction] | null) => void);
+    callbackHandlers.set(
+      id,
+      resolve as unknown as (args: IpcActionReturn[IpcAction] | null) => void,
+    );
   });
 }
 
 type HandlerCallback<T extends IpcAction> = (arg: IpcResponse<T>) => void;
 
-const handlers: { [T in IpcAction]: HandlerCallback<T>[]; } = {
+const handlers: { [T in IpcAction]: HandlerCallback<T>[] } = {
   [IpcAction.INIT]: [],
   [IpcAction.LOAD_COMMITS]: [],
   [IpcAction.LOAD_FILE_COMMITS]: [],
@@ -117,7 +125,10 @@ function handleEvent<T extends IpcAction>(payload: IpcPayload<T>) {
   try {
     let data: IpcResponse<T>;
     if ("error" in payload) {
-      openNativeDialog(NativeDialog.ERROR, { title: `Error ${payload.action}`, content: payload.error });
+      openNativeDialog(NativeDialog.ERROR, {
+        title: `Error ${payload.action}`,
+        content: payload.error,
+      });
       console.warn(payload);
       data = Error();
     } else {
@@ -129,6 +140,9 @@ function handleEvent<T extends IpcAction>(payload: IpcPayload<T>) {
   } catch (e) {
     console.error(e);
     console.log(payload);
-    openNativeDialog(NativeDialog.ERROR, { title: `Error ${payload.action}`, content: "Unknown error. Check devtools..." });
+    openNativeDialog(NativeDialog.ERROR, {
+      title: `Error ${payload.action}`,
+      content: "Unknown error. Check devtools...",
+    });
   }
 }

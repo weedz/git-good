@@ -2,43 +2,59 @@
   "name": "git-good",
   "version": "0.1.5",
   "description": "Git good",
-  "main": "dist/main.js",
+  "keywords": [],
+  "homepage": "https://github.com/weedz/git-good#readme",
+  "bugs": {
+    "url": "https://github.com/weedz/git-good/issues"
+  },
+  "license": "GPL-3.0-or-later",
+  "author": {
+    "name": "Linus Björklund",
+    "email": "weedzcokie@gmail.com"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/weedz/git-good.git"
+  },
+  "files": [
+    "dist"
+  ],
   "type": "module",
+  "main": "dist/main.js",
   "scripts": {
     "start": "electron --ozone-platform-hint=wayland .",
     "lint": "oxlint -c .oxlintrc.json --type-aware --tsconfig ./tsconfig.json -D correctness -D perf -D no-cycle",
+    "format": "oxfmt",
+    "format:check": "oxfmt --check",
     "tsc:watch": "tsc --noEmit --watch --preserveWatchOutput",
     "dev": "NODE_ENV=development pnpm run build",
     "build": "rm -rf dist;mkdir dist;cp static/* dist/; node scripts/build.mjs",
     "build:native": "./scripts/build-native.sh"
   },
-  "keywords": [],
-  "author": {
-    "name": "Linus Björklund",
-    "email": "weedzcokie@gmail.com"
+  "dependencies": {
+    "nodegit": "github:weedz/nodegit#master"
   },
-  "files": [
-    "dist"
-  ],
-  "license": "GPL-3.0-or-later",
   "devDependencies": {
     "@types/node": "^22.19.3",
     "@types/nodegit": "^0.28.9",
     "@weedzcokie/store": "^2.0.3",
     "electron": "38.7.2",
     "esbuild": "^0.27.2",
-    "oxlint": "^1.35.0",
-    "oxlint-tsgolint": "^0.10.0",
-    "preact": "^10.28.0",
+    "oxfmt": "^0.23.0",
+    "oxlint": "^1.38.0",
+    "oxlint-tsgolint": "^0.11.0",
+    "preact": "^10.28.2",
     "typescript": "^5.9.3"
-  },
-  "dependencies": {
-    "nodegit": "github:weedz/nodegit#master"
   },
   "resolutions": {
     "@electron/get": "^4",
     "node-abi": "^4"
   },
+  "engines": {
+    "node": ">=22",
+    "pnpm": ">=10"
+  },
+  "packageManager": "pnpm@10.27.0+sha512.72d699da16b1179c14ba9e64dc71c9a40988cbdc65c264cb0e489db7de917f20dcf4d64d8723625f2969ba52d4b7e2a1170682d9ac2a5dcaeaab732b7e16f04a",
   "pnpm": {
     "onlyBuiltDependencies": [
       "electron",
@@ -62,18 +78,5 @@
     "mac": {
       "category": "public.app-category.developer-tools"
     }
-  },
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/weedz/git-good.git"
-  },
-  "bugs": {
-    "url": "https://github.com/weedz/git-good/issues"
-  },
-  "homepage": "https://github.com/weedz/git-good#readme",
-  "engines": {
-    "node": ">=22",
-    "pnpm": ">=10"
-  },
-  "packageManager": "pnpm@10.26.1+sha512.664074abc367d2c9324fdc18037097ce0a8f126034160f709928e9e9f95d98714347044e5c3164d65bd5da6c59c6be362b107546292a8eecb7999196e5ce58fa"
+  }
 }

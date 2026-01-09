@@ -176,7 +176,10 @@ export function openLocalMenu(data: Record<string, string>) {
     {
       label: "Checkout",
       async click() {
-        sendAction(IpcAction.CHECKOUT_BRANCH, await provider.checkoutBranch(currentRepo(), data.ref));
+        sendAction(
+          IpcAction.CHECKOUT_BRANCH,
+          await provider.checkoutBranch(currentRepo(), data.ref),
+        );
       },
     },
     {
@@ -288,7 +291,10 @@ export function openTagMenu(data: Record<string, string>) {
         });
         if (result.response === 1) {
           sendEvent(AppEventType.NOTIFY, { title: `Deleting tag '${refName}'` });
-          await provider.deleteTag(currentRepo(), { name: refName, remote: result.checkboxChecked });
+          await provider.deleteTag(currentRepo(), {
+            name: refName,
+            remote: result.checkboxChecked,
+          });
           sendAction(IpcAction.LOAD_BRANCHES, await provider.getBranches(currentRepo()));
         }
       },

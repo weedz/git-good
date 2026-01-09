@@ -3,7 +3,15 @@ import { basename, join } from "node:path";
 import process from "node:process";
 
 import { clipboard, screen, shell } from "electron";
-import { app, BrowserWindow, dialog, ipcMain, type IpcMainEvent, Menu, type MenuItemConstructorOptions } from "electron/main";
+import {
+  app,
+  BrowserWindow,
+  dialog,
+  ipcMain,
+  type IpcMainEvent,
+  Menu,
+  type MenuItemConstructorOptions,
+} from "electron/main";
 
 import type { Commit, Object, Reference } from "nodegit";
 
@@ -25,7 +33,11 @@ import {
 } from "./Main/Config.js";
 import { isMac, isWindows } from "./Main/Utils.js";
 
-import type { AsyncIpcActionReturnOrError, IpcActionParams, IpcActionReturnOrError } from "./Common/Actions.js";
+import type {
+  AsyncIpcActionReturnOrError,
+  IpcActionParams,
+  IpcActionReturnOrError,
+} from "./Common/Actions.js";
 import { IpcAction, Locks } from "./Common/Actions.js";
 import { normalizeLocalName } from "./Common/Branch.js";
 import { formatTimeAgo } from "./Common/Utils.js";
@@ -81,7 +93,11 @@ app.once("ready", async () => {
   );
 
   win.addListener("focus", async () => {
-    if (getAppConfig().ui.refreshWorkdirOnFocus && currentRepo() && !provider.isRefreshingWorkdir()) {
+    if (
+      getAppConfig().ui.refreshWorkdirOnFocus &&
+      currentRepo() &&
+      !provider.isRefreshingWorkdir()
+    ) {
       const currentHead = await currentRepo().getHeadCommit();
       if (!getLastKnownHead() || !currentHead.id().equal(getLastKnownHead())) {
         sendAction(IpcAction.LOAD_BRANCHES, await provider.getBranches(currentRepo()));
@@ -94,7 +110,7 @@ app.once("ready", async () => {
 
   await win.loadFile(join(import.meta.dirname, "../dist/index.html"));
 
-  win.webContents.on("will-navigate", e => {
+  win.webContents.on("will-navigate", (e) => {
     e.preventDefault();
   });
   win.webContents.setWindowOpenHandler(() => {
@@ -125,22 +141,24 @@ function buildOpenRepoMenuItem(path: string): MenuItemConstructorOptions {
 function applyAppMenu(): void {
   const repo = currentRepo();
   const menuTemplate = [
-    ...isMac
-      ? [{
-        label: app.name,
-        submenu: [
-          { role: "about" },
-          { type: "separator" },
-          { role: "services" },
-          { type: "separator" },
-          { role: "hide" },
-          { role: "hideothers" },
-          { role: "unhide" },
-          { type: "separator" },
-          { role: "quit" },
-        ],
-      }]
-      : [],
+    ...(isMac
+      ? [
+          {
+            label: app.name,
+            submenu: [
+              { role: "about" },
+              { type: "separator" },
+              { role: "services" },
+              { type: "separator" },
+              { role: "hide" },
+              { role: "hideothers" },
+              { role: "unhide" },
+              { type: "separator" },
+              { role: "quit" },
+            ],
+          },
+        ]
+      : []),
     {
       label: "File",
       submenu: [
@@ -227,23 +245,16 @@ function applyAppMenu(): void {
         { role: "paste" },
         ...(isMac
           ? [
-            { role: "pasteAndMatchStyle" },
-            { role: "delete" },
-            { role: "selectAll" },
-            { type: "separator" },
-            {
-              label: "Speech",
-              submenu: [
-                { role: "startspeaking" },
-                { role: "stopspeaking" },
-              ],
-            },
-          ]
-          : [
-            { role: "delete" },
-            { type: "separator" },
-            { role: "selectAll" },
-          ]),
+              { role: "pasteAndMatchStyle" },
+              { role: "delete" },
+              { role: "selectAll" },
+              { type: "separator" },
+              {
+                label: "Speech",
+                submenu: [{ role: "startspeaking" }, { role: "stopspeaking" }],
+              },
+            ]
+          : [{ role: "delete" }, { type: "separator" }, { role: "selectAll" }]),
       ],
     },
     {
@@ -260,106 +271,125 @@ function applyAppMenu(): void {
         { role: "togglefullscreen" },
       ],
     },
-    ...repo
-      ? [{
-        label: "Repository",
-        submenu: [
+    ...(repo
+      ? [
           {
-            label: "Fetch all",
-            async click() {
-              await provider.fetchRemoteFrom(repo, null);
-              sendAction(IpcAction.LOAD_BRANCHES, await provider.getBranches(repo));
-            },
+            label: "Repository",
+            submenu: [
+              {
+                label: "Fetch all",
+                async click() {
+                  await provider.fetchRemoteFrom(repo, null);
+                  sendAction(IpcAction.LOAD_BRANCHES, await provider.getBranches(repo));
+                },
+              },
+              {
+                label: "Refresh",
+                async click() {
+                  await provider.sendRefreshWorkdirEvent(repo);
+                },
+              },
+              {
+                label: "Pull...",
+                async click() {
+                  await uiActions.pullHead();
+                },
+              },
+              {
+                label: "Push...",
+                async click() {
+                  await uiActions.pushHead();
+                },
+              },
+              {
+                type: "separator",
+              },
+              {
+                label: "Compare revisions...",
+                async click() {
+                  const revisions = await requestClientData(
+                    RendererRequestEvents.COMPARE_REVISIONS_DIALOG,
+                    null,
+                  );
+                  if (revisions) {
+                    const compare = await provider.tryCompareRevisions(currentRepo(), revisions);
+                    if (compare instanceof Error) {
+                      dialog.showErrorBox("Error", compare.toString());
+                    } else {
+                      sendEvent(AppEventType.OPEN_COMPARE_REVISIONS, compare);
+                    }
+                  }
+                },
+              },
+              {
+                label: "View commit...",
+                async click() {
+                  const commitSha = await requestClientData(
+                    RendererRequestEvents.GET_COMMIT_SHA_DIALOG,
+                    null,
+                  );
+                  if (commitSha) {
+                    sendEvent(AppEventType.SET_DIFFPANE, commitSha);
+                  }
+                },
+              },
+              {
+                label: "File history...",
+                async click() {
+                  const filePath = await requestClientData(
+                    RendererRequestEvents.FILE_HISTORY_DIALOG,
+                    null,
+                  );
+                  if (filePath) {
+                    const commits = await provider.getFileCommits(currentRepo(), {
+                      file: filePath,
+                    });
+                    sendAction(IpcAction.LOAD_FILE_COMMITS, commits);
+                  }
+                },
+              },
+            ],
           },
-          {
-            label: "Refresh",
-            async click() {
-              await provider.sendRefreshWorkdirEvent(repo);
-            },
-          },
-          {
-            label: "Pull...",
-            async click() {
-              await uiActions.pullHead();
-            },
-          },
-          {
-            label: "Push...",
-            async click() {
-              await uiActions.pushHead();
-            },
-          },
-          {
-            type: "separator",
-          },
-          {
-            label: "Compare revisions...",
-            async click() {
-              const revisions = await requestClientData(RendererRequestEvents.COMPARE_REVISIONS_DIALOG, null);
-              if (revisions) {
-                const compare = await provider.tryCompareRevisions(currentRepo(), revisions);
-                if (compare instanceof Error) {
-                  dialog.showErrorBox("Error", compare.toString());
-                } else {
-                  sendEvent(AppEventType.OPEN_COMPARE_REVISIONS, compare);
-                }
-              }
-            },
-          },
-          {
-            label: "View commit...",
-            async click() {
-              const commitSha = await requestClientData(RendererRequestEvents.GET_COMMIT_SHA_DIALOG, null);
-              if (commitSha) {
-                sendEvent(AppEventType.SET_DIFFPANE, commitSha);
-              }
-            },
-          },
-          {
-            label: "File history...",
-            async click() {
-              const filePath = await requestClientData(RendererRequestEvents.FILE_HISTORY_DIALOG, null);
-              if (filePath) {
-                const commits = await provider.getFileCommits(currentRepo(), { file: filePath });
-                sendAction(IpcAction.LOAD_FILE_COMMITS, commits);
-              }
-            },
-          },
-        ],
-      }, {
-        label: "Stash",
-        submenu: [
           {
             label: "Stash",
-            async click() {
-              // TODO: Stash message
-              await nodegit.Stash.save(repo, signatureFromActiveProfile(), "Stash", StashFLAGS.DEFAULT);
-              await provider.sendRefreshWorkdirEvent(repo);
-              sendAction(IpcAction.LOAD_STASHES, await provider.getStash(repo));
-              sendEvent(AppEventType.NOTIFY, { title: "Stashed changes" });
-            },
+            submenu: [
+              {
+                label: "Stash",
+                async click() {
+                  // TODO: Stash message
+                  await nodegit.Stash.save(
+                    repo,
+                    signatureFromActiveProfile(),
+                    "Stash",
+                    StashFLAGS.DEFAULT,
+                  );
+                  await provider.sendRefreshWorkdirEvent(repo);
+                  sendAction(IpcAction.LOAD_STASHES, await provider.getStash(repo));
+                  sendEvent(AppEventType.NOTIFY, { title: "Stashed changes" });
+                },
+              },
+              {
+                label: "Pop latest stash",
+                async click() {
+                  await provider.stashPop(repo, 0);
+                },
+              },
+              {
+                label: "Apply latest stash",
+                async click() {
+                  await provider.stashApply(repo, 0);
+                },
+              },
+              {
+                label: "Drop latest stash",
+                async click() {
+                  await provider.stashDrop(repo, 0);
+                },
+              },
+            ],
           },
-          {
-            label: "Pop latest stash",
-            async click() {
-              await provider.stashPop(repo, 0);
-            },
-          },
-          {
-            label: "Apply latest stash",
-            async click() {
-              await provider.stashApply(repo, 0);
-            },
-          },
-          {
-            label: "Drop latest stash",
-            async click() {
-              await provider.stashDrop(repo, 0);
-            },
-          },
-        ],
-      }]
-      : [],
+        ]
+      : []),
     // { role: 'windowMenu' }
     {
       label: "Window",
@@ -367,15 +397,8 @@ function applyAppMenu(): void {
         { role: "minimize" },
         { role: "zoom" },
         ...(isMac
-          ? [
-            { type: "separator" },
-            { role: "front" },
-            { type: "separator" },
-            { role: "window" },
-          ]
-          : [
-            { role: "close" },
-          ]),
+          ? [{ type: "separator" }, { role: "front" }, { type: "separator" }, { role: "window" }]
+          : [{ role: "close" }]),
       ],
     },
     {
@@ -394,14 +417,15 @@ function applyAppMenu(): void {
           label: "About",
           async click() {
             const buildDate = new Date(buildDateTime);
-            const versionsString = `Version: ${app.getVersion()}\n`
-              + `Commit: ${lastCommit}\n`
-              + `Date: ${buildDate.toISOString()} (${formatTimeAgo(buildDate)})\n`
-              + `Electron: ${process.versions.electron}\n`
-              + `Chromium: ${process.versions.chrome}\n`
-              + `Node: ${process.versions.node}\n`
-              + `V8: ${process.versions.v8}\n`
-              + `OS: ${process.getSystemVersion()}`;
+            const versionsString =
+              `Version: ${app.getVersion()}\n` +
+              `Commit: ${lastCommit}\n` +
+              `Date: ${buildDate.toISOString()} (${formatTimeAgo(buildDate)})\n` +
+              `Electron: ${process.versions.electron}\n` +
+              `Chromium: ${process.versions.chrome}\n` +
+              `Node: ${process.versions.node}\n` +
+              `V8: ${process.versions.v8}\n` +
+              `OS: ${process.getSystemVersion()}`;
             const response = await dialog.showMessageBox({
               message: "git-good",
               type: "info",
@@ -432,10 +456,10 @@ type EventArgs = {
 type PromiseEventCallback<A extends IpcAction> = (
   repo: nodegit.Repository,
   args: IpcActionParams[A],
-  event: IpcMainEvent
+  event: IpcMainEvent,
 ) => IpcActionReturnOrError<A> | AsyncIpcActionReturnOrError<A>;
 
-const eventMap: { [A in IpcAction]: PromiseEventCallback<A> | (() => void); } = {
+const eventMap: { [A in IpcAction]: PromiseEventCallback<A> | (() => void) } = {
   [IpcAction.INIT]: async () => {
     const recentRepo = getRecentRepositories()[0];
     if (recentRepo) {
@@ -449,8 +473,10 @@ const eventMap: { [A in IpcAction]: PromiseEventCallback<A> | (() => void); } = 
   [IpcAction.LOAD_COMMIT]: provider.loadCommit,
   [IpcAction.LOAD_COMMITS]: provider.getCommits,
   [IpcAction.LOAD_FILE_COMMITS]: provider.getFileCommits,
-  [IpcAction.LOAD_PATCHES_WITHOUT_HUNKS]: async (_, args) => await provider.getCommitPatches(args.sha, getAppConfig().diffOptions),
-  [IpcAction.FILE_DIFF_AT]: async (repo, args) => await provider.diffFileAtCommit(repo, args.file, args.sha),
+  [IpcAction.LOAD_PATCHES_WITHOUT_HUNKS]: async (_, args) =>
+    await provider.getCommitPatches(args.sha, getAppConfig().diffOptions),
+  [IpcAction.FILE_DIFF_AT]: async (repo, args) =>
+    await provider.diffFileAtCommit(repo, args.file, args.sha),
   [IpcAction.LOAD_HUNKS]: async (repo, arg) => {
     return {
       path: arg.path,
@@ -503,7 +529,7 @@ const eventMap: { [A in IpcAction]: PromiseEventCallback<A> | (() => void); } = 
     }
 
     const sha = ref.isTag()
-      ? (await ref.peel(ObjectTYPE.COMMIT as unknown as Object.TYPE)) as unknown as Commit
+      ? ((await ref.peel(ObjectTYPE.COMMIT as unknown as Object.TYPE)) as unknown as Commit)
       : await repo.getReferenceCommit(data.ref);
 
     try {
@@ -592,7 +618,7 @@ const eventMap: { [A in IpcAction]: PromiseEventCallback<A> | (() => void); } = 
       nodegit.Remote.setPushurl(repo, data.name, data.pushTo);
     }
 
-    if (!await provider.fetchRemote([remote])) {
+    if (!(await provider.fetchRemote([remote]))) {
       // Deleting remote with (possibly) invalid url
       await nodegit.Remote.delete(repo, data.name);
       return false;
@@ -746,9 +772,9 @@ async function openRepo(repoPath: string): Promise<boolean> {
   }
   sendEvent(AppEventType.NOTIFY, { title: "Repo opened", body });
   await Promise.all([
-    provider.getRemotes(opened).then(remotes => sendAction(IpcAction.REMOTES, remotes)),
-    provider.getBranches(opened).then(branches => sendAction(IpcAction.LOAD_BRANCHES, branches)),
-    provider.getStash(opened).then(stash => sendAction(IpcAction.LOAD_STASHES, stash)),
+    provider.getRemotes(opened).then((remotes) => sendAction(IpcAction.REMOTES, remotes)),
+    provider.getBranches(opened).then((branches) => sendAction(IpcAction.LOAD_BRANCHES, branches)),
+    provider.getStash(opened).then((stash) => sendAction(IpcAction.LOAD_STASHES, stash)),
   ]);
 
   await provider.sendRefreshWorkdirEvent(opened);
@@ -775,7 +801,7 @@ function openRepoInTerminal() {
         cwd: repo.workdir(),
       });
     }
-    process.on("error", err => {
+    process.on("error", (err) => {
       dialog.showErrorBox("Failed to open terminal", err.message);
     });
   }

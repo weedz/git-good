@@ -14,10 +14,9 @@ type State = {
 function branchesToTree(branches: BranchesObj, filter: string | null) {
   return getBranchTree(
     filter
-      ? filterBranches(
-        branches,
-        (value) => value.normalizedName.toLocaleLowerCase().includes(filter),
-      )
+      ? filterBranches(branches, (value) =>
+          value.normalizedName.toLocaleLowerCase().includes(filter),
+        )
       : branches,
   );
 }
@@ -73,7 +72,7 @@ class Branches extends PureStoreComponent<unknown, State> {
 
 export default class BranchesWrapper extends PureStoreComponent {
   componentDidMount(): void {
-    this.listen("locks", locks => {
+    this.listen("locks", (locks) => {
       if (lockChanged(Locks.BRANCH_LIST, locks)) {
         this.forceUpdate();
       }
@@ -81,7 +80,10 @@ export default class BranchesWrapper extends PureStoreComponent {
   }
   render() {
     return (
-      <div id="branch-pane" class={`flex-column${Store.locks[Locks.BRANCH_LIST] ? " disabled" : ""}`}>
+      <div
+        id="branch-pane"
+        class={`flex-column${Store.locks[Locks.BRANCH_LIST] ? " disabled" : ""}`}
+      >
         <Branches />
       </div>
     );

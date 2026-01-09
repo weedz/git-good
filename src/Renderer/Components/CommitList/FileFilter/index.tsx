@@ -66,12 +66,15 @@ export default class FileFilter extends StoreComponent<unknown, State> {
           onInput={this.findFiles}
           placeholder="File/path..."
         />
-        {this.state.showFiles && !!this.state.fileResults?.length
-          && (
-            <ul id="file-filter-list">
-              {this.state.fileResults.map(file => <li key={file} onClick={this.openFileHistory} data-path={file}>{file}</li>)}
-            </ul>
-          )}
+        {this.state.showFiles && !!this.state.fileResults?.length && (
+          <ul id="file-filter-list">
+            {this.state.fileResults.map((file) => (
+              <li key={file} onClick={this.openFileHistory} data-path={file}>
+                {file}
+              </li>
+            ))}
+          </ul>
+        )}
       </Fragment>
     );
   }

@@ -2,15 +2,30 @@ import { contextBridge, ipcRenderer } from "electron/renderer";
 import type { IpcAction, IpcActionParams, IpcPayload } from "./Common/Actions.js";
 import { ContextMenu, type ContextMenuData } from "./Common/ContextMenu.js";
 import { NativeDialog, type NativeDialogData, type NativeDialogReturn } from "./Common/Dialog.js";
-import { type AppEventData, AppEventType, type RendererRequestData, RendererRequestEvents, type RendererRequestPayload } from "./Common/WindowEventTypes.js";
+import {
+  type AppEventData,
+  AppEventType,
+  type RendererRequestData,
+  RendererRequestEvents,
+  type RendererRequestPayload,
+} from "./Common/WindowEventTypes.js";
 
 interface IElectronBridgeAPI {
   openContextMenu: <M extends ContextMenu>(menu: M, data: ContextMenuData[M]) => void;
-  openNativeDialog: <D extends NativeDialog>(dialog: D, data: NativeDialogData[D]) => NativeDialogReturn[D];
-  requestClientData: (callback: <E extends RendererRequestEvents>(payload: RendererRequestPayload<E>) => Promise<null | RendererRequestData[E]>) => void;
+  openNativeDialog: <D extends NativeDialog>(
+    dialog: D,
+    data: NativeDialogData[D],
+  ) => NativeDialogReturn[D];
+  requestClientData: (
+    callback: <E extends RendererRequestEvents>(
+      payload: RendererRequestPayload<E>,
+    ) => Promise<null | RendererRequestData[E]>,
+  ) => void;
   onAsyncReply: (callback: (payload: IpcPayload<IpcAction>) => void) => void;
   sendAsyncMessage: <T extends IpcAction>(action: T, data: IpcActionParams[T]) => number;
-  onAppEvent: <T extends AppEventType>(callback: (payload: { data: AppEventData[T]; event: T; }) => void) => void;
+  onAppEvent: <T extends AppEventType>(
+    callback: (payload: { data: AppEventData[T]; event: T }) => void,
+  ) => void;
 }
 
 declare global {
@@ -30,9 +45,13 @@ contextBridge.exposeInMainWorld("electronAPI", {
       data,
     });
   },
-  requestClientData: (callback: <E extends RendererRequestEvents>(payload: RendererRequestPayload<E>) => Promise<RendererRequestData[E]>) => {
+  requestClientData: (
+    callback: <E extends RendererRequestEvents>(
+      payload: RendererRequestPayload<E>,
+    ) => Promise<RendererRequestData[E]>,
+  ) => {
     ipcRenderer.on("request-client-data", async (_, payload) => {
-      const response = await callback(payload).catch(e => Error(e));
+      const response = await callback(payload).catch((e) => Error(e));
       ipcRenderer.send("response-client-data", {
         id: payload.id,
         data: response,
@@ -51,7 +70,9 @@ contextBridge.exposeInMainWorld("electronAPI", {
     });
     return id;
   },
-  onAppEvent: <T extends AppEventType>(callback: (payload: { data: AppEventData[T]; event: T; }) => void) => {
+  onAppEvent: <T extends AppEventType>(
+    callback: (payload: { data: AppEventData[T]; event: T }) => void,
+  ) => {
     ipcRenderer.on("app-event", (_rendererEvent, args) => callback(args));
   },
 });

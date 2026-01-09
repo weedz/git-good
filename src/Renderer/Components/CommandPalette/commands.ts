@@ -36,7 +36,13 @@ function checkoutBranchAction(this: Command) {
   }
 }
 
-export function makeCommand(label: Command["label"], action: Command["action"], data?: any, details?: string, focusAction?: Command["focusAction"]): Command {
+export function makeCommand(
+  label: Command["label"],
+  action: Command["action"],
+  data?: any,
+  details?: string,
+  focusAction?: Command["focusAction"],
+): Command {
   return {
     label,
     action,
@@ -48,40 +54,54 @@ export function makeCommand(label: Command["label"], action: Command["action"], 
 
 export const commandPaletteCommandList: Command[] = [
   // REPO
-  makeCommand("Repo: Open repository", () => { ipcSendMessage(IpcAction.REQUEST_OPEN_REPO, null) }),
-  makeCommand("Repo: Clone", async () => { await openDialog_Clone() }),
+  makeCommand("Repo: Open repository", () => {
+    ipcSendMessage(IpcAction.REQUEST_OPEN_REPO, null);
+  }),
+  makeCommand("Repo: Clone", async () => {
+    await openDialog_Clone();
+  }),
   makeCommand("Repo: Open recent repository...", async () => {
     const recentRepositories = await ipcGetData(IpcAction.GET_RECENT_REPOSITORIES, null);
-    return recentRepositories.map(repoPath => makeCommand(
-      basename(repoPath),
-      openRecentRepositoryAction,
-      undefined,
-      repoPath,
-    ));
+    return recentRepositories.map((repoPath) =>
+      makeCommand(basename(repoPath), openRecentRepositoryAction, undefined, repoPath),
+    );
   }),
-  makeCommand("Repo: Fetch all", () => { ipcSendMessage(IpcAction.FETCH, null); }),
-  makeCommand("Repo: Pull", () => { ipcSendMessage(IpcAction.PULL, null); }),
-  makeCommand("Repo: Push", () => { ipcSendMessage(IpcAction.PUSH, null); }),
+  makeCommand("Repo: Fetch all", () => {
+    ipcSendMessage(IpcAction.FETCH, null);
+  }),
+  makeCommand("Repo: Pull", () => {
+    ipcSendMessage(IpcAction.PULL, null);
+  }),
+  makeCommand("Repo: Push", () => {
+    ipcSendMessage(IpcAction.PUSH, null);
+  }),
   // TODO: Send data to main thread?
-  makeCommand("Repo: File history...", async () => { await openDialog_fileHistory(); }),
+  makeCommand("Repo: File history...", async () => {
+    await openDialog_fileHistory();
+  }),
   // TODO: Send data to main thread?
-  makeCommand("Repo: Compare revisions...", async () => { await openDialog_compare(); }),
+  makeCommand("Repo: Compare revisions...", async () => {
+    await openDialog_compare();
+  }),
   // TODO: Send data to main thread?
-  makeCommand("Repo: View commit...", async () => { await openDialog_viewCommit(); }),
+  makeCommand("Repo: View commit...", async () => {
+    await openDialog_viewCommit();
+  }),
   // Working directory
   makeCommand("Working directory: Stage file...", async () => {
     const unstagedChanges = await ipcGetData(IpcAction.GET_UNSTAGED_CHANGES, null);
-    return unstagedChanges.map(patch => makeCommand(
-      `[${getType(patch.status)}] ${patch.actualFile.path}`, // oxlint-disable-line
-      async () => {
-        await ipcGetData(IpcAction.STAGE_FILE, patch.actualFile.path);
-        return true;
-      },
-      undefined,
-      undefined,
-      () => openFile({ workDir: true, patch, type: "unstaged" })
-    ),
-    )
+    return unstagedChanges.map((patch) =>
+      makeCommand(
+        `[${getType(patch.status)}] ${patch.actualFile.path}`, // oxlint-disable-line
+        async () => {
+          await ipcGetData(IpcAction.STAGE_FILE, patch.actualFile.path);
+          return true;
+        },
+        undefined,
+        undefined,
+        () => openFile({ workDir: true, patch, type: "unstaged" }),
+      ),
+    );
   }),
   // BRANCH
   makeCommand("Branch: Set upstream...", () => {
@@ -102,7 +122,9 @@ export const commandPaletteCommandList: Command[] = [
     if (!Store.branches) {
       return;
     }
-    return Store.branches.local.map(branch => makeCommand(branch.normalizedName, checkoutBranchAction, branch.name));
+    return Store.branches.local.map((branch) =>
+      makeCommand(branch.normalizedName, checkoutBranchAction, branch.name),
+    );
   }),
   // STASH
   makeCommand("Stash: Stash changes", () => console.log("TODO: 'stash changes'")),
@@ -118,9 +140,15 @@ export const commandPaletteCommandList: Command[] = [
     }
   }),
   // Settings and misc.
-  makeCommand("Open in Terminal", () => { ipcSendMessage(IpcAction.OPEN_IN_TERMINAL, null); }),
-  makeCommand("Open in File Manager", () => { ipcSendMessage(IpcAction.OPEN_IN_FILE_MANAGER, null); }),
-  makeCommand("Open preferences", () => { openSettings(); }),
+  makeCommand("Open in Terminal", () => {
+    ipcSendMessage(IpcAction.OPEN_IN_TERMINAL, null);
+  }),
+  makeCommand("Open in File Manager", () => {
+    ipcSendMessage(IpcAction.OPEN_IN_FILE_MANAGER, null);
+  }),
+  makeCommand("Open preferences", () => {
+    openSettings();
+  }),
   /**
    * TOOD:
    *      - Delete branch?

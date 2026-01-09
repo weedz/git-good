@@ -23,7 +23,7 @@ export default class CommitForm extends StoreComponent<Props, State> {
   }
 
   componentDidMount() {
-    this.listen("commitMsg", commitMsg => this.setState({ commitMsg }));
+    this.listen("commitMsg", (commitMsg) => this.setState({ commitMsg }));
   }
 
   setAmend = (e: h.JSX.TargetedEvent<HTMLInputElement, MouseEvent>) => {
@@ -51,18 +51,25 @@ export default class CommitForm extends StoreComponent<Props, State> {
     this.setState({
       amend: false,
     });
-    const notification = notify({ title: amend ? "Amending commit..." : "Creating commit...", time: 0 });
+    const notification = notify({
+      title: amend ? "Amending commit..." : "Creating commit...",
+      time: 0,
+    });
     const commitObj = await commit({
       message,
       amend,
     });
     if (commitObj) {
-      notification.update({ title: amend ? "Commit amended" : "Commit created", body: <p>New commit sha {commitObj.sha}</p>, time: 3000 });
+      notification.update({
+        title: amend ? "Commit amended" : "Commit created",
+        body: <p>New commit sha {commitObj.sha}</p>,
+        time: 3000,
+      });
     } else {
       notification.update({ title: "Failed to commit", time: 3000 });
     }
   }
-  updateMessage(msg: { summary: string; } | { body: string; }) {
+  updateMessage(msg: { summary: string } | { body: string }) {
     const commitMsg = this.state.amend ? this.state.commitMsg : Store.commitMsg;
     Object.assign(commitMsg, msg);
     this.setState({ commitMsg });
@@ -73,20 +80,40 @@ export default class CommitForm extends StoreComponent<Props, State> {
     let submitType: "amend" | "rebase" | "commit";
     if (this.state.amend) {
       submitType = "amend";
-      commitButton = <button class="fill" type="submit" value="amend" disabled={!this.state.commitMsg.summary.length}>Amend</button>;
+      commitButton = (
+        <button
+          class="fill"
+          type="submit"
+          value="amend"
+          disabled={!this.state.commitMsg.summary.length}
+        >
+          Amend
+        </button>
+      );
     } else if (Store.repoStatus?.rebasing) {
       submitType = "rebase";
-      commitButton = <button class="fill" type="submit" value="rebase">Continue rebase</button>;
+      commitButton = (
+        <button class="fill" type="submit" value="rebase">
+          Continue rebase
+        </button>
+      );
     } else {
       submitType = "commit";
       commitButton = (
-        <button class="fill" type="submit" value="commit" disabled={!this.props.staged || !this.state.commitMsg.summary.length}>Commit</button>
+        <button
+          class="fill"
+          type="submit"
+          value="commit"
+          disabled={!this.props.staged || !this.state.commitMsg.summary.length}
+        >
+          Commit
+        </button>
       );
     }
 
     return (
       <form
-        onSubmit={async e => {
+        onSubmit={async (e) => {
           e.preventDefault();
           if (submitType === "rebase") {
             ipcSendMessage(IpcAction.CONTINUE_REBASE, null);
@@ -99,7 +126,12 @@ export default class CommitForm extends StoreComponent<Props, State> {
           <h4>Commit Message</h4>
           {!Store.repoStatus?.rebasing && (
             <label style="align-self: center; margin-left: auto">
-              <input type="checkbox" name="amend" onClick={this.setAmend} checked={this.state.amend} />
+              <input
+                type="checkbox"
+                name="amend"
+                onClick={this.setAmend}
+                checked={this.state.amend}
+              />
               <span>Amend</span>
             </label>
           )}
@@ -125,9 +157,7 @@ export default class CommitForm extends StoreComponent<Props, State> {
           value={this.state.commitMsg.body}
         />
         <br />
-        <div class="flex-row">
-          {commitButton}
-        </div>
+        <div class="flex-row">{commitButton}</div>
       </form>
     );
   }

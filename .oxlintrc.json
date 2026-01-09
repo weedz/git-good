@@ -5,7 +5,7 @@
     "oxc",
     "unicorn",
     "import",
-    "promise",
+    "promise"
     //"react"
   ],
   "rules": {
@@ -17,9 +17,7 @@
         "caughtErrorsIgnorePattern": "^_"
       }
     ],
-    "typescript/no-floating-promises": [
-      "error"
-    ],
+    "typescript/no-floating-promises": ["error"],
     "typescript/no-confusing-void-expression": [
       "off",
       {

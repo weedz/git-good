@@ -14,7 +14,7 @@ export function InitRepositoryDialog(props: DialogProps[DialogTypes.INIT_REPOSIT
   return (
     <div class="dialog-window">
       <form
-        onSubmit={e => {
+        onSubmit={(e) => {
           e.preventDefault();
           props.confirmCb(target);
         }}
@@ -22,14 +22,28 @@ export function InitRepositoryDialog(props: DialogProps[DialogTypes.INIT_REPOSIT
         <h4>Init Repository</h4>
         <label>
           <p>Path:</p>
-          <input ref={inputRef} type="text" value={target} onInput={(e) => setTarget(e.currentTarget.value)} />
-          <button type="button" onClick={() => selectFile(path => setTarget(path), { properties: ["openDirectory", "createDirectory"] })}>
+          <input
+            ref={inputRef}
+            type="text"
+            value={target}
+            onInput={(e) => setTarget(e.currentTarget.value)}
+          />
+          <button
+            type="button"
+            onClick={() =>
+              selectFile((path) => setTarget(path), {
+                properties: ["openDirectory", "createDirectory"],
+              })
+            }
+          >
             Browse
           </button>
         </label>
         <br />
         <div class="dialog-action-buttons">
-          <button type="button" onClick={props.cancelCb}>Cancel</button>
+          <button type="button" onClick={props.cancelCb}>
+            Cancel
+          </button>
           <button type="submit">Confirm</button>
         </div>
       </form>

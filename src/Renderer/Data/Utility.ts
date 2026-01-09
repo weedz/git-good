@@ -11,8 +11,10 @@ export async function selectFile(cb: (data: string) => void, options: OpenDialog
 }
 
 export function filterCommit(filter: string, commit: LoadCommitReturn) {
-  return commit.sha.includes(filter)
-    || commit.message.toLocaleLowerCase().includes(filter)
-    || commit.author.email.toLocaleLowerCase().includes(filter)
-    || commit.author.name.toLocaleLowerCase().includes(filter);
+  return (
+    commit.sha.includes(filter) ||
+    commit.message.toLocaleLowerCase().includes(filter) ||
+    commit.author.email.toLocaleLowerCase().includes(filter) ||
+    commit.author.name.toLocaleLowerCase().includes(filter)
+  );
 }

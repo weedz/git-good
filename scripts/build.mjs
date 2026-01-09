@@ -15,7 +15,6 @@ const lastCommit = (() => {
 })();
 const buildDateTime = Date.now();
 
-
 /** @type {import("esbuild").Plugin[]} */
 const plugins = [
   {
@@ -24,7 +23,7 @@ const plugins = [
       // Intercept import paths called "env" so esbuild doesn't attempt
       // to map them to a file system location. Tag them with the "env-ns"
       // namespace to reserve them for this plugin.
-      build.onResolve({ filter: /^env$/ }, args => ({
+      build.onResolve({ filter: /^env$/ }, (args) => ({
         path: args.path,
         namespace: "env-ns",
       }));
@@ -45,21 +44,23 @@ const plugins = [
 if (!production) {
   /** @type {import("esbuild").Plugin} */
   const watchPlugin = {
-    name: 'watch-plugin',
+    name: "watch-plugin",
     setup(build) {
       const buildName = Array.isArray(build.initialOptions.entryPoints)
-        ? build.initialOptions.entryPoints.map(value => typeof value === "string" ? value : value.in).join(",")
+        ? build.initialOptions.entryPoints
+            .map((value) => (typeof value === "string" ? value : value.in))
+            .join(",")
         : Object.keys(build.initialOptions.entryPoints).join(",");
       build.onStart(() => {
         console.log(`[${buildName}] building...`);
       });
-      build.onEnd(async result => {
+      build.onEnd(async (result) => {
         // const analyzeLog = await analyzeMetafile(result.metafile);
         // console.log(analyzeLog);
         if (result.warnings.length === 0 && result.errors.length === 0) {
-          console.log(`[${buildName}] OK`)
+          console.log(`[${buildName}] OK`);
         } else {
-          console.log(`[${buildName}] Errors:`, result.errors)
+          console.log(`[${buildName}] Errors:`, result.errors);
           console.log(`[${buildName}] Warnings:`, result.warnings);
         }
       });
@@ -75,12 +76,7 @@ const commonOptions = {
   format: "esm",
   platform: "node",
   target: "esnext",
-  external: [
-    "nodegit",
-    "electron",
-    "electron/main",
-    "electron/renderer",
-  ],
+  external: ["nodegit", "electron", "electron/main", "electron/renderer"],
   outdir: "dist",
   plugins,
   define: {
@@ -114,25 +110,20 @@ await Promise.all([
     },
     // NOTE: Sandboxed preload scripts can't use ESM, <https://www.electronjs.org/docs/latest/tutorial/esm#preload-scripts>
     format: "cjs",
-  })
-]).then(async builds => {
+  }),
+]).then(async (builds) => {
   if (production) {
-    const results = await Promise.all(builds.map(build => build.rebuild()));
-    await Promise.all(builds.map(build => build.dispose()));
+    const results = await Promise.all(builds.map((build) => build.rebuild()));
+    await Promise.all(builds.map((build) => build.dispose()));
 
-    await Promise.all(results.map(result => analyzeMetafile(result.metafile).then(meta => { console.log(meta) })));
+    await Promise.all(
+      results.map((result) =>
+        analyzeMetafile(result.metafile).then((meta) => {
+          console.log(meta);
+        }),
+      ),
+    );
   } else {
-    await Promise.all(builds.map(build => build.watch()));
+    await Promise.all(builds.map((build) => build.watch()));
   }
 });
-
-
-
-
-
-
-
-
-
-
-

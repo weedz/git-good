@@ -207,12 +207,12 @@ ul.block-list > li > a:not(.selected):hover {
   border-right-width: 0;
   border-radius: 0;
 }
-.btn-group >*:last-child {
+.btn-group > *:last-child {
   border-right-width: 1px;
   border-top-right-radius: 2px;
   border-bottom-right-radius: 2px;
 }
-.btn-group >*:first-child {
+.btn-group > *:first-child {
   border-top-left-radius: 2px;
   border-bottom-left-radius: 2px;
 }
@@ -233,7 +233,7 @@ button:disabled,
 input[type="button"]:disabled,
 input[type="submit"]:disabled {
   cursor: not-allowed;
-  color: #777
+  color: #777;
 }
 button:hover,
 input[type="button"]:hover,
@@ -263,5 +263,5 @@ button.selected {
 .dialog-action-buttons {
   display: flex;
   justify-content: space-evenly;
-  padding-top: 7px
+  padding-top: 7px;
 }

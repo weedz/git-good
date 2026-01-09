@@ -16,7 +16,7 @@ export function PushTag(dialog: PushTagProps) {
   return (
     <div class="dialog-window">
       <form
-        onSubmit={e => {
+        onSubmit={(e) => {
           e.preventDefault();
           dialog.confirmCb(data.remote);
         }}
@@ -25,15 +25,27 @@ export function PushTag(dialog: PushTagProps) {
         <div class="flex-column align-center">
           <label>
             <span>Remote:</span>
-            <select ref={inputRef} name="remote" onInput={e => data.remote = e.currentTarget.value}>
-              {Store.remotes.map(remote => (
-                <option key={remote.name} value={remote.name} selected={remote.name === data.remote}>{remote.name}</option>
+            <select
+              ref={inputRef}
+              name="remote"
+              onInput={(e) => (data.remote = e.currentTarget.value)}
+            >
+              {Store.remotes.map((remote) => (
+                <option
+                  key={remote.name}
+                  value={remote.name}
+                  selected={remote.name === data.remote}
+                >
+                  {remote.name}
+                </option>
               ))}
             </select>
           </label>
         </div>
         <div class="dialog-action-buttons">
-          <button type="button" onClick={dialog.cancelCb}>Cancel</button>
+          <button type="button" onClick={dialog.cancelCb}>
+            Cancel
+          </button>
           <button type="submit">Confirm</button>
         </div>
       </form>

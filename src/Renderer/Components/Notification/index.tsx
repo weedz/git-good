@@ -10,7 +10,13 @@ export class Notification {
 
   ref = createRef<NotificationComponent>();
 
-  constructor(title: Props["title"], body: Props["body"], classes: string[], private deleteCallback: (id: number) => void, timeout: number | null = null) {
+  constructor(
+    title: Props["title"],
+    body: Props["body"],
+    classes: string[],
+    private deleteCallback: (id: number) => void,
+    timeout: number | null = null,
+  ) {
     this.id = (Math.random() * Number.MAX_SAFE_INTEGER) >>> 0;
     this.expireTime = timeout;
     this.refreshExpireTime();
@@ -28,7 +34,7 @@ export class Notification {
     );
   }
 
-  update(data: { title?: Props["title"]; body?: Props["body"]; time?: number | null; }) {
+  update(data: { title?: Props["title"]; body?: Props["body"]; time?: number | null }) {
     if (data.title !== undefined) {
       this.ref.current?.setState({ title: data.title });
     }
@@ -111,18 +117,20 @@ class NotificationComponent extends Component<Props, State> {
   }
   render() {
     return (
-      <li class={`notification ${Array.from(this.classes.values()).join(" ")}`} onMouseEnter={this.props.clearTimer} onMouseLeave={this.props.resetTimer}>
+      <li
+        class={`notification ${Array.from(this.classes.values()).join(" ")}`}
+        onMouseEnter={this.props.clearTimer}
+        onMouseLeave={this.props.resetTimer}
+      >
         <header>
           <div class="toolbar">
             {/* FIXME: Change "expand" icons */}
-            <span
-              class="expand"
-              onClick={() =>
-                this.toggleClass("expanded")}
-            >
+            <span class="expand" onClick={() => this.toggleClass("expanded")}>
               {this.classes.has("expanded") ? "-" : "+"}
             </span>
-            <span class="close" onClick={this.props.close}>x</span>
+            <span class="close" onClick={this.props.close}>
+              x
+            </span>
           </div>
           <h4>{this.state.title}</h4>
         </header>

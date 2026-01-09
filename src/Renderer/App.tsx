@@ -14,42 +14,42 @@ import { CommandPaletteContainer } from "./Components/CommandPalette/index.js";
 import { Resizable } from "./Components/Resizable.js";
 
 export default class App extends StoreComponent {
-    componentDidMount() {
-        this.listen("repo", repo => {
-            if (repo && repo.path !== Store.repo?.path) {
-                document.title = `${basename(repo.path)} - git-good`;
-                this.forceUpdate();
-            }
-        });
+  componentDidMount() {
+    this.listen("repo", (repo) => {
+      if (repo && repo.path !== Store.repo?.path) {
+        document.title = `${basename(repo.path)} - git-good`;
+        this.forceUpdate();
+      }
+    });
 
-        this.listen("locks", locks => {
-            if (lockChanged(Locks.MAIN, locks)) {
-                this.forceUpdate();
-            }
-        });
-    }
-    render() {
-        const mainContent = Store.repo
-            ? (
-                <>
-                    <Resizable>
-                        <div id="left-pane">
-                            <Changes />
-                            <Branches />
-                        </div>
-                    </Resizable>
-                    <FileDiff />
-                    <Main />
-                    <NotificationsContainer position={NotificationPosition.DEFAULT} />
-                </>
-            )
-            : <p>Open a repo with File &gt; Open repository...</p>;
-        return (
-            <div id="main-window" class={Store.locks[Locks.MAIN] ? "disabled" : ""}>
-                <Dialog />
-                <CommandPaletteContainer />
-                {mainContent}
-            </div>
-        );
-    }
+    this.listen("locks", (locks) => {
+      if (lockChanged(Locks.MAIN, locks)) {
+        this.forceUpdate();
+      }
+    });
+  }
+  render() {
+    const mainContent = Store.repo ? (
+      <>
+        <Resizable>
+          <div id="left-pane">
+            <Changes />
+            <Branches />
+          </div>
+        </Resizable>
+        <FileDiff />
+        <Main />
+        <NotificationsContainer position={NotificationPosition.DEFAULT} />
+      </>
+    ) : (
+      <p>Open a repo with File &gt; Open repository...</p>
+    );
+    return (
+      <div id="main-window" class={Store.locks[Locks.MAIN] ? "disabled" : ""}>
+        <Dialog />
+        <CommandPaletteContainer />
+        {mainContent}
+      </div>
+    );
+  }
 }

@@ -15,15 +15,24 @@ export function ViewCommit(dialog: ViewCommitProps) {
   return (
     <div class="dialog-window">
       <form
-        onSubmit={e => {
+        onSubmit={(e) => {
           e.preventDefault();
           dialog.confirmCb(data.sha);
         }}
       >
         <h4>View commit</h4>
-        <input ref={inputRef} type="text" name="from" placeholder="Sha" onInput={e => data.sha = e.currentTarget.value} value={data.sha} />
+        <input
+          ref={inputRef}
+          type="text"
+          name="from"
+          placeholder="Sha"
+          onInput={(e) => (data.sha = e.currentTarget.value)}
+          value={data.sha}
+        />
         <div class="dialog-action-buttons">
-          <button type="button" onClick={dialog.cancelCb}>Cancel</button>
+          <button type="button" onClick={dialog.cancelCb}>
+            Cancel
+          </button>
           <button type="submit">Find</button>
         </div>
       </form>

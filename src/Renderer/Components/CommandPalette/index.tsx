@@ -24,7 +24,7 @@ export class CommandPaletteContainer extends Component<unknown, State> {
 
   componentDidMount(): void {
     // Assumes we never unmount :+1:
-    globalThis.addEventListener("keydown", async e => {
+    globalThis.addEventListener("keydown", async (e) => {
       if (e.ctrlKey && e.shiftKey && e.code === "KeyP") {
         e.preventDefault();
         this.setState({ isOpen: true });
@@ -54,7 +54,9 @@ export class CommandPaletteContainer extends Component<unknown, State> {
       // }
       else if (e.key === "PageDown") {
         e.preventDefault();
-        await this.selectItem(Math.min(this.state.commands.length - 1, this.state.selectedIdx + 10));
+        await this.selectItem(
+          Math.min(this.state.commands.length - 1, this.state.selectedIdx + 10),
+        );
       } else if (e.key === "PageUp") {
         e.preventDefault();
         await this.selectItem(Math.max(0, this.state.selectedIdx - 10));
@@ -108,33 +110,44 @@ export class CommandPaletteContainer extends Component<unknown, State> {
       if (this.filterRef.current) {
         this.filterRef.current.value = "";
       }
-      this.setState({
-        allCommands: result,
-        commands: result,
-        selectedIdx: 0,
-      }, async () => {
-        await this.selectItem(this.state.selectedIdx, true);
-      });
+      this.setState(
+        {
+          allCommands: result,
+          commands: result,
+          selectedIdx: 0,
+        },
+        async () => {
+          await this.selectItem(this.state.selectedIdx, true);
+        },
+      );
     } else if (result === true) {
       const commands = this.state.allCommands;
       commands.splice(commands.indexOf(command) >>> 0, 1);
       // TODO: Close command palette if `commands.length === 0`?
-      this.setState({
-        commands,
-        allCommands: commands,
-        selectedIdx: Math.min(commands.length - 1, this.state.selectedIdx),
-      }, async () => {
-        await this.selectItem(this.state.selectedIdx, true);
-      });
+      this.setState(
+        {
+          commands,
+          allCommands: commands,
+          selectedIdx: Math.min(commands.length - 1, this.state.selectedIdx),
+        },
+        async () => {
+          await this.selectItem(this.state.selectedIdx, true);
+        },
+      );
       if (this.filterRef.current?.value) {
         this.filterCommands(commands, this.filterRef.current.value.toLowerCase());
       }
     }
   }
   filterCommands(allCommands: CommandPalette.Command[], filterValue: string) {
-    const commands = filterValue.length > 0
-      ? allCommands.filter(command => command.label.toLowerCase().includes(filterValue) || command.details?.toLowerCase().includes(filterValue))
-      : allCommands;
+    const commands =
+      filterValue.length > 0
+        ? allCommands.filter(
+            (command) =>
+              command.label.toLowerCase().includes(filterValue) ||
+              command.details?.toLowerCase().includes(filterValue),
+          )
+        : allCommands;
     this.setState({
       commands,
       selectedIdx: 0,

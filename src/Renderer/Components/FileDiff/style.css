@@ -1,106 +1,106 @@
 #file-diff-container {
-    position: fixed;
-    left: 0;
-    z-index: 1;
-    height: 100%;
-    width: calc(100vw - 325px - 6px);
-    background-color: var(--background-color);
-    display: flex;
+  position: fixed;
+  left: 0;
+  z-index: 1;
+  height: 100%;
+  width: calc(100vw - 325px - 6px);
+  background-color: var(--background-color);
+  display: flex;
 }
 #file-diff-container.full-width {
-    width: 100vw;
+  width: 100vw;
 }
 #file-diff {
-    background-color: var(--background-color);
-    display: flex;
-    flex-direction: column;
-    flex: 1;
+  background-color: var(--background-color);
+  display: flex;
+  flex-direction: column;
+  flex: 1;
 }
 #file-diff > ul.file-diff-toolbar {
-    padding: 5px 0;
-    border-bottom: 1px solid #555;
+  padding: 5px 0;
+  border-bottom: 1px solid #555;
 }
 #file-diff h2 {
-    overflow-wrap: anywhere;
-    display: flex;
-    justify-content: space-between;
+  overflow-wrap: anywhere;
+  display: flex;
+  justify-content: space-between;
 }
 #file-diff h2 > a {
-    padding: 0 10px;
-    line-height: 24px;
-    font-size: 30px;
+  padding: 0 10px;
+  line-height: 24px;
+  font-size: 30px;
 }
 #file-diff h2,
 #file-diff > p {
-    margin: 6px;
+  margin: 6px;
 }
 #file-diff > .hunks {
-    overflow-y: auto;
-    will-change: transform;
+  overflow-y: auto;
+  will-change: transform;
 }
 .header {
-    color: teal;
-    margin-bottom: 0;
-    border-bottom: 1px solid teal;
+  color: teal;
+  margin-bottom: 0;
+  border-bottom: 1px solid teal;
 }
 .diff-line:empty {
-    content: "&nbsp;";
+  content: "&nbsp;";
 }
 .diff-line td {
-    padding: 1px;
+  padding: 1px;
 }
 .diff-line.new {
-    background-color: darkgreen;
+  background-color: darkgreen;
 }
 .diff-line.old {
-    background-color: darkred;
+  background-color: darkred;
 }
 .diff-line-content {
-    color: #f5f5f5;
-    margin: 0;
-    white-space: pre;
+  color: #f5f5f5;
+  margin: 0;
+  white-space: pre;
 }
 
 .diff-line:hover .diff-line-number {
-    background-color: cadetblue;
+  background-color: cadetblue;
 }
 .diff-type {
-    width: 10px;
+  width: 10px;
 }
 
 #file-history-commits {
-    width: 240px;
-    overflow: auto;
-    display: flex;
-    flex-direction: column;
+  width: 240px;
+  overflow: auto;
+  display: flex;
+  flex-direction: column;
 }
 #file-history-commits li {
-    height: 50px;
-    display: flex;
-    flex-direction: column;
-    white-space: nowrap;
-    border-top: 1px solid #555;
-    width: 100%;
+  height: 50px;
+  display: flex;
+  flex-direction: column;
+  white-space: nowrap;
+  border-top: 1px solid #555;
+  width: 100%;
 }
 #file-history-commits li a {
-    overflow: hidden;
-    flex: auto;
-    justify-content: center;
+  overflow: hidden;
+  flex: auto;
+  justify-content: center;
 }
 #file-history-commits li a:not(.selected):hover {
-    background-color: #1c2122;
-  }
+  background-color: #1c2122;
+}
 #file-history-commits li .msg {
-    overflow: hidden;
-    text-overflow: ellipsis;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 #file-diff .file-name,
 #file-diff .file-name * {
-    user-select: text;
+  user-select: text;
 }
 
 #file-diff .hunks .diff-line,
 #file-diff .hunks .diff-line * {
-    user-select: text;
+  user-select: text;
 }

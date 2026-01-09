@@ -15,7 +15,7 @@ export function FileHistory(dialog: DialogProps[DialogTypes.FILE_HISTORY]) {
   return (
     <div class="dialog-window">
       <form
-        onSubmit={e => {
+        onSubmit={(e) => {
           e.preventDefault();
           dialog.confirmCb(data.filePath);
         }}
@@ -27,11 +27,13 @@ export function FileHistory(dialog: DialogProps[DialogTypes.FILE_HISTORY]) {
           type="text"
           name="branch"
           placeholder="Enter file path..."
-          onInput={e => data.filePath = e.currentTarget.value}
+          onInput={(e) => (data.filePath = e.currentTarget.value)}
           value={data.filePath}
         />
         <div class="dialog-action-buttons">
-          <button type="button" onClick={dialog.cancelCb}>Cancel</button>
+          <button type="button" onClick={dialog.cancelCb}>
+            Cancel
+          </button>
           <button type="submit">Confirm</button>
         </div>
       </form>

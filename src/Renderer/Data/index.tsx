@@ -1,4 +1,10 @@
-import type { BranchObj, IpcActionParams, IpcActionReturnOrError, IpcResponse, PatchObj } from "../../Common/Actions.js";
+import type {
+  BranchObj,
+  IpcActionParams,
+  IpcActionReturnOrError,
+  IpcResponse,
+  PatchObj,
+} from "../../Common/Actions.js";
 import { IpcAction, Locks } from "../../Common/Actions.js";
 import { HEAD_REF } from "../../Common/Branch.js";
 import { NativeDialog } from "../../Common/Dialog.js";
@@ -29,8 +35,22 @@ import {
   openDialog_SetUpstream,
   openDialog_viewCommit,
 } from "./Dialogs.js";
-import { ipcGetData, ipcSendMessage, openNativeDialog, registerAppEventHandlers, registerHandler } from "./IPC.js";
-import { clearLock, notify, setDiffpaneSrc, setLock, Store, store, type StoreType } from "./store.js";
+import {
+  ipcGetData,
+  ipcSendMessage,
+  openNativeDialog,
+  registerAppEventHandlers,
+  registerHandler,
+} from "./IPC.js";
+import {
+  clearLock,
+  notify,
+  setDiffpaneSrc,
+  setLock,
+  Store,
+  store,
+  type StoreType,
+} from "./store.js";
 import { loadStylesFromLocalstorage } from "./styles.js";
 
 const dismissibleWindows: Set<() => void> = new Set();
@@ -64,7 +84,7 @@ calculateGlyphWidth(13, "JetBrainsMonoNL Nerd Font Mono");
 loadStylesFromLocalstorage();
 
 ipcSendMessage(IpcAction.INIT, null);
-void ipcGetData(IpcAction.GET_SETTINGS, null).then(appConfig => {
+void ipcGetData(IpcAction.GET_SETTINGS, null).then((appConfig) => {
   store.updateStore("appConfig", appConfig);
   store.updateStore("diffOptions", appConfig.diffOptions);
 });
@@ -99,13 +119,9 @@ export function checkoutBranch(branch: string) {
 }
 
 export function openFile(
-  params:
-    & (
-      | { sha: string; }
-      | { workDir: true; type: "staged" | "unstaged"; }
-      | { compare: true; }
-    )
-    & { patch: PatchObj; },
+  params: ({ sha: string } | { workDir: true; type: "staged" | "unstaged" } | { compare: true }) & {
+    patch: PatchObj;
+  },
 ) {
   const currentFile: StoreType["currentFile"] = {
     patch: params.patch,
@@ -296,7 +312,10 @@ const fetchNotification: Record<string, Notification> = {};
 function handleNotificationFetch(status: AppEventData[AppEventType.NOTIFY_FETCH_STATUS]) {
   if ("init" in status) {
     if (!fetchNotification[status.remote]) {
-      fetchNotification[status.remote] = notify({ title: `Fetching remote '${status.remote}'`, time: 0 });
+      fetchNotification[status.remote] = notify({
+        title: `Fetching remote '${status.remote}'`,
+        time: 0,
+      });
     }
     return;
   }
@@ -307,15 +326,27 @@ function handleNotificationFetch(status: AppEventData[AppEventType.NOTIFY_FETCH_
   }
   if ("done" in status) {
     if (status.done) {
-      fetchNotification[status.remote].update({ body: <p>{status.update ? "Done" : "No update"}</p>, time: 3000 });
+      fetchNotification[status.remote].update({
+        body: <p>{status.update ? "Done" : "No update"}</p>,
+        time: 3000,
+      });
       delete fetchNotification[status.remote];
     }
   } else if (status.receivedObjects == status.totalObjects) {
-    fetchNotification[status.remote].update({ body: <p>Resolving deltas {status.indexedDeltas}/{status.totalDeltas}</p> });
+    fetchNotification[status.remote].update({
+      body: (
+        <p>
+          Resolving deltas {status.indexedDeltas}/{status.totalDeltas}
+        </p>
+      ),
+    });
   } else if (status.totalObjects > 0) {
     fetchNotification[status.remote].update({
       body: (
-        <p>Received {status.receivedObjects}/{status.totalObjects} objects ({status.indexedObjects}) in {humanReadableBytes(status.receivedBytes)}</p>
+        <p>
+          Received {status.receivedObjects}/{status.totalObjects} objects ({status.indexedObjects})
+          in {humanReadableBytes(status.receivedBytes)}
+        </p>
       ),
     });
   }
@@ -331,7 +362,14 @@ function handleNotificationPush(status: AppEventData[AppEventType.NOTIFY_PUSH_ST
       pushNotification = null;
     }
   } else if (status.totalObjects > 0) {
-    pushNotification.update({ body: <p>Pushed {status.transferedObjects}/{status.totalObjects} objects in {humanReadableBytes(status.bytes)}</p> });
+    pushNotification.update({
+      body: (
+        <p>
+          Pushed {status.transferedObjects}/{status.totalObjects} objects in{" "}
+          {humanReadableBytes(status.bytes)}
+        </p>
+      ),
+    });
   }
 }
 
@@ -350,11 +388,20 @@ function handleNotificationClone(status: AppEventData[AppEventType.NOTIFY_CLONE_
       cloneNotification = null;
     }
   } else if (status.receivedObjects == status.totalObjects) {
-    cloneNotification.update({ body: <p>Resolving deltas {status.indexedDeltas}/{status.totalDeltas}</p> });
+    cloneNotification.update({
+      body: (
+        <p>
+          Resolving deltas {status.indexedDeltas}/{status.totalDeltas}
+        </p>
+      ),
+    });
   } else if (status.totalObjects > 0) {
     cloneNotification.update({
       body: (
-        <p>Received {status.receivedObjects}/{status.totalObjects} objects ({status.indexedObjects}) in {humanReadableBytes(status.receivedBytes)}</p>
+        <p>
+          Received {status.receivedObjects}/{status.totalObjects} objects ({status.indexedObjects})
+          in {humanReadableBytes(status.receivedBytes)}
+        </p>
       ),
     });
   }
@@ -399,7 +446,9 @@ registerHandler(IpcAction.LOAD_STASHES, stashLoaded);
 registerHandler(IpcAction.LOAD_FILE_COMMITS, handleFileCommits);
 
 const rendererActions: {
-  [E in RendererRequestEvents]: (data: RendererRequestArgs[E]) => Promise<null | RendererRequestData[E]>;
+  [E in RendererRequestEvents]: (
+    data: RendererRequestArgs[E],
+  ) => Promise<null | RendererRequestData[E]>;
 } = {
   [RendererRequestEvents.CLONE_DIALOG]: openDialog_Clone,
   [RendererRequestEvents.INIT_DIALOG]: openDialog_initRepo,
@@ -408,7 +457,9 @@ const rendererActions: {
   [RendererRequestEvents.COMPARE_REVISIONS_DIALOG]: openDialog_compare,
 };
 
-function handleRequestClientData<E extends RendererRequestEvents>(payload: RendererRequestPayload<E>): Promise<RendererRequestData[E] | null> {
+function handleRequestClientData<E extends RendererRequestEvents>(
+  payload: RendererRequestPayload<E>,
+): Promise<RendererRequestData[E] | null> {
   return rendererActions[payload.event](payload.data);
 }
 globalThis.electronAPI.requestClientData(handleRequestClientData);

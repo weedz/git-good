@@ -23,7 +23,7 @@ function mapTreeToPatchObj(tree: string[], patches: PatchObj[]) {
   for (let i = 0, len = patches.length; i < len; ++i) {
     patchMap.set(patches[i].actualFile.path, patches[i]);
   }
-  return tree.map(item => {
+  return tree.map((item) => {
     const patch = patchMap.get(item);
     if (patch) {
       return patch;
@@ -68,7 +68,7 @@ export default class Commit extends StoreComponent<Props, State> {
     this.resetView();
     void this.getCommit(this.props.sha);
 
-    this.listen("diffOptions", async () => this.state.commit && await this.loadPatches());
+    this.listen("diffOptions", async () => this.state.commit && (await this.loadPatches()));
   }
   async loadPatches() {
     const patches = await ipcGetData(IpcAction.LOAD_PATCHES_WITHOUT_HUNKS, { sha: this.props.sha });
@@ -87,17 +87,20 @@ export default class Commit extends StoreComponent<Props, State> {
 
     await Promise.all([
       ipcGetData(IpcAction.GET_COMMIT_GPG_SIGN, this.props.sha).then(this.handleGpgSign),
-      this.loadPatches()
+      this.loadPatches(),
     ]);
   }
   handlePatch(patches: IpcActionReturn[IpcAction.LOAD_PATCHES_WITHOUT_HUNKS]) {
-    this.setState({
-      patches,
-    }, () => {
-      if (Store.currentFile) {
-        triggerAction(LinkTypes.FILES);
-      }
-    });
+    this.setState(
+      {
+        patches,
+      },
+      () => {
+        if (Store.currentFile) {
+          triggerAction(LinkTypes.FILES);
+        }
+      },
+    );
   }
   handleGpgSign = (result: IpcActionReturn[IpcAction.GET_COMMIT_GPG_SIGN]) => {
     if (result && result.sha === this.state.commit?.sha) {
@@ -119,9 +122,12 @@ export default class Commit extends StoreComponent<Props, State> {
             <span>View all files</span>
             <input
               type="checkbox"
-              onInput={async e => {
+              onInput={async (e) => {
                 if (e.currentTarget.checked && this.state.commit?.sha) {
-                  const tree = await ipcGetData(IpcAction.LOAD_TREE_AT_COMMIT, this.state.commit.sha);
+                  const tree = await ipcGetData(
+                    IpcAction.LOAD_TREE_AT_COMMIT,
+                    this.state.commit.sha,
+                  );
                   this.setState({
                     tree: mapTreeToPatchObj(tree, this.state.patches),
                   });

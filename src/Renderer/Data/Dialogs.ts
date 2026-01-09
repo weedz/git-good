@@ -1,5 +1,12 @@
 import { IpcAction } from "../../Common/Actions.js";
-import { BranchFromType, BranchType, getRemoteName, normalizeLocalName, normalizeRemoteNameWithoutRemote, normalizeTagName } from "../../Common/Branch.js";
+import {
+  BranchFromType,
+  BranchType,
+  getRemoteName,
+  normalizeLocalName,
+  normalizeRemoteNameWithoutRemote,
+  normalizeTagName,
+} from "../../Common/Branch.js";
 import { type DialogProps, DialogTypes } from "../Components/Dialog/types.js";
 import { ipcGetData, ipcSendMessage } from "./IPC.js";
 import {
@@ -138,7 +145,7 @@ export function openDialog_createTag(from: string, fromCommit = false) {
   });
 }
 
-export function openDialog_PushTag(data: { name: string; }) {
+export function openDialog_PushTag(data: { name: string }) {
   openDialogWindow(DialogTypes.PUSH_TAG, {
     confirmCb(remote) {
       ipcSendMessage(IpcAction.PUSH, {
@@ -150,7 +157,9 @@ export function openDialog_PushTag(data: { name: string; }) {
   });
 }
 
-export function openDialog_Clone(): Promise<null | RendererRequestData[RendererRequestEvents.CLONE_DIALOG]> {
+export function openDialog_Clone(): Promise<
+  null | RendererRequestData[RendererRequestEvents.CLONE_DIALOG]
+> {
   return new Promise((resolve) => {
     openDialogWindow(DialogTypes.CLONE_REPOSITORY, {
       confirmCb(data) {
@@ -165,7 +174,9 @@ export function openDialog_Clone(): Promise<null | RendererRequestData[RendererR
   });
 }
 
-export function openDialog_fileHistory(): Promise<null | RendererRequestData[RendererRequestEvents.FILE_HISTORY_DIALOG]> {
+export function openDialog_fileHistory(): Promise<
+  null | RendererRequestData[RendererRequestEvents.FILE_HISTORY_DIALOG]
+> {
   return new Promise((resolve) => {
     openDialogWindow(DialogTypes.FILE_HISTORY, {
       confirmCb(data) {
@@ -180,7 +191,9 @@ export function openDialog_fileHistory(): Promise<null | RendererRequestData[Ren
   });
 }
 
-export function openDialog_compare(): Promise<null | RendererRequestData[RendererRequestEvents.COMPARE_REVISIONS_DIALOG]> {
+export function openDialog_compare(): Promise<
+  null | RendererRequestData[RendererRequestEvents.COMPARE_REVISIONS_DIALOG]
+> {
   return new Promise((resolve) => {
     openDialogWindow(DialogTypes.COMPARE, {
       confirmCb(from, to) {
@@ -195,7 +208,9 @@ export function openDialog_compare(): Promise<null | RendererRequestData[Rendere
   });
 }
 
-export function openDialog_viewCommit(): Promise<null | RendererRequestData[RendererRequestEvents.GET_COMMIT_SHA_DIALOG]> {
+export function openDialog_viewCommit(): Promise<
+  null | RendererRequestData[RendererRequestEvents.GET_COMMIT_SHA_DIALOG]
+> {
   return new Promise((resolve) => {
     openDialogWindow(DialogTypes.VIEW_COMMIT, {
       confirmCb(data) {
@@ -210,7 +225,9 @@ export function openDialog_viewCommit(): Promise<null | RendererRequestData[Rend
   });
 }
 
-export function openDialog_initRepo(): Promise<null | RendererRequestData[RendererRequestEvents.INIT_DIALOG]> {
+export function openDialog_initRepo(): Promise<
+  null | RendererRequestData[RendererRequestEvents.INIT_DIALOG]
+> {
   return new Promise((resolve) => {
     openDialogWindow(DialogTypes.INIT_REPOSITORY, {
       confirmCb(data) {

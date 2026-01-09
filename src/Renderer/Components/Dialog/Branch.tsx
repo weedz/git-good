@@ -2,7 +2,7 @@ import { createRef } from "preact";
 import { useEffect } from "preact/hooks";
 import { type BranchProps } from "./types.js";
 
-function BranchDialog(dialog: BranchProps & { title: string; }) {
+function BranchDialog(dialog: BranchProps & { title: string }) {
   const data = {
     branchName: dialog.data || "",
     checkout: false,
@@ -16,7 +16,7 @@ function BranchDialog(dialog: BranchProps & { title: string; }) {
   return (
     <div class="dialog-window">
       <form
-        onSubmit={e => {
+        onSubmit={(e) => {
           e.preventDefault();
           dialog.confirmCb(data.branchName, data.checkout);
         }}
@@ -27,15 +27,18 @@ function BranchDialog(dialog: BranchProps & { title: string; }) {
           type="text"
           name="branchName"
           placeholder="Name..."
-          onInput={e => data.branchName = e.currentTarget.value}
+          onInput={(e) => (data.branchName = e.currentTarget.value)}
           value={data.branchName}
         />
         <br />
         <label>
-          Checkout: <input type="checkbox" onInput={e => data.checkout = e.currentTarget.checked} />
+          Checkout:{" "}
+          <input type="checkbox" onInput={(e) => (data.checkout = e.currentTarget.checked)} />
         </label>
         <div class="dialog-action-buttons">
-          <button type="button" onClick={dialog.cancelCb}>Cancel</button>
+          <button type="button" onClick={dialog.cancelCb}>
+            Cancel
+          </button>
           <button type="submit">Confirm</button>
         </div>
       </form>

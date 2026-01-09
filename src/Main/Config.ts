@@ -117,7 +117,7 @@ export function getRecentRepositories() {
 }
 export function addRecentRepository(repoPath: string) {
   // Ensure we do not save duplicates
-  const existingIndex = recentRepoMenu.findIndex(itemPath => itemPath === repoPath);
+  const existingIndex = recentRepoMenu.findIndex((itemPath) => itemPath === repoPath);
   if (existingIndex > -1) {
     recentRepoMenu.splice(existingIndex, 1);
   }

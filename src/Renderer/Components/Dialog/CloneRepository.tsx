@@ -16,7 +16,7 @@ export function CloneRepositoryDialog(props: DialogProps[DialogTypes.CLONE_REPOS
   return (
     <div class="dialog-window">
       <form
-        onSubmit={e => {
+        onSubmit={(e) => {
           e.preventDefault();
           props.confirmCb({ source, target });
         }}
@@ -32,18 +32,21 @@ export function CloneRepositoryDialog(props: DialogProps[DialogTypes.CLONE_REPOS
           <button
             type="button"
             onClick={() =>
-              selectFile(path => setTarget(path), {
+              selectFile((path) => setTarget(path), {
                 properties: ["openDirectory", "createDirectory"],
                 title: "Clone into...",
                 defaultPath: Store.repo?.path,
-              })}
+              })
+            }
           >
             Browse
           </button>
         </label>
         <br />
         <div class="dialog-action-buttons">
-          <button type="button" onClick={props.cancelCb}>Cancel</button>
+          <button type="button" onClick={props.cancelCb}>
+            Cancel
+          </button>
           <button type="submit">Confirm</button>
         </div>
       </form>

@@ -15,7 +15,7 @@ type State = {
 
 export class Settings extends Component<SettingsProps, State> {
   componentDidMount() {
-    void ipcGetData(IpcAction.GET_SETTINGS, null).then(config => {
+    void ipcGetData(IpcAction.GET_SETTINGS, null).then((config) => {
       this.setState({
         config,
       });
@@ -48,16 +48,19 @@ export class Settings extends Component<SettingsProps, State> {
         <Profile
           profile={selectedProfile}
           cancelCb={() => this.setState({ editProfile: null })}
-          saveProfile={profile => {
+          saveProfile={(profile) => {
             const profiles = this.state.config.profiles;
             profiles[this.state.config.selectedProfile] = profile;
-            this.setState({
-              config: {
-                ...this.state.config,
-                profiles,
+            this.setState(
+              {
+                config: {
+                  ...this.state.config,
+                  profiles,
+                },
+                editProfile: null,
               },
-              editProfile: null,
-            }, () => this.props.confirmCb(this.state.config));
+              () => this.props.confirmCb(this.state.config),
+            );
           }}
         />
       );
@@ -66,9 +69,17 @@ export class Settings extends Component<SettingsProps, State> {
         <Fragment>
           <div class="pane">
             <h3>Profiles</h3>
-            <select onInput={e => this.setConfig("selectedProfile", Number.parseInt(e.currentTarget.value, 10) || 0)}>
+            <select
+              onInput={(e) =>
+                this.setConfig("selectedProfile", Number.parseInt(e.currentTarget.value, 10) || 0)
+              }
+            >
               {this.state.config.profiles.map((profile, idx) => (
-                <option key={profile.profileName} value={idx} selected={idx === this.state.config.selectedProfile}>
+                <option
+                  key={profile.profileName}
+                  value={idx}
+                  selected={idx === this.state.config.selectedProfile}
+                >
                   {profile.profileName}
                 </option>
               ))}
@@ -134,13 +145,16 @@ export class Settings extends Component<SettingsProps, State> {
                 if (result.response === 1) {
                   const profiles = this.state.config.profiles;
                   profiles.splice(this.state.config.selectedProfile, 1);
-                  this.setState({
-                    config: {
-                      ...this.state.config,
-                      profiles,
-                      selectedProfile: 0,
+                  this.setState(
+                    {
+                      config: {
+                        ...this.state.config,
+                        profiles,
+                        selectedProfile: 0,
+                      },
                     },
-                  }, () => this.props.confirmCb(this.state.config));
+                    () => this.props.confirmCb(this.state.config),
+                  );
                 }
               }}
             >
@@ -156,7 +170,7 @@ export class Settings extends Component<SettingsProps, State> {
                 type="text"
                 name="terminal-app"
                 value={this.state.config.terminal || ""}
-                onInput={e => this.setConfig("terminal", e.currentTarget.value)}
+                onInput={(e) => this.setConfig("terminal", e.currentTarget.value)}
               />
             </div>
           </div>
@@ -169,7 +183,7 @@ export class Settings extends Component<SettingsProps, State> {
                 type="checkbox"
                 name="ssh-agent"
                 checked={this.state.config.ui.refreshWorkdirOnFocus}
-                onInput={e => this.setUIConfig("refreshWorkdirOnFocus", e.currentTarget.checked)}
+                onInput={(e) => this.setUIConfig("refreshWorkdirOnFocus", e.currentTarget.checked)}
               />
             </div>
             <UISettings />
@@ -180,15 +194,29 @@ export class Settings extends Component<SettingsProps, State> {
               <label for="commitlist-sort-order">Commitlist sort order:</label>
               <select
                 id="commitlist-sort-order"
-                onInput={e => this.setConfig("commitlistSortOrder", e.currentTarget.value as AppConfig["commitlistSortOrder"])}
+                onInput={(e) =>
+                  this.setConfig(
+                    "commitlistSortOrder",
+                    e.currentTarget.value as AppConfig["commitlistSortOrder"],
+                  )
+                }
               >
-                <option value="topological" selected={this.state.config.commitlistSortOrder === "topological"}>Topological (default)</option>
-                <option value="none" selected={this.state.config.commitlistSortOrder === "none"}>None (Much faster for large repos)</option>
+                <option
+                  value="topological"
+                  selected={this.state.config.commitlistSortOrder === "topological"}
+                >
+                  Topological (default)
+                </option>
+                <option value="none" selected={this.state.config.commitlistSortOrder === "none"}>
+                  None (Much faster for large repos)
+                </option>
               </select>
             </div>
           </div>
           {this.state.saved && <p>Settings saved!</p>}
-          <button type="button" onClick={this.props.cancelCb}>Close</button>
+          <button type="button" onClick={this.props.cancelCb}>
+            Close
+          </button>
           <button type="submit">Save</button>
         </Fragment>
       );
@@ -204,7 +232,7 @@ export class Settings extends Component<SettingsProps, State> {
         }}
       >
         <form
-          onSubmit={e => {
+          onSubmit={(e) => {
             e.preventDefault();
             this.setState({
               saved: true,

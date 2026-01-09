@@ -32,10 +32,10 @@ jobs:
             ${{ runner.os }}-pnpm-store-
 
       - name: Install node dependencies
-# Skip install scripts, otherwise we build nodegit on `npm install`.
+        # Skip install scripts, otherwise we build nodegit on `npm install`.
         run: |
           pnpm install --ignore-scripts
           cd node_modules/nodegit && pnpm install && node generate
 
       - name: Run lint
-        run: pnpm run lint
+        run: pnpm run format:check && pnpm run lint

@@ -1,7 +1,24 @@
-import { type HunkObj, IpcAction, type LineObj, type LoadFileCommitsReturn } from "../../../Common/Actions.js";
+import {
+  type HunkObj,
+  IpcAction,
+  type LineObj,
+  type LoadFileCommitsReturn,
+} from "../../../Common/Actions.js";
 import { DiffDelta } from "../../../Common/Utils.js";
-import { closeFile, dismissibleWindowClosed, glyphWidth, openFileHistory, showDismissibleWindow } from "../../Data/index.js";
-import { PureStoreComponent, saveAppConfig, Store, store, type StoreType } from "../../Data/store.js";
+import {
+  closeFile,
+  dismissibleWindowClosed,
+  glyphWidth,
+  openFileHistory,
+  showDismissibleWindow,
+} from "../../Data/index.js";
+import {
+  PureStoreComponent,
+  saveAppConfig,
+  Store,
+  store,
+  type StoreType,
+} from "../../Data/store.js";
 import FileHistory from "./FileHistory.js";
 import HunksContainer from "./HunksContainer.js";
 
@@ -78,7 +95,7 @@ export default class FileDiff extends PureStoreComponent<unknown, State> {
   componentDidMount() {
     this.listen("currentFile", this.renderHunks);
     this.listen("diffUi");
-    this.registerHandler(IpcAction.LOAD_FILE_COMMITS, commitsResult => {
+    this.registerHandler(IpcAction.LOAD_FILE_COMMITS, (commitsResult) => {
       if (commitsResult instanceof Error) {
         return;
       }
@@ -155,7 +172,13 @@ export default class FileDiff extends PureStoreComponent<unknown, State> {
 
     let hunks;
     if (!Store.diffUi.sideBySide) {
-      hunks = <HunksContainer itemHeight={LINE_HEIGHT} width={this.longestLine * glyphWidth()} items={this.state.lines} />;
+      hunks = (
+        <HunksContainer
+          itemHeight={LINE_HEIGHT}
+          width={this.longestLine * glyphWidth()}
+          items={this.state.lines}
+        />
+      );
     } else {
       const [oldLines, newLines] = compactLines(this.state.lines);
       hunks = (
@@ -171,7 +194,7 @@ export default class FileDiff extends PureStoreComponent<unknown, State> {
             onRef={(ref) => {
               this.oldLinesContainer = ref;
             }}
-            scrollCallback={el => {
+            scrollCallback={(el) => {
               if (this.newLinesContainer) {
                 this.newLinesContainer.sync = true;
                 this.newLinesContainer.containerRef.current?.scrollTo({
@@ -189,7 +212,7 @@ export default class FileDiff extends PureStoreComponent<unknown, State> {
             onRef={(ref) => {
               this.newLinesContainer = ref;
             }}
-            scrollCallback={el => {
+            scrollCallback={(el) => {
               if (this.oldLinesContainer) {
                 this.oldLinesContainer.sync = true;
                 this.oldLinesContainer.containerRef.current?.scrollTo({
@@ -210,7 +233,7 @@ export default class FileDiff extends PureStoreComponent<unknown, State> {
       <div class={`${classes.join(" ")}`} id="file-diff-container">
         {!!this.state.fileHistory && (
           <FileHistory
-            openFileHistory={path => {
+            openFileHistory={(path) => {
               this.setState({
                 fileHistory: [],
               });
@@ -222,13 +245,19 @@ export default class FileDiff extends PureStoreComponent<unknown, State> {
         <div id="file-diff" class="pane">
           <h2 class="file-name">
             {patch.actualFile.path}
-            <a href="#" onClick={this.closeActiveFileDiff}>&times;</a>
+            <a href="#" onClick={this.closeActiveFileDiff}>
+              &times;
+            </a>
           </h2>
-          {patch.status === DiffDelta.RENAMED && <h4 class="file-name">{patch.oldFile.path} &rArr; {patch.newFile.path} ({patch.similarity}%)</h4>}
+          {patch.status === DiffDelta.RENAMED && (
+            <h4 class="file-name">
+              {patch.oldFile.path} &rArr; {patch.newFile.path} ({patch.similarity}%)
+            </h4>
+          )}
           <p>
-            {patch.hunks?.length} chunks,&nbsp;<span class="added">+{patch.lineStats.total_additions}</span>&nbsp;<span class="deleted">
-              -{patch.lineStats.total_deletions}
-            </span>
+            {patch.hunks?.length} chunks,&nbsp;
+            <span class="added">+{patch.lineStats.total_additions}</span>&nbsp;
+            <span class="deleted">-{patch.lineStats.total_deletions}</span>
           </p>
           <ul class="file-diff-toolbar flex-row">
             <li class="btn-group">
@@ -243,14 +272,19 @@ export default class FileDiff extends PureStoreComponent<unknown, State> {
               </button>
             </li>
             <li class="btn-group">
-              <button class={this.state.fullWidth ? "active" : undefined} onClick={() => this.setState({ fullWidth: !this.state.fullWidth })}>
+              <button
+                class={this.state.fullWidth ? "active" : undefined}
+                onClick={() => this.setState({ fullWidth: !this.state.fullWidth })}
+              >
                 Fullscreen
               </button>
             </li>
             <li>
               <button
                 class={Store.diffOptions.ignoreWhitespace ? "active" : undefined}
-                onClick={async () => { await setDiffOption("ignoreWhitespace", !Store.diffOptions.ignoreWhitespace); }}
+                onClick={async () => {
+                  await setDiffOption("ignoreWhitespace", !Store.diffOptions.ignoreWhitespace);
+                }}
               >
                 Ignore whitespace
               </button>
@@ -258,7 +292,9 @@ export default class FileDiff extends PureStoreComponent<unknown, State> {
             <li class="btn-group">
               <button
                 class={Store.diffUi.sideBySide ? "active" : undefined}
-                onClick={() => { setDiffUiOption("sideBySide", !Store.diffUi.sideBySide); }}
+                onClick={() => {
+                  setDiffUiOption("sideBySide", !Store.diffUi.sideBySide);
+                }}
               >
                 Side-by-side
               </button>

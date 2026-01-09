@@ -20,9 +20,11 @@ export default class StashList extends PureStoreComponent {
     return (
       <ul class="tree-list block-list">
         <li class="sub-tree">
-          <a href="#" onClick={toggleTreeItem}>Stash</a>
+          <a href="#" onClick={toggleTreeItem}>
+            Stash
+          </a>
           <ul class="tree-list block-list">
-            {Store.stash.map(stash => (
+            {Store.stash.map((stash) => (
               <li key={stash.oid} title={stash.msg}>
                 <Link
                   linkType={LinkTypes.COMMITS}

@@ -1,56 +1,56 @@
 .notifications-container {
-    position: fixed;
-    right: 10px;
-    bottom: 10px;
-    list-style: none;
-    z-index: 999999;
+  position: fixed;
+  right: 10px;
+  bottom: 10px;
+  list-style: none;
+  z-index: 999999;
 }
 
 .notification p {
-    margin: 5px 0;
+  margin: 5px 0;
 }
 
 .notification {
-    position: relative;
-    max-height: 200px;
-    width: 250px;
-    overflow: auto;
-    background-color: #111;
-    color: #eee;
-    padding: 11px;
-    padding-top: 0;
-    border: 1px solid var(--border-color);
-    margin-bottom: 5px;
+  position: relative;
+  max-height: 200px;
+  width: 250px;
+  overflow: auto;
+  background-color: #111;
+  color: #eee;
+  padding: 11px;
+  padding-top: 0;
+  border: 1px solid var(--border-color);
+  margin-bottom: 5px;
 }
 .notification header {
-    position: sticky;
-    top: 0;
-    right: 0;
-    left: 0;
+  position: sticky;
+  top: 0;
+  right: 0;
+  left: 0;
 }
 .notification.expanded {
-    max-height: 50vh;
-    max-width: 40vw;
-    width: initial;
-    min-width: 250px;
+  max-height: 50vh;
+  max-width: 40vw;
+  width: initial;
+  min-width: 250px;
 }
 .notification:last-child {
-    margin-bottom: 0;
+  margin-bottom: 0;
 }
 .notification .toolbar {
-    position: absolute;
-    top: 0;
-    right: 0;
+  position: absolute;
+  top: 0;
+  right: 0;
 }
 .notification .toolbar > span {
-    padding: 5px;
-    margin: 0 2px;
-    cursor: pointer;
+  padding: 5px;
+  margin: 0 2px;
+  cursor: pointer;
 }
 .notification .toolbar > span:hover {
-    background-color: #222;
+  background-color: #222;
 }
 
 .notification.error {
-    border-color: #ee5555;
+  border-color: #ee5555;
 }

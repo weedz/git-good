@@ -2,14 +2,10 @@ import type { DiffOptions } from "nodegit";
 import type { AppConfig } from "./Config.js";
 import { DiffDelta } from "./Utils.js";
 
-export type IpcPayload<T extends IpcAction> =
-  & {
-    id?: number;
-    action: T;
-  }
-  & (
-    { data: IpcActionReturn[T]; } | { error: string; }
-  );
+export type IpcPayload<T extends IpcAction> = {
+  id?: number;
+  action: T;
+} & ({ data: IpcActionReturn[T] } | { error: string });
 
 export type IpcActionReturnOrError<A extends IpcAction> = IpcActionReturn[A] | Error;
 export type AsyncIpcActionReturnOrError<A extends IpcAction> = Promise<IpcActionReturnOrError<A>>;
@@ -75,21 +71,22 @@ export type IpcActionParams = {
   [IpcAction.LOAD_PATCHES_WITHOUT_HUNKS]: {
     sha: string;
   };
-  [IpcAction.LOAD_HUNKS]:
-  & (
-    {
-      file: string;
-      sha: string;
-    } | {
-      workDir: boolean;
-      type: "staged" | "unstaged";
-    } | {
-      sha: string;
-    } | {
-      compare: boolean;
-    }
-  )
-  & {
+  [IpcAction.LOAD_HUNKS]: (
+    | {
+        file: string;
+        sha: string;
+      }
+    | {
+        workDir: boolean;
+        type: "staged" | "unstaged";
+      }
+    | {
+        sha: string;
+      }
+    | {
+        compare: boolean;
+      }
+  ) & {
     path: string;
   };
   [IpcAction.SHOW_STASH]: number;
@@ -131,13 +128,18 @@ export type IpcActionParams = {
   };
   [IpcAction.FIND_FILE]: string;
   [IpcAction.REMOTES]: null;
-  [IpcAction.RESOLVE_CONFLICT]: { path: string; };
-  [IpcAction.EDIT_REMOTE]: { oldName: string; name: string; pullFrom: string; pushTo: string | null; };
-  [IpcAction.NEW_REMOTE]: { name: string; pullFrom: string; pushTo: string | null; };
-  [IpcAction.FETCH]: null | { remote: string; };
+  [IpcAction.RESOLVE_CONFLICT]: { path: string };
+  [IpcAction.EDIT_REMOTE]: {
+    oldName: string;
+    name: string;
+    pullFrom: string;
+    pushTo: string | null;
+  };
+  [IpcAction.NEW_REMOTE]: { name: string; pullFrom: string; pushTo: string | null };
+  [IpcAction.FETCH]: null | { remote: string };
   [IpcAction.SAVE_SETTINGS]: AppConfig;
   [IpcAction.GET_SETTINGS]: null;
-  [IpcAction.REPO_PROFILE]: { action: "save" | "remove"; profileId: number; };
+  [IpcAction.REPO_PROFILE]: { action: "save" | "remove"; profileId: number };
   [IpcAction.FILE_DIFF_AT]: {
     file: string;
     sha: string;
@@ -215,13 +217,15 @@ export type IpcActionReturn = {
   [IpcAction.FILE_DIFF_AT]: PatchObj | false;
   [IpcAction.CREATE_TAG]: boolean;
   [IpcAction.LOAD_STASHES]: StashObj[];
-  [IpcAction.GET_COMMIT_GPG_SIGN]: false | {
-    signature: {
-      data: string;
-      verified: boolean;
-    };
-    sha: string;
-  };
+  [IpcAction.GET_COMMIT_GPG_SIGN]:
+    | false
+    | {
+        signature: {
+          data: string;
+          verified: boolean;
+        };
+        sha: string;
+      };
   [IpcAction.LOAD_TREE_AT_COMMIT]: string[];
   [IpcAction.CONTINUE_REBASE]: boolean;
   [IpcAction.OPEN_IN_TERMINAL]: null;
@@ -304,7 +308,7 @@ export type CommitObj = {
   committer: AuthorObj;
 };
 
-export type HeadBranchObj = BranchObj & { commit: CommitObj; };
+export type HeadBranchObj = BranchObj & { commit: CommitObj };
 
 export const enum RefType {
   LOCAL,
@@ -353,7 +357,7 @@ type LoadCommitsParam = {
   cursor?: string;
   startAtCursor?: boolean;
   num?: number;
-} & (LoadCommitsParamBranch | LoadCommitsParamSha | { history: true; });
+} & (LoadCommitsParamBranch | LoadCommitsParamSha | { history: true });
 export type LoadCommitReturn = {
   sha: string;
   parents: string[];

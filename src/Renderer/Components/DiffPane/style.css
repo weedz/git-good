@@ -1,121 +1,121 @@
 .tree-list h4 {
-    display: inline;
+  display: inline;
 }
 #diff-pane {
-    width: 325px;
-    display: flex;
-    flex-direction: column;
+  width: 325px;
+  display: flex;
+  flex-direction: column;
 }
 .diff-view {
-    overflow-y: auto;
-    overflow-x: clip;
-    flex: 1;
-    /* will-change: transform; */
+  overflow-y: auto;
+  overflow-x: clip;
+  flex: 1;
+  /* will-change: transform; */
 }
 .diff-view li {
-    white-space: nowrap;
-    position: relative;
+  white-space: nowrap;
+  position: relative;
 }
 .diff-view li > a {
-    padding: 3px;
+  padding: 3px;
 }
 .diff-view li > .action-group {
-    position: absolute;
-    display: none;
-    right: 0;
-    top: 0;
-    bottom: 0;
+  position: absolute;
+  display: none;
+  right: 0;
+  top: 0;
+  bottom: 0;
 }
 
 .diff-view li:hover > .action-group {
-    display: flex;
+  display: flex;
 }
 
 .diff-view li .file-path {
-    color: #999;
-    flex: 1;
+  color: #999;
+  flex: 1;
 }
 /* .diff-view > li .file-basename {} */
 
 #diff-pane .msg {
-    max-height: 150px;
-    overflow: auto;
-    padding: 5px;
-    border: 1px solid #555;
+  max-height: 150px;
+  overflow: auto;
+  padding: 5px;
+  border: 1px solid #555;
 }
 #diff-pane .msg pre {
-    margin-top: 3px;
-    margin-bottom: 3px;
-    white-space: pre-line;
-    word-break: break-word;
+  margin-top: 3px;
+  margin-bottom: 3px;
+  white-space: pre-line;
+  word-break: break-word;
 }
 
 .parent-list {
-    display: inline;
+  display: inline;
 }
 .parent-list li {
-    display: inline;
+  display: inline;
 }
 .parent-list li + li:before {
-    content: ", ";
+  content: ", ";
 }
 
 .changed-files {
-    overflow: auto;
-    display: flex;
-    flex-direction: column;
-    flex: 1;
-    position: relative;
+  overflow: auto;
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  position: relative;
 }
 
 .file-modified .status,
 .modified {
-    color: yellowgreen;
+  color: yellowgreen;
 }
 .file-deleted .status,
 .deleted {
-    color: red;
+  color: red;
 }
 .file-added .status,
 .added {
-    color: green;
+  color: green;
 }
 .file-renamed .status,
 .renamed {
-    color: var(--renamed-color);
+  color: var(--renamed-color);
 }
 .file-conflicted,
 .conflicted {
-    background-color: #aa7700;
+  background-color: #aa7700;
 }
 .changed-files .file-types {
-    list-style: none;
+  list-style: none;
 }
 .changed-files .file-types li {
-    display: inline;
-    margin-right: 11px;
+  display: inline;
+  margin-right: 11px;
 }
 .changed-files .file-types li:last-child {
-    margin-right: 0;
+  margin-right: 0;
 }
 
 .commit-header {
-    display: flex;
-    position: relative;
+  display: flex;
+  position: relative;
 }
 .commit-signature {
-    position: absolute;
-    left: 11px;
+  position: absolute;
+  left: 11px;
 }
 .commit-signature.good {
-    color: lightgreen;
+  color: lightgreen;
 }
 .commit-signature.bad {
-    color: lightcoral;
+  color: lightcoral;
 }
 .commit-sha {
-    flex: 1;
-    text-align: center;
+  flex: 1;
+  text-align: center;
 }
 
 .commit-message .msg,
@@ -124,5 +124,5 @@
 .commit-message .date *,
 .commit-message .author,
 .commit-message .author * {
-    user-select: text;
+  user-select: text;
 }
