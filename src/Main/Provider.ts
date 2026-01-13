@@ -1086,13 +1086,13 @@ export async function doCommit(
       const parents = emptyRepo ? null : [parent];
       if (gpgKey && currentProfile().gpg) {
         // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-        // @ts-expect-error `parents` can be null for the "ROOT" commit (empty repository) https://libgit2.org/libgit2/#HEAD/group/commit/git_commit_create
         await repo.createCommitWithSignature(
           HEAD_REF,
           committer,
           committer,
           message,
           oid,
+          // @ts-expect-error `parents` can be null for the "ROOT" commit (empty repository) https://libgit2.org/libgit2/#HEAD/group/commit/git_commit_create
           parents,
           onSignature(gpgKey),
         );
