@@ -16,14 +16,14 @@ jobs:
       - name: Install Node.js, NPM and Yarn
         uses: actions/setup-node@v6
         with:
-          node-version: 22
+          node-version: 24
           cache: "pnpm"
 
       - name: Install node dependencies
         # Skip install scripts, otherwise we build nodegit on `npm install`.
         run: |
-          pnpm install --ignore-scripts
-          cd node_modules/nodegit && pnpm install && node generate
+          pnpm install --ignore-scripts --frozen-lockfile
+          # cd node_modules/nodegit && pnpm install && node generate
 
       - name: Run lint
         run: pnpm run format:check && pnpm run lint

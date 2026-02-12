@@ -1,4 +1,4 @@
-all: check git-good
+all: check build
 
 check:
 	pnpm run lint
@@ -9,5 +9,5 @@ clean:
 nodegit:
 	pnpm run build:native
 
-git-good: nodegit
+build: nodegit
 	pnpm run build

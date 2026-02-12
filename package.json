@@ -32,18 +32,18 @@
     "build:native": "./scripts/build-native.sh"
   },
   "dependencies": {
-    "nodegit": "github:weedz/nodegit#master"
+    "nodegit": "git+https://github.com/weedz/nodegit#master"
   },
   "devDependencies": {
-    "@types/node": "^22.19.5",
-    "@types/nodegit": "^0.28.10",
+    "@types/node": "^22.19.11",
+    "@types/nodegit": "^0.28.11",
     "@weedzcokie/store": "^2.0.3",
     "electron": "38.7.2",
-    "esbuild": "^0.27.2",
-    "oxfmt": "^0.24.0",
-    "oxlint": "^1.39.0",
-    "oxlint-tsgolint": "^0.11.0",
-    "preact": "^10.28.2",
+    "esbuild": "^0.27.3",
+    "oxfmt": "^0.32.0",
+    "oxlint": "^1.47.0",
+    "oxlint-tsgolint": "^0.12.1",
+    "preact": "^10.28.3",
     "typescript": "^5.9.3"
   },
   "resolutions": {
@@ -54,7 +54,7 @@
     "node": ">=22",
     "pnpm": ">=10"
   },
-  "packageManager": "pnpm@10.27.0+sha512.72d699da16b1179c14ba9e64dc71c9a40988cbdc65c264cb0e489db7de917f20dcf4d64d8723625f2969ba52d4b7e2a1170682d9ac2a5dcaeaab732b7e16f04a",
+  "packageManager": "pnpm@10.29.3+sha512.498e1fb4cca5aa06c1dcf2611e6fafc50972ffe7189998c409e90de74566444298ffe43e6cd2acdc775ba1aa7cc5e092a8b7054c811ba8c5770f84693d33d2dc",
   "pnpm": {
     "onlyBuiltDependencies": [
       "electron",

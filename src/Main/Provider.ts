@@ -671,7 +671,7 @@ async function doPush(
         credentials: credentialsCallback,
 
         // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-        // @ts-expect-error We do in fact have a `pushTransferProgress` callback <https://github.com/libgit2/libgit2/blob/17c410059261def387a7ea66da8b9062cb1b4141/include/git2/remote.h#L616>
+        // We do in fact have a `pushTransferProgress` callback <https://github.com/libgit2/libgit2/blob/17c410059261def387a7ea66da8b9062cb1b4141/include/git2/remote.h#L616>
         pushTransferProgress: (transferedObjects: number, totalObjects: number, bytes: number) => {
           if (context) {
             sendEvent(AppEventType.NOTIFY_PUSH_STATUS, {
