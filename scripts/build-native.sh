@@ -18,4 +18,4 @@ set -eux -o pipefail
 
 export ELECTRON_VERSION=38.7.2
 
-cd node_modules/nodegit && HOME=~/.electron-gyp JOBS=max ./node_modules/.bin/node-gyp rebuild --target=${ELECTRON_VERSION} --arch=x64 --dist-url=https://electronjs.org/headers
+pushd node_modules/nodegit && HOME=~/.electron-gyp JOBS=max ./node_modules/.bin/node-gyp rebuild --target=${ELECTRON_VERSION} --arch=x64 --dist-url=https://electronjs.org/headers
