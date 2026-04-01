@@ -48,6 +48,7 @@ import { requestClientData, sendEvent } from "./Main/WindowEvents.js";
 import { AppEventType, RendererRequestEvents } from "./Common/WindowEventTypes.js";
 
 // eslint-disable-next-line import/no-unresolved
+// @ts-ignore, this is resolved (and created) from build system
 import { buildDateTime, lastCommit } from "env";
 import { currentRepo, getLastKnownHead, setRepo, setWindow } from "./Main/Context.js";
 import { handleContextMenu } from "./Main/ContextMenu/index.js";
