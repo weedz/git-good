@@ -1,3 +1,8 @@
 ignoredOptionalDependencies:
   - global-agent
 minimumReleaseAge: 720
+
+allowBuilds:
+  electron: true
+  esbuild: true
+  nodegit: true
