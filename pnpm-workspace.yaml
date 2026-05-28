@@ -2,6 +2,13 @@ ignoredOptionalDependencies:
   - global-agent
 minimumReleaseAge: 720
 
+autoInstallPeers: false
+
+overrides:
+  "@electron/get": "^4"
+  "node-abi": "^4"
+  "yauzl": "3.3.1"
+
 allowBuilds:
   electron: true
   esbuild: true
