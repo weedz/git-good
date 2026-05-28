@@ -57,8 +57,8 @@ export const commandPaletteCommandList: Command[] = [
   makeCommand("Repo: Open repository", () => {
     ipcSendMessage(IpcAction.REQUEST_OPEN_REPO, null);
   }),
-  makeCommand("Repo: Clone", async () => {
-    await openDialog_Clone();
+  makeCommand("Repo: Clone", () => {
+    void openDialog_Clone();
   }),
   makeCommand("Repo: Open recent repository...", async () => {
     const recentRepositories = await ipcGetData(IpcAction.GET_RECENT_REPOSITORIES, null);
@@ -76,16 +76,16 @@ export const commandPaletteCommandList: Command[] = [
     ipcSendMessage(IpcAction.PUSH, null);
   }),
   // TODO: Send data to main thread?
-  makeCommand("Repo: File history...", async () => {
-    await openDialog_fileHistory();
+  makeCommand("Repo: File history...", () => {
+    void openDialog_fileHistory();
   }),
   // TODO: Send data to main thread?
-  makeCommand("Repo: Compare revisions...", async () => {
-    await openDialog_compare();
+  makeCommand("Repo: Compare revisions...", () => {
+    void openDialog_compare();
   }),
   // TODO: Send data to main thread?
-  makeCommand("Repo: View commit...", async () => {
-    await openDialog_viewCommit();
+  makeCommand("Repo: View commit...", () => {
+    void openDialog_viewCommit();
   }),
   // Working directory
   makeCommand("Working directory: Stage file...", async () => {
