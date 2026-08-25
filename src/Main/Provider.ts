@@ -1612,14 +1612,12 @@ async function loadConflictedPatch(repo: nodegit.Repository, path: string): Prom
       const startLine =
         fileContent.subarray(0, start).filter((chr) => chr === lineFeedCodepoint).length + 1;
 
-      const lines = content.split("\n").map(
-        (line, index): LineObj => ({
-          content: line,
-          type: "",
-          newLineno: index + startLine,
-          oldLineno: index + startLine,
-        }),
-      );
+      const lines = content.split("\n").map((line, index): LineObj => ({
+        content: line,
+        type: "",
+        newLineno: index + startLine,
+        oldLineno: index + startLine,
+      }));
 
       hunks.push({
         header: "",

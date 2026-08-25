@@ -13,3 +13,4 @@ allowBuilds:
   electron: true
   esbuild: true
   nodegit: true
+  nodegit@https://codeload.github.com/weedz/nodegit/tar.gz/ead4505cf4169c0b37dd09f089d0128724249b57: true
