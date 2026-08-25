@@ -48,14 +48,14 @@ export function openFileContextMenu(data: Record<string, string>) {
       label: "Copy Path",
       click() {
         const path = `${currentRepo().workdir()}/${data.path}`;
-        clipboard.writeText(path);
+        void clipboard.writeText(path);
       },
     },
     {
       label: "Copy Relative Path",
       click() {
         const path = `${data.path}`;
-        clipboard.writeText(path);
+        void clipboard.writeText(path);
       },
     },
   ];

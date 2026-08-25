@@ -436,7 +436,7 @@ function applyAppMenu(): void {
               defaultId: 1,
             });
             if (response.response === 0) {
-              clipboard.writeText(versionsString);
+              void clipboard.writeText(versionsString);
             }
           },
         },

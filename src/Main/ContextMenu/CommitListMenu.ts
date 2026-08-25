@@ -42,7 +42,7 @@ export function openCommitMenu(data: Record<string, string>) {
       label: "Copy sha",
       click() {
         const sha = data.sha;
-        clipboard.writeText(sha);
+        void clipboard.writeText(sha);
       },
     },
   ];

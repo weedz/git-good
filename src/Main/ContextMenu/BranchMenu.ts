@@ -42,7 +42,7 @@ function copyRefName(ref: string) {
   return {
     label: "Copy ref name",
     click() {
-      clipboard.writeText(ref);
+      void clipboard.writeText(ref);
     },
   };
 }
