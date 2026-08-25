@@ -35,10 +35,10 @@
     "nodegit": "github:weedz/nodegit#master"
   },
   "devDependencies": {
-    "@types/node": "^22.19.17",
+    "@types/node": "^24.13.3",
     "@types/nodegit": "^0.28.11",
     "@weedzcokie/store": "^2.0.3",
-    "electron": "38.8.6",
+    "electron": "41.10.7",
     "esbuild": "^0.28.2",
     "oxfmt": "^0.65.0",
     "oxlint": "^1.80.0",

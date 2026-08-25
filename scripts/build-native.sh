@@ -16,6 +16,6 @@ set -eux -o pipefail
 # # Install all dependencies, and store cache to ~/.electron-gyp.
 # HOME=~/.electron-gyp JOBS=max pnpm install
 
-export ELECTRON_VERSION=38.8.6
+export ELECTRON_VERSION=41.10.7
 
 pushd node_modules/nodegit && HOME=~/.electron-gyp JOBS=max ./node_modules/.bin/node-gyp rebuild --target=${ELECTRON_VERSION} --arch=x64 --dist-url=https://electronjs.org/headers

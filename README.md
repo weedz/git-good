@@ -14,6 +14,7 @@ mkdir node_modules/nodegit && \
 pushd node_modules/nodegit && { \
   git clone --recurse-submodules https://github.com/weedz/nodegit . && \
   # `--ignore-scripts` to prevent something (node-gyp ?) from automatically building
+  # FIXME: need to `#define NAN_HAS_PROPERTY_CALLBACK_INFO_HOLDER_V2 1` in nan_callbacks_12_inl.h
   pnpm install --ignore-scripts && \
   JOBS=max pnpm run rebuild \
 }; popd;
