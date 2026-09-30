@@ -1,6 +1,6 @@
 ignoredOptionalDependencies:
   - global-agent
-minimumReleaseAge: 720
+minimumReleaseAge: 1440
 
 autoInstallPeers: false
 

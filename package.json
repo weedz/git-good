@@ -38,11 +38,11 @@
     "@types/node": "^24.13.3",
     "@types/nodegit": "^0.28.11",
     "@weedzcokie/store": "^2.0.3",
-    "electron": "44.0.0",
+    "electron": "44.4.5",
     "esbuild": "^0.28.2",
-    "oxfmt": "^0.65.0",
-    "oxlint": "^1.80.0",
-    "oxlint-tsgolint": "^7.0.2001",
+    "oxfmt": "^0.71.0",
+    "oxlint": "^1.86.0",
+    "oxlint-tsgolint": "^7.0.2003",
     "preact": "^10.29.8",
     "typescript": "^7.0.2"
   },
@@ -50,7 +50,7 @@
     "node": ">=22",
     "pnpm": ">=10"
   },
-  "packageManager": "pnpm@11.24.0+sha512.bd27e345e976dcb0be0b7a1228217b049a817e21b1f355c90dbe7dc46671895a8bc1e6d06c24554505ea93ea0b45f489a27ec1bfbc8de6a9659fca0f16fa0000",
+  "packageManager": "pnpm@12.8.2+sha512.a5941679663d952c5f0ecc38ba98af98b4dc01b95780354f6894f2f873973cef2f7e2989d7db3ee5393938ae21f62fe06bcdf685d475ddad829a62095d2b8b11",
   "build": {
     "appId": "git-good",
     "afterPack": "./scripts/after-pack.cjs",
