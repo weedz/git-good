@@ -1,4 +1,4 @@
-import { Component, createRef, type HTMLAttributes } from "preact";
+import { Component, createRef, type AnchorHTMLAttributes } from "preact";
 import { LinkTypes } from "../../Common/WindowEventTypes.js";
 import { Links } from "./LinkContainer.js";
 
@@ -28,7 +28,7 @@ const selectedIds: {
   [LinkTypes.FILES]: undefined,
 };
 
-interface Props<T> extends HTMLAttributes<HTMLAnchorElement> {
+interface Props<T> extends AnchorHTMLAttributes<HTMLAnchorElement> {
   selectTarget?: () => Link;
   selectAction?: (arg: Link<T>) => void;
   linkType?: LinkTypes;
@@ -140,9 +140,14 @@ class Link<T = unknown> extends Component<Props<T>, State> {
       <a
         ref={this.ref}
         class={classNames.join(" ")}
-        href="#"
+        // └╴  Type 'string | SignalLike<string | undefined>' is not assignable to type 'Signalish<string> | undefined'.
+        //        Type 'SignalLike<string | undefined>' is not assignable to type 'Signalish<string> | undefined'.
+        //          Type 'SignalLike<string | undefined>' is not assignable to type 'SignalLike<string>'.
+        //            Type 'string | undefined' is not assignable to type 'string'.
+        //              Type 'undefined' is not assignable to type 'string'. ts (2322) [143, 9]
+        href={"#" as any} // FIXME: ??? wut (see above ??)
         onClick={this.onClick}
-        {...(props as HTMLAttributes<HTMLAnchorElement>)}
+        {...(props as AnchorHTMLAttributes<HTMLAnchorElement>)}
       >
         {props.children}
       </a>

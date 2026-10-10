@@ -5,6 +5,7 @@ Just a simple git client using electron and nodegit, focus on lightweight and pe
 Build for linux:
 
 Patch v8, `v8-external.h` add the following method to `class V8_EXPORT External`:
+(located at `.electron-gyp/.cache/node-gyp/[electron-version]/include/node/v8-external.h`)
 
 ```
   void *Value() const {

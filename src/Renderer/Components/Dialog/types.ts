@@ -1,4 +1,4 @@
-import { type JSX } from "preact";
+import { type TargetedMouseEvent } from "preact";
 import { type AppConfig } from "../../../Common/Config.js";
 
 export const enum DialogTypes {
@@ -34,7 +34,7 @@ export type DialogProps = {
 };
 
 interface DialogBaseProps {
-  cancelCb?: (e: JSX.TargetedMouseEvent<HTMLButtonElement>) => void;
+  cancelCb?: (e: TargetedMouseEvent<HTMLButtonElement>) => void;
 }
 
 export interface CompareProps extends DialogBaseProps {

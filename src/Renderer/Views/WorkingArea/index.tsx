@@ -1,4 +1,4 @@
-import { type h } from "preact";
+import { type TargetedEvent } from "preact";
 import { IpcAction, type IpcResponse, type PatchObj } from "../../../Common/Actions.js";
 import { LinkTypes } from "../../../Common/WindowEventTypes.js";
 import ChangedFiles from "../../Components/DiffPane/ChangedFiles.js";
@@ -9,7 +9,7 @@ import { Store, StoreComponent } from "../../Data/store.js";
 import CommitForm from "./CommitForm.js";
 import "./style.css";
 
-function stageFile(e: h.JSX.TargetedEvent<HTMLButtonElement, MouseEvent>) {
+function stageFile(e: TargetedEvent<HTMLButtonElement, MouseEvent>) {
   const path = e.currentTarget.dataset.path;
   if (!path) {
     return;
@@ -22,14 +22,14 @@ function stageAllChanges() {
 function unstageAllChanges() {
   return ipcGetData(IpcAction.UNSTAGE_ALL, null);
 }
-function unstageFile(e: h.JSX.TargetedEvent<HTMLButtonElement, MouseEvent>) {
+function unstageFile(e: TargetedEvent<HTMLButtonElement, MouseEvent>) {
   const path = e.currentTarget.dataset.path;
   if (!path) {
     return;
   }
   return ipcGetData(IpcAction.UNSTAGE_FILE, path);
 }
-function discard(e: h.JSX.TargetedEvent<HTMLButtonElement, MouseEvent>) {
+function discard(e: TargetedEvent<HTMLButtonElement, MouseEvent>) {
   const path = e.currentTarget.dataset.path;
   if (!path) {
     return;

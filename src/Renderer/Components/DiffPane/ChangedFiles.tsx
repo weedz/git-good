@@ -1,4 +1,9 @@
-import { Component, type h } from "preact";
+import {
+  Component,
+  type MouseEventHandler,
+  type TargetedKeyboardEvent,
+  type TargetedMouseEvent,
+} from "preact";
 import { type CommitObj, type PatchObj } from "../../../Common/Actions.js";
 import { DiffDelta } from "../../../Common/Utils.js";
 import { LinkTypes } from "../../../Common/WindowEventTypes.js";
@@ -11,7 +16,7 @@ import { getFileCssClass, getType } from "./utility.js";
 
 interface ButtonAction {
   label: string;
-  click: h.JSX.MouseEventHandler<HTMLButtonElement>;
+  click: MouseEventHandler<HTMLButtonElement>;
 }
 type Props = (
   | {
@@ -84,7 +89,7 @@ function checkActions(patch: PatchObj, actions: ButtonAction[]): ButtonAction[] 
 function renderPaths(
   patches: PatchObj[],
   actions: ButtonAction[],
-  contextMenu: (e: h.JSX.TargetedMouseEvent<HTMLLIElement>) => void,
+  contextMenu: (e: TargetedMouseEvent<HTMLLIElement>) => void,
   selectAction: (data: Link<PatchObj>) => void,
 ) {
   const paths = [];
@@ -126,7 +131,7 @@ function renderPaths(
 function renderTree(
   tree: Tree<PatchObj>,
   actions: ButtonAction[],
-  contextMenu: (e: h.JSX.TargetedMouseEvent<HTMLLIElement>) => void,
+  contextMenu: (e: TargetedMouseEvent<HTMLLIElement>) => void,
   selectAction: (data: Link<PatchObj>) => void,
   indent = 0,
 ) {
@@ -185,7 +190,7 @@ function renderTree(
 function renderTreeFromPatches(
   patches: PatchObj[],
   actions: ButtonAction[],
-  contextMenu: (e: h.JSX.TargetedMouseEvent<HTMLLIElement>) => void,
+  contextMenu: (e: TargetedMouseEvent<HTMLLIElement>) => void,
   selectAction: (data: Link<PatchObj>) => void,
 ) {
   const tree = pathsToTree(patches);
@@ -231,13 +236,13 @@ export default class ChangedFiles extends Component<Props, State> {
       });
     }
   };
-  filterFiles = (e: h.JSX.TargetedKeyboardEvent<HTMLInputElement>) => {
+  filterFiles = (e: TargetedKeyboardEvent<HTMLInputElement>) => {
     this.setState({
       fileFilter: e.currentTarget.value.toLocaleLowerCase(),
     });
   };
 
-  fileContextMenu = (e: h.JSX.TargetedMouseEvent<HTMLLIElement>) => {
+  fileContextMenu = (e: TargetedMouseEvent<HTMLLIElement>) => {
     showFileMenu(e, "commit" in this.props ? this.props.commit.sha : undefined);
   };
   render() {

@@ -1,4 +1,4 @@
-import type { JSX } from "preact";
+import type { TargetedMouseEvent } from "preact";
 
 export interface Tree<NodeType = unknown> {
   item?: NodeType;
@@ -19,7 +19,7 @@ export function ensureTreePath(tree: Tree, segments: string[]): Tree {
   return root;
 }
 
-export function toggleTreeItem(e: JSX.TargetedMouseEvent<HTMLAnchorElement>) {
+export function toggleTreeItem(e: TargetedMouseEvent<HTMLAnchorElement>) {
   e.preventDefault();
   const parent = e.currentTarget.parentElement;
   if (parent) {

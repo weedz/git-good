@@ -1,4 +1,4 @@
-import { Fragment, type h } from "preact";
+import { Fragment, type TargetedInputEvent } from "preact";
 
 import type {
   IpcActionParams,
@@ -160,7 +160,7 @@ class CommitList extends PureStoreComponent<unknown, State> {
 
     this.handleCommits(result);
   };
-  filter = (e: h.JSX.TargetedInputEvent<HTMLInputElement>) => {
+  filter = (e: TargetedInputEvent<HTMLInputElement>) => {
     const filterValue = e.currentTarget.value.toLocaleLowerCase();
     if (filterValue !== this.state.filter) {
       this.setState({ filter: filterValue });

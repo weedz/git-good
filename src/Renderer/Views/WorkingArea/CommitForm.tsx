@@ -1,4 +1,4 @@
-import { type h } from "preact";
+import { type TargetedEvent } from "preact";
 import { IpcAction } from "../../../Common/Actions.js";
 import { commit } from "../../Data/index.js";
 import { ipcSendMessage } from "../../Data/IPC.js";
@@ -26,7 +26,7 @@ export default class CommitForm extends StoreComponent<Props, State> {
     this.listen("commitMsg", (commitMsg) => this.setState({ commitMsg }));
   }
 
-  setAmend = (e: h.JSX.TargetedEvent<HTMLInputElement, MouseEvent>) => {
+  setAmend = (e: TargetedEvent<HTMLInputElement, MouseEvent>) => {
     const target = e.currentTarget;
     if (target.checked !== this.state.amend) {
       const amend = target.checked;
@@ -142,7 +142,7 @@ export default class CommitForm extends StoreComponent<Props, State> {
           name="summary"
           placeholder="Summary"
           value={this.state.commitMsg.summary}
-          onKeyUp={(e: h.JSX.TargetedEvent<HTMLInputElement, KeyboardEvent>) => {
+          onKeyUp={(e: TargetedEvent<HTMLInputElement, KeyboardEvent>) => {
             this.updateMessage({ summary: e.currentTarget.value });
           }}
         />
@@ -151,7 +151,7 @@ export default class CommitForm extends StoreComponent<Props, State> {
           id="commit-msg"
           name="msg"
           placeholder="Description"
-          onKeyUp={(e: h.JSX.TargetedEvent<HTMLTextAreaElement, KeyboardEvent>) => {
+          onKeyUp={(e: TargetedEvent<HTMLTextAreaElement, KeyboardEvent>) => {
             this.updateMessage({ body: e.currentTarget.value });
           }}
           value={this.state.commitMsg.body}

@@ -1,4 +1,4 @@
-import { Component, Fragment, type h } from "preact";
+import { Component, Fragment, type TargetedEvent } from "preact";
 import { type AppConfig, type GpgConfig } from "../../../../Common/Config.js";
 import { selectFile } from "../../../Data/Utility.js";
 
@@ -21,7 +21,7 @@ export class Profile extends Component<Props, State> {
       showUserPass: false,
     };
   }
-  setAuth = (e: h.JSX.TargetedEvent<HTMLInputElement, Event>) => {
+  setAuth = (e: TargetedEvent<HTMLInputElement, Event>) => {
     this.setConfigKey("authType", e.currentTarget.value as State["config"]["authType"]);
   };
 

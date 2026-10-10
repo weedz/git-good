@@ -1,4 +1,4 @@
-import { Fragment, type h } from "preact";
+import { Fragment, type TargetedKeyboardEvent } from "preact";
 import { type BranchesObj, Locks } from "../../../Common/Actions.js";
 import { lockChanged, PureStoreComponent, Store, type StoreType } from "../../Data/store.js";
 import BranchList from "./BranchList.js";
@@ -40,7 +40,7 @@ class Branches extends PureStoreComponent<unknown, State> {
     });
   };
 
-  filter = (e: h.JSX.TargetedKeyboardEvent<HTMLInputElement>) => {
+  filter = (e: TargetedKeyboardEvent<HTMLInputElement>) => {
     if (Store.branches && e.currentTarget.value !== this.state.filter) {
       const filterValue = e.currentTarget.value.toLocaleLowerCase();
       this.setState({

@@ -1,4 +1,4 @@
-import { type h } from "preact";
+import { type CSSProperties } from "preact";
 import { type BranchObj, type LoadCommitReturn, RefType } from "../../../Common/Actions.js";
 import { LinkTypes } from "../../../Common/WindowEventTypes.js";
 import { setDiffpaneSrc, Store } from "../../Data/store.js";
@@ -16,7 +16,7 @@ type Props = {
     }
   >;
   commit: LoadCommitReturn;
-  style: h.JSX.CSSProperties;
+  style: CSSProperties;
 };
 
 interface CommonProps {

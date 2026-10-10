@@ -1,4 +1,4 @@
-import { type h } from "preact";
+import { type TargetedMouseEvent } from "preact";
 import type { BranchesObj, BranchObj } from "../../../Common/Actions.js";
 import { store } from "../../Data/store.js";
 import { ensureTreePath, toggleTreeItem, type Tree } from "../../Data/Tree.js";
@@ -25,8 +25,8 @@ function selectAction(c: Link<string>) {
 
 export function RenderBranchTree(props: {
   branches: Tree<BranchObj>;
-  contextMenu?: ((event: h.JSX.TargetedMouseEvent<HTMLAnchorElement>) => void) | undefined;
-  dblClick?: ((event: h.JSX.TargetedMouseEvent<HTMLAnchorElement>) => void) | undefined;
+  contextMenu?: ((event: TargetedMouseEvent<HTMLAnchorElement>) => void) | undefined;
+  dblClick?: ((event: TargetedMouseEvent<HTMLAnchorElement>) => void) | undefined;
   indent: number;
 }) {
   const items = [];
@@ -74,8 +74,8 @@ export function RenderBranchTree(props: {
 
 export function RenderRemotes(props: {
   branches: Tree<BranchObj>;
-  remoteContextMenu: (event: h.JSX.TargetedMouseEvent<HTMLAnchorElement>) => void;
-  contextMenu: (event: h.JSX.TargetedMouseEvent<HTMLAnchorElement>) => void;
+  remoteContextMenu: (event: TargetedMouseEvent<HTMLAnchorElement>) => void;
+  contextMenu: (event: TargetedMouseEvent<HTMLAnchorElement>) => void;
 }) {
   const items = [];
   for (const { 0: item, 1: child } of props.branches.children.entries()) {
