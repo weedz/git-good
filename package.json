@@ -35,14 +35,14 @@
     "nodegit": "github:weedz/nodegit#master"
   },
   "devDependencies": {
-    "@types/node": "^24.13.3",
+    "@types/node": "24",
     "@types/nodegit": "^0.28.11",
     "@weedzcokie/store": "^2.0.3",
-    "electron": "44.7.0",
+    "electron": "45.0.0",
     "esbuild": "^0.28.2",
-    "oxfmt": "^0.72.0",
-    "oxlint": "^1.87.0",
-    "oxlint-tsgolint": "^7.0.2003",
+    "oxfmt": "^0.74.0",
+    "oxlint": "^1.89.0",
+    "oxlint-tsgolint": "^7.0.2005",
     "preact": "^11.0.1",
     "typescript": "^7.0.2"
   },
@@ -50,7 +50,7 @@
     "node": ">=22",
     "pnpm": ">=10"
   },
-  "packageManager": "pnpm@12.11.2+sha512.25a51652a196785af5f28bda6dfe8dc582ebefa4ac1d180221ce1390231c5fb76637822ea4b6e4633ce74acdcb0a77f725af11bad38177fdeddaee818a955cb9",
+  "packageManager": "pnpm@12.15.0+sha512.b3951d6d6ff4a9f13dc7cf56cd28d2b8eb37dbcc9c68e52e1e1191873ea9f82a017287ab50baadc5ccc494f036c67c0e47eb13608c2fa36f47711b61ea128e61",
   "build": {
     "appId": "git-good",
     "afterPack": "./scripts/after-pack.cjs",
